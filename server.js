@@ -156,6 +156,18 @@ const serveStatic = (req, res, parsed) => {
 const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url);
 
+  // outbound IP for Nafath whitelist
+  if (parsed.pathname === '/myip') {
+    try {
+      const r = await fetch('https://ifconfig.me/ip');
+      const ip = (await r.text()).trim();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ outboundIp: ip }));
+    } catch(e) {
+      res.writeHead(500); return res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
   // health check
   if (parsed.pathname === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
