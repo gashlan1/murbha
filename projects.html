@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>المشاريع — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: 70px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 12px 18px 8px; display: flex; align-items: center; gap: 10px; }
+  .nav h1 {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--green-dark);
+    flex: 1;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(13,22,18,0.05);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+
+  /* Search */
+  .search-row {
+    padding: 4px 18px 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .search-input {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px 12px 40px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7268' stroke-width='2'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+    background-size: 18px;
+  }
+  .search-input:focus { outline: none; border-color: var(--green); }
+  .filter-btn {
+    background: var(--green-dark);
+    color: var(--gold-light);
+    border: none;
+    border-radius: 12px;
+    padding: 0 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Filter chips */
+  .chips-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 0 18px 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    padding: 7px 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .chip:active { transform: scale(0.95); }
+  .chip.active {
+    background: var(--green-dark);
+    color: var(--paper);
+    border-color: var(--green-dark);
+  }
+
+  /* Stats banner */
+  .stats-banner {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    background: linear-gradient(135deg, var(--green-dark), #051a12);
+    color: #fff;
+    margin: 0 18px 14px;
+    border-radius: 14px;
+    padding: 14px 0;
+  }
+  .stat-cell {
+    text-align: center;
+    border-inline-end: 1px solid rgba(255,255,255,0.12);
+  }
+  .stat-cell:last-child { border-inline-end: none; }
+  .stat-cell-v {
+    font-family: 'Cairo';
+    font-weight: 900;
+    color: var(--gold-light);
+    font-size: 18px;
+    line-height: 1;
+  }
+  .stat-cell-l {
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+  }
+
+  /* Section title */
+  .section-title {
+    padding: 6px 18px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title h3 {
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--green-dark);
+  }
+  .section-title .count {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Project card */
+  .project-card {
+    background: #fff;
+    margin: 0 18px 12px;
+    border-radius: 16px;
+    border: 0.5px solid var(--line);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--ink);
+    display: block;
+    transition: transform .15s;
+  }
+  .project-card:active { transform: scale(0.985); }
+  .pc-header {
+    height: 80px;
+    background: linear-gradient(135deg, #1a4d6e, #0a2538);
+    position: relative;
+    overflow: hidden;
+  }
+  .pc-header::before {
+    content:'';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><g fill='none' stroke='%23b08840' stroke-width='0.5' opacity='0.18'><path d='M20 0 L40 20 L20 40 L0 20 Z'/></g></svg>");
+    background-size: 30px;
+  }
+  .pc-header.gov { background: linear-gradient(135deg, var(--green), var(--green-dark)); }
+  .pc-header.priv { background: linear-gradient(135deg, var(--gold), #6f522a); }
+  .pc-header.tour { background: linear-gradient(135deg, #c97a4e, #7a3a1d); }
+  .pc-header.tech { background: linear-gradient(135deg, #4f46e5, #1e1b4b); }
+  .pc-tags {
+    position: absolute;
+    top: 10px;
+    inset-inline-start: 10px;
+    display: flex;
+    gap: 4px;
+  }
+  .pc-tag {
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.95);
+    color: var(--green-dark);
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 800;
+  }
+  .pc-tag.hot { background: var(--red); color: #fff; }
+  .pc-tag.shariah { background: var(--green-soft); color: var(--gold-light); }
+  .pc-icon {
+    position: absolute;
+    bottom: -18px;
+    inset-inline-start: 14px;
+    width: 44px; height: 44px;
+    background: #fff;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0.5px solid var(--line);
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--green-dark);
+  }
+  .pc-body {
+    padding: 24px 14px 14px;
+  }
+  .pc-name {
+    font-family: 'Cairo';
+    font-weight: 800;
+    color: var(--green-dark);
+    font-size: 15px;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .pc-loc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .pc-progress {
+    height: 5px;
+    background: var(--paper-2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .pc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold));
+    border-radius: 3px;
+  }
+  .pc-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .pc-progress-meta b { color: var(--green-dark); font-family: 'Cairo'; font-weight: 700; }
+  .pc-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 0.5px dashed var(--line-strong);
+  }
+  .pc-stat {
+    text-align: center;
+  }
+  .pc-stat-l {
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .pc-stat-v {
+    font-family: 'Cairo';
+    font-weight: 800;
+    color: var(--green-dark);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pc-stat-v.return { color: var(--green); }
+
+  /* Tab bar (same as portfolio) */
+  .tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 0.5px solid var(--line);
+    padding-bottom: var(--safe-bot);
+    z-index: 90;
+    height: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  .tabbar-inner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--tabbar-h);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    height: 100%;
+  }
+  .tab:active { transform: scale(0.93); }
+  .tab.active { color: var(--green-dark); }
+  .tab.active svg { color: var(--green); }
+  .tab.invest {
+    background: var(--green-dark);
+    color: var(--gold-light);
+    border-radius: 18px;
+    margin: 6px 4px;
+    height: calc(100% - 12px);
+  }
+  .tab.invest svg { color: var(--gold-light); }
+
+  @media (min-width: 768px) {
+    body { padding-bottom: var(--safe-bot); }
+    .tabbar { display: none; }
+    main { max-width: 760px; margin: 0 auto; }
+  }
+</style>
+    <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
+    <meta name="description" content="أُولى الفرص الاستثمارية المتوافقة مع الشريعة على منصّة مُرابحة تُعلَن قريباً. سجّل في قائمة الانتظار لتكون من أوائل المستثمرين." />
+    <meta name="author" content="مُرابحة" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://murabaha.example.sa/projects.html" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="مُرابحة" />
+    <meta property="og:locale" content="ar_SA" />
+    <meta property="og:title" content="المشاريع — مُرابحة" />
+    <meta property="og:description" content="أُولى الفرص الاستثمارية المتوافقة مع الشريعة على منصّة مُرابحة تُعلَن قريباً. سجّل في قائمة الانتظار لتكون من أوائل المستثمرين." />
+    <meta property="og:url" content="https://murabaha.example.sa/projects.html" />
+    <meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="مُرابحة — منصّة الاستثمار الإسلامي" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="المشاريع — مُرابحة" />
+    <meta name="twitter:description" content="أُولى الفرص الاستثمارية المتوافقة مع الشريعة على منصّة مُرابحة تُعلَن قريباً. سجّل في قائمة الانتظار لتكون من أوائل المستثمرين." />
+    <meta name="twitter:image" content="https://murabaha.example.sa/og-image.svg" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- END: managed-seo-meta -->
+      <link rel="stylesheet" href="/assets/site.css" />
+      <!-- BEGIN: managed-jsonld (do not edit by hand) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "@id": "https://murabaha.example.sa/#organization",
+  "name": "مُرابحة",
+  "alternateName": "Murabaha",
+  "url": "https://murabaha.example.sa",
+  "logo": "https://murabaha.example.sa/favicon.svg",
+  "image": "https://murabaha.example.sa/og-image.svg",
+  "description": "منصّة استثمار إسلامية متوافقة مع الشريعة، تتيح المشاركة في مشاريع رؤية ٢٠٣٠ عبر عقود المرابحة بإشراف هيئة شرعية.",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  },
+  "availableLanguage": [
+    "ar",
+    "en"
+  ],
+  "currenciesAccepted": "SAR",
+  "paymentAccepted": [
+    "Mada",
+    "Apple Pay",
+    "STC Pay",
+    "Sadad"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://murabaha.example.sa/#website",
+  "url": "https://murabaha.example.sa",
+  "name": "مُرابحة",
+  "inLanguage": "ar-SA",
+  "publisher": {
+    "@id": "https://murabaha.example.sa/#organization"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "الرئيسية",
+      "item": "https://murabaha.example.sa/hessa.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "المشاريع",
+      "item": "https://murabaha.example.sa/projects.html"
+    }
+  ]
+}
+</script>
+<!-- END: managed-jsonld -->
+  </head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <h1>المشاريع</h1>
+    <a href="notifications.html" class="icon-btn" aria-label="إشعارات">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </a>
+  </nav>
+
+  <div class="search-row">
+    <input class="search-input" type="search" placeholder="ابحث عن مشروع، قطاع، أو مدينة..." />
+    <button class="filter-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/></svg>
+      تصفية
+    </button>
+  </div>
+
+  <div class="chips-row">
+    <button class="chip active">الكل</button>
+    <button class="chip">عقار سكني</button>
+    <button class="chip">سياحة وترفيه</button>
+    <button class="chip">شركات خاصة</button>
+    <button class="chip">تقنية</button>
+    <button class="chip">صناعي</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Coming soon hero — platform launching, no live opportunities yet -->
+  <section class="cs-hero" aria-labelledby="cs-title">
+    <div class="cs-badge">🚀 قريباً</div>
+    <h2 id="cs-title">أُولى الفرص على وشك الإعلان</h2>
+    <p class="cs-lede">
+      فرص <b>مُرابحة</b> عبارة عن دخولك <b>بائعاً</b> في عقود مرابحة
+      على سلع وخدمات تحتاجها شركات سعودية لتنفيذ <b>عقود مُسندة</b> إليها من جهات
+      حكومية وخاصة. تستردّ رأس مالك + ربحاً معلوماً خلال <b>٦ أو ١٢ أو ١٨ شهراً</b>.
+    </p>
+
+    <ul class="cs-points">
+      <li><span class="cs-tick">✓</span> عقود مُسندة وموثّقة من جهات حكومية وخاصة</li>
+      <li><span class="cs-tick">✓</span> هيئة شرعية تجيز بيع المرابحة لكل فرصة</li>
+      <li><span class="cs-tick">✓</span> ربح معلوم ومدّة محددة منذ التوقيع — بلا غرر</li>
+      <li><span class="cs-tick">✓</span> تحقّق هوية عبر <b>نفاذ</b> وتوقيع إلكتروني</li>
+    </ul>
+
+    <form class="cs-notify" onsubmit="return notifyMe(event)">
+      <label for="cs-email" class="visually-hidden">بريدك الإلكتروني</label>
+      <input id="cs-email" type="email" required placeholder="بريدك الإلكتروني" />
+      <button type="submit" class="cs-cta">أَبلِغني عند الإطلاق</button>
+    </form>
+    <p class="cs-note" id="cs-note" hidden>✓ تم تسجيلك. سنراسلك فور إتاحة أوّل فرصة.</p>
+
+    <div class="cs-meta">
+      <a href="sharia.html" class="cs-link">اقرأ فتوى الهيئة الشرعية ←</a>
+      <a href="help.html" class="cs-link">تواصل معنا ←</a>
+    </div>
+  </section>
+
+  <style>
+    .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .cs-hero {
+      background: linear-gradient(160deg, #062b1e 0%, #0a3d2c 100%);
+      color: #fbf6ea;
+      border-radius: 22px;
+      padding: 36px 22px 30px;
+      margin: 8px 14px 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 50px -20px rgba(6,43,30,0.55);
+    }
+    .cs-hero::before {
+      content: ''; position: absolute; inset-block-start: -120px; inset-inline-end: -80px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(176,136,64,0.35) 0%, rgba(176,136,64,0) 70%);
+      pointer-events: none;
+    }
+    .cs-badge {
+      display: inline-block; background: rgba(176,136,64,0.18);
+      color: #f3d9a3; border: 1px solid rgba(176,136,64,0.45);
+      padding: 6px 14px; border-radius: 999px;
+      font: 800 12px/1 'Tajawal', sans-serif; letter-spacing: 0.4px;
+      margin-bottom: 14px;
+    }
+    .cs-hero h2 {
+      font: 900 26px/1.35 'Cairo', 'Tajawal', sans-serif;
+      margin: 0 0 10px; color: #fff;
+    }
+    .cs-lede {
+      font: 500 15px/1.85 'Tajawal', sans-serif;
+      color: rgba(251,246,234,0.88);
+      margin: 0 0 18px;
+    }
+    .cs-lede b { color: #f3d9a3; font-weight: 800; }
+    .cs-points {
+      list-style: none; padding: 0; margin: 0 0 22px;
+      display: grid; gap: 8px;
+    }
+    .cs-points li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font: 600 14px/1.55 'Tajawal', sans-serif;
+      color: rgba(251,246,234,0.92);
+    }
+    .cs-points li b { color: #f3d9a3; }
+    .cs-tick {
+      display: inline-flex; flex: 0 0 22px; width: 22px; height: 22px;
+      border-radius: 50%; background: rgba(176,136,64,0.25);
+      color: #f3d9a3; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; margin-top: 2px;
+    }
+    .cs-notify {
+      display: flex; gap: 8px; flex-direction: column;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(176,136,64,0.25);
+      padding: 10px; border-radius: 14px;
+    }
+    .cs-notify input {
+      background: rgba(0,0,0,0.25); color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; padding: 12px 14px;
+      font: 500 15px 'Tajawal', sans-serif;
+      direction: ltr; text-align: right;
+    }
+    .cs-notify input::placeholder { color: rgba(255,255,255,0.55); text-align: right; }
+    .cs-notify input:focus { outline: 2px solid #b08840; outline-offset: 1px; border-color: #b08840; }
+    .cs-cta {
+      background: #b08840; color: #062b1e; border: 0;
+      border-radius: 10px; padding: 13px 18px;
+      font: 800 15px 'Cairo', sans-serif; cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .cs-cta:hover  { background: #c9a25a; }
+    .cs-cta:active { transform: scale(0.98); }
+    .cs-note {
+      margin: 12px 0 0; font: 700 13px 'Tajawal', sans-serif;
+      color: #b6e8b6; text-align: center;
+    }
+    .cs-meta {
+      display: flex; justify-content: space-between; gap: 12px;
+      margin-top: 18px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .cs-link {
+      color: #f3d9a3; text-decoration: none;
+      font: 700 13px 'Tajawal', sans-serif;
+    }
+    .cs-link:hover { color: #fff; }
+
+    /* Why-Murabaha card grid below the hero */
+    .why-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; padding: 0 14px 22px;
+    }
+    .why-card {
+      background: #fff; border: 1px solid #eadfc4;
+      border-radius: 16px; padding: 16px 14px;
+    }
+    .why-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: #fbf6ea; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 10px;
+    }
+    .why-title  { font: 800 14px/1.3 'Cairo', sans-serif; color: #062b1e; margin-bottom: 4px; }
+    .why-desc   { font: 500 12px/1.55 'Tajawal', sans-serif; color: #5a5a5a; }
+  </style>
+
+  <!-- Why Murabaha -->
+  <div class="section-title">
+    <h3>ماذا يميّز مُرابحة؟</h3>
+  </div>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">🏢</div>
+      <div class="why-title">عقود مُسندة</div>
+      <div class="why-desc">كل فرصة تستند إلى عقد حقيقي فازت به شركة سعودية معتمدة.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">☚</div>
+      <div class="why-title">بيع مرابحة صحيح</div>
+      <div class="why-desc">سلعة/خدمة حقيقية تُباع بربح معلوم وأجل محدّد — لا فوائد ربوية.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">⏱</div>
+      <div class="why-title">جدول واضح</div>
+      <div class="why-desc">دفعات شهرية تربطها بمستحقّات الجهة المتعاقدة خلال ٦، ١٢، أو ١٨ شهراً.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🪪</div>
+      <div class="why-title">توثيق بنفاذ</div>
+      <div class="why-desc">تحقّق هوية وتوقيع إلكتروني على عقد المرابحة بأعلى معايير الحماية.</div>
+    </div>
+  </div>
+
+  <script>
+    function notifyMe(e) {
+      e.preventDefault();
+      const note = document.getElementById('cs-note');
+      const form = e.target;
+      try {
+        const list = JSON.parse(localStorage.getItem('murabaha_waitlist') || '[]');
+        const email = form.querySelector('#cs-email').value.trim();
+        if (email && !list.includes(email)) list.push(email);
+        localStorage.setItem('murabaha_waitlist', JSON.stringify(list));
+      } catch (_) {}
+      note.hidden = false;
+      form.querySelector('button').disabled = true;
+      form.querySelector('button').textContent = '✓ تمّ التسجيل';
+      return false;
+    }
+  </script>
+
+</main>
+
+<!-- Tab bar -->
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <a href="hessa.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+      <span>الرئيسية</span>
+    </a>
+    <a href="projects.html" class="tab active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>المشاريع</span>
+    </a>
+    <a href="auth.html?mode=register" class="tab invest">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
+      <span style="color:#fff;">شارك</span>
+    </a>
+    <a href="portfolio.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      <span>محفظتي</span>
+    </a>
+    <a href="profile.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+      <span>حسابي</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>حسابي — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: 70px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+  .nav h1 {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--green-dark);
+    flex: 1;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(13,22,18,0.05);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+
+  /* Profile card */
+  .profile-card {
+    margin: 18px;
+    background: linear-gradient(135deg, var(--green-dark) 0%, #051a12 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(6,43,30,0.25);
+  }
+  .profile-card::before {
+    content:''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 90% 20%, rgba(176,136,64,0.25), transparent 50%);
+  }
+  .profile-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #6f522a);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 26px;
+    color: #fff;
+    flex-shrink: 0;
+    border: 3px solid rgba(255,255,255,0.2);
+  }
+  .pinfo {
+    flex: 1;
+    min-width: 0;
+  }
+  .pinfo h2 {
+    font-family: 'Cairo';
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+  .pinfo .pid {
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    text-align: start;
+  }
+  .verified-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #16a34a;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 800;
+    margin-top: 6px;
+  }
+  .pcard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    position: relative;
+  }
+  .pcs-cell { text-align: center; }
+  .pcs-v {
+    font-family: 'Cairo';
+    font-weight: 800;
+    color: var(--gold-light);
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pcs-l { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+  /* Member tier banner */
+  .tier-banner {
+    margin: 0 18px 18px;
+    background: linear-gradient(135deg, #fef9ed, var(--paper-2));
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .tier-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--gold), #6f522a);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .tier-text h4 {
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--green-dark);
+  }
+  .tier-text p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .tier-text b { color: var(--gold); }
+
+  /* Settings group */
+  .settings-group {
+    background: #fff;
+    margin: 0 18px 14px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 0.5px solid var(--line);
+  }
+  .settings-h {
+    padding: 12px 16px 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    background: var(--paper);
+  }
+  .setting-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    padding: 14px 16px;
+    align-items: center;
+    border-bottom: 0.5px solid var(--line);
+    text-decoration: none;
+    color: var(--ink);
+    cursor: pointer;
+    background: transparent;
+    border-left: none;
+    border-right: none;
+    width: 100%;
+    text-align: start;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .setting-row:active { background: var(--paper); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .setting-icon.warning { background: rgba(181,73,53,0.1); color: var(--red); }
+  .setting-info {
+    min-width: 0;
+  }
+  .setting-name {
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .setting-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .setting-meta {
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .setting-meta b { color: var(--green); font-family: 'Cairo'; }
+  .setting-meta svg { color: var(--muted); }
+  .toggle {
+    width: 44px; height: 26px;
+    background: var(--line-strong);
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 22px; height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    inset-inline-end: 2px;
+    transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle.on { background: var(--green); }
+  .toggle.on::after { transform: translateX(18px); }
+  [dir="rtl"] .toggle.on::after { transform: translateX(-18px); }
+
+  /* Tab bar */
+  .tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--line);
+    padding-bottom: var(--safe-bot);
+    z-index: 90;
+    height: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  .tabbar-inner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--tabbar-h);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    height: 100%;
+  }
+  .tab:active { transform: scale(0.93); }
+  .tab.active { color: var(--green-dark); }
+  .tab.active svg { color: var(--green); }
+  .tab.invest {
+    background: var(--green-dark);
+    color: var(--gold-light);
+    border-radius: 18px;
+    margin: 6px 4px;
+    height: calc(100% - 12px);
+  }
+  .tab.invest svg { color: var(--gold-light); }
+
+  /* App version footer */
+  .app-version {
+    text-align: center;
+    padding: 24px 18px 12px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  @media (min-width: 768px) {
+    body { padding-bottom: var(--safe-bot); }
+    .tabbar { display: none; }
+    main { max-width: 760px; margin: 0 auto; }
+  }
+</style>
+    <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
+    <meta name="description" content="إعدادات الحساب، الأمان، الوثائق، والتفضيلات. أدِر بياناتك الشخصية وحسابك البنكي بكل خصوصية." />
+    <meta name="author" content="مُرابحة" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://murabaha.example.sa/profile.html" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="مُرابحة" />
+    <meta property="og:locale" content="ar_SA" />
+    <meta property="og:title" content="حسابي — مُرابحة" />
+    <meta property="og:description" content="إعدادات الحساب، الأمان، الوثائق، والتفضيلات. أدِر بياناتك الشخصية وحسابك البنكي بكل خصوصية." />
+    <meta property="og:url" content="https://murabaha.example.sa/profile.html" />
+    <meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="مُرابحة — منصّة الاستثمار الإسلامي" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="حسابي — مُرابحة" />
+    <meta name="twitter:description" content="إعدادات الحساب، الأمان، الوثائق، والتفضيلات. أدِر بياناتك الشخصية وحسابك البنكي بكل خصوصية." />
+    <meta name="twitter:image" content="https://murabaha.example.sa/og-image.svg" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- END: managed-seo-meta -->
+      <link rel="stylesheet" href="/assets/site.css" />
+      <!-- BEGIN: managed-jsonld (do not edit by hand) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "@id": "https://murabaha.example.sa/#organization",
+  "name": "مُرابحة",
+  "alternateName": "Murabaha",
+  "url": "https://murabaha.example.sa",
+  "logo": "https://murabaha.example.sa/favicon.svg",
+  "image": "https://murabaha.example.sa/og-image.svg",
+  "description": "منصّة استثمار إسلامية متوافقة مع الشريعة، تتيح المشاركة في مشاريع رؤية ٢٠٣٠ عبر عقود المرابحة بإشراف هيئة شرعية.",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  },
+  "availableLanguage": [
+    "ar",
+    "en"
+  ],
+  "currenciesAccepted": "SAR",
+  "paymentAccepted": [
+    "Mada",
+    "Apple Pay",
+    "STC Pay",
+    "Sadad"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://murabaha.example.sa/#website",
+  "url": "https://murabaha.example.sa",
+  "name": "مُرابحة",
+  "inLanguage": "ar-SA",
+  "publisher": {
+    "@id": "https://murabaha.example.sa/#organization"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "الرئيسية",
+      "item": "https://murabaha.example.sa/hessa.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "حسابي",
+      "item": "https://murabaha.example.sa/profile.html"
+    }
+  ]
+}
+</script>
+<!-- END: managed-jsonld -->
+  </head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <h1>حسابي</h1>
+    <button class="icon-btn" aria-label="إعدادات">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Profile card -->
+  <div class="profile-card">
+    <div class="profile-row">
+      <div class="avatar">عر</div>
+      <div class="pinfo">
+        <h2>عبدالعزيز الراشد</h2>
+        <div class="pid">+966 5X XXX XXXX</div>
+        <span class="verified-pill">⬢ موثّق عبر نفاذ</span>
+      </div>
+    </div>
+    <div class="pcard-stats">
+      <div class="pcs-cell">
+        <div class="pcs-v">٥</div>
+        <div class="pcs-l">استثمار نشط</div>
+      </div>
+      <div class="pcs-cell">
+        <div class="pcs-v">٨٧.٤K</div>
+        <div class="pcs-l">إجمالي المحفظة</div>
+      </div>
+      <div class="pcs-cell">
+        <div class="pcs-v">+٦.٨K</div>
+        <div class="pcs-l">أرباح مستلمة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tier banner -->
+  <div class="tier-banner">
+    <div class="tier-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <div class="tier-text">
+      <h4>عضو ذهبي</h4>
+      <p>سقفك السنوي: <b>٢٠٠,٠٠٠ ر.س</b> • للترقية لمستثمر مؤهل، تواصل معنا</p>
+    </div>
+  </div>
+
+  <!-- Account & Verification -->
+  <div class="settings-group">
+    <div class="settings-h">الحساب والتحقق</div>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">المعلومات الشخصية</div>
+        <div class="setting-sub">الاسم، الجنسية، تاريخ الميلاد</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">حالة التحقق</div>
+        <div class="setting-sub">نفاذ + رقم الجوال + الحساب البنكي</div>
+      </div>
+      <div class="setting-meta">
+        <b>مكتمل</b>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الحساب البنكي</div>
+        <div class="setting-sub">حساب بنكي سعودي • SA**4291</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تقييم الملاءمة المالية</div>
+        <div class="setting-sub">آخر تحديث: ١ شعبان ١٤٤٧</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Security -->
+  <div class="settings-group">
+    <div class="settings-h">الأمان</div>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تغيير كلمة المرور</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <button class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 15c.83 1 2 1.5 3 1.5s2.17-.5 3-1.5"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">Face ID / بصمة الإصبع</div>
+        <div class="setting-sub">دخول سريع للتطبيق</div>
+      </div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </button>
+
+    <button class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تأكيد ثنائي للمعاملات</div>
+        <div class="setting-sub">رمز SMS عند كل استثمار</div>
+      </div>
+      <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+    </button>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الأجهزة المسجّلة</div>
+        <div class="setting-sub">٢ أجهزة نشطة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Documents -->
+  <div class="settings-group">
+    <div class="settings-h">الوثائق والتقارير</div>
+
+    <a href="contract.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">عقودي</div>
+        <div class="setting-sub">٥ عقود مرابحة موقّعة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">كشف الحساب السنوي</div>
+        <div class="setting-sub">للزكاة وضريبة الدخل</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تقارير المشاريع</div>
+        <div class="setting-sub">تقارير ربع سنوية للمشاريع</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Preferences -->
+  <div class="settings-group">
+    <div class="settings-h">التفضيلات</div>
+
+    <a href="notifications.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الإشعارات</div>
+        <div class="setting-sub">SMS، إيميل، إشعارات الجوال</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">اللغة</div>
+        <div class="setting-sub">العربية</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Help -->
+  <div class="settings-group">
+    <div class="settings-h">الدعم والوثائق</div>
+
+    <a href="help.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">مركز المساعدة</div>
+        <div class="setting-sub">FAQ والتواصل مع خدمة العملاء</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="legal.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الوثائق القانونية</div>
+        <div class="setting-sub">الترخيص، الشروط، الخصوصية، الفتوى</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+
+    <a href="#" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تقييم التطبيق</div>
+        <div class="setting-sub">شاركنا رأيك في App Store</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Logout -->
+  <div class="settings-group">
+    <button class="setting-row" onclick="if(confirm('هل تريد تسجيل الخروج؟')) location.href='auth.html';">
+      <div class="setting-icon warning">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name" style="color:var(--red);">تسجيل الخروج</div>
+      </div>
+      <div></div>
+    </button>
+  </div>
+
+  <div class="app-version">
+    منصة مُرابحة • الإصدار 2.4.1<br/>
+    © ١٤٤٧ هـ — جميع الحقوق محفوظة
+  </div>
+
+</main>
+
+<!-- Tab bar -->
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <a href="hessa.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+      <span>الرئيسية</span>
+    </a>
+    <a href="projects.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>المشاريع</span>
+    </a>
+    <a href="auth.html?mode=register" class="tab invest">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
+      <span style="color:#fff;">شارك</span>
+    </a>
+    <a href="portfolio.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      <span>محفظتي</span>
+    </a>
+    <a href="profile.html" class="tab active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+      <span>حسابي</span>
+    </a>
+  </div>
+</nav>
+
+</body>
+</html>

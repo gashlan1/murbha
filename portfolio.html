@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>محفظتي — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --bone: #f5efe2; --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: 70px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+  .nav-title {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--green-dark);
+    flex: 1;
+  }
+  .icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(13,22,18,0.05);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+
+  /* Balance card */
+  .balance-card {
+    margin: 18px;
+    background: linear-gradient(135deg, var(--green-dark) 0%, #051a12 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(6,43,30,0.25);
+  }
+  .balance-card::before {
+    content:''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 90% 20%, rgba(176,136,64,0.25), transparent 50%);
+  }
+  .bc-l { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 4px; position: relative; }
+  .bc-v {
+    font-family: 'Cairo';
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    position: relative;
+    letter-spacing: -0.02em;
+  }
+  .bc-v small { font-size: 16px; color: var(--gold-light); margin-inline-start: 6px; font-weight: 700; }
+  .bc-trend {
+    font-size: 12px;
+    color: #4ade80;
+    margin-bottom: 16px;
+    position: relative;
+    font-weight: 700;
+  }
+  .bc-chart {
+    height: 60px;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .bc-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    position: relative;
+  }
+  .bc-meta-item { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .bc-meta-item b {
+    display: block;
+    color: var(--gold-light);
+    font-size: 16px;
+    font-weight: 800;
+    margin-top: 2px;
+    font-family: 'Cairo';
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Quick actions */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 0 18px;
+    margin-bottom: 22px;
+  }
+  .qa-btn {
+    background: #fff;
+    border: 0.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform .15s;
+  }
+  .qa-btn:active { transform: scale(0.95); }
+  .qa-icon {
+    width: 36px; height: 36px;
+    margin: 0 auto 6px;
+    background: var(--paper);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+  }
+  .qa-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  /* Section */
+  .section {
+    background: #fff;
+    margin: 14px 18px;
+    border-radius: 18px;
+    padding: 18px;
+    border: 0.5px solid var(--line);
+  }
+  .section-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .section-h h3 {
+    font-family: 'Cairo';
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green-dark);
+  }
+  .section-h a {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* Investment row */
+  .inv-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--line);
+    align-items: center;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .inv-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .inv-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .inv-icon.pif { background: linear-gradient(135deg, #1a4d6e, #0a2538); }
+  .inv-icon.priv { background: linear-gradient(135deg, var(--gold), #6f522a); }
+  .inv-icon.gov { background: linear-gradient(135deg, var(--green), var(--green-dark)); }
+  .inv-icon.tourism { background: linear-gradient(135deg, #c97a4e, #7a3a1d); }
+  .inv-info { min-width: 0; }
+  .inv-name {
+    font-family: 'Cairo';
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .inv-status { font-size: 11px; color: var(--muted); }
+  .inv-progress {
+    display: inline-block;
+    width: 50px;
+    height: 3px;
+    background: var(--paper-2);
+    border-radius: 2px;
+    margin-inline-end: 6px;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+  .inv-progress-fill { height: 100%; background: var(--green); border-radius: 2px; }
+  .inv-amts { text-align: end; }
+  .inv-amt {
+    font-family: 'Cairo';
+    font-weight: 800;
+    color: var(--green-dark);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .inv-return {
+    color: #16a34a;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .inv-return::before { content: '+'; }
+
+  /* Transactions */
+  .tx-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--line);
+    align-items: center;
+  }
+  .tx-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .tx-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tx-icon.in { background: rgba(22,163,74,0.12); color: #16a34a; }
+  .tx-icon.out { background: rgba(13,22,18,0.06); color: var(--ink-soft); }
+  .tx-icon.invest { background: rgba(176,136,64,0.15); color: var(--gold); }
+  .tx-info { min-width: 0; }
+  .tx-name {
+    font-family: 'Cairo';
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .tx-date { font-size: 11px; color: var(--muted); }
+  .tx-amt {
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tx-amt.in { color: #16a34a; }
+  .tx-amt.in::before { content: '+'; }
+  .tx-amt.out { color: var(--ink-soft); }
+  .tx-amt.out::before { content: '−'; }
+
+  /* Upcoming payout card */
+  .payout-card {
+    background: linear-gradient(135deg, #fef9ed 0%, var(--paper-2) 100%);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .payout-card-l {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .payout-card-v {
+    font-family: 'Cairo';
+    font-weight: 900;
+    color: var(--green-dark);
+    font-size: 22px;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .payout-card-date {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .payout-countdown {
+    text-align: center;
+  }
+  .pc-num {
+    font-family: 'Cairo';
+    font-weight: 900;
+    color: var(--gold);
+    font-size: 22px;
+  }
+  .pc-l {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* Tab bar */
+  .tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 0.5px solid var(--line);
+    padding-bottom: var(--safe-bot);
+    z-index: 90;
+    height: calc(var(--tabbar-h) + var(--safe-bot));
+  }
+  .tabbar-inner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--tabbar-h);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    height: 100%;
+  }
+  .tab:active { transform: scale(0.93); }
+  .tab.active { color: var(--green-dark); }
+  .tab.active svg { color: var(--green); }
+  .tab.invest {
+    background: var(--green-dark);
+    color: var(--gold-light);
+    border-radius: 18px;
+    margin: 6px 4px;
+    height: calc(100% - 12px);
+  }
+  .tab.invest svg { color: var(--gold-light); }
+
+  @media (min-width: 768px) {
+    body { font-size: 16px; padding-bottom: var(--safe-bot); }
+    .tabbar { display: none; }
+    .balance-card, .quick-actions, .section { max-width: 760px; margin-left: auto; margin-right: auto; }
+  }
+</style>
+    <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
+    <meta name="description" content="تابع استثماراتك، أرباحك المتوقّعة، رصيدك، وحركاتك المالية في لوحة المحفظة الموحّدة." />
+    <meta name="author" content="مُرابحة" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://murabaha.example.sa/portfolio.html" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="مُرابحة" />
+    <meta property="og:locale" content="ar_SA" />
+    <meta property="og:title" content="محفظتي — مُرابحة" />
+    <meta property="og:description" content="تابع استثماراتك، أرباحك المتوقّعة، رصيدك، وحركاتك المالية في لوحة المحفظة الموحّدة." />
+    <meta property="og:url" content="https://murabaha.example.sa/portfolio.html" />
+    <meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="مُرابحة — منصّة الاستثمار الإسلامي" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="محفظتي — مُرابحة" />
+    <meta name="twitter:description" content="تابع استثماراتك، أرباحك المتوقّعة، رصيدك، وحركاتك المالية في لوحة المحفظة الموحّدة." />
+    <meta name="twitter:image" content="https://murabaha.example.sa/og-image.svg" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- END: managed-seo-meta -->
+      <link rel="stylesheet" href="/assets/site.css" />
+      <!-- BEGIN: managed-jsonld (do not edit by hand) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "@id": "https://murabaha.example.sa/#organization",
+  "name": "مُرابحة",
+  "alternateName": "Murabaha",
+  "url": "https://murabaha.example.sa",
+  "logo": "https://murabaha.example.sa/favicon.svg",
+  "image": "https://murabaha.example.sa/og-image.svg",
+  "description": "منصّة استثمار إسلامية متوافقة مع الشريعة، تتيح المشاركة في مشاريع رؤية ٢٠٣٠ عبر عقود المرابحة بإشراف هيئة شرعية.",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  },
+  "availableLanguage": [
+    "ar",
+    "en"
+  ],
+  "currenciesAccepted": "SAR",
+  "paymentAccepted": [
+    "Mada",
+    "Apple Pay",
+    "STC Pay",
+    "Sadad"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://murabaha.example.sa/#website",
+  "url": "https://murabaha.example.sa",
+  "name": "مُرابحة",
+  "inLanguage": "ar-SA",
+  "publisher": {
+    "@id": "https://murabaha.example.sa/#organization"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "الرئيسية",
+      "item": "https://murabaha.example.sa/hessa.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "المحفظة",
+      "item": "https://murabaha.example.sa/portfolio.html"
+    }
+  ]
+}
+</script>
+<!-- END: managed-jsonld -->
+  </head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <h1 class="nav-title">محفظتي</h1>
+    <button class="icon-btn" aria-label="بحث">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </button>
+    <a href="notifications.html" class="icon-btn" aria-label="إشعارات">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </a>
+  </nav>
+</header>
+
+<!-- Balance card — empty state (pre-launch) -->
+<div class="balance-card" aria-label="محفظة فارغة — المنصّة قيد الإطلاق">
+  <div class="bc-l">
+    <span style="display:inline-block;background:rgba(212,172,110,0.22);color:#d4ac6e;padding:3px 10px;border-radius:999px;font-weight:800;font-size:11px;margin-inline-end:6px;">قريباً</span>
+    إجمالي قيمة المحفظة
+  </div>
+  <div class="bc-v">٠ <small>ر.س</small></div>
+  <div class="bc-trend" style="color:rgba(255,255,255,0.55);">لم تبدأ الاستثمار بعد</div>
+  <div class="bc-chart" aria-hidden="true">
+    <svg viewBox="0 0 400 60" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.4;">
+      <path d="M0,30 L400,30" fill="none" stroke="#d4ac6e" stroke-width="2" stroke-dasharray="4 4"/>
+    </svg>
+  </div>
+  <div class="bc-meta">
+    <div class="bc-meta-item">
+      الأرباح المستلمة
+      <b>—</b>
+    </div>
+    <div class="bc-meta-item">
+      الدفعة القادمة
+      <b>—</b>
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="quick-actions">
+  <a href="hessa.html#projects" class="qa-btn">
+    <div class="qa-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+    </div>
+    <div class="qa-label">استثمار جديد</div>
+  </a>
+  <a href="#" class="qa-btn">
+    <div class="qa-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg>
+    </div>
+    <div class="qa-label">سحب</div>
+  </a>
+  <a href="#" class="qa-btn">
+    <div class="qa-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    </div>
+    <div class="qa-label">التقارير</div>
+  </a>
+  <a href="contract.html" class="qa-btn">
+    <div class="qa-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+    </div>
+    <div class="qa-label">عقودي</div>
+  </a>
+</div>
+
+<!-- Empty-state: no investments yet (platform pre-launch) -->
+<div class="section">
+  <div class="section-h">
+    <h3>استثماراتي</h3>
+  </div>
+
+  <div style="
+    background: linear-gradient(135deg, #fbf6ea 0%, #f5ebd1 100%);
+    border: 1.5px dashed rgba(176,136,64,0.5);
+    border-radius: 20px;
+    padding: 32px 22px;
+    text-align: center;
+    margin: 0 14px;
+  ">
+    <div style="font-size:48px;line-height:1;margin-bottom:14px;">🏗️</div>
+    <h4 style="font:900 18px/1.4 'Cairo',sans-serif;color:#062b1e;margin:0 0 10px;">
+      لا توجد استثمارات بعد
+    </h4>
+    <p style="font:500 14px/1.8 'Tajawal',sans-serif;color:#5a4d2e;max-width:320px;margin:0 auto 18px;">
+      منصّة <b>مُرابحة</b> في مرحلة الإطلاق. فور إتاحة أوّل فرصة استثمارية،
+      ستظهر هنا تفاصيل استثماراتك، توزيعاتك، ومعاملاتك.
+    </p>
+    <a href="projects.html" class="btn btn-primary btn-sm" style="display:inline-block;">
+      انضمّ لقائمة الانتظار
+    </a>
+  </div>
+</div>
+
+<!-- What you'll see here (feature preview) -->
+<div class="section">
+  <div class="section-h">
+    <h3>ماذا ستجد هنا بعد الإطلاق؟</h3>
+  </div>
+  <ul style="
+    list-style:none;padding:0 14px;margin:0;
+    display:grid;gap:10px;
+    font:600 14px/1.6 'Tajawal',sans-serif;color:#3a3a3a;
+  ">
+    <li style="display:flex;gap:10px;background:#fff;border:1px solid #eadfc4;border-radius:12px;padding:12px 14px;">
+      <span style="font-size:20px;">💼</span>
+      <span>قائمة بكل استثماراتك النشطة وعائدها السنوي.</span>
+    </li>
+    <li style="display:flex;gap:10px;background:#fff;border:1px solid #eadfc4;border-radius:12px;padding:12px 14px;">
+      <span style="font-size:20px;">📅</span>
+      <span>جدول التوزيعات القادمة ومواعيد الاستحقاق.</span>
+    </li>
+    <li style="display:flex;gap:10px;background:#fff;border:1px solid #eadfc4;border-radius:12px;padding:12px 14px;">
+      <span style="font-size:20px;">📊</span>
+      <span>تقارير ربعية مفصّلة عن أداء كل فرصة.</span>
+    </li>
+    <li style="display:flex;gap:10px;background:#fff;border:1px solid #eadfc4;border-radius:12px;padding:12px 14px;">
+      <span style="font-size:20px;">📜</span>
+      <span>أرشيف عقود المرابحة الموقّعة عبر نفاذ.</span>
+    </li>
+  </ul>
+</div>
+
+<!-- Tab bar -->
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <a href="hessa.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+      <span>الرئيسية</span>
+    </a>
+    <a href="projects.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>المشاريع</span>
+    </a>
+    <a href="auth.html?mode=register" class="tab invest">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
+      <span style="color:#fff;">شارك</span>
+    </a>
+    <a href="portfolio.html" class="tab active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      <span>محفظتي</span>
+    </a>
+    <a href="profile.html" class="tab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+      <span>حسابي</span>
+    </a>
+  </div>
+</nav>
+
+</body>
+</html>

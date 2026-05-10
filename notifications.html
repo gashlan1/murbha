@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>الإشعارات — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: var(--safe-bot);
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(13,22,18,0.05);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .back-btn:active { transform: scale(0.92); }
+  .nav h1 {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--green-dark);
+    flex: 1;
+  }
+  .nav-action {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  /* Tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 0 18px 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .filter-tab {
+    flex: 0 0 auto;
+    padding: 7px 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .filter-tab:active { transform: scale(0.95); }
+  .filter-tab.active {
+    background: var(--green-dark);
+    color: var(--paper);
+    border-color: var(--green-dark);
+  }
+  .badge {
+    background: var(--gold);
+    color: #fff;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 100px;
+    font-weight: 800;
+  }
+
+  /* Day separator */
+  .day-sep {
+    padding: 14px 18px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* Notification */
+  .notif {
+    background: #fff;
+    margin: 0 18px 8px;
+    border-radius: 14px;
+    padding: 14px;
+    border: 0.5px solid var(--line);
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform .15s;
+    position: relative;
+  }
+  .notif:active { transform: scale(0.99); }
+  .notif.unread {
+    background: linear-gradient(135deg, #fff 0%, var(--paper) 100%);
+    border-color: var(--gold-soft);
+  }
+  .notif.unread::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    inset-inline-end: 14px;
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+  .notif-icon {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .notif-icon.payout { background: linear-gradient(135deg, #16a34a, #086a30); }
+  .notif-icon.contract { background: linear-gradient(135deg, var(--green), var(--green-dark)); color: var(--gold-light); }
+  .notif-icon.alert { background: linear-gradient(135deg, var(--gold), #6f522a); }
+  .notif-icon.system { background: linear-gradient(135deg, #1a4d6e, #0a2538); }
+  .notif-icon.warning { background: linear-gradient(135deg, var(--red), #7a2e21); }
+  .notif-body {
+    min-width: 0;
+  }
+  .notif-title {
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--green-dark);
+    margin-bottom: 3px;
+    padding-inline-end: 16px;
+  }
+  .notif-msg {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 6px;
+  }
+  .notif-msg b { color: var(--green-dark); }
+  .notif-msg .amt {
+    color: var(--green);
+    font-weight: 800;
+    font-family: 'Cairo';
+    font-variant-numeric: tabular-nums;
+  }
+  .notif-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .notif-time::before { content: '🕐 '; }
+  .notif-action {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  @media (min-width: 768px) {
+    main { max-width: 760px; margin: 0 auto; }
+  }
+</style>
+    <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
+    <meta name="description" content="آخر التحديثات على استثماراتك، فرص جديدة، توزيعات أرباح، وتنبيهات الحساب." />
+    <meta name="author" content="مُرابحة" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://murabaha.example.sa/notifications.html" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="مُرابحة" />
+    <meta property="og:locale" content="ar_SA" />
+    <meta property="og:title" content="الإشعارات — مُرابحة" />
+    <meta property="og:description" content="آخر التحديثات على استثماراتك، فرص جديدة، توزيعات أرباح، وتنبيهات الحساب." />
+    <meta property="og:url" content="https://murabaha.example.sa/notifications.html" />
+    <meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="مُرابحة — منصّة الاستثمار الإسلامي" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="الإشعارات — مُرابحة" />
+    <meta name="twitter:description" content="آخر التحديثات على استثماراتك، فرص جديدة، توزيعات أرباح، وتنبيهات الحساب." />
+    <meta name="twitter:image" content="https://murabaha.example.sa/og-image.svg" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- END: managed-seo-meta -->
+      <link rel="stylesheet" href="/assets/site.css" />
+      <!-- BEGIN: managed-jsonld (do not edit by hand) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "@id": "https://murabaha.example.sa/#organization",
+  "name": "مُرابحة",
+  "alternateName": "Murabaha",
+  "url": "https://murabaha.example.sa",
+  "logo": "https://murabaha.example.sa/favicon.svg",
+  "image": "https://murabaha.example.sa/og-image.svg",
+  "description": "منصّة استثمار إسلامية متوافقة مع الشريعة، تتيح المشاركة في مشاريع رؤية ٢٠٣٠ عبر عقود المرابحة بإشراف هيئة شرعية.",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Saudi Arabia"
+  },
+  "availableLanguage": [
+    "ar",
+    "en"
+  ],
+  "currenciesAccepted": "SAR",
+  "paymentAccepted": [
+    "Mada",
+    "Apple Pay",
+    "STC Pay",
+    "Sadad"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://murabaha.example.sa/#website",
+  "url": "https://murabaha.example.sa",
+  "name": "مُرابحة",
+  "inLanguage": "ar-SA",
+  "publisher": {
+    "@id": "https://murabaha.example.sa/#organization"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "الرئيسية",
+      "item": "https://murabaha.example.sa/hessa.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "الإشعارات",
+      "item": "https://murabaha.example.sa/notifications.html"
+    }
+  ]
+}
+</script>
+<!-- END: managed-jsonld -->
+  </head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <a href="hessa.html" class="back-btn" aria-label="رجوع">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6" transform="scale(-1, 1) translate(-24, 0)"/></svg>
+    </a>
+    <h1>الإشعارات</h1>
+    <button class="nav-action">قراءة الكل</button>
+  </nav>
+
+  <div class="filter-tabs">
+    <button class="filter-tab active">الكل</button>
+    <button class="filter-tab">النظام</button>
+    <button class="filter-tab">الحساب</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="day-sep">اليوم</div>
+
+  <a href="projects.html" class="notif unread">
+    <div class="notif-icon system">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">🚀 منصّة مُرابحة تستعدّ للإطلاق</div>
+      <div class="notif-msg">
+        نعمل حالياً على إتمام التراخيص النظامية وتوقيع اتفاقيات الشراكة مع الجهات المالية والشرعية. سجّل بريدك لتصلك أُولى الفرص.
+      </div>
+      <div class="notif-meta">
+        <span class="notif-time">قبل ساعة</span>
+        <span class="notif-action">انضمّ لقائمة الانتظار ←</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="sharia.html" class="notif unread">
+    <div class="notif-icon contract">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">☚ فتوى الهيئة الشرعية مُتاحة</div>
+      <div class="notif-msg">
+        نُشرت فتوى الهيئة الشرعية لمُرابحة بعضوية أربعة علماء معتمدين، وتشمل عقود المرابحة والمضاربة والإجارة.
+      </div>
+      <div class="notif-meta">
+        <span class="notif-time">قبل ٣ ساعات</span>
+        <span class="notif-action">قراءة الفتوى ←</span>
+      </div>
+    </div>
+  </a>
+
+  <div class="day-sep">هذا الأسبوع</div>
+
+  <a href="auth.html" class="notif">
+    <div class="notif-icon system">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">🪪 تكامل مع نفاذ جاهز</div>
+      <div class="notif-msg">
+        أصبح بإمكانك إنشاء حسابك والتحقّق من هويتك عبر <b>نفاذ</b> في ثوانٍ معدودة.
+      </div>
+      <div class="notif-meta">
+        <span class="notif-time">٢ أيام</span>
+        <span class="notif-action">جرّب التسجيل ←</span>
+      </div>
+    </div>
+  </a>
+
+  <a href="data-protection.html" class="notif">
+    <div class="notif-icon system">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">🔒 امتثال كامل لنظام PDPL</div>
+      <div class="notif-msg">
+        سياسة حماية البيانات الشخصية على مُرابحة مُحدَّثة ومتوافقة مع النظام السعودي.
+      </div>
+      <div class="notif-meta">
+        <span class="notif-time">أسبوع</span>
+        <span class="notif-action">قراءة السياسة ←</span>
+      </div>
+    </div>
+  </a>
+
+  <div style="padding: 32px 20px 40px; text-align: center; color: var(--muted,#8a8a8a); font-size: 13px;">
+    <div style="font-size:40px;opacity:0.4;margin-bottom:8px;">🔔</div>
+    إشعاراتك عن الفرص الاستثمارية وعوائدك<br/>ستظهر هنا بعد الإطلاق.
+  </div>
+
+</main>
+
+<script>
+  document.querySelectorAll('.filter-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+  }));
+</script>
+</body>
+</html>
