@@ -476,7 +476,8 @@
 }
 </script>
 <!-- END: managed-jsonld -->
-  </head>
+    <script src="app.js"></script>
+</head>
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
 
@@ -597,7 +598,7 @@
     </li>
     <li style="display:flex;gap:10px;background:#fff;border:1px solid #eadfc4;border-radius:12px;padding:12px 14px;">
       <span style="font-size:20px;">📜</span>
-      <span>أرشيف عقود المرابحة الموقّعة عبر نفاذ.</span>
+      <span>أرشيف عقود المرابحة الموقّعة إلكترونياً.</span>
     </li>
   </ul>
 </div>
@@ -613,7 +614,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       <span>المشاريع</span>
     </a>
-    <a href="auth.html?mode=register" class="tab invest">
+    <a href="projects.html" class="tab invest">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
       <span style="color:#fff;">شارك</span>
     </a>
@@ -627,6 +628,178 @@
     </a>
   </div>
 </nav>
+
+<style>
+  .inv-list{display:grid;gap:10px;padding:0 14px}
+  .inv-card{background:#fff;border:1px solid #eadfc4;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+  .inv-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .inv-name{font:800 14px/1.3 'Cairo',sans-serif;color:#062b1e;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .inv-pill{font:800 10px 'Tajawal',sans-serif;padding:3px 10px;border-radius:999px}
+  .inv-pill.active{background:#e7f5ee;color:#0f6e3a}
+  .inv-pill.pending_signature{background:#fdebd0;color:#7d4f0a}
+  .inv-pill.completed{background:#e0e7ff;color:#1e3a8a}
+  .inv-row{display:flex;justify-content:space-between;font:600 12px 'Tajawal',sans-serif;color:#5a5a5a}
+  .inv-row b{color:#062b1e;font-weight:800}
+  .txn-list{display:grid;gap:6px;padding:0 14px}
+  .txn-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #f0e6cf;border-radius:10px;padding:10px 12px}
+  .txn-l{font:700 13px 'Tajawal';color:#062b1e}
+  .txn-sub{font:600 11px 'Tajawal';color:#8a8678}
+  .txn-amt{font:800 13px 'Cairo';color:#0f6e3a}
+  .txn-amt.neg{color:#8a1d1d}
+</style>
+
+<script>
+(async () => {
+  if (!window.App) return;
+  const user = await App.requireAuth();
+  if (!user) return;
+
+  let data;
+  try { data = await App.api('GET', '/app/portfolio'); }
+  catch { App.toast('تعذّر تحميل المحفظة.', 'error'); return; }
+
+  // ── Balance card ────────────────────────────
+  const totalValue = (data.balance || 0) + (data.invested || 0);
+  const bcv = document.querySelector('.bc-v');
+  if (bcv) bcv.innerHTML = App.fmt.arNum(Math.round(totalValue).toLocaleString('en-US')) + ' <small>ر.س</small>';
+  const bcl = document.querySelector('.bc-l');
+  if (bcl) bcl.innerHTML = 'إجمالي قيمة المحفظة';
+  const bct = document.querySelector('.bc-trend');
+  if (bct) {
+    bct.textContent = data.invested
+      ? 'الأرباح المتوقعة: ' + App.fmt.sar(data.expectedProfit)
+      : 'لم تبدأ الاستثمار بعد — أودِع ثم اختر فرصة.';
+    bct.style.color = data.invested ? '#b6e8b6' : 'rgba(255,255,255,0.7)';
+  }
+  const bcMeta = document.querySelectorAll('.bc-meta-item');
+  if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
+  if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
+
+  // ── Quick actions: wire deposit/withdraw ─────
+  const qa = document.querySelectorAll('.quick-actions .qa-btn');
+  // qa[0] is "استثمار جديد" → already points to projects via hessa
+  if (qa[0]) qa[0].setAttribute('href', 'projects.html');
+  // qa[1] currently "سحب" with href="#"
+  if (qa[1]) {
+    qa[1].removeAttribute('href');
+    qa[1].style.cursor = 'pointer';
+    qa[1].addEventListener('click', async (e) => {
+      e.preventDefault();
+      const v = prompt('مبلغ السحب (ر.س):');
+      const amt = Number(v);
+      if (!(amt > 0)) return;
+      try {
+        const r = await App.api('POST', '/app/portfolio/withdraw', { amount: amt });
+        App.toast('تم تقديم طلب السحب.', 'success');
+        setTimeout(() => location.reload(), 600);
+      } catch (err) { App.toast(err.message, 'error'); }
+    });
+  }
+  // qa[2] "التقارير" with href="#" → show toast (will be a page later)
+  if (qa[2]) {
+    qa[2].removeAttribute('href');
+    qa[2].style.cursor = 'pointer';
+    qa[2].addEventListener('click', (e) => {
+      e.preventDefault();
+      App.toast('التقارير التفصيلية ستتاح بعد أول دفعة توزيع.', 'info');
+    });
+  }
+  // qa[3] "عقودي" — replace with first signed contract or show toast
+  if (qa[3]) {
+    qa[3].addEventListener('click', (e) => {
+      const signed = (data.investments || []).find(i => i.status === 'active');
+      if (signed?.contractId) {
+        e.preventDefault();
+        location.href = 'contract.html?id=' + signed.contractId;
+      }
+    });
+  }
+
+  // ── Deposit CTA (add a button near balance) ──
+  const balanceCard = document.querySelector('.balance-card');
+  if (balanceCard && !balanceCard.querySelector('.deposit-btn')) {
+    const btn = document.createElement('button');
+    btn.className = 'deposit-btn';
+    btn.textContent = '+ إيداع رصيد';
+    btn.style.cssText = 'position:absolute;top:16px;inset-inline-end:18px;background:#b08840;color:#fff;border:0;border-radius:99px;padding:8px 14px;font:800 12px Tajawal,sans-serif;cursor:pointer';
+    balanceCard.style.position = 'relative';
+    balanceCard.appendChild(btn);
+    btn.addEventListener('click', async () => {
+      const v = prompt('مبلغ الإيداع (ر.س، الحد الأدنى ١٠٠):');
+      const amt = Number(v);
+      if (!(amt >= 100)) { App.toast('الحد الأدنى للإيداع ١٠٠ ر.س.', 'warn'); return; }
+      try {
+        await App.api('POST', '/app/portfolio/deposit', { amount: amt, method: 'mada' });
+        App.toast('تم الإيداع بنجاح.', 'success');
+        setTimeout(() => location.reload(), 600);
+      } catch (err) { App.toast(err.message, 'error'); }
+    });
+  }
+
+  // ── Investments section ──────────────────────
+  const invSection = document.querySelectorAll('.section')[0];
+  if (!invSection) return;
+  // wipe old empty state
+  const emptyState = invSection.querySelector('div[style*="dashed"]');
+  if (data.investments.length === 0) {
+    // keep the lovely empty state, but link button to projects
+    if (emptyState) {
+      const a = emptyState.querySelector('a.btn');
+      if (a) { a.setAttribute('href', 'projects.html'); a.textContent = 'تصفّح الفرص الآن'; }
+    }
+  } else {
+    if (emptyState) emptyState.remove();
+    const list = document.createElement('div');
+    list.className = 'inv-list';
+    list.innerHTML = data.investments.map(i => {
+      const proj = i.project || {};
+      const pillText = { active: 'نشط', pending_signature: 'بانتظار التوقيع', completed: 'مكتمل' }[i.status] || i.status;
+      const linkContract = i.status === 'pending_signature' && i.contractId
+        ? `<a href="contract.html?id=${i.contractId}" style="margin-top:8px;display:inline-block;background:#062b1e;color:#fbf6ea;padding:8px 14px;border-radius:10px;text-decoration:none;font:800 12px Tajawal,sans-serif">إكمال التوقيع</a>` : '';
+      return `<div class="inv-card">
+        <div class="inv-head">
+          <div class="inv-name">${App.escapeHtml(proj.name || '—')}</div>
+          <span class="inv-pill ${i.status}">${pillText}</span>
+        </div>
+        <div class="inv-row"><span>المبلغ</span><b>${App.fmt.sar(i.amount)}</b></div>
+        <div class="inv-row"><span>العائد المتوقع</span><b style="color:#0f6e3a">${App.fmt.sar(i.expectedReturn)}</b></div>
+        <div class="inv-row"><span>تاريخ البدء</span><b>${App.fmt.date(i.signedAt || i.createdAt)}</b></div>
+        ${linkContract}
+      </div>`;
+    }).join('');
+    invSection.appendChild(list);
+  }
+
+  // ── Transactions section ─────────────────────
+  if (data.transactions && data.transactions.length) {
+    const txnSec = document.createElement('div');
+    txnSec.className = 'section';
+    txnSec.innerHTML = '<div class="section-h"><h3>الحركات المالية</h3></div><div class="txn-list"></div>';
+    const list = txnSec.querySelector('.txn-list');
+    data.transactions.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'txn-row';
+      const sign = t.amount < 0 ? 'neg' : '';
+      row.innerHTML = `
+        <div>
+          <div class="txn-l">${App.escapeHtml(t.description)}</div>
+          <div class="txn-sub">${App.fmt.dateTime(t.createdAt)}</div>
+        </div>
+        <div class="txn-amt ${sign}">${t.amount === 0 ? '—' : (t.amount > 0 ? '+' : '') + App.fmt.sar(Math.abs(t.amount))}</div>`;
+      list.appendChild(row);
+    });
+    // insert before tab bar
+    document.querySelector('.tabbar').before(txnSec);
+  }
+
+  // hide the "ماذا ستجد هنا" feature preview if user has investments
+  if (data.investments.length) {
+    const sections = document.querySelectorAll('.section');
+    const preview = Array.from(sections).find(s => s.querySelector('h3')?.textContent?.includes('ماذا ستجد'));
+    if (preview) preview.remove();
+  }
+})();
+</script>
 
 </body>
 </html>

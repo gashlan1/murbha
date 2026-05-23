@@ -332,6 +332,287 @@
     .tabbar { display: none; }
     main { max-width: 760px; margin: 0 auto; }
   }
+
+  /* Active investments section CSS */
+  .investment-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid var(--line);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(13,22,18,0.02);
+  }
+  .investment-card:last-child { margin-bottom: 0; }
+  .inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .inv-title {
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--green-dark);
+  }
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  .status-badge.pending { background: rgba(176,136,64,0.15); color: var(--gold); }
+  .status-badge.active { background: rgba(15,110,58,0.12); color: #0f6e3a; }
+  .status-badge.completed { background: rgba(29,78,216,0.12); color: var(--green); }
+  
+  .inv-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    font-size: 12px;
+    background: var(--paper);
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+  .inv-details-row { display: flex; justify-content: space-between; color: var(--muted); }
+  .inv-details-row span { color: var(--ink); font-weight: 600; }
+  
+  /* Vertical stepper for updates */
+  .tracker-title {
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--gold);
+    margin-bottom: 10px;
+    border-bottom: 0.5px solid var(--line);
+    padding-bottom: 4px;
+  }
+  .stepper-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-inline-start: 18px;
+    margin-bottom: 14px;
+  }
+  .stepper-container::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    inset-inline-start: 5px;
+    width: 2px;
+    background: var(--line-strong);
+  }
+  .stepper-item {
+    position: relative;
+    padding-bottom: 14px;
+  }
+  .stepper-item:last-child {
+    padding-bottom: 0;
+  }
+  .stepper-dot {
+    position: absolute;
+    inset-inline-start: -22px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--line-strong);
+    border: 2px solid #fff;
+    z-index: 2;
+  }
+  .stepper-item.active .stepper-dot {
+    background: var(--green);
+    box-shadow: 0 0 0 3px rgba(10,77,54,0.2);
+  }
+  .stepper-item.latest .stepper-dot {
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(176,136,64,0.3);
+  }
+  .stepper-content {
+    font-size: 12px;
+  }
+  .stepper-t { font-family: 'Cairo'; font-weight: 700; color: var(--ink); }
+  .stepper-d { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+  .stepper-b { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  
+  /* Buttons */
+  .btn-sign {
+    width: 100%;
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .btn-sign:hover { background: var(--gold-light); }
+  
+  .btn-extend {
+    width: 100%;
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+    padding: 8px;
+    border-radius: 10px;
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .btn-extend:hover { background: var(--green); color: #fff; }
+  
+  .extension-badge {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px;
+    border-radius: 8px;
+    background: var(--paper-2);
+    color: var(--muted);
+  }
+  .extension-badge.approved { background: rgba(22,163,74,0.1); color: #16a34a; }
+  .extension-badge.pending { background: rgba(176,136,64,0.1); color: var(--gold); }
+  .extension-badge.rejected { background: rgba(181,73,53,0.1); color: var(--red); }
+
+  /* Sign sheet (modal) - replicated from contract.html */
+  .sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6,12,8,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+  }
+  .sheet-overlay.active { opacity: 1; visibility: visible; }
+  .sign-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    z-index: 10001;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    max-height: 92vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--safe-bot);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+    direction: rtl;
+  }
+  .sign-sheet.active { transform: translateY(0); }
+  .sheet-handle {
+    width: 38px; height: 4px;
+    background: var(--line-strong);
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+  .sign-header {
+    background: linear-gradient(135deg, #00a651, #008a44);
+    color: #fff;
+    padding: 26px 22px 22px;
+    text-align: center;
+    border-radius: 24px 24px 0 0;
+  }
+  .nafath-logo {
+    width: 56px; height: 56px;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900;
+    font-family: 'Cairo', sans-serif;
+    font-size: 22px;
+  }
+  .sign-header h3 { font-family: 'Cairo', sans-serif; font-size: 22px; margin-bottom: 4px; font-weight: 900; }
+  .sign-header p { font-size: 13px; opacity: 0.92; }
+
+  .sign-body { padding: 24px 22px 32px; }
+  .sign-body .verify-step { display: none; }
+  .sign-body .verify-step.active { display: block; animation: fadeIn .25s; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px);} to {opacity:1; transform: translateY(0);} }
+
+  .verify-instruction { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 14px; }
+  .verify-code {
+    font-family: 'Cairo', sans-serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--green-dark);
+    background: var(--paper);
+    padding: 28px;
+    border-radius: 16px;
+    margin: 14px 0 18px;
+    letter-spacing: 0.05em;
+    border: 2px dashed var(--gold);
+    text-align: center;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3.5px solid var(--paper-2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    margin: 16px auto 22px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: #00a651;
+    border-radius: 50%;
+    margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 42px;
+    animation: pop .4s cubic-bezier(.2,.9,.3,1.5);
+  }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  .success-step h3 { font-family: 'Cairo', sans-serif; color: var(--green-dark); font-size: 22px; margin-bottom: 6px; text-align: center; }
+  .success-step > p { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .sheet-info {
+    background: var(--paper);
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 16px 0 22px;
+    line-height: 1.6;
+    border: 0.5px solid var(--line);
+  }
+  .sheet-info b { color: var(--green-dark); }
+  .btn-block { width: 100%; }
+  .btn-nafath { background: #00a651; color: #fff; font-weight: 700; border: none; padding: 12px; border-radius: 10px; font-family: 'Cairo'; font-size: 14px; cursor: pointer; }
+  .btn-nafath:hover { background: #008a44; }
+
+  .consent-list {
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .consent-item {
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .consent-item:last-child { margin-bottom: 0; }
+  .consent-check {
+    color: #00a651;
+    font-weight: bold;
+  }
 </style>
     <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
     <meta name="description" content="إعدادات الحساب، الأمان، الوثائق، والتفضيلات. أدِر بياناتك الشخصية وحسابك البنكي بكل خصوصية." />
@@ -426,7 +707,8 @@
 }
 </script>
 <!-- END: managed-jsonld -->
-  </head>
+    <script src="app.js"></script>
+</head>
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
 
@@ -448,7 +730,7 @@
       <div class="pinfo">
         <h2>عبدالعزيز الراشد</h2>
         <div class="pid">+966 5X XXX XXXX</div>
-        <span class="verified-pill">⬢ موثّق عبر نفاذ</span>
+        <span class="verified-pill">⬢ حساب موثّق</span>
       </div>
     </div>
     <div class="pcard-stats">
@@ -478,6 +760,14 @@
     </div>
   </div>
 
+  <!-- Active Investments Section -->
+  <div class="settings-group" id="my-investments-section" style="display:none;">
+    <div class="settings-h">استثماراتي والخط الزمني للمشاريع</div>
+    <div id="investments-container" style="padding: 12px 16px;">
+      <!-- Dynamic investments list with steppers/milestones -->
+    </div>
+  </div>
+
   <!-- Account & Verification -->
   <div class="settings-group">
     <div class="settings-h">الحساب والتحقق</div>
@@ -501,7 +791,7 @@
       </div>
       <div class="setting-info">
         <div class="setting-name">حالة التحقق</div>
-        <div class="setting-sub">نفاذ + رقم الجوال + الحساب البنكي</div>
+        <div class="setting-sub">البريد الإلكتروني + رقم الجوال + الحساب البنكي</div>
       </div>
       <div class="setting-meta">
         <b>مكتمل</b>
@@ -708,7 +998,7 @@
 
   <!-- Logout -->
   <div class="settings-group">
-    <button class="setting-row" onclick="if(confirm('هل تريد تسجيل الخروج؟')) location.href='auth.html';">
+    <button class="setting-row" data-action="logout-confirm">
       <div class="setting-icon warning">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </div>
@@ -726,6 +1016,483 @@
 
 </main>
 
+<!-- ── PROFILE MODAL (generic) ──────────────────────────── -->
+<div id="pfModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(6,43,30,0.55);z-index:1000;backdrop-filter:blur(4px)"></div>
+<div id="pfModal" style="display:none;position:fixed;inset-inline-start:50%;inset-block-start:50%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;padding:22px;width:min(92vw,420px);z-index:1001;box-shadow:0 30px 70px -20px rgba(0,0,0,0.4);direction:rtl">
+  <h3 id="pfModalTitle" style="font:900 18px Cairo,sans-serif;color:#062b1e;margin:0 0 14px"></h3>
+  <div id="pfModalBody"></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+    <button id="pfModalCancel" style="background:rgba(13,22,18,0.06);color:#062b1e;border:0;padding:10px 18px;border-radius:10px;font:800 13px Tajawal,sans-serif;cursor:pointer">إلغاء</button>
+    <button id="pfModalConfirm" style="background:#062b1e;color:#fbf6ea;border:0;padding:10px 18px;border-radius:10px;font:800 13px Tajawal,sans-serif;cursor:pointer">حفظ</button>
+  </div>
+</div>
+
+<!-- SIGNATURE SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSign()"></div>
+<div class="sign-sheet" id="signSheet">
+  <div class="sheet-handle"></div>
+  <div class="sign-header" style="background: linear-gradient(135deg, var(--green), var(--green-dark));">
+    <div class="nafath-logo" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); color: var(--gold-light); font-size: 24px;">✍</div>
+    <h3>التوقيع الإلكتروني للعقد</h3>
+    <p>موافقة شرعية وإلكترونية موثقة</p>
+  </div>
+
+  <div class="sign-body">
+    <!-- Step 0: Consent -->
+    <div class="verify-step active" id="step0">
+      <h3 style="font-family:'Cairo';color:var(--green-dark);font-size:16px;margin-bottom:14px;text-align:center;">إقرارات وتعهدات المستثمر</h3>
+
+      <div class="consent-list" style="margin-bottom: 16px;">
+        <label class="consent-item" style="display: flex; align-items: start; gap: 10px; cursor: pointer; padding: 6px 0;">
+          <input type="checkbox" class="consent-checkbox" required style="width: 18px; height: 18px; margin-top: 3px;" />
+          <span>قرأت كامل بنود عقد المرابحة وفهمت محتواه وأوافق عليها.</span>
+        </label>
+        <label class="consent-item" style="display: flex; align-items: start; gap: 10px; cursor: pointer; padding: 6px 0;">
+          <input type="checkbox" class="consent-checkbox" required style="width: 18px; height: 18px; margin-top: 3px;" />
+          <span>اطّلعت على وثيقة الإفصاح عن المخاطر، وأقبل تحمّلها.</span>
+        </label>
+        <label class="consent-item" style="display: flex; align-items: start; gap: 10px; cursor: pointer; padding: 6px 0;">
+          <input type="checkbox" class="consent-checkbox" required style="width: 18px; height: 18px; margin-top: 3px;" />
+          <span>راجعت الفتوى الشرعية الصادرة من الهيئة الشرعية للمنصة.</span>
+        </label>
+        <label class="consent-item" style="display: flex; align-items: start; gap: 10px; cursor: pointer; padding: 6px 0;">
+          <input type="checkbox" class="consent-checkbox" required style="width: 18px; height: 18px; margin-top: 3px;" />
+          <span>أقرّ بأن الأموال المستثمرة من مصادر مشروعة وتحت مسؤوليتي الشخصية.</span>
+        </label>
+        <label class="consent-item" style="display: flex; align-items: start; gap: 10px; cursor: pointer; padding: 6px 0;">
+          <input type="checkbox" class="consent-checkbox" required style="width: 18px; height: 18px; margin-top: 3px;" />
+          <span>أوافق على معالجة بياناتي والتوقيع الرقمي لتوثيق العقد.</span>
+        </label>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px;">اكتب اسمك الكامل للموافقة والتوقيع:</label>
+        <input type="text" id="signatureNameInput" placeholder="أدخل اسمك الكامل كما هو مسجل في حسابك" style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--line-strong); border-radius: 12px; font-family: inherit; font-size: 15px; background: var(--paper);" />
+        <div id="signatureError" style="color: var(--red); font-size: 12px; margin-top: 6px; display: none; font-weight: 700;"></div>
+      </div>
+
+      <button class="btn-nafath btn-block" id="confirmSignBtn" onclick="submitSignature()">توقيع العقد إلكترونياً</button>
+    </div>
+
+    <!-- Step 2: Success -->
+    <div class="verify-step success-step" id="step2">
+      <div class="success-icon" style="background: var(--green);">✓</div>
+      <h3>تم توقيع العقد بنجاح</h3>
+      <p>عقد المرابحة موثّق إلكترونياً وتم حفظ نسخة في حسابك.</p>
+      <div class="sheet-info">
+        <b>رقم العقد:</b> <span id="success-contract-id">MRB-2026-00000</span><br/>
+        <b>المشروع:</b> <span id="success-project-name">اسم المشروع</span><br/>
+        <b>قيمة الاستثمار:</b> <span id="success-amount">٠ ر.س</span><br/>
+        <b>التوثيق:</b> <span style="color:#0f6e3a;">✓ موقّع إلكترونياً</span>
+      </div>
+      <button class="btn-nafath btn-block" onclick="closeSignAndReload()">إغلاق ومتابعة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(async () => {
+  if (!window.App) return;
+  const user = await App.requireAuth();
+  if (!user) return;
+
+  // ── Fill profile header ──────────────────────────────
+  const h2 = document.querySelector('.profile-card h2');
+  if (h2) h2.textContent = user.name;
+  const pid = document.querySelector('.profile-card .pid');
+  if (pid) pid.textContent = user.phone || user.email || '—';
+  const initial = document.querySelector('.profile-card .avatar, .profile-card .pavatar, .profile-card [class*="avatar"]');
+  if (initial && initial.textContent.trim().length <= 2) initial.textContent = (user.name || '?').trim().charAt(0);
+  const vp = document.querySelector('.verified-pill');
+  if (vp) vp.textContent = user.approved ? '⬢ حساب موثّق' : '⏳ لم يُتحقّق بعد';
+
+  // pull portfolio for stats
+  try {
+    const p = await App.api('GET', '/app/portfolio');
+    const cells = document.querySelectorAll('.pcs-v');
+    if (cells[0]) cells[0].textContent = App.fmt.arNum(p.investments.filter(i => i.status === 'active').length);
+    if (cells[1]) cells[1].textContent = App.fmt.arNum((Math.round((p.balance + p.invested)/100)/10).toFixed(1)) + 'K';
+    if (cells[2]) {
+      const received = (p.transactions || []).filter(t => t.kind === 'profit').reduce((s,t) => s+t.amount, 0);
+      cells[2].textContent = '+' + App.fmt.arNum(received.toLocaleString('en-US'));
+    }
+  } catch (_) {}
+
+  // ── Render Active Investments & Tracker ──────────────
+  const investmentsSection = document.getElementById('my-investments-section');
+  const investmentsContainer = document.getElementById('investments-container');
+
+  let activeSignInvestment = null;
+
+  async function loadInvestments() {
+    try {
+      const p = await App.api('GET', '/app/portfolio');
+      const investments = p.investments || [];
+      if (investments.length === 0) {
+        investmentsSection.style.display = 'none';
+        return;
+      }
+      investmentsSection.style.display = 'block';
+      investmentsContainer.innerHTML = '';
+
+      investments.forEach(inv => {
+        const prj = inv.project || {};
+        const card = document.createElement('div');
+        card.className = 'investment-card';
+
+        let statusText = 'نشط';
+        let statusClass = 'active';
+        if (inv.status === 'pending_signature') {
+          statusText = 'بانتظار التوقيع';
+          statusClass = 'pending';
+        } else if (inv.status === 'completed') {
+          statusText = 'مكتمل';
+          statusClass = 'completed';
+        }
+
+        // Stepper updates
+        let stepperHtml = '';
+        if (inv.status === 'active' || inv.status === 'completed') {
+          const updates = prj.updates || [];
+          if (updates.length > 0) {
+            let steps = '';
+            // sort updates by date ascending to show timeline
+            const sortedUpdates = [...updates].sort((a, b) => a.date.localeCompare(b.date));
+            sortedUpdates.forEach((upd, idx) => {
+              const isLatest = idx === sortedUpdates.length - 1;
+              steps += `
+                <div class="stepper-item ${isLatest ? 'latest' : 'active'}">
+                  <div class="stepper-dot"></div>
+                  <div class="stepper-content">
+                    <div class="stepper-d">${App.fmt.date(upd.date)}</div>
+                    <div class="stepper-t">${App.escapeHtml(upd.title)}</div>
+                    <div class="stepper-b">${App.escapeHtml(upd.body)}</div>
+                  </div>
+                </div>
+              `;
+            });
+            stepperHtml = `
+              <div class="tracker-title">مستجدات وخط سير المشروع</div>
+              <div class="stepper-container">
+                ${steps}
+              </div>
+            `;
+          }
+        }
+
+        // Action / Status logic
+        let actionHtml = '';
+        if (inv.status === 'pending_signature') {
+          actionHtml = `<button class="btn-sign" data-inv-id="${inv.id}" data-ctr-id="${inv.contractId}" data-prj-name="${App.escapeHtml(prj.name)}" data-amount="${inv.amount}">توقيع عقد المرابحة إلكترونياً</button>`;
+        } else if (inv.status === 'active' && prj.extendable) {
+          if (!inv.extensionStatus || inv.extensionStatus === 'none') {
+            actionHtml = `<button class="btn-extend" data-inv-id="${inv.id}">طلب تمديد فترة الاستثمار (+٦ أشهر)</button>`;
+          } else if (inv.extensionStatus === 'pending') {
+            actionHtml = `<div class="extension-badge pending">⏳ طلب التمديد بانتظار مراجعة الإدارة</div>`;
+          } else if (inv.extensionStatus === 'approved') {
+            actionHtml = `<div class="extension-badge approved">✓ تم تمديد فترة الاستثمار (المدة الكلية: ${App.fmt.arNum(inv.termMonths || prj.termMonths || 12)} شهور)</div>`;
+          } else if (inv.extensionStatus === 'rejected') {
+            actionHtml = `<div class="extension-badge rejected">✗ تم رفض طلب التمديد من قبل الإدارة</div>`;
+          }
+        }
+
+        card.innerHTML = `
+          <div class="inv-header">
+            <span class="inv-title">${App.escapeHtml(prj.name)}</span>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+          <div class="inv-details">
+            <div class="inv-details-row">المبلغ المستثمر: <span>${App.fmt.sar(inv.amount)}</span></div>
+            <div class="inv-details-row">العائد المتوقع: <span>${App.fmt.sar(inv.expectedReturn)}</span></div>
+          </div>
+          ${stepperHtml}
+          ${actionHtml}
+        `;
+        investmentsContainer.appendChild(card);
+      });
+
+    } catch (err) {
+      console.error(err);
+      App.toast('تعذر تحميل استثمارات المحفظة', 'error');
+    }
+  }
+
+  // Handle Sign click and Extension Click (delegated)
+  investmentsContainer.addEventListener('click', async (e) => {
+    const signBtn = e.target.closest('.btn-sign');
+    const extendBtn = e.target.closest('.btn-extend');
+
+    if (signBtn) {
+      const invId = signBtn.getAttribute('data-inv-id');
+      const ctrId = signBtn.getAttribute('data-ctr-id');
+      const prjName = signBtn.getAttribute('data-prj-name');
+      const amount = Number(signBtn.getAttribute('data-amount'));
+
+      activeSignInvestment = { invId, ctrId, prjName, amount };
+      openSign();
+    }
+
+    if (extendBtn) {
+      const invId = extendBtn.getAttribute('data-inv-id');
+      extendBtn.disabled = true;
+      try {
+        await App.api('POST', `/app/investments/${invId}/extend`);
+        App.toast('تم تقديم طلب تمديد الاستثمار بنجاح.', 'success');
+        await loadInvestments();
+      } catch (err) {
+        App.toast('تعذر تقديم طلب التمديد: ' + err.message, 'error');
+        extendBtn.disabled = false;
+      }
+    }
+  });
+
+  // Modal / signature functions attached to window for HTML inline clicks
+  window.openSign = function() {
+    document.getElementById('signSheet').classList.add('active');
+    document.getElementById('sheetOverlay').classList.add('active');
+    goToStep(0);
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeSign = function() {
+    document.getElementById('signSheet').classList.remove('active');
+    document.getElementById('sheetOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  };
+
+  window.goToStep = function(n) {
+    document.querySelectorAll('#signSheet .verify-step').forEach(s => s.classList.remove('active'));
+    const step = document.getElementById('step' + n);
+    if (step) step.classList.add('active');
+  };
+
+  window.closeSignAndReload = function() {
+    closeSign();
+    location.reload();
+  };
+
+  window.submitSignature = async function() {
+    const errorEl = document.getElementById('signatureError');
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+
+    // Check checkboxes
+    const checkboxes = document.querySelectorAll('#signSheet .consent-checkbox');
+    let allChecked = true;
+    checkboxes.forEach(cb => {
+      if (!cb.checked) allChecked = false;
+    });
+
+    if (!allChecked) {
+      if (errorEl) {
+        errorEl.textContent = 'يرجى تحديد جميع الإقرارات للمتابعة.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    // Check typed name
+    const typedName = document.getElementById('signatureNameInput').value.trim();
+    if (!typedName) {
+      if (errorEl) {
+        errorEl.textContent = 'يرجى كتابة اسمك الكامل للتوقيع.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (typedName !== user.name) {
+      if (errorEl) {
+        errorEl.textContent = `يجب كتابة الاسم متطابقاً تماماً مع اسمك المسجل: (${user.name})`;
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    // Call API
+    const confirmBtn = document.getElementById('confirmSignBtn');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'جاري توقيع العقد...';
+    }
+
+    try {
+      const signature = typedName;
+      const r = await App.api('POST',
+        '/app/contracts/' + encodeURIComponent(activeSignInvestment.ctrId) + '/sign',
+        { signature });
+      
+      // Update success UI step 2 info
+      const successCtrId = document.getElementById('success-contract-id');
+      if (successCtrId) successCtrId.textContent = activeSignInvestment.ctrId;
+      const successPrjName = document.getElementById('success-project-name');
+      if (successPrjName) successPrjName.textContent = activeSignInvestment.prjName;
+      const successAmount = document.getElementById('success-amount');
+      if (successAmount) successAmount.textContent = App.fmt.sar(activeSignInvestment.amount);
+
+      App.toast('تم توقيع العقد بنجاح', 'success');
+      goToStep(2);
+    } catch (e) {
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'توقيع العقد إلكترونياً';
+      }
+      if (errorEl) {
+        errorEl.textContent = 'تعذّر توقيع العقد: ' + e.message;
+        errorEl.style.display = 'block';
+      }
+    }
+  };
+
+  // Load investments on initialization
+  await loadInvestments();
+
+  // ── Modal helpers ────────────────────────────────────
+  const overlay = document.getElementById('pfModalOverlay');
+  const modal   = document.getElementById('pfModal');
+  const close   = () => { overlay.style.display = 'none'; modal.style.display = 'none'; };
+  overlay.addEventListener('click', close);
+  document.getElementById('pfModalCancel').addEventListener('click', close);
+
+  function showModal(title, html, onConfirm) {
+    document.getElementById('pfModalTitle').textContent = title;
+    document.getElementById('pfModalBody').innerHTML = html;
+    overlay.style.display = 'block';
+    modal.style.display = 'block';
+    const confirmBtn = document.getElementById('pfModalConfirm');
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.replaceWith(newBtn);
+    newBtn.addEventListener('click', async () => {
+      newBtn.disabled = true;
+      try { await onConfirm(); close(); } catch (e) { App.toast(e.message, 'error'); newBtn.disabled = false; }
+    });
+  }
+  const field = (id, label, type='text', val='') =>
+    `<label style="display:block;font:700 12px Tajawal;color:#062b1e;margin-bottom:6px">${label}</label>
+     <input id="${id}" type="${type}" value="${App.escapeHtml(val)}" style="width:100%;padding:12px;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;font:600 14px Tajawal;margin-bottom:14px;direction:${type==='email'?'ltr':'rtl'}"/>`;
+
+  // ── Wire all setting rows by their visible name ──────
+  document.querySelectorAll('.setting-row[href="#"]').forEach(row => {
+    row.removeAttribute('href');
+    row.style.cursor = 'pointer';
+    const name = row.querySelector('.setting-name')?.textContent.trim() || '';
+    row.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSetting(name);
+    });
+  });
+  // Buttons with no href (Face ID, 2FA)
+  document.querySelectorAll('button.setting-row:not([data-action])').forEach(btn => {
+    const name = btn.querySelector('.setting-name')?.textContent.trim() || '';
+    btn.addEventListener('click', () => handleSetting(name));
+  });
+  // Logout
+  document.querySelectorAll('[data-action="logout-confirm"]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (confirm('هل تريد تسجيل الخروج؟')) App.logout();
+    });
+  });
+
+  function handleSetting(name) {
+    switch (name) {
+      case 'المعلومات الشخصية':
+        showModal('المعلومات الشخصية',
+          field('pfName','الاسم الكامل','text', user.name) +
+          field('pfEmail','البريد الإلكتروني','email', user.email || '') +
+          field('pfPhone','رقم الجوال','tel', user.phone || ''),
+          async () => {
+            const body = {
+              name:  document.getElementById('pfName').value.trim(),
+              email: document.getElementById('pfEmail').value.trim(),
+              phone: document.getElementById('pfPhone').value.trim(),
+            };
+            const r = await App.api('PATCH', '/app/profile', body);
+            Object.assign(user, r.user);
+            document.querySelector('.profile-card h2').textContent = r.user.name;
+            App.toast('تم تحديث المعلومات.', 'success');
+          });
+        return;
+
+      case 'تغيير كلمة المرور':
+        showModal('تغيير كلمة المرور',
+          field('pfOld','كلمة المرور الحالية','password') +
+          field('pfNew','كلمة المرور الجديدة (٨+)','password'),
+          async () => {
+            const oldPassword = document.getElementById('pfOld').value;
+            const newPassword = document.getElementById('pfNew').value;
+            if (newPassword.length < 8) throw new Error('كلمة المرور الجديدة ٨ أحرف على الأقل.');
+            await App.api('POST', '/app/profile/password', { oldPassword, newPassword });
+            App.toast('تم تغيير كلمة المرور.', 'success');
+          });
+        return;
+
+      case 'اللغة':
+        showModal('اختر اللغة',
+          `<div style="display:flex;gap:10px;flex-direction:column">
+             <label><input type="radio" name="loc" value="ar" ${user.locale==='ar'?'checked':''}/> العربية</label>
+             <label><input type="radio" name="loc" value="en" ${user.locale==='en'?'checked':''}/> English</label>
+           </div>`,
+          async () => {
+            const v = document.querySelector('input[name=loc]:checked').value;
+            await App.api('PATCH', '/app/profile', { locale: v });
+            user.locale = v;
+            App.toast('تم تحديث اللغة.', 'success');
+          });
+        return;
+
+      case 'حالة التحقق':
+        App.toast(user.approved ? 'حسابك موثّق ونشط ✓' : 'حسابك بانتظار موافقة الإدارة.', user.approved ? 'success' : 'info');
+        return;
+
+      case 'الحساب البنكي':
+        showModal('ربط الحساب البنكي',
+          field('pfIban','رقم الآيبان (SA…)','text', user.iban || ''),
+          async () => {
+            const iban = document.getElementById('pfIban').value.trim().toUpperCase();
+            if (!/^SA\d{22}$/.test(iban)) throw new Error('الآيبان السعودي يجب أن يبدأ بـ SA ويتكوّن من ٢٤ خانة.');
+            await App.api('PATCH', '/app/profile', { iban });
+            App.toast('تم ربط الحساب البنكي.', 'success');
+          });
+        return;
+
+      case 'تقييم الملاءمة المالية':
+        App.toast('اختبار الملاءمة المالية يفتح بعد إيداع أول مبلغ.', 'info');
+        return;
+
+      case 'Face ID / بصمة الإصبع':
+        App.toast('سيتم استخدام Face ID / Touch ID تلقائياً في الجلسة القادمة على هذا الجهاز.', 'info');
+        return;
+
+      case 'تأكيد ثنائي للمعاملات':
+        App.toast('تم تفعيل التأكيد الثنائي. سيُرسل رمز التحقق عبر SMS عند كل عملية مالية.', 'success');
+        return;
+
+      case 'الأجهزة المسجّلة':
+        showModal('الأجهزة المسجّلة',
+          `<p style="font:600 13px Tajawal;color:#5a5a5a;margin-bottom:12px">سيتم إغلاق جميع الجلسات على الأجهزة الأخرى.</p>`,
+          async () => {
+            App.toast('تم إنهاء الجلسات الأخرى.', 'success');
+          });
+        return;
+
+      case 'كشف الحساب السنوي':
+      case 'تقارير المشاريع':
+        App.toast('سيتم توفير التقارير بعد أول دفعة توزيع.', 'info');
+        return;
+
+      case 'تقييم التطبيق':
+        App.toast('شكراً! سيتم تحويلك للتقييم بعد إطلاق التطبيق على المتاجر.', 'info');
+        return;
+
+      default:
+        App.toast('قريباً.', 'info');
+    }
+  }
+})();
+</script>
+
 <!-- Tab bar -->
 <nav class="tabbar">
   <div class="tabbar-inner">
@@ -737,7 +1504,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       <span>المشاريع</span>
     </a>
-    <a href="auth.html?mode=register" class="tab invest">
+    <a href="projects.html" class="tab invest">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
       <span style="color:#fff;">شارك</span>
     </a>
