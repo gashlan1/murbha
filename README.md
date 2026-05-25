@@ -6,20 +6,39 @@
 
 ## Quick Start
 
-```bash
-# 1. Install dependencies
-npm install
+Requires Node 18+ and PostgreSQL. The app uses Postgres for username/password
+auth (httpOnly cookie sessions), so a database must be running.
 
-# 2. Copy environment variables
+```bash
+# 1. Copy environment variables
 cp .env.example .env
 
-# 3. Start the server
+# 2. Start PostgreSQL (local dev via docker-compose)
+docker compose up -d db
+
+# 3. Install dependencies
+npm install
+
+# 4. Apply the database schema
+npm run migrate
+
+# 5. Start the server
 npm start
 # → http://localhost:3000
 
 # Development (auto-reload)
 npm run dev
 ```
+
+Or run the whole stack (app + database) in containers:
+
+```bash
+docker compose up --build
+```
+
+> Deploy target: a Node host with PostgreSQL (Render / Railway / Fly / docker).
+> Static-only hosting (Netlify/Vercel static) can preview the front end but
+> cannot run `/api/auth`.
 
 ---
 
