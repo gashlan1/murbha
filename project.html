@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>روشن - ضاحية الفرسان | مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --bone: #f5efe2; --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; background: #fbf6ea; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: calc(96px + var(--safe-bot));
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  /* Floating header */
+  .float-header {
+    position: fixed;
+    top: var(--safe-top);
+    left: 0; right: 0;
+    z-index: 50;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background .2s;
+  }
+  .float-header.scrolled {
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 0.5px solid var(--line);
+  }
+  .float-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .float-btn:active { transform: scale(0.92); }
+  .float-actions { display: flex; gap: 8px; }
+
+  /* Hero banner */
+  .hero-banner {
+    height: 280px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0;
+    background: linear-gradient(135deg, #1a4d6e 0%, #0a2538 100%);
+  }
+  .hero-banner::before {
+    content:'';
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='none' stroke='%23b08840' stroke-width='0.6' opacity='0.18'><path d='M40 0 L80 40 L40 80 L0 40 Z'/><path d='M40 20 L60 40 L40 60 L20 40 Z'/></g></svg>");
+    background-size: 60px;
+  }
+  .hero-banner::after {
+    content:'';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 100%);
+  }
+  .hero-info {
+    position: absolute;
+    bottom: 18px; left: 18px; right: 18px;
+    color: #fff;
+    z-index: 1;
+  }
+  .hero-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .hero-tag {
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.95);
+    color: var(--vision-blue, #0a2538);
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  .hero-tag.shariah { background: var(--green); color: var(--gold-light); }
+  .hero-tag.hot { background: var(--red); color: #fff; }
+  .hero-banner h1 {
+    font-family: 'Cairo', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+  .hero-meta {
+    font-size: 12px;
+    opacity: 0.9;
+    display: flex;
+    gap: 12px;
+  }
+
+  /* Card sections */
+  .card-section {
+    background: #fff;
+    border-radius: 18px;
+    margin: 14px 18px;
+    padding: 18px;
+    border: 0.5px solid var(--line);
+  }
+
+  /* Funding progress */
+  .funding-card {
+    background: linear-gradient(135deg, var(--green-dark), #051a12);
+    color: #fff;
+    margin: -20px 18px 14px;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 12px 28px rgba(6,43,30,0.25);
+    position: relative;
+    z-index: 2;
+  }
+  .funding-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+  .raised-amt {
+    font-family: 'Cairo', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .raised-amt small { font-size: 14px; color: var(--gold-light); margin-inline-start: 6px; }
+  .raised-l { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+  .raised-pct {
+    font-family: 'Cairo', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--gold-light);
+  }
+  .funding-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .funding-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold));
+    border-radius: 4px;
+    width: 73%;
+    box-shadow: 0 0 12px rgba(212,172,110,0.5);
+  }
+  .funding-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+  }
+  .funding-meta b { color: #fff; font-weight: 800; }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 14px 18px;
+  }
+  .stat-tile {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    border: 0.5px solid var(--line);
+  }
+  .stat-tile-l {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .stat-tile-v {
+    font-family: 'Cairo', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--green-dark);
+    letter-spacing: -0.02em;
+  }
+  .stat-tile-v.return { color: var(--green); }
+  .stat-tile-v small { font-size: 12px; color: var(--gold); margin-inline-start: 3px; font-weight: 700; }
+  .stat-tile-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Section headers */
+  .section-h {
+    font-family: 'Cairo', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-h::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  /* About */
+  .about-text { font-size: 14px; line-height: 1.8; color: var(--ink-soft); }
+  .about-text p { margin-bottom: 10px; }
+  .about-text strong { color: var(--green-dark); font-weight: 700; }
+
+  /* Highlights */
+  .highlights {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .highlight {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: var(--paper);
+    border-radius: 10px;
+    align-items: center;
+  }
+  .highlight-icon {
+    width: 36px; height: 36px;
+    background: var(--green);
+    border-radius: 9px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-light);
+  }
+  .highlight-text {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .highlight-text b { color: var(--green-dark); display: block; margin-bottom: 2px; font-family: 'Cairo'; font-size: 14px; }
+
+  /* Financial timeline */
+  .timeline {
+    margin-top: 14px;
+  }
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 12px;
+    padding: 12px 0;
+    align-items: center;
+    position: relative;
+  }
+  .timeline-row::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 11px;
+    top: 32px;
+    bottom: -12px;
+    width: 2px;
+    background: var(--line);
+  }
+  .timeline-row:last-child::after { display: none; }
+  .timeline-dot {
+    width: 24px; height: 24px;
+    background: var(--gold);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 11px;
+    z-index: 1;
+    border: 3px solid #fff;
+  }
+  .timeline-row.done .timeline-dot { background: var(--green); }
+  .timeline-row.future .timeline-dot { background: var(--paper-2); color: var(--muted); }
+  .timeline-info {
+    font-size: 13px;
+  }
+  .timeline-info b { display: block; color: var(--green-dark); font-family: 'Cairo'; font-weight: 700; margin-bottom: 2px; }
+  .timeline-info span { color: var(--muted); font-size: 11px; }
+  .timeline-amt {
+    font-family: 'Cairo';
+    font-weight: 800;
+    color: var(--green);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Risk box */
+  .risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .risk-item {
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border-inline-start: 3px solid var(--gold);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .risk-item.high { border-inline-start-color: var(--red); }
+  .risk-item.med { border-inline-start-color: #d4ac6e; }
+  .risk-item.low { border-inline-start-color: var(--green); }
+  .risk-item b {
+    font-family: 'Cairo';
+    color: var(--green-dark);
+    display: block;
+    margin-bottom: 3px;
+    font-size: 13px;
+  }
+  .risk-item.high b { color: var(--red); }
+
+  /* Documents */
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .doc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--paper);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform .15s;
+  }
+  .doc-row:active { transform: scale(0.98); }
+  .doc-row-icon {
+    width: 38px; height: 38px;
+    background: var(--green);
+    color: var(--gold-light);
+    border-radius: 9px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .doc-row-info { flex: 1; min-width: 0; }
+  .doc-row-name {
+    font-family: 'Cairo';
+    font-weight: 700;
+    color: var(--green-dark);
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .doc-row-size {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Calculator */
+  .calc-card {
+    background: linear-gradient(135deg, var(--paper) 0%, var(--paper-2) 100%);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 14px;
+  }
+  .calc-input {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .calc-input-l {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .calc-amount {
+    font-family: 'Cairo', sans-serif;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--green-dark);
+    letter-spacing: -0.02em;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: center;
+    direction: ltr;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 0;
+    -webkit-appearance: none;
+  }
+  .calc-amount:focus { outline: none; }
+  .calc-slider {
+    width: 100%;
+    height: 6px;
+    background: var(--paper-2);
+    border-radius: 3px;
+    -webkit-appearance: none;
+    margin-top: 10px;
+    direction: ltr;
+  }
+  .calc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: var(--green);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .calc-result {
+    background: var(--green-dark);
+    color: #fff;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .calc-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .calc-result-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .calc-result-row span { color: rgba(255,255,255,0.7); }
+  .calc-result-row b { color: var(--gold-light); font-weight: 800; font-family: 'Cairo'; font-variant-numeric: tabular-nums; }
+  .calc-result-row.total b { color: #fff; font-size: 16px; }
+
+  /* Investors */
+  .investors-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin: 14px 0 8px;
+  }
+  .inv-avatar {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--gold-light);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 11px;
+  }
+  .inv-avatar:nth-child(2n) { background: var(--green-soft); }
+  .inv-avatar:nth-child(3n) { background: var(--gold); }
+  .inv-avatar:nth-child(7n) { background: var(--ink); color: var(--gold-light); }
+  .inv-more {
+    background: var(--paper-2);
+    color: var(--green-dark);
+    font-size: 9px !important;
+    font-weight: 700;
+  }
+
+  /* Q&A */
+  .qa-item {
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+  }
+  .qa-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .qa-q {
+    font-family: 'Cairo';
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .qa-q::after {
+    content: '+';
+    color: var(--gold);
+    font-weight: 900;
+    font-size: 18px;
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .qa-item.open .qa-q::after { transform: rotate(45deg); }
+  .qa-a {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease, margin-top .3s;
+  }
+  .qa-item.open .qa-a {
+    max-height: 240px;
+    margin-top: 6px;
+  }
+
+  /* Sticky CTA */
+  .sticky-cta {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(251,246,234,0.96);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 0.5px solid var(--line);
+    padding: 12px 18px calc(12px + var(--safe-bot));
+    z-index: 50;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .cta-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .cta-info-l { font-size: 10px; color: var(--muted); font-weight: 600; }
+  .cta-info-v {
+    font-family: 'Cairo';
+    font-weight: 900;
+    color: var(--green-dark);
+    font-size: 16px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 800;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .1s, background .2s;
+    white-space: nowrap;
+    min-height: 48px;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-invest {
+    background: var(--green);
+    color: var(--paper);
+    box-shadow: 0 4px 14px rgba(10,77,54,0.25);
+    flex: 1;
+  }
+  .btn-invest:active { background: var(--green-dark); }
+  .btn-icon {
+    background: rgba(13,22,18,0.06);
+    color: var(--ink);
+    width: 48px;
+    padding: 14px;
+    flex: 0 0 auto;
+  }
+
+  /* Bottom sheet */
+  .sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6,12,8,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    opacity: 0; visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+  }
+  .sheet-overlay.active { opacity: 1; visibility: visible; }
+  .sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    max-height: 92vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--safe-bot);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+  }
+  .sheet.active { transform: translateY(0); }
+  .sheet-handle { width: 38px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 10px auto 0; }
+  .invest-sheet-header {
+    padding: 22px;
+    text-align: center;
+    border-bottom: 0.5px solid var(--line);
+  }
+  .invest-sheet-header h3 {
+    font-family: 'Cairo'; font-size: 22px; font-weight: 900;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .invest-sheet-header p { font-size: 13px; color: var(--muted); }
+  .invest-options {
+    padding: 18px 22px 22px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .invest-option {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .invest-option:active { transform: scale(0.96); }
+  .invest-option.selected {
+    background: var(--green-dark);
+    color: #fff;
+    border-color: var(--green-dark);
+  }
+  .invest-option-amt {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--green-dark);
+  }
+  .invest-option.selected .invest-option-amt { color: #fff; }
+  .invest-option-sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .invest-option.selected .invest-option-sub { color: rgba(255,255,255,0.7); }
+
+  .invest-summary {
+    background: var(--paper);
+    margin: 0 22px;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .summary-row:not(:last-child) { border-bottom: 0.5px dashed var(--line); }
+  .summary-row span { color: var(--muted); }
+  .summary-row b { font-family: 'Cairo'; color: var(--green-dark); font-variant-numeric: tabular-nums; }
+  .summary-row.total b { color: var(--green); font-size: 16px; font-weight: 900; }
+
+  .sheet-footer {
+    padding: 18px 22px 8px;
+  }
+  .btn-block { width: 100%; }
+  .btn-primary { background: var(--green); color: #fff; }
+
+  @media (min-width: 768px) {
+    body { font-size: 16px; }
+    .hero-banner { height: 360px; }
+    .card-section, .funding-card, .stats-grid, .sticky-cta { max-width: 760px; margin-left: auto; margin-right: auto; }
+    .sticky-cta { left: 50%; transform: translateX(-50%); right: auto; width: 100%; max-width: 760px; border-radius: 16px 16px 0 0; }
+  }
+</style>
+
+<link rel="stylesheet" href="shared.css" />
+
+<link rel="manifest" href="site.webmanifest" />
+
+<meta property="og:title" content="مُرابحة — منصة الشراكة الاستثمارية الشرعية" />
+<meta property="og:image" content="/og-image.png" />
+</head>
+<body>
+
+<header class="float-header" id="floatHeader">
+  <a href="hessa.html" class="float-btn" aria-label="رجوع">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+      <path d="M15 18l-6-6 6-6" transform="scale(-1, 1) translate(-24, 0)"/>
+    </svg>
+  </a>
+  <div class="float-actions">
+    <button class="float-btn" aria-label="مشاركة">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
+    <button class="float-btn" aria-label="حفظ">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero-banner">
+  <div class="hero-info">
+    <div class="hero-tags">
+      <span class="hero-tag">⬢ صندوق الاستثمارات العامة</span>
+      <span class="hero-tag hot">🔥 رائج</span>
+      <span class="hero-tag shariah">☪ شرعي</span>
+    </div>
+    <h1>روشن — ضاحية الفرسان<br/>المرحلة الثالثة</h1>
+    <div class="hero-meta">
+      <span>📍 شمال الرياض</span>
+      <span>•</span>
+      <span>عقار سكني فاخر</span>
+    </div>
+  </div>
+</div>
+
+<!-- FUNDING CARD -->
+<div class="funding-card">
+  <div class="funding-row">
+    <div>
+      <div class="raised-l">جُمع حتى الآن</div>
+      <div class="raised-amt">٥,٨٥٠,٤٠٠ <small>ر.س</small></div>
+    </div>
+    <div class="raised-pct">٧٣٪</div>
+  </div>
+  <div class="funding-bar"><div class="funding-fill"></div></div>
+  <div class="funding-meta">
+    <span>المستهدف <b>٨ مليون ر.س</b></span>
+    <span><b>٨٤٧</b> مستثمر</span>
+    <span>متبقّي <b>١٢ يوماً</b></span>
+  </div>
+</div>
+
+<!-- KEY STATS -->
+<div class="stats-grid">
+  <div class="stat-tile">
+    <div class="stat-tile-l">العائد السنوي المتوقع</div>
+    <div class="stat-tile-v return">٩.٢<small>٪</small></div>
+    <div class="stat-tile-sub">يُوزَّع ربعياً</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-l">مدة الاستثمار</div>
+    <div class="stat-tile-v">٣٦<small>شهراً</small></div>
+    <div class="stat-tile-sub">٣ سنوات</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-l">الحد الأدنى</div>
+    <div class="stat-tile-v">٥٠٠<small>ر.س</small></div>
+    <div class="stat-tile-sub">للمشاركة</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-l">صيغة العقد</div>
+    <div class="stat-tile-v">مرابحة</div>
+    <div class="stat-tile-sub">عقد بيع آجل</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="card-section">
+  <h2 class="section-h">عن المشروع</h2>
+  <div class="about-text">
+    <p>
+      <strong>ضاحية الفرسان</strong> مشروع سكني متكامل ضمن مجمّعات شركة <strong>روشن العقارية</strong> التابعة لصندوق الاستثمارات العامة، يقع شمال الرياض على مساحة ١.٢ مليون متر مربع، ويُعدّ أحد أهم مشاريع الإسكان الفاخر في المملكة، ضمن أهداف رؤية ٢٠٣٠ لرفع نسبة تملّك المنازل إلى ٧٠٪.
+    </p>
+    <p>
+      تستهدف المرحلة الثالثة بناء وتسليم <strong>٢,٤٠٠ وحدة سكنية</strong> (فلل وتاون هاوس)، مع تشغيل المرافق التجارية والترفيهية. حصة المستثمرين على المنصة تمثّل ٠.٠٠٠٣١٢٥٪ من الأصول، وتُوزَّع الأرباح من إيرادات البيع والإيجار التشغيلي.
+    </p>
+  </div>
+
+  <div class="highlights">
+    <div class="highlight">
+      <div class="highlight-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </div>
+      <div class="highlight-text"><b>٢,٤٠٠ وحدة</b>سكنية فاخرة (فلل + تاون هاوس)</div>
+    </div>
+    <div class="highlight">
+      <div class="highlight-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div class="highlight-text"><b>شمال الرياض</b>قريب من المطار وطريق الملك سلمان</div>
+    </div>
+    <div class="highlight">
+      <div class="highlight-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="highlight-text"><b>٢٧٪ بيع مسبق</b>قبل بدء المرحلة الثالثة، بقيمة ٤.٢ مليار ر.س</div>
+    </div>
+    <div class="highlight">
+      <div class="highlight-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+      </div>
+      <div class="highlight-text"><b>مدعوم حكومياً</b>ضمن برنامج "سكني" - وزارة الإسكان</div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="card-section">
+  <h2 class="section-h">الجدول الزمني</h2>
+  <div class="timeline">
+    <div class="timeline-row done">
+      <div class="timeline-dot">✓</div>
+      <div class="timeline-info">
+        <b>إطلاق الجولة</b>
+        <span>١ شعبان ١٤٤٧ هـ</span>
+      </div>
+    </div>
+    <div class="timeline-row done">
+      <div class="timeline-dot">✓</div>
+      <div class="timeline-info">
+        <b>وصول ٧٣٪ من المستهدف</b>
+        <span>٢٤ شعبان ١٤٤٧ هـ — اليوم</span>
+      </div>
+    </div>
+    <div class="timeline-row">
+      <div class="timeline-dot">٣</div>
+      <div class="timeline-info">
+        <b>إقفال الجولة المتوقع</b>
+        <span>١٢ يوماً متبقّية</span>
+      </div>
+    </div>
+    <div class="timeline-row future">
+      <div class="timeline-dot">٤</div>
+      <div class="timeline-info">
+        <b>بدء توزيع الأرباح (الربع الأول)</b>
+        <span>بعد ٩٠ يوماً من الإقفال</span>
+      </div>
+      <div class="timeline-amt">+٢.٣٪</div>
+    </div>
+    <div class="timeline-row future">
+      <div class="timeline-dot">٥</div>
+      <div class="timeline-info">
+        <b>نهاية مدة العقد + استرجاع رأس المال</b>
+        <span>بعد ٣٦ شهراً</span>
+      </div>
+      <div class="timeline-amt">١٠٠٪</div>
+    </div>
+  </div>
+</div>
+
+<!-- CALCULATOR -->
+<div class="card-section">
+  <h2 class="section-h">احسب عوائدك</h2>
+  <div class="calc-card">
+    <div class="calc-input">
+      <div class="calc-input-l">المبلغ المراد استثماره</div>
+      <input type="text" class="calc-amount num" id="calcAmt" value="٢٥,٠٠٠"/>
+      <input type="range" class="calc-slider" id="calcSlider" min="500" max="200000" step="500" value="25000"/>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;">
+        <span>٥٠٠</span>
+        <span>٢٠٠,٠٠٠</span>
+      </div>
+    </div>
+    <div class="calc-result">
+      <div class="calc-result-row">
+        <span>رأس المال</span>
+        <b id="calcCapital">٢٥,٠٠٠ ر.س</b>
+      </div>
+      <div class="calc-result-row">
+        <span>الأرباح السنوية (٩.٢٪)</span>
+        <b id="calcYearly">٢,٣٠٠ ر.س</b>
+      </div>
+      <div class="calc-result-row">
+        <span>إجمالي الأرباح خلال ٣٦ شهراً</span>
+        <b id="calcTotal">٦,٩٠٠ ر.س</b>
+      </div>
+      <div class="calc-result-row total">
+        <span>المبلغ النهائي عند الاستحقاق</span>
+        <b id="calcFinal">٣١,٩٠٠ ر.س</b>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RISKS -->
+<div class="card-section">
+  <h2 class="section-h">المخاطر</h2>
+  <p style="font-size: 13px; color: var(--ink-soft); line-height: 1.7;">
+    لكل استثمار مخاطر، ونحرص على إفصاحها بشفافية كاملة قبل المشاركة.
+  </p>
+  <div class="risk-list">
+    <div class="risk-item med">
+      <b>مخاطر التأخر في التسليم</b>
+      احتمال تأخر تسليم الوحدات السكنية بسبب ظروف تشغيلية قد يؤجّل توزيع الأرباح ربعاً أو اثنين.
+    </div>
+    <div class="risk-item low">
+      <b>مخاطر السوق العقاري</b>
+      تقلّبات أسعار العقار في الرياض، مخفّفة بعقود البيع المسبق المؤمّنة بنسبة ٢٧٪.
+    </div>
+    <div class="risk-item low">
+      <b>مخاطر السيولة</b>
+      الاستثمار غير قابل للتسييل قبل انتهاء مدة ٣٦ شهراً (لا يوجد سوق ثانوي).
+    </div>
+  </div>
+  <a href="risk.html" style="display:block;margin-top:14px;padding:12px;background:var(--paper);border-radius:10px;text-align:center;text-decoration:none;color:var(--gold);font-weight:700;font-size:13px;">
+    قراءة الإفصاح الكامل عن المخاطر ←
+  </a>
+</div>
+
+<!-- DOCUMENTS -->
+<div class="card-section">
+  <h2 class="section-h">المستندات</h2>
+  <div class="doc-list">
+    <a href="contract.html" class="doc-row">
+      <div class="doc-row-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <div class="doc-row-info">
+        <div class="doc-row-name">عقد المرابحة النموذجي</div>
+        <div class="doc-row-size">PDF · ١٢ صفحة</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <a href="#" class="doc-row">
+      <div class="doc-row-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      </div>
+      <div class="doc-row-info">
+        <div class="doc-row-name">نشرة الإصدار التفصيلية</div>
+        <div class="doc-row-size">PDF · ٣٤ صفحة</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <a href="sharia.html" class="doc-row">
+      <div class="doc-row-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div class="doc-row-info">
+        <div class="doc-row-name">شهادة الالتزام الشرعي</div>
+        <div class="doc-row-size">PDF · ٤ صفحات</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    <a href="#" class="doc-row">
+      <div class="doc-row-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div class="doc-row-info">
+        <div class="doc-row-name">دراسة الجدوى المالية</div>
+        <div class="doc-row-size">PDF · ٢٢ صفحة</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- INVESTORS -->
+<div class="card-section">
+  <h2 class="section-h">المستثمرون</h2>
+  <p style="font-size:13px;color:var(--muted);">٨٤٧ مستثمر سعودي شارك في هذه الفرصة</p>
+  <div class="investors-grid">
+    <div class="inv-avatar">ع</div>
+    <div class="inv-avatar">م</div>
+    <div class="inv-avatar">ف</div>
+    <div class="inv-avatar">ن</div>
+    <div class="inv-avatar">س</div>
+    <div class="inv-avatar">ر</div>
+    <div class="inv-avatar">ج</div>
+    <div class="inv-avatar">ل</div>
+    <div class="inv-avatar">ك</div>
+    <div class="inv-avatar">ح</div>
+    <div class="inv-avatar">ب</div>
+    <div class="inv-avatar">و</div>
+    <div class="inv-avatar">د</div>
+    <div class="inv-avatar">ت</div>
+    <div class="inv-avatar">ز</div>
+    <div class="inv-avatar inv-more">+832</div>
+  </div>
+</div>
+
+<!-- Q&A -->
+<div class="card-section">
+  <h2 class="section-h">أسئلة شائعة</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">متى أحصل على أول دفعة من الأرباح؟</div>
+    <div class="qa-a">بعد إقفال الجولة بنجاح وتوقيع كل المستثمرين، تبدأ مدة العقد رسمياً، وتُوزّع أول دفعة بعد ٩٠ يوماً (الربع الأول).</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">كيف يتم التحقق من شرعية المشروع؟</div>
+    <div class="qa-a">الهيئة الشرعية المستقلة لمنصة مُرابحة (د. عبدالله المنيع، د. يوسف الشبيلي، د. محمد القري) راجعت العقد والهيكل وأصدرت شهادة التزام شرعي رقم SH-2026/01.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">هل يمكنني الانسحاب قبل ٣٦ شهراً؟</div>
+    <div class="qa-a">لا، الاستثمار غير قابل للتسييل قبل انتهاء المدة. هذا أمر طبيعي في عقود المرابحة العقارية. ندعو للاستثمار بمبلغ لا تحتاجه خلال هذه الفترة.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">كيف تُحفظ أموالي قبل بدء المشروع؟</div>
+    <div class="qa-a">تبقى الأموال محتجَزة ضمن مسار آمن، ولا تُحرَّر للمستفيد إلا بعد اكتمال الجولة بنسبة ١٠٠٪ وتوقيع كل المستثمرين على عقود المرابحة عند التسجيل.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">ماذا لو لم تكتمل الجولة؟</div>
+    <div class="qa-a">إذا لم نصل للمستهدف خلال ٤٥ يوماً، تُعاد كامل المبالغ للمستثمرين خلال ٣ أيام عمل دون أي رسوم.</div>
+  </div>
+</div>
+
+<!-- STICKY CTA -->
+<div class="sticky-cta">
+  <div class="cta-info">
+    <div class="cta-info-l">العائد المتوقع</div>
+    <div class="cta-info-v">٩.٢٪ سنوياً</div>
+  </div>
+  <button class="btn btn-icon" aria-label="حفظ">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <button class="btn btn-invest" onclick="openInvestSheet()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
+    شارك الآن
+  </button>
+</div>
+
+<!-- INVEST SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeInvest()"></div>
+<div class="sheet" id="investSheet">
+  <div class="sheet-handle"></div>
+  <div class="invest-sheet-header">
+    <h3>اختر مبلغ الاستثمار</h3>
+    <p>المرحلة الثالثة من ضاحية الفرسان</p>
+  </div>
+  <div class="invest-options">
+    <div class="invest-option" data-amt="500" onclick="selectAmt(this, 500)">
+      <div class="invest-option-amt">٥٠٠</div>
+      <div class="invest-option-sub">حد أدنى</div>
+    </div>
+    <div class="invest-option" data-amt="1000" onclick="selectAmt(this, 1000)">
+      <div class="invest-option-amt">١,٠٠٠</div>
+      <div class="invest-option-sub">ر.س</div>
+    </div>
+    <div class="invest-option" data-amt="5000" onclick="selectAmt(this, 5000)">
+      <div class="invest-option-amt">٥,٠٠٠</div>
+      <div class="invest-option-sub">ر.س</div>
+    </div>
+    <div class="invest-option" data-amt="10000" onclick="selectAmt(this, 10000)">
+      <div class="invest-option-amt">١٠,٠٠٠</div>
+      <div class="invest-option-sub">ر.س</div>
+    </div>
+    <div class="invest-option selected" data-amt="25000" onclick="selectAmt(this, 25000)">
+      <div class="invest-option-amt">٢٥,٠٠٠</div>
+      <div class="invest-option-sub">شائع</div>
+    </div>
+    <div class="invest-option" data-amt="50000" onclick="selectAmt(this, 50000)">
+      <div class="invest-option-amt">٥٠,٠٠٠</div>
+      <div class="invest-option-sub">ر.س</div>
+    </div>
+  </div>
+
+  <div class="invest-summary">
+    <div class="summary-row">
+      <span>مبلغ الاستثمار</span>
+      <b id="sumAmt">٢٥,٠٠٠ ر.س</b>
+    </div>
+    <div class="summary-row">
+      <span>رسوم المنصة (١.٥٪)</span>
+      <b id="sumFee">٣٧٥ ر.س</b>
+    </div>
+    <div class="summary-row">
+      <span>الأرباح المتوقعة (٣٦ شهراً)</span>
+      <b id="sumProfit" style="color:var(--green) !important;">+٦,٩٠٠ ر.س</b>
+    </div>
+    <div class="summary-row total">
+      <span>إجمالي الدفع الآن</span>
+      <b id="sumTotal">٢٥,٣٧٥ ر.س</b>
+    </div>
+  </div>
+
+  <div class="sheet-footer">
+    <a href="contract.html" class="btn btn-primary btn-block">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+      المتابعة لتوقيع العقد
+    </a>
+  </div>
+</div>
+
+<script>
+  // Header scroll effect
+  const fh = document.getElementById('floatHeader');
+  window.addEventListener('scroll', () => {
+    fh.classList.toggle('scrolled', window.scrollY > 100);
+  });
+
+  // Calculator
+  const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+  function toArabic(n) {
+    return String(Math.round(n).toLocaleString('en-US')).split('').map(c => isNaN(c) ? c : arabicDigits[+c]).join('');
+  }
+  const slider = document.getElementById('calcSlider');
+  const amtIn = document.getElementById('calcAmt');
+  function recalc(amt) {
+    const yearly = amt * 0.092;
+    const total = yearly * 3;
+    const final = amt + total;
+    amtIn.value = toArabic(amt);
+    document.getElementById('calcCapital').textContent = toArabic(amt) + ' ر.س';
+    document.getElementById('calcYearly').textContent = toArabic(yearly) + ' ر.س';
+    document.getElementById('calcTotal').textContent = toArabic(total) + ' ر.س';
+    document.getElementById('calcFinal').textContent = toArabic(final) + ' ر.س';
+  }
+  slider.addEventListener('input', e => recalc(+e.target.value));
+
+  // Invest sheet
+  const overlay = document.getElementById('sheetOverlay');
+  const sheet = document.getElementById('investSheet');
+  function openInvestSheet() {
+    sheet.classList.add('active');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeInvest() {
+    sheet.classList.remove('active');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    sheet.style.transform = '';
+  }
+  function selectAmt(el, amt) {
+    document.querySelectorAll('.invest-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const fee = amt * 0.015;
+    const profit = amt * 0.092 * 3;
+    document.getElementById('sumAmt').textContent = toArabic(amt) + ' ر.س';
+    document.getElementById('sumFee').textContent = toArabic(fee) + ' ر.س';
+    document.getElementById('sumProfit').textContent = '+' + toArabic(profit) + ' ر.س';
+    document.getElementById('sumTotal').textContent = toArabic(amt + fee) + ' ر.س';
+  }
+
+  // Drag-to-dismiss
+  const handle = document.querySelector('.sheet-handle');
+  let startY = 0, currentY = 0, dragging = false;
+  handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; dragging = true; sheet.style.transition = 'none'; }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY - startY;
+    if (currentY > 0) sheet.style.transform = `translateY(${currentY}px)`;
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    if (currentY > 100) closeInvest();
+    else sheet.style.transform = '';
+    currentY = 0;
+  });
+</script>
+
+<script src="shared.js"></script>
+</body>
+</html>
