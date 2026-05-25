@@ -12,6 +12,9 @@ const compression = require('compression');
 const cors       = require('cors');
 const helmet     = require('helmet');
 const morgan     = require('morgan');
+const cookieParser = require('cookie-parser');
+const authRoutes   = require('./routes/auth');
+const { requireAuthPage } = require('./middleware/requireAuth');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -26,8 +29,7 @@ app.use(helmet({
       styleSrc:    ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "fonts.gstatic.com"],
       fontSrc:     ["'self'", "fonts.gstatic.com", "fonts.googleapis.com"],
       imgSrc:      ["'self'", "data:", "https:"],
-      connectSrc:  ["'self'",
-                    "https://api.murbaha.com"],
+      connectSrc:  ["'self'"],
       frameSrc:    ["'none'"],
       objectSrc:   ["'none'"],
     },
@@ -37,7 +39,8 @@ app.use(helmet({
 
 // ─── Middleware ──────────────────────────────────────────
 app.use(compression());
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN || true, credentials: true }));
+app.use(cookieParser(process.env.SESSION_SECRET || 'dev-secret'));
 app.use(morgan(ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -96,6 +99,8 @@ app.post('/api/newsletter', (req, res) => {
   res.json({ success: true });
 });
 
+app.use('/api/auth', authRoutes);
+
 // ─── Page Routes ────────────────────────────────────────
 // Explicit HTML routes (clean URLs)
 const pageRoutes = {
@@ -124,8 +129,11 @@ const pageRoutes = {
   '/cookies':       'cookies.html',
 };
 
+const PRIVATE = new Set(['/portfolio', '/profile', '/notifications', '/contract']);
+
 Object.entries(pageRoutes).forEach(([route, file]) => {
-  app.get(route, (req, res) => {
+  const handlers = PRIVATE.has(route) ? [requireAuthPage] : [];
+  app.get(route, ...handlers, (req, res) => {
     res.sendFile(path.join(__dirname, file));
   });
 });
