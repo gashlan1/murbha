@@ -150,8 +150,10 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start ──────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`
+// Only listen when run directly (`node server.js`), not when imported by tests.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`
 ╔══════════════════════════════════════╗
 ║   مُرابحة Platform — Server Running   ║
 ╠══════════════════════════════════════╣
@@ -159,6 +161,7 @@ app.listen(PORT, () => {
 ║  ENV:  ${ENV.padEnd(29)}║
 ╚══════════════════════════════════════╝
   `);
-});
+  });
+}
 
 module.exports = app;
