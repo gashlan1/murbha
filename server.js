@@ -107,6 +107,7 @@ app.post('/api/newsletter', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', require('./routes/projects'));
+app.use('/api', require('./routes/portfolio'));
 
 // ─── Page Routes ────────────────────────────────────────
 // Explicit HTML routes (clean URLs)
