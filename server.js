@@ -20,6 +20,12 @@ const app  = express();
 const PORT = process.env.PORT || 3000;
 const ENV  = process.env.NODE_ENV || 'development';
 
+// Fail fast: a predictable cookie-signing secret in production means forgeable
+// sessions. Require SESSION_SECRET to be set explicitly when NODE_ENV=production.
+if (ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production');
+}
+
 // ─── Security ───────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {

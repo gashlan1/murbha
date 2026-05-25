@@ -9,6 +9,10 @@ const { COOKIE, requireAuthApi } = require('../middleware/requireAuth');
 
 const router = express.Router();
 
+// Express 4 does not forward rejected promises from async handlers to the
+// error middleware; wrap async handlers so DB failures reach the 500 handler.
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
 const cookieOpts = {
   httpOnly: true,
   sameSite: 'lax',
@@ -26,7 +30,7 @@ const authLimiter = rateLimit({
   message: { error: 'محاولات كثيرة. حاول لاحقاً.' },
 });
 
-router.post('/register', authLimiter, async (req, res) => {
+router.post('/register', authLimiter, ah(async (req, res) => {
   const { username, password, full_name } = req.body || {};
   const uErr = validateUsername(username);
   const pErr = validatePassword(password);
@@ -47,9 +51,9 @@ router.post('/register', authLimiter, async (req, res) => {
   const session = await createSession(user.id);
   res.cookie(COOKIE, session.id, cookieOpts);
   res.status(201).json({ user });
-});
+}));
 
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', authLimiter, ah(async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
@@ -65,13 +69,13 @@ router.post('/login', authLimiter, async (req, res) => {
   const session = await createSession(user.id);
   res.cookie(COOKIE, session.id, cookieOpts);
   res.json({ user: { id: user.id, username: user.username, full_name: user.full_name } });
-});
+}));
 
-router.post('/logout', async (req, res) => {
+router.post('/logout', ah(async (req, res) => {
   await destroySession(req.signedCookies?.[COOKIE]).catch(() => {});
   res.clearCookie(COOKIE, { ...cookieOpts, maxAge: undefined });
   res.json({ success: true });
-});
+}));
 
 router.get('/me', requireAuthApi, (req, res) => {
   res.json({ user: req.user });
