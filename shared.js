@@ -67,7 +67,12 @@ const Toast = (() => {
       default: 'ℹ',
     }[type] || '';
 
-    el.innerHTML = `<span style="font-size:16px">${icon}</span><span>${message}</span>`;
+    const iconEl = document.createElement('span');
+    iconEl.style.fontSize = '16px';
+    iconEl.textContent = icon;
+    const msgEl = document.createElement('span');
+    msgEl.textContent = message;
+    el.append(iconEl, msgEl);
     c.appendChild(el);
 
     setTimeout(() => {
@@ -390,3 +395,13 @@ window.showFieldError = showFieldError;
 window.startResendTimer = startResendTimer;
 window.copyToClipboard  = copyToClipboard;
 window.shareProject     = shareProject;
+
+// ─── Logout ──────────────────────────────────────────────
+async function logout() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+  } finally {
+    window.location.href = '/login';
+  }
+}
+window.logout = logout;
