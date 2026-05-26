@@ -74,3 +74,18 @@ CREATE INDEX IF NOT EXISTS idx_investments_user    ON investments(user_id);
 CREATE INDEX IF NOT EXISTS idx_investments_project ON investments(project_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user   ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user  ON notifications(user_id);
+
+CREATE TABLE IF NOT EXISTS contracts (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  project_id   UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  investment_id UUID NOT NULL REFERENCES investments(id) ON DELETE CASCADE,
+  amount       NUMERIC NOT NULL,
+  profit_rate  NUMERIC NOT NULL,
+  term_months  INT NOT NULL,
+  status       TEXT NOT NULL DEFAULT 'pending',   -- pending | signed | active
+  signature    TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  signed_at    TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_contracts_user ON contracts(user_id);
