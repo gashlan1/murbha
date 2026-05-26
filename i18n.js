@@ -13,6 +13,7 @@
   'use strict';
 
   var DICT = {
+    skip_link:   { en: 'Skip to main content' },
     nav_login:   { en: 'Sign in' },
     date_pill:   { en: '<b>May 27</b>\n2026' },
 
@@ -99,7 +100,109 @@
     tab_projects:  { en: 'Projects' },
     tab_invest:    { en: 'Invest' },
     tab_portfolio: { en: 'Portfolio' },
-    tab_profile:   { en: 'Account' }
+    tab_profile:   { en: 'Account' },
+
+    // ─── Milestones ticker ───
+    tick_soon:      { en: '🚀 <b>Murbaha</b>: help fund real contracts <span class="ticker-amt">soon</span>' },
+    tick_seller:    { en: '📜 The investor is a <b>seller</b> under a Murabaha contract <span class="ticker-amt">— deferred price + profit</span>' },
+    tick_board:     { en: '☚ An independent Sharia board of <span class="ticker-amt">four scholars</span>' },
+    tick_contracts: { en: '🏢 Government and private contracts awarded to <span class="ticker-amt">verified</span> Saudi companies' },
+    tick_terms:     { en: '⏱ Fixed terms: <span class="ticker-amt">6, 12 or 18 months</span>' },
+    tick_verify:    { en: '🔐 Verify your identity electronically in seconds' },
+    tick_pdpl:      { en: '🇸🇦 Your data is protected under Saudi <span class="ticker-amt">PDPL</span>' },
+    tick_waitlist:  { en: '👥 Join the <span class="ticker-amt">waitlist</span> to be among the first investors' },
+
+    // ─── Illustrative example ───
+    ex_eyebrow:    { en: 'Illustrative example' },
+    ex_title:      { en: 'This is what an opportunity<br/>on Murbaha looks like.' },
+    ex_badge:      { en: '📌 Illustrative example — not an investment offer' },
+    ex_card_title: { en: 'Operations & maintenance contract — an administrative building in Riyadh' },
+    ex_meta_city:  { en: '📍 Riyadh' },
+    ex_meta_sector:{ en: 'Sector: Operations & maintenance' },
+    ex_meta_term:  { en: 'Term: 12 months' },
+    ex_l_party:    { en: 'Contracting entity' },
+    ex_v_party:    { en: 'A certified private entity' },
+    ex_l_company:  { en: 'Executing company' },
+    ex_v_company:  { en: 'A Saudi services company' },
+    ex_l_scope:    { en: 'Contract scope' },
+    ex_v_scope:    { en: '48 floors • 150 staff per month' },
+    ex_l_need:     { en: 'Delivery requirements' },
+    ex_v_need:     { en: 'Equipment • uniforms • consumables • services' },
+    ex_l_recovery: { en: 'Capital recovery period' },
+    ex_v_recovery: { en: '12 months (monthly payments)' },
+    ex_l_form:     { en: 'Contract structure' },
+    ex_v_form:     { en: '☚ Murabaha at a known profit' },
+    ex_flow1:      { en: 'You buy a share of the goods/services the contract needs.' },
+    ex_flow2:      { en: 'You sell them to the executing company at a deferred price plus a known profit.' },
+    ex_flow3:      { en: 'The contracting entity’s payments flow to your account monthly.' },
+    ex_foot:       { en: '⚠️ This example is for illustration only. Actual opportunities and their detailed figures will be announced on the <a href="projects.html">Projects</a> page after Sharia-board approval and regulatory licensing.' },
+
+    // ─── Testimonials ───
+    testi1_text: { en: 'I’ve followed <b>Murbaha</b> since the very first announcement. What sets them apart is how clear they are — they don’t over-promise. The Sharia board is well known, and the idea of an electronic Murabaha contract is genuinely advanced. I’m ready to be one of the first investors.' },
+    testi1_role: { en: 'Engineer · Riyadh' },
+    testi2_text: { en: 'I liked the platform’s philosophy from the start: <b>halal</b>, transparent investing without complexity. I’ve long looked for an option that eases the conscience and respects my time, and the automatic e-documentation makes the experience very smooth.' },
+    testi2_role: { en: 'Teacher · Jeddah' },
+    testi3_text: { en: 'It’s hard to find an Arabic platform handling electronic contracts this clearly. The team answered all my questions in plain language and showed me a summary of the Sharia board’s fatwa. I truly value this level of quality.' },
+    testi3_role: { en: 'Entrepreneur · Dammam' },
+    testi4_text: { en: 'I was glad to see the Sharia board is real and not just a name. I’ll start with a small minimum at launch to try it out, and I think offering a halal investment option at a genuine Islamic profit rate is wonderful.' },
+    testi4_role: { en: 'Employee · Makkah' },
+
+    // ─── Portfolio teaser ───
+    port_eyebrow:      { en: 'Investor dashboard' },
+    port_title:        { en: 'Your portfolio in plain sight —<br/>live and transparent.' },
+    port_sub:          { en: 'Track every investment, your accumulated profits and upcoming payments in a dashboard built for any Saudi investor to understand.' },
+    port_preview_pill: { en: 'Preview' },
+    port_preview_text: { en: 'This is how your portfolio will look after launch' },
+    port_received:     { en: 'Profits received <b>—</b>' },
+    port_next:         { en: 'Next payment <b>—</b>' },
+    port_empty:        { en: '🏗️ Your investments will appear here as soon as the first opportunity goes live.' },
+    port_waitlist:     { en: 'Join the waitlist' },
+
+    // ─── Payment methods ───
+    pay_heading:      { en: 'Accepted payment methods' },
+    pay_mada:         { en: 'Mada card' },
+    pay_stc:          { en: 'STC wallet' },
+    pay_urpay:        { en: 'urpay' },
+    pay_sadad:        { en: 'SADAD' },
+    pay_transfer_logo:{ ar: '🏦 تحويل', en: '🏦 Transfer' },
+    pay_banks:        { en: 'Saudi banks' },
+
+    // ─── Compliance & Sharia ───
+    comp_eyebrow:  { en: 'Compliance & governance' },
+    comp_title:    { en: 'Built on Saudi regulations —<br/>from the ground up.' },
+    comp_vision_h: { en: 'Saudi Vision 2030' },
+    comp_vision_p: { en: 'Aligned with the Vision’s goals and targets' },
+    comp_sharia_h: { en: 'Sharia compliant' },
+    comp_sharia_p: { en: 'Independent Sharia board — quarterly review' },
+    comp_edoc_h:   { en: 'Electronic documentation' },
+    comp_edoc_p:   { en: 'Identity and data verified electronically' },
+    comp_econ_h:   { en: 'Electronic contracts' },
+    comp_econ_p:   { en: 'Under the Electronic Transactions Law' },
+    sharia_stamp:  { en: '☪ Sharia approved' },
+    sharia_h:      { en: 'Your money grows in line with Islamic Sharia' },
+    sharia_p:      { en: 'Every contract on Murbaha is built on approved Islamic transaction structures, free of riba and gharar. Each deal is reviewed by the independent Sharia supervisory board before it is offered to investors.' },
+    ct_murabaha:   { en: '<b>Murabaha</b>\nSale at a known profit' },
+    ct_musharaka:  { en: '<b>Musharaka</b>\nProfit-sharing partnership' },
+    ct_ijara:      { en: '<b>Ijara</b>\nLease-to-own' },
+    board_title:   { en: 'Sharia supervisory board' },
+    board_m1:      { en: 'Dr. Abdullah Al-Mania — Board Chairman' },
+    board_m2:      { en: 'Dr. Yusuf Al-Shubaily — Member' },
+    board_m3:      { en: 'Dr. Mohammed Al-Qari — Member' },
+    escrow_h:      { en: 'Invest with Sharia peace of mind' },
+    escrow_p:      { en: 'Every Murabaha contract on the platform is reviewed and approved by the independent Sharia board chaired by His Excellency Sheikh Dr. Abdullah Al-Mania, with an independent quarterly review.' },
+    doc_contract_h:{ en: 'Murabaha contract' },
+    doc_contract_p:{ en: 'Full contract template' },
+    doc_legal_h:   { en: 'Legal documents' },
+    doc_legal_p:   { en: '7 regulatory policies' },
+
+    // ─── Support ───
+    support_eyebrow: { en: 'Customer service' },
+    support_title:   { en: 'Our team is here for you<br/>all week long.' },
+    support_card_h:  { en: 'Saudi support team' },
+    support_card_p:  { en: 'Customer service in Saudi hands — they understand your market and speak your language.' },
+    support_toll:    { en: '📞 Toll-free number' },
+    support_whatsapp:{ en: '💬 WhatsApp' },
+    support_hours:   { en: '🕐 Sun – Thu: 8 AM — 8 PM  |  Fri – Sat: 10 AM — 4 PM' }
   };
 
   var arCache = {};
