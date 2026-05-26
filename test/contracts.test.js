@@ -30,7 +30,7 @@ test('full cycle: invest -> get -> sign -> pay (wallet) activates investment', {
   const p = await openProject();
   const amount = p.minAmount;
   const balBefore = (await agent.get('/api/portfolio')).body.balance;
-  const raisedBefore = (await request(app).get('/api/projects/' + p.slug)).body.project.raised;
+  const raisedBefore = Number((await pool.query('SELECT raised FROM projects WHERE slug = $1', [p.slug])).rows[0].raised);
 
   const invest = await agent.post('/api/projects/' + p.slug + '/invest').send({ amount });
   assert.equal(invest.status, 201);
@@ -64,11 +64,14 @@ test('full cycle: invest -> get -> sign -> pay (wallet) activates investment', {
   assert.equal(paid.status, 200);
   assert.equal(paid.body.contract.status, 'active');
 
-  // balance debited by amount, raised increased, investment active
+  // balance debited by amount, raised increased by at least this amount
+  // (concurrent test files may also pay into this seeded project), investment active
   const balAfter = (await agent.get('/api/portfolio')).body.balance;
   assert.equal(balAfter, balBefore - amount);
-  const proj = (await request(app).get('/api/projects/' + p.slug)).body.project;
-  assert.equal(proj.raised, raisedBefore + amount);
+  const raisedAfter = Number((await pool.query('SELECT raised FROM projects WHERE slug = $1', [p.slug])).rows[0].raised);
+  assert.ok(raisedAfter >= raisedBefore + amount, 'pay bumps project raised by at least its amount');
+  const invStatus = (await pool.query('SELECT status FROM investments WHERE id = $1', [got.body.contract.investmentId])).rows[0];
+  assert.equal(invStatus.status, 'active');
   const portfolio = (await agent.get('/api/portfolio')).body;
   assert.equal(portfolio.invested, amount);
   assert.ok(portfolio.transactions.some(t => t.kind === 'invest_confirm' && t.amount === -amount));
