@@ -4,6 +4,7 @@ const { requireAuthApi } = require('../middleware/requireAuth');
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 router.get('/', requireAuthApi, ah(async (req, res) => {
   const { rows } = await query(
@@ -17,6 +18,7 @@ router.post('/read-all', requireAuthApi, ah(async (req, res) => {
 }));
 
 router.post('/:id/read', requireAuthApi, ah(async (req, res) => {
+  if (!UUID.test(req.params.id)) return res.status(404).json({ error: 'not_found' });
   await query('UPDATE notifications SET read=true WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
   res.json({ success: true });
 }));
