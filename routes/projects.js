@@ -2,7 +2,6 @@ const express = require('express');
 const { query, pool } = require('../db/pool');
 const { projectDTO } = require('../lib/dto');
 const { requireAuthApi } = require('../middleware/requireAuth');
-const { buildPortfolio } = require('../lib/portfolio');
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -23,6 +22,9 @@ router.get('/:slug', ah(async (req, res) => {
   res.json({ project: projectDTO(rows[0]) });
 }));
 
+// Invest creates a PENDING investment + a contract awaiting signature.
+// It does NOT touch the user balance or the project's raised total — that
+// happens later in the contract pay step (routes/contracts.js).
 router.post('/:slug/invest', requireAuthApi, ah(async (req, res) => {
   const amount = Number(req.body?.amount);
   const client = await pool.connect();
@@ -35,25 +37,30 @@ router.post('/:slug/invest', requireAuthApi, ah(async (req, res) => {
     if (!(amount > 0) || amount < Number(p.min_amount)) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'below_min' }); }
     if (amount > Number(p.goal) - Number(p.raised)) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'exceeds_remaining' }); }
 
-    const { rows: urows } = await client.query('SELECT balance FROM users WHERE id = $1 FOR UPDATE', [req.user.id]);
-    if (amount > Number(urows[0].balance)) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'insufficient_balance' }); }
-
     const rate = Number(p.profit_rate);
-    const expectedReturn = amount * (1 + rate * Number(p.term_months) / 12);
-    await client.query(
-      `INSERT INTO investments (user_id,project_id,amount,profit_rate,expected_return,status)
-       VALUES ($1,$2,$3,$4,$5,'active')`,
-      [req.user.id, p.id, amount, rate, expectedReturn]);
-    await client.query(
-      `INSERT INTO transactions (user_id,kind,amount,project_id,description)
-       VALUES ($1,'investment',$2,$3,$4)`,
-      [req.user.id, amount, p.id, 'استثمار في ' + p.name]);
-    await client.query('UPDATE projects SET raised = raised + $1, investor_count = investor_count + 1 WHERE id = $2', [amount, p.id]);
-    await client.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [amount, req.user.id]);
-    await client.query('COMMIT');
+    const term = Number(p.term_months);
+    const expectedReturn = amount * (1 + rate * term / 12);
 
-    const portfolio = await buildPortfolio(req.user.id);
-    res.status(201).json({ portfolio });
+    const { rows: irows } = await client.query(
+      `INSERT INTO investments (user_id,project_id,amount,profit_rate,expected_return,status)
+       VALUES ($1,$2,$3,$4,$5,'pending_signature') RETURNING id`,
+      [req.user.id, p.id, amount, rate, expectedReturn]);
+    const investmentId = irows[0].id;
+
+    const { rows: crows } = await client.query(
+      `INSERT INTO contracts (user_id,project_id,investment_id,amount,profit_rate,term_months,status)
+       VALUES ($1,$2,$3,$4,$5,$6,'pending') RETURNING id`,
+      [req.user.id, p.id, investmentId, amount, rate, term]);
+    const contractId = crows[0].id;
+
+    await client.query(
+      `INSERT INTO notifications (user_id,title,body,type)
+       VALUES ($1,$2,$3,'contract')`,
+      [req.user.id, 'بانتظار توقيع عقد المرابحة',
+       `بانتظار توقيعك على عقد استثمار بمبلغ ${amount} ريال في ${p.name}.`]);
+
+    await client.query('COMMIT');
+    res.status(201).json({ investmentId, contractId, amount });
   } catch (e) {
     await client.query('ROLLBACK'); throw e;
   } finally {

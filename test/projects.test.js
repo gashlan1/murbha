@@ -47,21 +47,35 @@ test('GET /api/projects/:slug returns one; 404 when missing', { skip: !HAS_DB },
   assert.equal(miss.status, 404);
 });
 
-test('POST invest: happy path moves balance + raised, creates rows', { skip: !HAS_DB }, async () => {
+test('POST invest: creates pending investment + contract, leaves balance + raised unchanged', { skip: !HAS_DB }, async () => {
   const agent = await makeUser(100000);
   const p = (await request(app).get('/api/projects')).body.projects.find(x => x.status === 'open');
-  const before = (await request(app).get('/api/projects/' + p.slug)).body.project.raised;
+  const raisedBefore = (await request(app).get('/api/projects/' + p.slug)).body.project.raised;
+  const balanceBefore = (await agent.get('/api/portfolio')).body.balance;
+
   const res = await agent.post('/api/projects/' + p.slug + '/invest').send({ amount: p.minAmount });
   assert.equal(res.status, 201);
-  assert.equal(res.body.portfolio.invested, p.minAmount);
+  assert.ok(res.body.investmentId, 'returns investmentId');
+  assert.ok(res.body.contractId, 'returns contractId');
+  assert.equal(res.body.amount, p.minAmount);
+
+  // invest alone must NOT move money or project raised — that happens at pay (see contracts test).
   const after = (await request(app).get('/api/projects/' + p.slug)).body.project;
-  assert.equal(after.raised, before + p.minAmount);
+  assert.equal(after.raised, raisedBefore);
+  const balanceAfter = (await agent.get('/api/portfolio')).body.balance;
+  assert.equal(balanceAfter, balanceBefore);
+  // portfolio.invested only counts active/completed, so pending invest does not count
+  assert.equal((await agent.get('/api/portfolio')).body.invested, 0);
 });
 
-test('POST invest: rejects below min / over remaining-or-balance / unauth', { skip: !HAS_DB }, async () => {
+test('POST invest: rejects below_min / exceeds_remaining / unauth', { skip: !HAS_DB }, async () => {
   const agent = await makeUser(100000);
   const p = (await request(app).get('/api/projects')).body.projects.find(x => x.status === 'open');
-  assert.equal((await agent.post('/api/projects/' + p.slug + '/invest').send({ amount: 1 })).status, 400);
-  assert.equal((await agent.post('/api/projects/' + p.slug + '/invest').send({ amount: p.goal })).status, 400);
+  const below = await agent.post('/api/projects/' + p.slug + '/invest').send({ amount: 1 });
+  assert.equal(below.status, 400);
+  assert.equal(below.body.error, 'below_min');
+  const over = await agent.post('/api/projects/' + p.slug + '/invest').send({ amount: p.goal });
+  assert.equal(over.status, 400);
+  assert.equal(over.body.error, 'exceeds_remaining');
   assert.equal((await request(app).post('/api/projects/' + p.slug + '/invest').send({ amount: p.minAmount })).status, 401);
 });
