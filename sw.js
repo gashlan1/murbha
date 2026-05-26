@@ -3,7 +3,7 @@
  * Caches core assets for offline support
  */
 
-const CACHE_NAME = 'murabaha-v3';
+const CACHE_NAME = 'murabaha-v4';
 
 const STATIC_ASSETS = [
   '/',

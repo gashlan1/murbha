@@ -1,4 +1,4 @@
-# منصة مُرابحة — Murbaha Investment Platform
+# منصة مُرابحة — Murbha Investment Platform
 
 > A Saudi Sharia-compliant investment platform for Vision 2030 projects — start from SAR 500
 

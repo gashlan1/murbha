@@ -1,4 +1,4 @@
-/* Murbaha landing — lightweight bilingual (AR/EN) i18n.
+/* Murbha landing — lightweight bilingual (AR/EN) i18n.
  * Marks: data-i18n="key" (textContent), data-i18n-html="key" (innerHTML),
  *        data-i18n-attr="attr:key" (attribute, e.g. aria-label).
  * setLang(lang) swaps strings, sets <html lang/dir>, persists to localStorage.
@@ -13,7 +13,7 @@
   'use strict';
 
   var DICT = {
-    brand:       { en: 'Murbaha' },
+    brand:       { en: 'Murbha' },
     skip_link:   { en: 'Skip to main content' },
     nav_login:   { en: 'Sign in' },
     date_pill:   { en: '<b>May 27</b>\n2026' },
@@ -25,7 +25,7 @@
     },
     hero_lede: {
       ar: '<b>مُرابحة</b> تربطك بعقود <b>حكومية وخاصة</b> مُسندة لشركات سعودية معتمّدة، تحتاج إلى معدات ومواد وخدمات لتنفيذها. أنت تدخل بصفتك <b>بائعاً</b> بعقد مرابحة شرعي واضح — تستردّ رأس مالك + ربحاً معلوماً خلال <b>٦ أو ١٢ أو ١٨ شهراً</b>.',
-      en: '<b>Murbaha</b> connects you to <b>government and private</b> contracts awarded to certified Saudi companies that need equipment, materials and services to deliver them. You enter as a <b>seller</b> under a clear, Sharia-compliant Murabaha contract — recovering your capital plus a known profit over <b>6, 12 or 18 months</b>.'
+      en: '<b>Murbha</b> connects you to <b>government and private</b> contracts awarded to certified Saudi companies that need equipment, materials and services to deliver them. You enter as a <b>seller</b> under a clear, Sharia-compliant Murabaha contract — recovering your capital plus a known profit over <b>6, 12 or 18 months</b>.'
     },
     cta_signup: { en: 'Create an account' },
     cta_login:  { en: 'Sign in' },
@@ -52,11 +52,11 @@
       en: '<b>Operations & maintenance</b>, supply, contracting and service contracts awarded to certified Saudi companies by government and private entities — aligned with Saudi Vision 2030 programmes.'
     },
 
-    how_eyebrow: { en: 'How Murbaha works' },
+    how_eyebrow: { en: 'How Murbha works' },
     how_title:   { ar: 'من عقد مُسند —<br/>إلى ربح معلوم.', en: 'From an awarded contract —<br/>to a known profit.' },
     how_sub:     { en: 'One Murabaha cycle, four clear stages linking the investor, the executing company and the contracting entity.' },
     step1_h:   { en: 'A company wins a contract' },
-    step1_p:   { en: 'A Saudi company is awarded an operations, supply or maintenance contract by a government or private entity, and lists it on Murbaha.' },
+    step1_p:   { en: 'A Saudi company is awarded an operations, supply or maintenance contract by a government or private entity, and lists it on Murbha.' },
     step1_tag: { en: 'Verified contract' },
     step2_h:   { en: 'The Sharia board reviews' },
     step2_p:   { en: 'The board studies the contract and the goods and services required, then approves the Murabaha sale at a known profit and a fixed term.' },
@@ -76,7 +76,7 @@
     projects_loading_completed:{ en: 'Loading completed projects…' },
 
     testi_eyebrow: { en: 'What our clients say' },
-    testi_title:   { ar: 'سعوديون يثقون<br/>بـ <span style="color:var(--gold);font-style:italic;font-family:\'Amiri\',serif;">مُرابحة</span>.', en: 'Saudis trust<br/><span style="color:var(--gold);font-style:italic;font-family:\'Amiri\',serif;">Murbaha</span>.' },
+    testi_title:   { ar: 'سعوديون يثقون<br/>بـ <span style="color:var(--gold);font-style:italic;font-family:\'Amiri\',serif;">مُرابحة</span>.', en: 'Saudis trust<br/><span style="color:var(--gold);font-style:italic;font-family:\'Amiri\',serif;">Murbha</span>.' },
 
     cta_blessing: { ar: '﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾', en: '“And that man shall have nothing but what he strives for.”' },
     cta_h2:       { ar: 'كن جزءاً من<br/>نهضة <span class="accent">المملكة</span>.', en: 'Be part of<br/>the Kingdom’s <span class="accent">renaissance</span>.' },
@@ -95,7 +95,7 @@
     foot_complaints:{ en: 'Complaints' },
     foot_contract:  { en: 'Murabaha Contract' },
     foot_help:      { en: 'Help' },
-    foot_bottom:  { ar: '© ٢٠٢٦ مُرابحة المالية • س.ت ١٠١٠XXXXXX<br/>صُنعت في المملكة العربية السعودية 🇸🇦', en: '© 2026 Murbaha Financial • CR 1010XXXXXX<br/>Made in the Kingdom of Saudi Arabia 🇸🇦' },
+    foot_bottom:  { ar: '© ٢٠٢٦ مُرابحة المالية • س.ت ١٠١٠XXXXXX<br/>صُنعت في المملكة العربية السعودية 🇸🇦', en: '© 2026 Murbha Financial • CR 1010XXXXXX<br/>Made in the Kingdom of Saudi Arabia 🇸🇦' },
 
     tab_home:      { en: 'Home' },
     tab_projects:  { en: 'Projects' },
@@ -104,7 +104,7 @@
     tab_profile:   { en: 'Account' },
 
     // ─── Milestones ticker ───
-    tick_soon:      { en: '🚀 <b>Murbaha</b>: help fund real contracts <span class="ticker-amt">soon</span>' },
+    tick_soon:      { en: '🚀 <b>Murbha</b>: help fund real contracts <span class="ticker-amt">soon</span>' },
     tick_seller:    { en: '📜 The investor is a <b>seller</b> under a Murabaha contract <span class="ticker-amt">— deferred price + profit</span>' },
     tick_board:     { en: '☚ An independent Sharia board of <span class="ticker-amt">four scholars</span>' },
     tick_contracts: { en: '🏢 Government and private contracts awarded to <span class="ticker-amt">verified</span> Saudi companies' },
@@ -115,7 +115,7 @@
 
     // ─── Illustrative example ───
     ex_eyebrow:    { en: 'Illustrative example' },
-    ex_title:      { en: 'This is what an opportunity<br/>on Murbaha looks like.' },
+    ex_title:      { en: 'This is what an opportunity<br/>on Murbha looks like.' },
     ex_badge:      { en: '📌 Illustrative example — not an investment offer' },
     ex_card_title: { en: 'Operations & maintenance contract — an administrative building in Riyadh' },
     ex_meta_city:  { en: '📍 Riyadh' },
@@ -139,7 +139,7 @@
     ex_foot:       { en: '⚠️ This example is for illustration only. Actual opportunities and their detailed figures will be announced on the <a href="projects.html">Projects</a> page after Sharia-board approval and regulatory licensing.' },
 
     // ─── Testimonials ───
-    testi1_text: { en: 'I’ve followed <b>Murbaha</b> since the very first announcement. What sets them apart is how clear they are — they don’t over-promise. The Sharia board is well known, and the idea of an electronic Murabaha contract is genuinely advanced. I’m ready to be one of the first investors.' },
+    testi1_text: { en: 'I’ve followed <b>Murbha</b> since the very first announcement. What sets them apart is how clear they are — they don’t over-promise. The Sharia board is well known, and the idea of an electronic Murabaha contract is genuinely advanced. I’m ready to be one of the first investors.' },
     testi1_role: { en: 'Engineer · Riyadh' },
     testi2_text: { en: 'I liked the platform’s philosophy from the start: <b>halal</b>, transparent investing without complexity. I’ve long looked for an option that eases the conscience and respects my time, and the automatic e-documentation makes the experience very smooth.' },
     testi2_role: { en: 'Teacher · Jeddah' },
@@ -181,7 +181,7 @@
     comp_econ_p:   { en: 'Under the Electronic Transactions Law' },
     sharia_stamp:  { en: '☪ Sharia approved' },
     sharia_h:      { en: 'Your money grows in line with Islamic Sharia' },
-    sharia_p:      { en: 'Every contract on Murbaha is built on approved Islamic transaction structures, free of riba and gharar. Each deal is reviewed by the independent Sharia supervisory board before it is offered to investors.' },
+    sharia_p:      { en: 'Every contract on Murbha is built on approved Islamic transaction structures, free of riba and gharar. Each deal is reviewed by the independent Sharia supervisory board before it is offered to investors.' },
     ct_murabaha:   { en: '<b>Murabaha</b>\nSale at a known profit' },
     ct_musharaka:  { en: '<b>Musharaka</b>\nProfit-sharing partnership' },
     ct_ijara:      { en: '<b>Ijara</b>\nLease-to-own' },
@@ -248,7 +248,7 @@
     });
 
     document.title = lang === 'en'
-      ? 'Murbaha — Your partner in Saudi Vision 2030'
+      ? 'Murbha — Your partner in Saudi Vision 2030'
       : 'مُرابحة — شريكك في رؤية المملكة 2030';
 
     try { localStorage.setItem('murbaha_lang', lang); } catch (e) {}
