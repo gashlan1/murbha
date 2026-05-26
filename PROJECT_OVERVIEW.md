@@ -26,7 +26,7 @@ murabaha-platform_1/
 ```
 
 ## Key Files / Entry Points
-- `/Users/botman/projects/murabaha-platform_1/server.js` — Express entry. Defines a CSP allowing `api.murbaha.com`, clean-URL page routes (`/login` → `auth.html`, etc.), and 3 stub API endpoints.
+- `/Users/botman/projects/murabaha-platform_1/server.js` — Express entry. Defines a CSP allowing `api.murbha.com`, clean-URL page routes (`/login` → `auth.html`, etc.), and 3 stub API endpoints.
 - `/Users/botman/projects/murabaha-platform_1/index.html` — landing entry (not present in canonical).
 - `/Users/botman/projects/murabaha-platform_1/shared.css`, `shared.js` — design system + utilities (Toast, Sheet, `toArabic`, `formatCurrency`, etc.). Not present in canonical.
 - `/Users/botman/projects/murabaha-platform_1/sw.js` — PWA service worker (canonical has no SW).

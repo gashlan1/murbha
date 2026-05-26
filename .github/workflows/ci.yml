@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: murabaha
+          POSTGRES_PASSWORD: murabaha
+          POSTGRES_DB: murabaha
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U murabaha"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://murabaha:murabaha@localhost:5432/murabaha
+      SESSION_SECRET: test-secret
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply database schema
+        run: npm run migrate
+
+      - name: Run tests
+        run: npm test
