@@ -162,6 +162,34 @@
   }
 
   .header-actions { display: flex; gap: 8px; align-items: center; }
+  .lang-toggle {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 99px;
+    border: 1px solid var(--line-strong);
+    background: rgba(13,22,18,0.04);
+    color: var(--green-dark);
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: background .15s, border-color .15s;
+  }
+  .lang-toggle:hover { background: rgba(13,22,18,0.08); }
+  .lang-toggle .lang-sep { opacity: 0.4; }
+  /* the inactive language label is dimmed; setLang toggles [data-lang] on <html> */
+  html[lang="ar"] .lang-toggle .lang-ar { color: var(--gold); }
+  html[lang="ar"] .lang-toggle .lang-en { opacity: 0.45; }
+  html[lang="en"] .lang-toggle .lang-en { color: var(--gold); }
+  html[lang="en"] .lang-toggle .lang-ar { opacity: 0.45; }
+  /* EN: switch primary font to a Latin stack while keeping Arabic terms legible */
+  html[lang="en"] body { font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif; }
+  /* EN: flip directional arrow glyphs so they point with the reading direction */
+  html[lang="en"] .flow-arrow { transform: scaleX(-1); }
   .date-pill {
     font-size: 10px;
     font-weight: 600;
@@ -1410,10 +1438,10 @@
   }
   
   /* Completed Showcase Style */
-  .cp-card { background:#fff;border:1.5px solid rgba(10,77,54,0.18);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;box-shadow:0 4px 16px -12px rgba(6,43,30,0.12);transition:transform .12s,box-shadow .15s; text-align: right; }
-  .cp-card::before { content:'';position:absolute;top:0;right:0;width:6px;height:100%;background:var(--green) }
+  .cp-card { background:#fff;border:1.5px solid rgba(10,77,54,0.18);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;box-shadow:0 4px 16px -12px rgba(6,43,30,0.12);transition:transform .12s,box-shadow .15s; text-align: start; }
+  .cp-card::before { content:'';position:absolute;top:0;inset-inline-start:0;width:6px;height:100%;background:var(--green) }
   .cp-card:active{transform:scale(0.995)}
-  .cp-head{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-right:6px}
+  .cp-head{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-inline-start:6px}
   .cp-emoji{width:48px;height:48px;border-radius:14px;background:rgba(10,77,54,0.06);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
   .cp-name{font:800 16px/1.3 'Cairo',sans-serif;color:var(--green-dark);flex:1;min-width:0}
   .cp-badge-success{display:inline-flex;align-items:center;gap:4px;background:rgba(10,77,54,0.08);color:var(--green);border:1px solid rgba(10,77,54,0.20);padding:4px 10px;border-radius:999px;font:800 11px/1.2 'Tajawal',sans-serif}
@@ -1426,7 +1454,7 @@
   .cp-verified-banner{background:rgba(176,136,64,0.08);border:1px solid rgba(176,136,64,0.20);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font:700 11px 'Tajawal',sans-serif;color:#855f1b;margin-top:4px}
 
   /* Live Opportunities Style */
-  .lp-card { background:#fff;border:1px solid #eadfc4;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;box-shadow:0 4px 16px -10px rgba(6,43,30,0.18);transition:transform .12s,box-shadow .15s; text-align: right; }
+  .lp-card { background:#fff;border:1px solid #eadfc4;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;box-shadow:0 4px 16px -10px rgba(6,43,30,0.18);transition:transform .12s,box-shadow .15s; text-align: start; }
   .lp-card:active{transform:scale(0.99)}
   .lp-head{display:flex;align-items:center;gap:12px}
   .lp-emoji{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#fbf6ea,#f0e6cf);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
@@ -1561,11 +1589,14 @@
       <span>مُرابحة</span>
     </div>
     <div class="header-actions">
-      <div class="date-pill">
+      <button type="button" class="lang-toggle" id="langToggle" aria-label="Switch language">
+        <span class="lang-en">EN</span><span class="lang-sep">/</span><span class="lang-ar">ع</span>
+      </button>
+      <div class="date-pill" data-i18n-html="date_pill">
         <b>٢٤ شعبان</b>
         ١٤٤٧ هـ
       </div>
-      <a href="login.html" class="icon-btn" aria-label="تسجيل الدخول" style="text-decoration:none;" data-auth="logged-out">
+      <a href="login.html" class="icon-btn" aria-label="تسجيل الدخول" data-i18n-attr="aria-label:nav_login" style="text-decoration:none;" data-auth="logged-out">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       </a>
       <a href="profile.html" class="icon-btn" aria-label="حسابي" style="text-decoration:none;display:none;font:800 13px Cairo,sans-serif;background:#062b1e;color:#fbf6ea;width:auto;padding:0 12px;border-radius:99px;height:36px;line-height:36px" data-auth="logged-in" data-bind="user.initial"></a>
@@ -1584,44 +1615,44 @@
   <div class="hero-content">
     <div class="hero-eyebrow">
       <span class="pulse"></span>
-      منصّة الاستثمار الإسلامي — الإطلاق قريباً
+      <span data-i18n="hero_eyebrow">منصّة الاستثمار الإسلامي — الإطلاق قريباً</span>
     </div>
-    <h1>
+    <h1 data-i18n-html="hero_h1">
       شارك في تنفيذ <span class="accent">عقود حقيقية</span> بعقد <span class="underline">مرابحة</span>.
     </h1>
-    <p class="lede">
+    <p class="lede" data-i18n-html="hero_lede">
       <b>مُرابحة</b> تربطك بعقود <b>حكومية وخاصة</b> مُسندة لشركات سعودية معتمّدة،
       تحتاج إلى معدات ومواد وخدمات لتنفيذها. أنت تدخل بصفتك <b>بائعاً</b> بعقد مرابحة
       شرعي واضح — تستردّ رأس مالك + ربحاً معلوماً خلال <b>٦ أو ١٢ أو ١٨ شهراً</b>.
     </p>
     <div class="hero-actions">
-      <a href="signup.html" class="btn btn-primary btn-block" id="heroSignupBtn">إنشاء حساب جديد</a>
+      <a href="signup.html" class="btn btn-primary btn-block" id="heroSignupBtn" data-i18n="cta_signup">إنشاء حساب جديد</a>
       <div style="display:flex; gap:10px;">
-        <a href="login.html" class="btn btn-ghost" style="flex:1;" id="heroLoginBtn">تسجيل الدخول</a>
-        <a href="#how" class="btn btn-ghost" style="flex:1;">كيف تعمل؟</a>
+        <a href="login.html" class="btn btn-ghost" style="flex:1;" id="heroLoginBtn" data-i18n="cta_login">تسجيل الدخول</a>
+        <a href="#how" class="btn btn-ghost" style="flex:1;" data-i18n="cta_how">كيف تعمل؟</a>
       </div>
     </div>
 
     <div class="stat-strip">
       <div class="stat">
         <div class="stat-num num">١٠٠<span class="currency">٪</span></div>
-        <div class="stat-label">متوافقة مع الشريعة</div>
+        <div class="stat-label" data-i18n="stat_sharia">متوافقة مع الشريعة</div>
       </div>
       <div class="stat">
-        <div class="stat-num num">٤<span class="currency">علماء</span></div>
-        <div class="stat-label">في الهيئة الشرعية</div>
+        <div class="stat-num num">٤<span class="currency" data-i18n="stat_scholars_unit">علماء</span></div>
+        <div class="stat-label" data-i18n="stat_board">في الهيئة الشرعية</div>
       </div>
       <div class="stat">
-        <div class="stat-num num">٥٠٠<span class="currency">ر.س</span></div>
-        <div class="stat-label">حدّ أدنى مستهدف</div>
+        <div class="stat-num num">٥٠٠<span class="currency" data-i18n="currency_sar">ر.س</span></div>
+        <div class="stat-label" data-i18n="stat_min">حدّ أدنى مستهدف</div>
       </div>
       <div class="stat">
         <div class="stat-num num">٠<span class="currency">٪</span></div>
-        <div class="stat-label">فوائد ربوية</div>
+        <div class="stat-label" data-i18n="stat_riba">فوائد ربوية</div>
       </div>
       <div class="stat">
         <div class="stat-num num">PDPL<span class="currency"></span></div>
-        <div class="stat-label">حماية بيانات سعودية</div>
+        <div class="stat-label" data-i18n="stat_pdpl">حماية بيانات سعودية</div>
       </div>
     </div>
   </div>
@@ -1656,9 +1687,9 @@
 <!-- HOW IT WORKS — explains the actual contract-execution Murabaha model -->
 <section class="how section-pad" id="how">
   <div class="section-head">
-    <span class="section-eyebrow">كيف تعمل مُرابحة</span>
-    <h2 class="section-title">من عقد مُسند —<br/>إلى ربح معلوم.</h2>
-    <p class="section-sub">دورة مرابحة واحدة، أربع محطّات واضحة تربط بين المستثمر والشركة المنفّذة والجهة المتعاقدة.</p>
+    <span class="section-eyebrow" data-i18n="how_eyebrow">كيف تعمل مُرابحة</span>
+    <h2 class="section-title" data-i18n-html="how_title">من عقد مُسند —<br/>إلى ربح معلوم.</h2>
+    <p class="section-sub" data-i18n="how_sub">دورة مرابحة واحدة، أربع محطّات واضحة تربط بين المستثمر والشركة المنفّذة والجهة المتعاقدة.</p>
   </div>
   <div class="steps">
     <div class="step">
@@ -1667,10 +1698,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l2 2 4-4"/></svg>
       </div>
       <div>
-        <h3>شركة تفوز بعقد</h3>
-        <p>شركة سعودية تُسند إليها جهة حكومية أو خاصة عقد تشغيل أو توريد أو صيانة، وتطرحه على مُرابحة.</p>
+        <h3 data-i18n="step1_h">شركة تفوز بعقد</h3>
+        <p data-i18n="step1_p">شركة سعودية تُسند إليها جهة حكومية أو خاصة عقد تشغيل أو توريد أو صيانة، وتطرحه على مُرابحة.</p>
       </div>
-      <span class="step-tag">عقد موثّق</span>
+      <span class="step-tag" data-i18n="step1_tag">عقد موثّق</span>
     </div>
     <div class="step">
       <div class="step-icon">
@@ -1678,10 +1709,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>
       </div>
       <div>
-        <h3>تراجع الهيئة الشرعية</h3>
-        <p>تدرس الهيئة تفاصيل العقد، السلع والخدمات المطلوبة، وتجيز بيع المرابحة بربح معلوم وأجل محدّد.</p>
+        <h3 data-i18n="step2_h">تراجع الهيئة الشرعية</h3>
+        <p data-i18n="step2_p">تدرس الهيئة تفاصيل العقد، السلع والخدمات المطلوبة، وتجيز بيع المرابحة بربح معلوم وأجل محدّد.</p>
       </div>
-      <span class="step-tag">☚ فتوى</span>
+      <span class="step-tag" data-i18n="step2_tag">☚ فتوى</span>
     </div>
     <div class="step">
       <div class="step-icon">
@@ -1689,10 +1720,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 17l8 4 8-4"/></svg>
       </div>
       <div>
-        <h3>تدخل بعقد مرابحة</h3>
-        <p>تشتري حصّتك من السلع/الخدمات وتبيعها للشركة المنفّذة <b>بثمن مؤجّل + ربح معلوم</b>. توقيع إلكتروني موثّق.</p>
+        <h3 data-i18n="step3_h">تدخل بعقد مرابحة</h3>
+        <p data-i18n-html="step3_p">تشتري حصّتك من السلع/الخدمات وتبيعها للشركة المنفّذة <b>بثمن مؤجّل + ربح معلوم</b>. توقيع إلكتروني موثّق.</p>
       </div>
-      <span class="step-tag">سلعة حقيقية</span>
+      <span class="step-tag" data-i18n="step3_tag">سلعة حقيقية</span>
     </div>
     <div class="step">
       <div class="step-icon">
@@ -1700,10 +1731,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       </div>
       <div>
-        <h3>تستردّ رأس مالك + ربحك</h3>
-        <p>دفعات الجهة المتعاقدة تتدفّق لحسابك عبر سداد خلال <b>٦ أو ١٢ أو ١٨ شهراً</b>، حسب مدّة العقد.</p>
+        <h3 data-i18n="step4_h">تستردّ رأس مالك + ربحك</h3>
+        <p data-i18n-html="step4_p">دفعات الجهة المتعاقدة تتدفّق لحسابك عبر سداد خلال <b>٦ أو ١٢ أو ١٨ شهراً</b>، حسب مدّة العقد.</p>
       </div>
-      <span class="step-tag">جدول واضح</span>
+      <span class="step-tag" data-i18n="step4_tag">جدول واضح</span>
     </div>
   </div>
 </section>
@@ -1880,28 +1911,28 @@
 <!-- PROJECTS SECTION (DYNAMIC) -->
 <section class="section-pad" id="projects">
   <div class="projects-head" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-    <h2 class="section-title" style="margin: 0;">الفرص الاستثمارية الحالية</h2>
-    <a href="projects.html" class="btn btn-ghost btn-sm" style="font-weight: 700;">عرض الكل ←</a>
+    <h2 class="section-title" style="margin: 0;" data-i18n="projects_title">الفرص الاستثمارية الحالية</h2>
+    <a href="projects.html" class="btn btn-ghost btn-sm" style="font-weight: 700;" data-i18n="projects_all">عرض الكل ←</a>
   </div>
 
   <!-- Active Projects Container -->
   <div class="projects-list" id="home-live-projects" style="margin-bottom: 48px;">
     <div style="text-align: center; padding: 40px; color: var(--muted);" id="home-live-loading">
       <div class="spinner" style="margin-bottom: 12px;"></div>
-      <span>جاري تحميل الفرص الاستثمارية...</span>
+      <span data-i18n="projects_loading_live">جاري تحميل الفرص الاستثمارية...</span>
     </div>
   </div>
 
   <!-- Completed Projects Section -->
   <div class="projects-head" style="margin-bottom: 18px; padding-top: 24px; border-top: 1px dashed var(--line-strong); display: flex; justify-content: space-between; align-items: center;">
-    <h2 class="section-title" style="margin: 0;">سجل مشاريع العنقري للمقاولات المكتملة (O&M)</h2>
+    <h2 class="section-title" style="margin: 0;" data-i18n="projects_completed_title">سجل مشاريع العنقري للمقاولات المكتملة (O&M)</h2>
   </div>
-  <p class="section-sub" style="margin-bottom: 24px;">نستعرض هنا المشاريع السابقة التي تم تمويلها وإنجازها بالكامل، وحققت عوائد مجزية للمستثمرين وتمت تصفيتها بنسبة ١٠٠٪.</p>
-  
+  <p class="section-sub" style="margin-bottom: 24px;" data-i18n="projects_completed_sub">نستعرض هنا المشاريع السابقة التي تم تمويلها وإنجازها بالكامل، وحققت عوائد مجزية للمستثمرين وتمت تصفيتها بنسبة ١٠٠٪.</p>
+
   <div class="projects-list" id="home-completed-projects">
     <div style="text-align: center; padding: 40px; color: var(--muted);" id="home-completed-loading">
       <div class="spinner" style="margin-bottom: 12px;"></div>
-      <span>جاري تحميل المشاريع المكتملة...</span>
+      <span data-i18n="projects_loading_completed">جاري تحميل المشاريع المكتملة...</span>
     </div>
   </div>
 </section>
@@ -1909,8 +1940,8 @@
 <!-- TESTIMONIALS -->
 <section class="testimonials section-pad">
   <div class="section-head">
-    <span class="section-eyebrow">رأي عملائنا</span>
-    <h2 class="section-title">سعوديون يثقون<br/>بـ <span style="color:var(--gold);font-style:italic;font-family:'Amiri',serif;">مُرابحة</span>.</h2>
+    <span class="section-eyebrow" data-i18n="testi_eyebrow">رأي عملائنا</span>
+    <h2 class="section-title" data-i18n-html="testi_title">سعوديون يثقون<br/>بـ <span style="color:var(--gold);font-style:italic;font-family:'Amiri',serif;">مُرابحة</span>.</h2>
   </div>
 
   <div class="quotes-row">
@@ -2178,11 +2209,11 @@
 <!-- FINAL CTA -->
 <section class="cta-final">
   <div class="cta-final-inner">
-    <p class="cta-blessing">﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾</p>
-    <h2>كن جزءاً من<br/>نهضة <span class="accent">المملكة</span>.</h2>
-    <p>افتح حسابك خلال دقيقتين إلكترونياً، وابدأ بأول ٥٠٠ ريال في مشروع تختاره أنت — بإذن الله.</p>
-    <a href="signup.html" class="btn btn-nafath">سجّل الآن</a>
-    <a href="#projects" class="btn btn-gold">شاهد مشاريع المملكة</a>
+    <p class="cta-blessing" data-i18n="cta_blessing">﴿ وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ ﴾</p>
+    <h2 data-i18n-html="cta_h2">كن جزءاً من<br/>نهضة <span class="accent">المملكة</span>.</h2>
+    <p data-i18n="cta_p">افتح حسابك خلال دقيقتين إلكترونياً، وابدأ بأول ٥٠٠ ريال في مشروع تختاره أنت — بإذن الله.</p>
+    <a href="signup.html" class="btn btn-nafath" data-i18n="cta_register">سجّل الآن</a>
+    <a href="#projects" class="btn btn-gold" data-i18n="cta_view">شاهد مشاريع المملكة</a>
   </div>
 </section>
 
@@ -2194,31 +2225,31 @@
     <div class="logo-mark">م</div>
     <span>مُرابحة</span>
   </div>
-  <p>منصة الشراكة الاستثمارية الأولى في المملكة. مرخّصة لخدمة المستثمر السعودي.</p>
+  <p data-i18n="foot_tagline">منصة الشراكة الاستثمارية الأولى في المملكة. مرخّصة لخدمة المستثمر السعودي.</p>
 
   <div class="foot-address">
-    <div class="foot-address-row">
+    <div class="foot-address-row" data-i18n-html="foot_hq">
       <b>المقر الرئيسي</b>
       حي العليا، طريق الملك فهد، الرياض ١٢٢٤١
     </div>
-    <div class="foot-address-row">
+    <div class="foot-address-row" data-i18n-html="foot_branch">
       <b>الفرع الغربي</b>
       حي الزهراء، طريق الكورنيش، جدة ٢٣٤٢١
     </div>
   </div>
 
   <div class="foot-links">
-    <a href="legal.html#terms">الشروط والأحكام</a>
-    <a href="legal.html#privacy">سياسة الخصوصية</a>
-    <a href="legal.html#risk">الإفصاح عن المخاطر</a>
-    <a href="legal.html#aml">مكافحة غسل الأموال</a>
-    <a href="legal.html#sharia">الفتوى الشرعية</a>
-    <a href="legal.html#complaints">الشكاوى</a>
-    <a href="contract.html">عقد المرابحة</a>
-    <a href="help.html">المساعدة</a>
+    <a href="legal.html#terms" data-i18n="foot_terms">الشروط والأحكام</a>
+    <a href="legal.html#privacy" data-i18n="foot_privacy">سياسة الخصوصية</a>
+    <a href="legal.html#risk" data-i18n="foot_risk">الإفصاح عن المخاطر</a>
+    <a href="legal.html#aml" data-i18n="foot_aml">مكافحة غسل الأموال</a>
+    <a href="legal.html#sharia" data-i18n="foot_fatwa">الفتوى الشرعية</a>
+    <a href="legal.html#complaints" data-i18n="foot_complaints">الشكاوى</a>
+    <a href="contract.html" data-i18n="foot_contract">عقد المرابحة</a>
+    <a href="help.html" data-i18n="foot_help">المساعدة</a>
   </div>
 
-  <div class="foot-bottom">
+  <div class="foot-bottom" data-i18n-html="foot_bottom">
     © ٢٠٢٦ مُرابحة المالية • س.ت ١٠١٠XXXXXX<br/>
     صُنعت في المملكة العربية السعودية 🇸🇦
   </div>
@@ -2229,23 +2260,23 @@
   <div class="tabbar-inner">
     <a href="hessa.html" class="tab active">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
-      <span class="tab-label">الرئيسية</span>
+      <span class="tab-label" data-i18n="tab_home">الرئيسية</span>
     </a>
     <a href="projects.html" class="tab">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      <span class="tab-label">المشاريع</span>
+      <span class="tab-label" data-i18n="tab_projects">المشاريع</span>
     </a>
     <a href="signup.html" class="tab invest" id="tabInvest" onclick="if(App&&App.meSync()){event.preventDefault();location.href='projects.html';}">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M2 12h20"/></svg>
-      <span class="tab-label">شارك</span>
+      <span class="tab-label" data-i18n="tab_invest">شارك</span>
     </a>
     <a href="portfolio.html" class="tab">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
-      <span class="tab-label">محفظتي</span>
+      <span class="tab-label" data-i18n="tab_portfolio">محفظتي</span>
     </a>
     <a href="profile.html" class="tab">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
-      <span class="tab-label">حسابي</span>
+      <span class="tab-label" data-i18n="tab_profile">حسابي</span>
     </a>
   </div>
 </nav>
@@ -2807,6 +2838,96 @@
     }, 600);
   })();
 
+  // ─── Render project cards (language-aware). All DB fields escaped via q(). ───
+  function renderHomeProjects(projects) {
+    if (!projects) return;
+    const liveGrid = document.getElementById('home-live-projects');
+    const compGrid = document.getElementById('home-completed-projects');
+    const q = (s) => App.escapeHtml(s);
+    const en = document.documentElement.lang === 'en';
+    const n = (v) => en ? String(v) : App.fmt.arNum(v);
+    const T = en ? {
+      inviteOnly: '🔒 Invite only', open: 'Open', funded: 'Fully funded',
+      fundedPct: 'funded', investor: 'investors', expReturn: 'Expected return',
+      term: 'Term', months: 'mo', extendable: '(extendable to 18)',
+      minAmount: 'Minimum', remaining: 'Remaining',
+      noLive: 'No active opportunities right now.',
+      completed: 'Completed and fully repaid', actualReturn: 'Actual realised return',
+      invTerm: 'Investment term', repaid: 'Capital repaid',
+      verified: 'All investor dues, capital and the agreed profit were settled in full (100%) via the partner investment bank.',
+      noCompleted: 'No completed projects to show.'
+    } : {
+      inviteOnly: '🔒 دعوة خاصة', open: 'مفتوحة', funded: 'مكتملة التمويل',
+      fundedPct: 'ممولة', investor: 'مستثمر', expReturn: 'العائد المتوقع',
+      term: 'المدة', months: 'شهر', extendable: '(قابل للتمديد لـ ١٨)',
+      minAmount: 'الحد الأدنى', remaining: 'المتبقي',
+      noLive: 'لا توجد فرص استثمارية نشطة حالياً.',
+      completed: 'مكتمل ومسدد بالكامل', actualReturn: 'العائد الفعلي المحقق',
+      invTerm: 'المدة الاستثمارية', repaid: 'قيمة التمويل المسترد',
+      verified: 'تمت تصفية كامل مستحقات المستثمرين وإعادة رأس المال والأرباح المقررة بنسبة ١٠٠٪ بنجاح عبر البنك الاستثماري الشريك.',
+      noCompleted: 'لا توجد مشاريع مكتملة لعرضها.'
+    };
+
+    const liveProjects = projects.filter(p => p.status !== 'completed').slice(0, 3);
+    if (liveGrid) {
+      liveGrid.innerHTML = liveProjects.length ? liveProjects.map(p => `
+              <a class="lp-card" href="project.html?id=${q(p.slug)}">
+                <div class="lp-head">
+                  <div class="lp-emoji">${q(p.image || '📦')}</div>
+                  <div class="lp-name">${q(p.name)}</div>
+                  ${p.inviteOnly ? `<span class="lp-status invite-only">${T.inviteOnly}</span>` : ''}
+                  <span class="lp-status ${q(p.status)}">${p.status === 'open' ? T.open : T.funded}</span>
+                </div>
+                <div class="lp-summary">${q(p.summary)}</div>
+                <div class="lp-bar"><i style="width:${q(p.fundedPct)}%"></i></div>
+                <div class="lp-progress-meta">
+                  <span>${n(p.fundedPct)}% ${T.fundedPct}</span>
+                  <span>${n(p.investorCount)} ${T.investor}</span>
+                </div>
+                <div class="lp-stats">
+                  <div><div class="lp-stat-label">${T.expReturn}</div><div class="lp-stat-val gold">${n((p.profitRate*100).toFixed(1))}%</div></div>
+                  <div><div class="lp-stat-label">${T.term}</div><div class="lp-stat-val" style="line-height: 1.2;">${n(p.termMonths)} ${T.months}${p.extendable ? `<span style="display:block;font-size:9px;color:var(--gold-dark);font-weight:700;margin-top:2px;">${T.extendable}</span>` : ''}</div></div>
+                  <div><div class="lp-stat-label">${T.minAmount}</div><div class="lp-stat-val">${App.fmt.sar(p.minAmount)}</div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font:600 11px 'Tajawal';color:#8a8678;margin-top:6px">
+                  <span>${q(p.category)} · ${q(p.city)}</span>
+                  <span>${T.remaining} ${App.fmt.sar(p.goal - p.raised)}</span>
+                </div>
+              </a>`).join('')
+        : `<div style="text-align: center; width: 100%; padding: 40px; color: var(--muted);">${T.noLive}</div>`;
+    }
+
+    const completedProjects = projects.filter(p => p.status === 'completed');
+    if (compGrid) {
+      compGrid.innerHTML = completedProjects.length ? completedProjects.map(p => `
+              <div class="cp-card">
+                <div class="cp-head">
+                  <div style="display:flex; align-items:center; gap:12px; width:100%;">
+                    <div class="cp-emoji">${q(p.image || '🛠️')}</div>
+                    <div class="cp-name">${q(p.name)}</div>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-inline-start:60px; margin-top: 6px;">
+                    <div class="cp-badge-success"><span>${T.completed} ✓</span></div>
+                    <div class="cp-badge-investors"><span>👥 ${n(p.investorCount)} ${T.investor}</span></div>
+                  </div>
+                </div>
+                <div class="cp-summary">${q(p.summary)}</div>
+                <div class="cp-stats">
+                  <div><div class="cp-stat-label">${T.actualReturn}</div><div class="cp-stat-val return-actual">${n((p.profitRate*100).toFixed(1))}%</div></div>
+                  <div><div class="cp-stat-label">${T.invTerm}</div><div class="cp-stat-val">${n(p.termMonths)} ${T.months}</div></div>
+                  <div><div class="cp-stat-label">${T.repaid}</div><div class="cp-stat-val">${App.fmt.sar(p.raised || p.goal)}</div></div>
+                </div>
+                <div class="cp-verified-banner">
+                  <span style="font-size:14px">🛡️</span>
+                  <span>${T.verified}</span>
+                </div>
+              </div>`).join('')
+        : `<div style="text-align: center; width: 100%; padding: 40px; color: var(--muted);">${T.noCompleted}</div>`;
+    }
+  }
+  // expose so the language toggle can re-render cards
+  window.renderHomeProjects = renderHomeProjects;
+
   // ─── Fetch and Render Projects dynamically ───
   function initHomeProjects() {
     (async function loadHomeProjects() {
@@ -2817,88 +2938,8 @@
 
       try {
         const { projects } = await App.api('GET', '/api/projects');
-        if (liveLoading) liveLoading.style.display = 'none';
-        if (compLoading) compLoading.style.display = 'none';
-
-        const q = (s) => App.escapeHtml(s);
-
-        // 1. Render active/open/funded projects (up to 3)
-        const liveProjects = projects.filter(p => p.status !== 'completed').slice(0, 3);
-        if (liveGrid) {
-          if (liveProjects.length > 0) {
-            liveGrid.innerHTML = liveProjects.map(p => `
-              <a class="lp-card" href="project.html?id=${q(p.slug)}">
-                <div class="lp-head">
-                  <div class="lp-emoji">${q(p.image || '📦')}</div>
-                  <div class="lp-name">${q(p.name)}</div>
-                  ${p.inviteOnly ? '<span class="lp-status invite-only">🔒 دعوة خاصة</span>' : ''}
-                  <span class="lp-status ${q(p.status)}">${p.status === 'open' ? 'مفتوحة' : 'مكتملة التمويل'}</span>
-                </div>
-                <div class="lp-summary">${q(p.summary)}</div>
-                <div class="lp-bar"><i style="width:${p.fundedPct}%"></i></div>
-                <div class="lp-progress-meta">
-                  <span>${App.fmt.arNum(p.fundedPct)}% ممولة</span>
-                  <span>${App.fmt.arNum(p.investorCount)} مستثمر</span>
-                </div>
-                <div class="lp-stats">
-                  <div><div class="lp-stat-label">العائد المتوقع</div><div class="lp-stat-val gold">${App.fmt.arNum((p.profitRate*100).toFixed(1))}%</div></div>
-                  <div><div class="lp-stat-label">المدة</div><div class="lp-stat-val" style="line-height: 1.2;">${App.fmt.arNum(p.termMonths)} شهر${p.extendable ? `<span style="display:block;font-size:9px;color:var(--gold-dark);font-weight:700;margin-top:2px;">(قابل للتمديد لـ ${App.fmt.arNum(18)})</span>` : ''}</div></div>
-                  <div><div class="lp-stat-label">الحد الأدنى</div><div class="lp-stat-val">${App.fmt.sar(p.minAmount)}</div></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;font:600 11px 'Tajawal';color:#8a8678;margin-top:6px">
-                  <span>${q(p.category)} · ${q(p.city)}</span>
-                  <span>المتبقي ${App.fmt.sar(p.goal - p.raised)}</span>
-                </div>
-              </a>`).join('');
-          } else {
-            liveGrid.innerHTML = `<div style="text-align: center; width: 100%; padding: 40px; color: var(--muted);">لا توجد فرص استثمارية نشطة حالياً.</div>`;
-          }
-        }
-
-        // 2. Render completed O&M projects (done by Alangary Co)
-        const completedProjects = projects.filter(p => p.status === 'completed');
-        if (compGrid) {
-          if (completedProjects.length > 0) {
-            compGrid.innerHTML = completedProjects.map(p => `
-              <div class="cp-card">
-                <div class="cp-head">
-                  <div style="display:flex; align-items:center; gap:12px; width:100%;">
-                    <div class="cp-emoji">${q(p.image || '🛠️')}</div>
-                    <div class="cp-name">${q(p.name)}</div>
-                  </div>
-                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-inline-start:60px; margin-top: 6px;">
-                    <div class="cp-badge-success">
-                      <span>مكتمل ومسدد بالكامل ✓</span>
-                    </div>
-                    <div class="cp-badge-investors">
-                      <span>👥 ${App.fmt.arNum(p.investorCount)} مستثمر</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="cp-summary">${q(p.summary)}</div>
-                <div class="cp-stats">
-                  <div>
-                    <div class="cp-stat-label">العائد الفعلي المحقق</div>
-                    <div class="cp-stat-val return-actual">${App.fmt.arNum((p.profitRate*100).toFixed(1))}%</div>
-                  </div>
-                  <div>
-                    <div class="cp-stat-label">المدة الاستثمارية</div>
-                    <div class="cp-stat-val">${App.fmt.arNum(p.termMonths)} شهر</div>
-                  </div>
-                  <div>
-                    <div class="cp-stat-label">قيمة التمويل المسترد</div>
-                    <div class="cp-stat-val">${App.fmt.sar(p.raised || p.goal)}</div>
-                  </div>
-                </div>
-                <div class="cp-verified-banner">
-                  <span style="font-size:14px">🛡️</span>
-                  <span>تمت تصفية كامل مستحقات المستثمرين وإعادة رأس المال والأرباح المقررة بنسبة ١٠٠٪ بنجاح عبر البنك الاستثماري الشريك.</span>
-                </div>
-              </div>`).join('');
-          } else {
-            compGrid.innerHTML = `<div style="text-align: center; width: 100%; padding: 40px; color: var(--muted);">لا توجد مشاريع مكتملة لعرضها.</div>`;
-          }
-        }
+        window.__homeProjects = projects;
+        renderHomeProjects(projects);
       } catch (e) {
         console.error('Failed to load home projects:', e);
         if (liveLoading) liveLoading.textContent = 'فشل تحميل الفرص الاستثمارية.';
