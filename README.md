@@ -22,7 +22,10 @@ npm install
 # 4. Apply the database schema
 npm run migrate
 
-# 5. Start the server
+# 5. Seed projects + demo data
+npm run seed
+
+# 6. Start the server
 npm start
 # → http://localhost:3000
 
