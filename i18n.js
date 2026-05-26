@@ -13,6 +13,7 @@
   'use strict';
 
   var DICT = {
+    brand:       { en: 'Murbaha' },
     skip_link:   { en: 'Skip to main content' },
     nav_login:   { en: 'Sign in' },
     date_pill:   { en: '<b>May 27</b>\n2026' },
