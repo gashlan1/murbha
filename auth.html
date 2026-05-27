@@ -61,76 +61,187 @@ button,a{font-family:inherit;touch-action:manipulation}
 .btn-primary{background:var(--green);color:var(--paper);box-shadow:0 4px 14px rgba(10,77,54,0.25)}
 
 @media(min-width:768px){body{font-size:16px}.auth-wrap{padding:40px 28px}}
+.lang-toggle{height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line-strong);background:rgba(13,22,18,0.04);color:var(--green-dark);font-family:'Cairo',sans-serif;font-weight:800;font-size:12px;letter-spacing:.02em;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s;flex-shrink:0}
+.lang-toggle:hover{background:rgba(13,22,18,0.08)}
+.lang-toggle:active{transform:scale(0.96)}
+.lang-toggle .lang-sep{opacity:.4}
+html[lang="ar"] .lang-toggle .lang-ar{color:var(--gold)}
+html[lang="ar"] .lang-toggle .lang-en{opacity:.45}
+html[lang="en"] .lang-toggle .lang-en{color:var(--gold)}
+html[lang="en"] .lang-toggle .lang-ar{opacity:.45}
+html[lang="en"] body{font-family:'Segoe UI','Helvetica Neue',system-ui,-apple-system,sans-serif}
 </style>
+<script src="i18n.js" defer></script>
 </head>
 <body>
 <div class="auth-wrap">
 
 <div class="top-bar">
-  <a href="hessa.html" class="back-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6" transform="scale(-1,1) translate(-24,0)"/></svg></a>
-  <a href="help.html" class="help-btn">المساعدة ؟</a>
+  <a href="hessa.html" class="back-btn" data-i18n-attr="aria-label:auth_back" aria-label="رجوع"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6" transform="scale(-1,1) translate(-24,0)"/></svg></a>
+  <button type="button" class="lang-toggle" id="langToggle" aria-label="Switch language">
+    <span class="lang-en">EN</span><span class="lang-sep">/</span><span class="lang-ar">ع</span>
+  </button>
+  <a href="help.html" class="help-btn" data-i18n="auth_help">المساعدة ؟</a>
 </div>
 
 <div class="auth-logo">
   <div class="auth-logo-mark">م</div>
-  <h1>منصة مُرابحة</h1>
-  <p>منصة الشراكة الاستثمارية الشرعية</p>
+  <h1 data-i18n="auth_logo_h">منصة مُرابحة</h1>
+  <p data-i18n="auth_logo_p">منصة الشراكة الاستثمارية الشرعية</p>
 </div>
 
 <div class="mode-tabs">
-  <button class="mode-tab active" data-mode="login">تسجيل الدخول</button>
-  <button class="mode-tab" data-mode="register">إنشاء حساب</button>
+  <button class="mode-tab active" data-mode="login" data-i18n="auth_tab_login">تسجيل الدخول</button>
+  <button class="mode-tab" data-mode="register" data-i18n="auth_tab_register">إنشاء حساب</button>
 </div>
 
-<!-- LOGIN -->
+<style>
+  /* Identity-type sub-tabs (Username / Mobile) inside each top mode */
+  .id-tabs{display:flex;gap:6px;margin-bottom:14px}
+  .id-tab{flex:1;background:transparent;border:1px solid var(--line-strong);padding:8px;font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);border-radius:9px;cursor:pointer;transition:all .15s}
+  .id-tab.active{background:var(--green);color:var(--paper);border-color:var(--green)}
+  .otp-link{display:block;text-align:center;background:transparent;border:0;color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;margin-top:4px;cursor:pointer;text-decoration:underline}
+  .hide{display:none}
+  .input-hint{font-size:11px;color:var(--muted);margin:-8px 0 12px}
+</style>
+
+<!-- ── LOGIN ── -->
 <div id="loginMode">
-  <div class="auth-headline"><h2>أهلاً بعودتك 👋</h2><p>سجّل الدخول باسم المستخدم وكلمة المرور</p></div>
-  <form id="loginForm" class="auth-form" autocomplete="on">
-    <label for="loginUsername">اسم المستخدم</label>
+  <div class="auth-headline">
+    <h2 data-i18n="auth_welcome">أهلاً بعودتك 👋</h2>
+    <p data-i18n="auth_welcome_sub">سجّل الدخول لمتابعة استثماراتك</p>
+  </div>
+
+  <div class="id-tabs" data-scope="login">
+    <button type="button" class="id-tab active" data-id-type="username" data-i18n="auth_id_username">اسم المستخدم</button>
+    <button type="button" class="id-tab" data-id-type="mobile" data-i18n="auth_id_mobile">رقم الجوال</button>
+  </div>
+
+  <!-- Username + password login (legacy) -->
+  <form id="loginForm" class="auth-form" autocomplete="on" data-flow="login-username">
+    <label for="loginUsername" data-i18n="auth_label_user">اسم المستخدم</label>
     <input id="loginUsername" name="username" type="text" autocomplete="username"
            inputmode="latin" style="direction:ltr" required />
-    <label for="loginPassword">كلمة المرور</label>
+    <label for="loginPassword" data-i18n="auth_label_pass">كلمة المرور</label>
     <input id="loginPassword" name="password" type="password"
            autocomplete="current-password" style="direction:ltr" required />
     <p class="form-error" id="loginError" style="color:var(--red);font-size:12px;min-height:16px"></p>
-    <button type="submit" class="btn btn-primary btn-block">تسجيل الدخول</button>
+    <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_btn_login">تسجيل الدخول</button>
   </form>
-  <div class="auth-footer">نسيت كلمة المرور؟ <a href="#">استعادة الحساب</a></div>
+
+  <!-- Mobile + password login (default for new users) -->
+  <form id="loginMobileForm" class="auth-form hide" autocomplete="on" data-flow="login-mobile">
+    <label for="loginMobile" data-i18n="auth_label_mobile">رقم الجوال</label>
+    <input id="loginMobile" name="mobile" type="tel" autocomplete="tel" inputmode="tel"
+           style="direction:ltr" placeholder="05XXXXXXXX" data-i18n-attr="placeholder:auth_mobile_ph" required />
+    <label for="loginMobilePassword" data-i18n="auth_label_pass">كلمة المرور</label>
+    <input id="loginMobilePassword" name="password" type="password"
+           autocomplete="current-password" style="direction:ltr" required />
+    <p class="form-error" id="loginMobileError" style="color:var(--red);font-size:12px;min-height:16px"></p>
+    <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_btn_login">تسجيل الدخول</button>
+    <button type="button" class="otp-link" data-otp="login" data-i18n="auth_otp_instead">الدخول برمز OTP بدلاً من ذلك</button>
+  </form>
+
+  <!-- Mobile OTP login (no password) -->
+  <form id="loginOtpForm" class="auth-form hide" autocomplete="off" data-flow="login-otp">
+    <label for="loginOtpMobile" data-i18n="auth_label_mobile">رقم الجوال</label>
+    <input id="loginOtpMobile" name="mobile" type="tel" autocomplete="tel" inputmode="tel"
+           style="direction:ltr" placeholder="05XXXXXXXX" data-i18n-attr="placeholder:auth_mobile_ph" required />
+    <button type="button" class="btn btn-ghost btn-block" id="loginOtpRequestBtn" data-i18n="auth_otp_send">إرسال رمز التحقق</button>
+    <div id="loginOtpCodeBlock" class="hide" style="margin-top:14px">
+      <label for="loginOtpCode" data-i18n="auth_otp_label">رمز التحقق</label>
+      <input id="loginOtpCode" name="code" type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" required
+             style="direction:ltr;letter-spacing:8px;text-align:center" />
+      <p class="form-error" id="loginOtpError" style="color:var(--red);font-size:12px;min-height:16px"></p>
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_otp_verify">تحقّق وادخل</button>
+    </div>
+    <button type="button" class="otp-link" data-otp="login-back" data-i18n="auth_use_password">العودة لتسجيل الدخول بكلمة المرور</button>
+  </form>
+
+  <div class="auth-footer" style="margin-top:14px">
+    <a href="reset-password.html" data-i18n="auth_forgot_link">نسيت كلمة المرور؟</a>
+  </div>
 </div>
 
-<!-- REGISTER -->
+<!-- ── REGISTER ── -->
 <div id="registerMode" style="display:none">
-  <div class="auth-headline"><h2>ابدأ رحلتك الاستثمارية 🚀</h2><p>أنشئ حسابك للبدء</p></div>
-  <form id="registerForm" class="auth-form" autocomplete="on">
-    <label for="regFullName">الاسم الكامل</label>
+  <div class="auth-headline">
+    <h2 data-i18n="auth_register_h">ابدأ رحلتك الاستثمارية 🚀</h2>
+    <p data-i18n="auth_register_sub">أنشئ حسابك في دقيقتين</p>
+  </div>
+
+  <div class="id-tabs" data-scope="register">
+    <button type="button" class="id-tab active" data-id-type="mobile" data-i18n="auth_id_mobile">رقم الجوال</button>
+    <button type="button" class="id-tab" data-id-type="username" data-i18n="auth_id_username">اسم المستخدم</button>
+  </div>
+
+  <!-- Mobile + password signup (recommended default) -->
+  <form id="registerMobileForm" class="auth-form" autocomplete="on" data-flow="register-mobile">
+    <label for="regMobileName" data-i18n="auth_label_fullname">الاسم الكامل</label>
+    <input id="regMobileName" name="full_name" type="text" autocomplete="name" />
+    <label for="regMobile" data-i18n="auth_label_mobile">رقم الجوال</label>
+    <input id="regMobile" name="mobile" type="tel" autocomplete="tel" inputmode="tel"
+           style="direction:ltr" placeholder="05XXXXXXXX" data-i18n-attr="placeholder:auth_mobile_ph" required />
+    <label for="regMobilePassword" data-i18n="auth_label_strong_pass">كلمة مرور قوية</label>
+    <input id="regMobilePassword" name="password" type="password"
+           autocomplete="new-password" placeholder="٨ أحرف على الأقل"
+           data-i18n-attr="placeholder:auth_pass_ph"
+           style="direction:ltr" required />
+    <p class="form-error" id="regMobileError" style="color:var(--red);font-size:12px;min-height:16px"></p>
+    <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_btn_register">إنشاء حساب</button>
+    <button type="button" class="otp-link" data-otp="register" data-i18n="auth_otp_signup_instead">التسجيل برمز OTP بدلاً من كلمة المرور</button>
+  </form>
+
+  <!-- Mobile OTP signup -->
+  <form id="registerOtpForm" class="auth-form hide" autocomplete="off" data-flow="register-otp">
+    <label for="regOtpName" data-i18n="auth_label_fullname">الاسم الكامل</label>
+    <input id="regOtpName" name="full_name" type="text" autocomplete="name" />
+    <label for="regOtpMobile" data-i18n="auth_label_mobile">رقم الجوال</label>
+    <input id="regOtpMobile" name="mobile" type="tel" autocomplete="tel" inputmode="tel"
+           style="direction:ltr" placeholder="05XXXXXXXX" data-i18n-attr="placeholder:auth_mobile_ph" required />
+    <button type="button" class="btn btn-ghost btn-block" id="regOtpRequestBtn" data-i18n="auth_otp_send">إرسال رمز التحقق</button>
+    <div id="regOtpCodeBlock" class="hide" style="margin-top:14px">
+      <label for="regOtpCode" data-i18n="auth_otp_label">رمز التحقق</label>
+      <input id="regOtpCode" name="code" type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" required
+             style="direction:ltr;letter-spacing:8px;text-align:center" />
+      <p class="form-error" id="regOtpError" style="color:var(--red);font-size:12px;min-height:16px"></p>
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_otp_verify">تحقّق وأنشئ الحساب</button>
+    </div>
+    <button type="button" class="otp-link" data-otp="register-back" data-i18n="auth_use_password">العودة للتسجيل بكلمة المرور</button>
+  </form>
+
+  <!-- Username + password signup (legacy) -->
+  <form id="registerForm" class="auth-form hide" autocomplete="on" data-flow="register-username">
+    <label for="regFullName" data-i18n="auth_label_fullname">الاسم الكامل</label>
     <input id="regFullName" name="full_name" type="text" autocomplete="name" />
-    <label for="regUsername">اسم المستخدم</label>
+    <label for="regUsername" data-i18n="auth_label_user">اسم المستخدم</label>
     <input id="regUsername" name="username" type="text" autocomplete="username"
            inputmode="latin" style="direction:ltr" required />
-    <label for="regPassword">كلمة مرور قوية</label>
+    <label for="regPassword" data-i18n="auth_label_strong_pass">كلمة مرور قوية</label>
     <input id="regPassword" name="password" type="password"
            autocomplete="new-password" placeholder="٨ أحرف على الأقل"
+           data-i18n-attr="placeholder:auth_pass_ph"
            style="direction:ltr" required />
     <p class="form-error" id="regError" style="color:var(--red);font-size:12px;min-height:16px"></p>
-    <button type="submit" class="btn btn-primary btn-block">إنشاء حساب</button>
+    <button type="submit" class="btn btn-primary btn-block" data-i18n="auth_btn_register">إنشاء حساب</button>
   </form>
 </div>
 
 <div class="auth-trust">
   <div class="trust-row">
-    <span class="trust-pill">هيئة شرعية مستقلة</span>
-    <span class="trust-pill">حماية البيانات PDPL</span>
-    <span class="trust-pill">تسجيل دخول آمن</span>
+    <span class="trust-pill" data-i18n="auth_trust_sharia">هيئة شرعية مستقلة</span>
+    <span class="trust-pill" data-i18n="auth_trust_pdpl">حماية البيانات PDPL</span>
+    <span class="trust-pill" data-i18n="auth_trust_login">تسجيل دخول آمن</span>
   </div>
-  <p class="auth-terms">بمواصلتك تقرّ بقراءة <a href="terms.html">الشروط</a> و<a href="privacy.html">الخصوصية</a></p>
+  <p class="auth-terms" data-i18n-html="auth_terms">بمواصلتك تقرّ بقراءة <a href="terms.html">الشروط</a> و<a href="privacy.html">الخصوصية</a></p>
 </div>
 </div>
 
 <script>
-// ── Mode toggle ────────────────────────────────────────
-document.querySelectorAll('.mode-tab').forEach(tab => {
+// Top-level mode toggle (Sign in / Create account)
+document.querySelectorAll('.mode-tabs > .mode-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.mode-tabs > .mode-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const mode = tab.dataset.mode;
     document.getElementById('loginMode').style.display    = mode === 'login'    ? 'block' : 'none';
@@ -138,9 +249,40 @@ document.querySelectorAll('.mode-tab').forEach(tab => {
   });
 });
 if (new URLSearchParams(location.search).get('mode') === 'register')
-  document.querySelector('[data-mode="register"]').click();
+  document.querySelector('.mode-tabs > [data-mode="register"]').click();
 
-// ── Auth API (username/password) ───────────────────────
+// Identity-type sub-tabs (Username / Mobile) inside each top mode.
+function showFlow(scope, flow) {
+  const map = {
+    login: { username: 'loginForm', mobile: 'loginMobileForm', 'login-otp': 'loginOtpForm' },
+    register: { username: 'registerForm', mobile: 'registerMobileForm', 'register-otp': 'registerOtpForm' },
+  };
+  Object.values(map[scope]).forEach(id => document.getElementById(id).classList.add('hide'));
+  document.getElementById(map[scope][flow]).classList.remove('hide');
+}
+
+document.querySelectorAll('.id-tabs').forEach(group => {
+  const scope = group.dataset.scope;
+  group.querySelectorAll('.id-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      group.querySelectorAll('.id-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      showFlow(scope, tab.dataset.idType);
+    });
+  });
+});
+
+// OTP toggle links
+document.querySelectorAll('[data-otp]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const what = btn.dataset.otp;
+    if (what === 'login')         showFlow('login', 'login-otp');
+    if (what === 'login-back')    showFlow('login', 'mobile');
+    if (what === 'register')      showFlow('register', 'register-otp');
+    if (what === 'register-back') showFlow('register', 'mobile');
+  });
+});
+
 async function postJSON(url, data) {
   const res = await fetch(url, {
     method: 'POST',
@@ -152,6 +294,10 @@ async function postJSON(url, data) {
   return { ok: res.ok, status: res.status, body };
 }
 
+const _en = () => document.documentElement.lang === 'en';
+const _tt = (en, ar) => _en() ? en : ar;
+
+// ── Login: username + password ─────────────────────────
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
@@ -162,9 +308,49 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     password: f.password.value,
   });
   if (ok) { window.location.href = '/portfolio'; }
-  else { err.textContent = body.error || 'تعذّر تسجيل الدخول'; }
+  else { err.textContent = body.error || _tt('Sign-in failed', 'تعذّر تسجيل الدخول'); }
 });
 
+// ── Login: mobile + password ───────────────────────────
+document.getElementById('loginMobileForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const err = document.getElementById('loginMobileError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/login-mobile', {
+    mobile: f.mobile.value.trim(),
+    password: f.password.value,
+  });
+  if (ok) { window.location.href = '/portfolio'; }
+  else { err.textContent = body.error || _tt('Sign-in failed', 'تعذّر تسجيل الدخول'); }
+});
+
+// ── Login: mobile + OTP ────────────────────────────────
+document.getElementById('loginOtpRequestBtn')?.addEventListener('click', async () => {
+  const mobile = document.getElementById('loginOtpMobile').value.trim();
+  const err = document.getElementById('loginOtpError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/otp/request', { mobile, purpose: 'login' });
+  if (ok) {
+    document.getElementById('loginOtpCodeBlock').classList.remove('hide');
+  } else {
+    err.textContent = body.error || _tt('Failed to send code', 'تعذّر إرسال الرمز');
+  }
+});
+document.getElementById('loginOtpForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('loginOtpError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/otp/verify', {
+    mobile: document.getElementById('loginOtpMobile').value.trim(),
+    code: document.getElementById('loginOtpCode').value.trim(),
+    purpose: 'login',
+  });
+  if (ok) { window.location.href = '/portfolio'; }
+  else { err.textContent = body.error || _tt('Verification failed', 'تعذّر التحقق'); }
+});
+
+// ── Register: username + password ──────────────────────
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
@@ -176,7 +362,48 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     full_name: f.full_name.value.trim(),
   });
   if (ok) { window.location.href = '/portfolio'; }
-  else { err.textContent = body.error || 'تعذّر إنشاء الحساب'; }
+  else { err.textContent = body.error || _tt('Sign-up failed', 'تعذّر إنشاء الحساب'); }
+});
+
+// ── Register: mobile + password ────────────────────────
+document.getElementById('registerMobileForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const err = document.getElementById('regMobileError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/register-mobile', {
+    mobile: f.mobile.value.trim(),
+    password: f.password.value,
+    full_name: f.full_name.value.trim(),
+  });
+  if (ok) { window.location.href = '/portfolio'; }
+  else { err.textContent = body.error || _tt('Sign-up failed', 'تعذّر إنشاء الحساب'); }
+});
+
+// ── Register: mobile + OTP ─────────────────────────────
+document.getElementById('regOtpRequestBtn')?.addEventListener('click', async () => {
+  const mobile = document.getElementById('regOtpMobile').value.trim();
+  const err = document.getElementById('regOtpError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/otp/request', { mobile, purpose: 'signup' });
+  if (ok) {
+    document.getElementById('regOtpCodeBlock').classList.remove('hide');
+  } else {
+    err.textContent = body.error || _tt('Failed to send code', 'تعذّر إرسال الرمز');
+  }
+});
+document.getElementById('registerOtpForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('regOtpError');
+  err.textContent = '';
+  const { ok, body } = await postJSON('/api/auth/otp/verify', {
+    mobile: document.getElementById('regOtpMobile').value.trim(),
+    code: document.getElementById('regOtpCode').value.trim(),
+    full_name: document.getElementById('regOtpName').value.trim(),
+    purpose: 'signup',
+  });
+  if (ok) { window.location.href = '/portfolio'; }
+  else { err.textContent = body.error || _tt('Verification failed', 'تعذّر التحقق'); }
 });
 </script>
 </body>
