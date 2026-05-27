@@ -81,4 +81,47 @@ router.get('/me', requireAuthApi, (req, res) => {
   res.json({ user: req.user });
 });
 
+// ─── KYC verification chain ──────────────────────────────
+// Each step advances users.kyc_status. Demo codes mirror the canonical flow.
+
+router.post('/verify-email', requireAuthApi, ah(async (req, res) => {
+  const code = String(req.body?.code || '').trim();
+  if (code !== '1234') {
+    return res.status(400).json({ error: 'invalid_code', message: 'رمز التحقق من البريد الإلكتروني غير صحيح' });
+  }
+  await query("UPDATE users SET kyc_status = 'email_verified' WHERE id = $1", [req.user.id]);
+  res.json({ success: true, kycStatus: 'email_verified' });
+}));
+
+router.post('/verify-mobile', requireAuthApi, ah(async (req, res) => {
+  const code = String(req.body?.code || '').trim();
+  if (code !== '5678') {
+    return res.status(400).json({ error: 'invalid_code', message: 'رمز التحقق من رقم الجوال غير صحيح' });
+  }
+  await query("UPDATE users SET kyc_status = 'mobile_verified' WHERE id = $1", [req.user.id]);
+  res.json({ success: true, kycStatus: 'mobile_verified' });
+}));
+
+router.post('/verify-id', requireAuthApi, ah(async (req, res) => {
+  const nationalId = String(req.body?.nationalId || '').trim();
+  if (!/^[12]\d{9}$/.test(nationalId)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'رقم الهوية الوطنية أو الإقامة غير صحيح' });
+  }
+  await query("UPDATE users SET national_id = $1, kyc_status = 'id_verified' WHERE id = $2", [nationalId, req.user.id]);
+  res.json({ success: true, kycStatus: 'id_verified' });
+}));
+
+router.post('/verify-address', requireAuthApi, ah(async (req, res) => {
+  const { buildingNo, postalCode, streetName, district, city } = req.body || {};
+  if (!buildingNo || !postalCode || !streetName || !district || !city) {
+    return res.status(400).json({ error: 'invalid_address', message: 'يرجى ملء جميع الحقول المطلوبة للعنوان الوطني' });
+  }
+  await query("UPDATE users SET kyc_status = 'verified' WHERE id = $1", [req.user.id]);
+  await query(
+    `INSERT INTO notifications (user_id,title,body,type)
+     VALUES ($1,'اكتمل التحقق من الهوية والعنوان الوطني','تم استلام بيانات التحقق بنجاح وهي قيد المراجعة والموافقة من الإدارة.','kyc')`,
+    [req.user.id]);
+  res.json({ success: true, kycStatus: 'verified' });
+}));
+
 module.exports = router;
