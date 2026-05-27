@@ -93,6 +93,9 @@ CREATE INDEX IF NOT EXISTS idx_contracts_user ON contracts(user_id);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'investor';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN NOT NULL DEFAULT true;
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_status TEXT NOT NULL DEFAULT 'unverified';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS national_id TEXT;
+
 CREATE TABLE IF NOT EXISTS investment_extensions (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   investment_id UUID NOT NULL REFERENCES investments(id) ON DELETE CASCADE,
