@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/site.css" />
 <script src="app.js"></script>
+<script src="i18n.js" defer></script>
 <style>
   :root {
     color-scheme: light only;
@@ -642,6 +642,17 @@
     color: var(--green-dark);
   }
 
+  /* Language toggle (shared pattern from landing) */
+  .lang-toggle{height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line-strong);background:rgba(13,22,18,0.04);color:var(--green-dark);font-family:'Cairo',sans-serif;font-weight:800;font-size:12px;letter-spacing:.02em;cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:background .15s;flex-shrink:0}
+  .lang-toggle:hover{background:rgba(13,22,18,0.08)}
+  .lang-toggle:active{transform:scale(0.96)}
+  .lang-toggle .lang-sep{opacity:.4}
+  html[lang="ar"] .lang-toggle .lang-ar{color:var(--gold)}
+  html[lang="ar"] .lang-toggle .lang-en{opacity:.45}
+  html[lang="en"] .lang-toggle .lang-en{color:var(--gold)}
+  html[lang="en"] .lang-toggle .lang-ar{opacity:.45}
+  html[lang="en"] body{font-family:'Segoe UI','Helvetica Neue',system-ui,-apple-system,sans-serif}
+
   /* Error alert */
   .payment-error {
     background: rgba(239,68,68,0.08);
@@ -662,46 +673,49 @@
 <main id="main">
 <header>
   <nav class="nav">
-    <a href="#" class="back-btn" id="paymentBackBtn" onclick="goBackToContract(event)">
+    <a href="#" class="back-btn" id="paymentBackBtn" onclick="goBackToContract(event)" aria-label="رجوع" data-i18n-attr="aria-label:payment_back_aria">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
         <path d="M15 18l-6-6 6-6" transform="scale(-1,1) translate(-24,0)"/>
       </svg>
     </a>
     <h1 class="nav-title">
-      إتمام الاستثمار الآمن
-      <small>الخطوة الأخيرة لتنشيط العقد</small>
+      <span data-i18n="payment_title">إتمام الاستثمار الآمن</span>
+      <small data-i18n="payment_subtitle">الخطوة الأخيرة لتنشيط العقد</small>
     </h1>
+    <button type="button" class="lang-toggle" id="langToggle" aria-label="Switch language">
+      <span class="lang-en">EN</span><span class="lang-sep">/</span><span class="lang-ar">ع</span>
+    </button>
   </nav>
 </header>
 
 <div class="checkout-container">
   <!-- Investment Details Summary -->
   <div class="order-card">
-    <span class="order-label">تفاصيل طلب الاستثمار</span>
-    <h2 class="order-project-name" id="orderProjectName">جاري التحميل...</h2>
-    
+    <span class="order-label" data-i18n="payment_order_label">تفاصيل طلب الاستثمار</span>
+    <h2 class="order-project-name" id="orderProjectName" data-i18n="payment_loading">جاري التحميل...</h2>
+
     <div class="order-grid">
       <div class="order-item">
-        <span class="order-item-lbl">قيمة الاستثمار</span>
+        <span class="order-item-lbl" data-i18n="payment_amount">قيمة الاستثمار</span>
         <span class="order-item-val" id="orderAmount">...</span>
       </div>
       <div class="order-item">
-        <span class="order-item-lbl">العائد المتوقع</span>
+        <span class="order-item-lbl" data-i18n="payment_expected_return">العائد المتوقع</span>
         <span class="order-item-val highlight" id="orderExpectedReturn">...</span>
       </div>
       <div class="order-item" style="grid-column: span 2; border-top: 0.5px dashed var(--line); padding-top: 8px; margin-top: 4px;">
         <div style="display:flex; justify-content: space-between;">
-          <span class="order-item-lbl">مدة الاستثمار</span>
+          <span class="order-item-lbl" data-i18n="payment_term">مدة الاستثمار</span>
           <span class="order-item-val" id="orderTerm" style="font-size: 13px;">...</span>
         </div>
       </div>
     </div>
   </div>
 
-  <h2 class="payment-methods-title">اختر طريقة الدفع المناسبة:</h2>
+  <h2 class="payment-methods-title" data-i18n="payment_choose_method">اختر طريقة الدفع المناسبة:</h2>
 
   <!-- Methods Tabs Selector -->
-  <div class="methods-tabs" role="tablist" aria-label="طرق الدفع">
+  <div class="methods-tabs" role="tablist" aria-label="طرق الدفع" data-i18n-attr="aria-label:payment_methods_aria">
     <!-- Mada / Visa -->
     <button class="method-tab active" id="tab-mada" onclick="selectPaymentMethod('mada')" role="tab" aria-selected="true" aria-controls="panel-mada">
       <div class="method-icon-wrap">
@@ -711,7 +725,7 @@
           <text x="30" y="14" font-family="'Cairo', sans-serif" font-weight="900" font-size="10" fill="#fff" text-anchor="middle">mada مدى</text>
         </svg>
       </div>
-      <span class="method-name">مدى / فيزا</span>
+      <span class="method-name" data-i18n="payment_method_mada">مدى / فيزا</span>
     </button>
     <!-- Apple Pay -->
     <button class="method-tab" id="tab-applepay" onclick="selectPaymentMethod('applepay')" role="tab" aria-selected="false" aria-controls="panel-applepay">
@@ -720,7 +734,7 @@
           <path d="M14.6 3.9c-.8.9-1.9 1.5-3 1.4-.1-1.1.4-2.2 1.2-3.1.9-1 2-1.5 2.9-1.5.1 1.2-.3 2.3-1.1 3.2zm1.2.7c-1 0-1.8.6-2.3.6-.5 0-1.2-.5-2.1-.5-2.2 0-4.1 1.7-4.1 4.5 0 2.8 1.9 6.2 3.9 6.2.9 0 1.5-.5 2.3-.5.7 0 1.2.5 2.2.5 2.1 0 3.7-3.1 3.7-3.1s-1.8-.8-1.8-3.1c0-1.9 1.4-2.8 1.4-2.8-1-.8-2.2-1.3-3.2-1.3zM25.7.1h2.8l3.9 11.5H30l-.9-2.8h-4.3l-.9 2.8h-2.5L25.7.1zm3.5 6.6L27.9 3l-1.3 3.7h2.6zm6.3-2.6H38v9h-2.1v-.8c-.4.6-1.1 1-1.9 1-1.7 0-2.8-1.4-2.8-3.3 0-2.1 1.3-3.3 2.9-3.3.8 0 1.4.3 1.8.9V4.1zm-1.8 5.7c0-1 .6-1.7 1.3-1.7.8 0 1.3.7 1.3 1.7s-.5 1.7-1.3 1.7c-.7 0-1.3-.7-1.3-1.7z"/>
         </svg>
       </div>
-      <span class="method-name">Apple Pay</span>
+      <span class="method-name" data-i18n="payment_method_applepay">Apple Pay</span>
     </button>
     <!-- STC Pay -->
     <button class="method-tab" id="tab-stcpay" onclick="selectPaymentMethod('stcpay')" role="tab" aria-selected="false" aria-controls="panel-stcpay">
@@ -730,7 +744,7 @@
           <text x="25" y="12" font-family="sans-serif" font-weight="900" font-size="8" fill="#FFC72C" text-anchor="middle">stc pay</text>
         </svg>
       </div>
-      <span class="method-name">stc pay</span>
+      <span class="method-name" data-i18n="payment_method_stcpay">stc pay</span>
     </button>
     <!-- Sadad -->
     <button class="method-tab" id="tab-sadad" onclick="selectPaymentMethod('sadad')" role="tab" aria-selected="false" aria-controls="panel-sadad">
@@ -740,7 +754,7 @@
           <text x="25" y="12" font-family="'Cairo', sans-serif" font-weight="900" font-size="8" fill="#F3A11C" text-anchor="middle">سداد Sadad</text>
         </svg>
       </div>
-      <span class="method-name">سداد</span>
+      <span class="method-name" data-i18n="payment_method_sadad">سداد</span>
     </button>
     <!-- Wallet -->
     <button class="method-tab" id="tab-wallet" onclick="selectPaymentMethod('wallet')" role="tab" aria-selected="false" aria-controls="panel-wallet">
@@ -751,7 +765,7 @@
           <circle cx="12" cy="12" r="3"/>
         </svg>
       </div>
-      <span class="method-name">رصيد المحفظة</span>
+      <span class="method-name" data-i18n="payment_method_wallet">رصيد المحفظة</span>
     </button>
   </div>
 
@@ -760,127 +774,127 @@
 
   <!-- PANEL 1: Mada / Credit Card -->
   <div class="payment-form-panel active" id="panel-mada" role="tabpanel" aria-labelledby="tab-mada">
-    <h3 class="form-h3">💳 الدفع ببطاقة مدى / البطاقة الائتمانية</h3>
+    <h3 class="form-h3" data-i18n-html="payment_mada_h">💳 الدفع ببطاقة مدى / البطاقة الائتمانية</h3>
     <form id="madaPaymentForm" onsubmit="handleMadaPayment(event)">
       <div class="form-group">
-        <label for="cardNameInput">اسم صاحب البطاقة</label>
-        <input type="text" id="cardNameInput" placeholder="اكتب اسمك كما هو مسجل على البطاقة" required />
+        <label for="cardNameInput" data-i18n="payment_card_name">اسم صاحب البطاقة</label>
+        <input type="text" id="cardNameInput" placeholder="اكتب اسمك كما هو مسجل على البطاقة" data-i18n-attr="placeholder:payment_card_name_ph" required />
       </div>
       <div class="form-group">
-        <label for="cardNumberInput">رقم البطاقة</label>
+        <label for="cardNumberInput" data-i18n="payment_card_number">رقم البطاقة</label>
         <input type="tel" id="cardNumberInput" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" style="direction: ltr; text-align: start;" required />
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="cardExpiryInput">تاريخ الانتهاء</label>
-          <input type="tel" id="cardExpiryInput" placeholder="شهر / سنة (MM/YY)" maxlength="5" style="direction: ltr; text-align: start;" required />
+          <label for="cardExpiryInput" data-i18n="payment_card_expiry">تاريخ الانتهاء</label>
+          <input type="tel" id="cardExpiryInput" placeholder="شهر / سنة (MM/YY)" maxlength="5" style="direction: ltr; text-align: start;" data-i18n-attr="placeholder:payment_card_expiry_ph" required />
         </div>
         <div class="form-group">
-          <label for="cardCvvInput">الرمز السري (CVV)</label>
+          <label for="cardCvvInput" data-i18n="payment_card_cvv">الرمز السري (CVV)</label>
           <input type="tel" id="cardCvvInput" placeholder="•••" maxlength="3" style="direction: ltr; text-align: start;" required />
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" id="madaSubmitBtn">تأكيد ودفع الاستثمار الآمن</button>
+      <button type="submit" class="btn btn-primary" id="madaSubmitBtn" data-i18n="payment_btn_pay_secure">تأكيد ودفع الاستثمار الآمن</button>
     </form>
   </div>
 
   <!-- PANEL 2: Apple Pay -->
   <div class="payment-form-panel" id="panel-applepay" role="tabpanel" aria-labelledby="tab-applepay">
-    <h3 class="form-h3"> الدفع السريع عبر Apple Pay</h3>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 18px; text-align: center;">
+    <h3 class="form-h3" data-i18n-html="payment_applepay_h"> الدفع السريع عبر Apple Pay</h3>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 18px; text-align: center;" data-i18n="payment_applepay_sub">
       أسرع وأضمن طريقة لتفعيل عقدك فوراً دون الحاجة لإدخال بيانات البطاقة يدوياً.
     </p>
     <button type="button" class="btn btn-primary" id="applePayBtn" onclick="triggerApplePaySimulation()" style="background: #000; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.18);">
       <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-inline-end: 4px;">
         <path d="M11.1.5c-.6.7-1.4 1.2-2.3 1.1-.1-.8.3-1.6.9-2.3.7-.7 1.6-1.1 2.2-1.1.1.9-.2 1.7-.8 2.3zM12 .9c-.7 0-1.3.4-1.7.4-.4 0-.9-.4-1.6-.4-1.6 0-3 1.2-3 3.3 0 2.1 1.4 4.5 2.9 4.5.7 0 1.1-.4 1.7-.4.5 0 .9.4 1.6.4 1.6 0 2.8-2.3 2.8-2.3s-1.3-.6-1.3-2.3c0-1.4 1-2.1 1-2.1-.8-.6-1.7-1-2.4-1z"/>
       </svg>
-      Pay with Apple Pay
+      <span data-i18n="payment_applepay_btn">Pay with Apple Pay</span>
     </button>
   </div>
 
   <!-- PANEL 3: STC Pay -->
   <div class="payment-form-panel" id="panel-stcpay" role="tabpanel" aria-labelledby="tab-stcpay">
-    <h3 class="form-h3">📱 الدفع عبر stc pay</h3>
-    
+    <h3 class="form-h3" data-i18n-html="payment_stcpay_h">📱 الدفع عبر stc pay</h3>
+
     <!-- Step 1: Input Mobile -->
     <div id="stc-step-mobile">
       <div class="form-group">
-        <label for="stcPhoneInput">رقم الجوال المسجل في stc pay</label>
+        <label for="stcPhoneInput" data-i18n="payment_stcpay_phone">رقم الجوال المسجل في stc pay</label>
         <input type="tel" id="stcPhoneInput" placeholder="05XXXXXXXX" maxlength="10" required />
       </div>
-      <button type="button" class="btn btn-primary" id="stcPaySubmitBtn" onclick="sendStcPayOtp()">أرسل رمز التحقق (OTP)</button>
+      <button type="button" class="btn btn-primary" id="stcPaySubmitBtn" onclick="sendStcPayOtp()" data-i18n="payment_stcpay_send_otp">أرسل رمز التحقق (OTP)</button>
     </div>
 
     <!-- Step 2: OTP (hidden at first) -->
     <div id="stc-step-otp" style="display: none;">
-      <div style="background: rgba(79,0,143,0.06); border: 1px solid rgba(79,0,143,0.15); border-radius: 10px; padding: 12px; font-size: 13px; color: #4F008F; text-align: center; margin-bottom: 14px;">
+      <div style="background: rgba(79,0,143,0.06); border: 1px solid rgba(79,0,143,0.15); border-radius: 10px; padding: 12px; font-size: 13px; color: #4F008F; text-align: center; margin-bottom: 14px;" data-i18n-html="payment_stcpay_otp_note">
         تم إرسال رمز تحقق مؤقت لـ stc pay في رسالة نصية. (استخدم الرمز التجريبي: <b>٩٩٢٢</b>)
       </div>
       <div class="form-group">
-        <label for="stcOtpInput">أدخل رمز التحقق المكون من ٤ أرقام</label>
+        <label for="stcOtpInput" data-i18n="payment_stcpay_otp_label">أدخل رمز التحقق المكون من ٤ أرقام</label>
         <input type="tel" id="stcOtpInput" placeholder="••••" maxlength="4" style="direction: ltr; letter-spacing: 1.5em; text-align: center;" required />
       </div>
-      <button type="button" class="btn btn-primary" id="stcPayOtpBtn" onclick="verifyStcPayAndPay()" style="background: #4F008F; color: #fff; box-shadow: 0 4px 14px rgba(79,0,143,0.25);">تأكيد ودفع</button>
+      <button type="button" class="btn btn-primary" id="stcPayOtpBtn" onclick="verifyStcPayAndPay()" style="background: #4F008F; color: #fff; box-shadow: 0 4px 14px rgba(79,0,143,0.25);" data-i18n="payment_btn_confirm_pay">تأكيد ودفع</button>
     </div>
   </div>
 
   <!-- PANEL 4: Sadad -->
   <div class="payment-form-panel" id="panel-sadad" role="tabpanel" aria-labelledby="tab-sadad">
-    <h3 class="form-h3">🇸🇦 نظام سداد للمدفوعات</h3>
-    
+    <h3 class="form-h3" data-i18n-html="payment_sadad_h">🇸🇦 نظام سداد للمدفوعات</h3>
+
     <div class="sadad-info-card">
       <div class="sadad-biller-row">
-        <span class="sadad-lbl">المفوتر</span>
-        <span class="sadad-val">منصة مرابحة الاستثمارية</span>
+        <span class="sadad-lbl" data-i18n="payment_sadad_biller">المفوتر</span>
+        <span class="sadad-val" data-i18n="payment_sadad_biller_name">منصة مرابحة الاستثمارية</span>
       </div>
       <div class="sadad-biller-row">
-        <span class="sadad-lbl">رمز المفوتر</span>
+        <span class="sadad-lbl" data-i18n="payment_sadad_biller_code">رمز المفوتر</span>
         <span class="sadad-val">١٤٤ (144)</span>
       </div>
       <div class="sadad-biller-row">
-        <span class="sadad-lbl">رقم الفاتورة</span>
+        <span class="sadad-lbl" data-i18n="payment_sadad_bill_no">رقم الفاتورة</span>
         <span class="sadad-val" id="sadadBillNo">٢٠٢٦٠٠٠٠٠٠</span>
       </div>
       <div class="sadad-biller-row">
-        <span class="sadad-lbl">المبلغ الإجمالي</span>
+        <span class="sadad-lbl" data-i18n="payment_sadad_total">المبلغ الإجمالي</span>
         <span class="sadad-val" id="sadadBillAmount">...</span>
       </div>
     </div>
-    
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 18px; text-align: justify; line-height: 1.6;">
+
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 18px; text-align: justify; line-height: 1.6;" data-i18n="payment_sadad_instructions">
       تعليمات السداد: انتقل لتطبيق بنكك المفضل، اختر سداد فاتورة لمرة واحدة، حدد مفوتر "منصة مرابحة" بالرمز (١٤٤)، أدخل رقم الفاتورة أعلاه وادفع القيمة.
     </p>
 
-    <button type="button" class="btn btn-primary" id="sadadSubmitBtn" onclick="handleSadadPayment()" style="background: #0A3C82; color: #fff; box-shadow: 0 4px 14px rgba(10,60,130,0.25);">
+    <button type="button" class="btn btn-primary" id="sadadSubmitBtn" onclick="handleSadadPayment()" style="background: #0A3C82; color: #fff; box-shadow: 0 4px 14px rgba(10,60,130,0.25);" data-i18n="payment_sadad_btn">
       محاكاة سداد الفاتورة بنجاح ✓
     </button>
   </div>
 
   <!-- PANEL 5: Wallet Balance -->
   <div class="payment-form-panel" id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
-    <h3 class="form-h3">💼 الدفع من رصيد المحفظة الاستثمارية</h3>
-    
+    <h3 class="form-h3" data-i18n-html="payment_wallet_h">💼 الدفع من رصيد المحفظة الاستثمارية</h3>
+
     <div class="wallet-balance-row">
-      <span class="wallet-balance-lbl">رصيدك المتاح حالياً:</span>
-      <span class="wallet-balance-val" id="walletBalanceDisplay">جاري التحميل...</span>
+      <span class="wallet-balance-lbl" data-i18n="payment_wallet_balance_lbl">رصيدك المتاح حالياً:</span>
+      <span class="wallet-balance-val" id="walletBalanceDisplay" data-i18n="payment_loading">جاري التحميل...</span>
     </div>
 
     <!-- Sufficient funds state -->
     <div id="wallet-sufficient-funds" style="display: none;">
-      <div class="wallet-status sufficient">
+      <div class="wallet-status sufficient" data-i18n="payment_wallet_sufficient">
         ✓ رصيدك كافٍ لتأكيد تفعيل الاستثمار بنجاح. سيتم خصم القيمة مباشرة.
       </div>
-      <button type="button" class="btn btn-primary" id="walletSubmitBtn" onclick="handleWalletPayment()">خصم وتفعيل الاستثمار</button>
+      <button type="button" class="btn btn-primary" id="walletSubmitBtn" onclick="handleWalletPayment()" data-i18n="payment_wallet_btn_deduct">خصم وتفعيل الاستثمار</button>
     </div>
 
     <!-- Insufficient funds state -->
     <div id="wallet-insufficient-funds" style="display: none;">
-      <div class="wallet-status insufficient">
+      <div class="wallet-status insufficient" data-i18n="payment_wallet_insufficient">
         ⚠️ رصيدك الحالي غير كافٍ. لإكمال الدفع من المحفظة، يرجى إيداع المبلغ المتبقي أدناه.
       </div>
-      
+
       <!-- Quick deposit option -->
-      <button type="button" class="btn btn-primary" id="quickDepositBtn" onclick="handleQuickDepositAndPay()" style="background: var(--gold); color: #fff; box-shadow: 0 4px 14px rgba(176,136,64,0.3);">
+      <button type="button" class="btn btn-primary" id="quickDepositBtn" onclick="handleQuickDepositAndPay()" style="background: var(--gold); color: #fff; box-shadow: 0 4px 14px rgba(176,136,64,0.3);" data-i18n="payment_wallet_btn_quickdep">
         إيداع فوري للمبلغ المتبقي وتفعيل الاستثمار ✓
       </button>
     </div>
@@ -940,36 +954,36 @@
 <!-- Success Confirmation Screen Overlay -->
 <div class="success-overlay" id="successScreen">
   <div class="success-badge">✓</div>
-  <h2 class="success-title">اكتمل الاستثمار بنجاح!</h2>
-  <p class="success-subtitle">تم تفعيل عقد المرابحة بنجاح واستلام كامل دفعة رأس المال الاستثماري.</p>
-  
+  <h2 class="success-title" data-i18n="payment_success_title">اكتمل الاستثمار بنجاح!</h2>
+  <p class="success-subtitle" data-i18n="payment_success_sub">تم تفعيل عقد المرابحة بنجاح واستلام كامل دفعة رأس المال الاستثماري.</p>
+
   <!-- Receipt box details -->
   <div class="receipt-box">
-    <h3 class="receipt-title">سند الاستلام والتوثيق</h3>
+    <h3 class="receipt-title" data-i18n="payment_receipt_title">سند الاستلام والتوثيق</h3>
     <div class="receipt-row">
-      <span class="receipt-lbl">رقم العملية الموثقة:</span>
+      <span class="receipt-lbl" data-i18n="payment_receipt_txid">رقم العملية الموثقة:</span>
       <span class="receipt-val" id="receiptTxId" style="direction: ltr;">TXN_...</span>
     </div>
     <div class="receipt-row">
-      <span class="receipt-lbl">رقم عقد المرابحة:</span>
+      <span class="receipt-lbl" data-i18n="payment_receipt_contract">رقم عقد المرابحة:</span>
       <span class="receipt-val" id="receiptContractId" style="direction: ltr;">CTR_...</span>
     </div>
     <div class="receipt-row">
-      <span class="receipt-lbl">اسم الفرصة الاستثمارية:</span>
+      <span class="receipt-lbl" data-i18n="payment_receipt_project">اسم الفرصة الاستثمارية:</span>
       <span class="receipt-val" id="receiptProjectName">...</span>
     </div>
     <div class="receipt-row">
-      <span class="receipt-lbl">طريقة الدفع المستخدمة:</span>
+      <span class="receipt-lbl" data-i18n="payment_receipt_method">طريقة الدفع المستخدمة:</span>
       <span class="receipt-val" id="receiptMethod">...</span>
     </div>
     <div class="receipt-row">
-      <span class="receipt-lbl">إجمالي رأس المال المدفوع:</span>
+      <span class="receipt-lbl" data-i18n="payment_receipt_total">إجمالي رأس المال المدفوع:</span>
       <span class="receipt-val amt" id="receiptAmount">...</span>
     </div>
   </div>
 
   <!-- Simulated email notification -->
-  <div style="font-size: 11px; color: var(--muted); font-weight: 700; text-align: right; width: 100%; max-width: 440px; margin-bottom: 6px;">
+  <div style="font-size: 11px; color: var(--muted); font-weight: 700; text-align: right; width: 100%; max-width: 440px; margin-bottom: 6px;" data-i18n="payment_email_sim_label">
     📧 إشعار بريد إلكتروني مرسل تلقائياً (محاكاة):
   </div>
   <div class="sim-email-container">
@@ -980,7 +994,7 @@
     <div class="sim-email-body" id="simEmailBody">...</div>
   </div>
 
-  <button class="btn btn-primary" id="successDoneBtn" onclick="goToPortfolio()" style="max-width: 440px;">الذهاب إلى محفظتي الاستثمارية</button>
+  <button class="btn btn-primary" id="successDoneBtn" onclick="goToPortfolio()" style="max-width: 440px;" data-i18n="payment_success_btn">الذهاب إلى محفظتي الاستثمارية</button>
 </div>
 </main>
 
@@ -992,7 +1006,7 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     // 1. Ensure user is logged in
-    _user = await App.requireAuth('login.html');
+    _user = await App.requireAuth('/login');
     if (!_user) return;
 
     // 2. Parse contract ID from URL query
