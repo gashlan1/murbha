@@ -107,3 +107,31 @@ CREATE TABLE IF NOT EXISTS investment_extensions (
   resolved_at   TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_ext_status ON investment_extensions(status);
+
+-- Contact form submissions. Persist every message so nothing is lost if the
+-- SMTP notifier is misconfigured. Email is optional (handled, not required).
+CREATE TABLE IF NOT EXISTS contact_submissions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT NOT NULL,
+  email       CITEXT,
+  type        TEXT,
+  message     TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'new',     -- new | acknowledged | resolved
+  ip          TEXT,
+  user_agent  TEXT,
+  notified_at TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_contact_status  ON contact_submissions(status);
+CREATE INDEX IF NOT EXISTS idx_contact_created ON contact_submissions(created_at DESC);
+
+-- Newsletter signups. Unique on email so re-subscribes are idempotent and we
+-- can later push the whole list to Mailchimp/ConvertKit without dedupe work.
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      CITEXT UNIQUE NOT NULL,
+  source     TEXT,                              -- e.g. 'footer', 'hessa', 'project'
+  ip         TEXT,
+  status     TEXT NOT NULL DEFAULT 'active',    -- active | unsubscribed
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

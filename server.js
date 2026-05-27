@@ -15,6 +15,8 @@ const morgan     = require('morgan');
 const cookieParser = require('cookie-parser');
 const authRoutes   = require('./routes/auth');
 const { requireAuthPage, requireAdminPage } = require('./middleware/requireAuth');
+const { query }    = require('./db/pool');
+const mailer       = require('./lib/mailer');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -79,30 +81,74 @@ app.get('/api/health', (req, res) => {
 });
 
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const clientIp = (req) => (req.headers['x-forwarded-for']?.toString().split(',')[0].trim()
+  || req.socket?.remoteAddress || null);
+
 /**
- * Contact form endpoint (stub — wire to email service)
+ * Contact form — persists every submission, then best-effort notifies the
+ * operator inbox via SMTP (when SMTP_HOST/USER/PASS are set in env).
+ * The user always gets a success response if the row was stored.
  */
-app.post('/api/contact', (req, res) => {
-  const { name, email, message, type } = req.body;
-  if (!name || !message) {
-    return res.status(400).json({ error: 'الاسم والرسالة مطلوبان' });
+app.post('/api/contact', async (req, res) => {
+  const name    = String(req.body?.name    ?? '').trim();
+  const email   = String(req.body?.email   ?? '').trim() || null;
+  const message = String(req.body?.message ?? '').trim();
+  const type    = String(req.body?.type    ?? '').trim() || null;
+  if (!name || !message) return res.status(400).json({ error: 'الاسم والرسالة مطلوبان' });
+  if (email && !EMAIL_RE.test(email))
+    return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح' });
+
+  try {
+    const { rows } = await query(
+      `INSERT INTO contact_submissions (name, email, type, message, ip, user_agent)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, created_at`,
+      [name, email, type, message, clientIp(req), req.headers['user-agent']?.slice(0, 500) || null]
+    );
+    const submission = rows[0];
+
+    // Fire-and-forget notification. If SMTP isn't configured, we just log.
+    mailer.send({
+      subject: `[Murbha contact] ${type || 'inquiry'} — ${name}`,
+      text: `Name: ${name}\nEmail: ${email ?? '(none)'}\nType: ${type ?? '(none)'}\n\n${message}\n\n— id ${submission.id}`,
+      replyTo: email || undefined,
+    }).then((r) => {
+      if (r.sent) query(`UPDATE contact_submissions SET notified_at = now() WHERE id = $1`, [submission.id]).catch(() => {});
+      else console.log('[Contact]', { id: submission.id, name, email, type, smtp: r.reason });
+    }).catch(() => { /* swallow */ });
+
+    return res.json({ success: true, id: submission.id, message: 'تم استلام رسالتك. سنتواصل معك قريباً.' });
+  } catch (e) {
+    console.error('[Contact] db error:', e.message);
+    return res.status(500).json({ error: 'تعذّر استلام الرسالة. حاول لاحقاً.' });
   }
-  // TODO: integrate with SendGrid / SES / SMTP
-  console.log('[Contact]', { name, email, message, type });
-  res.json({ success: true, message: 'تم استلام رسالتك. سنتواصل معك قريباً.' });
 });
 
 /**
- * Newsletter signup (stub)
+ * Newsletter signup — idempotent on email. Re-subscribing flips status back
+ * to 'active'. List can be exported to Mailchimp/ConvertKit later without
+ * dedupe work.
  */
-app.post('/api/newsletter', (req, res) => {
-  const { email } = req.body;
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+app.post('/api/newsletter', async (req, res) => {
+  const email  = String(req.body?.email  ?? '').trim().toLowerCase();
+  const source = String(req.body?.source ?? '').trim() || null;
+  if (!email || !EMAIL_RE.test(email))
     return res.status(400).json({ error: 'البريد الإلكتروني غير صحيح' });
+
+  try {
+    const { rows } = await query(
+      `INSERT INTO newsletter_subscribers (email, source, ip, status)
+       VALUES ($1, $2, $3, 'active')
+       ON CONFLICT (email) DO UPDATE
+         SET status = 'active', source = COALESCE(EXCLUDED.source, newsletter_subscribers.source)
+       RETURNING id, (xmax = 0) AS inserted`,
+      [email, source, clientIp(req)]
+    );
+    return res.json({ success: true, id: rows[0].id, alreadySubscribed: !rows[0].inserted });
+  } catch (e) {
+    console.error('[Newsletter] db error:', e.message);
+    return res.status(500).json({ error: 'تعذّر التسجيل. حاول لاحقاً.' });
   }
-  // TODO: integrate with Mailchimp / ConvertKit
-  console.log('[Newsletter]', email);
-  res.json({ success: true });
 });
 
 app.use('/api/auth', authRoutes);
