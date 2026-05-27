@@ -20,4 +20,14 @@ async function requireAuthApi(req, res, next) {
   next();
 }
 
-module.exports = { COOKIE, requireAuthPage, requireAuthApi };
+// For admin API routes: authenticate, then require role === 'admin'.
+async function requireAdminApi(req, res, next) {
+  const token = req.signedCookies?.[COOKIE];
+  const user = await getSessionUser(token).catch(() => null);
+  if (!user) return res.status(401).json({ error: 'يجب تسجيل الدخول' });
+  if (user.role !== 'admin') return res.status(403).json({ error: 'forbidden' });
+  req.user = user;
+  next();
+}
+
+module.exports = { COOKIE, requireAuthPage, requireAuthApi, requireAdminApi };
