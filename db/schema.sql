@@ -135,3 +135,34 @@ CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   status     TEXT NOT NULL DEFAULT 'active',    -- active | unsubscribed
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Mobile and email identifiers + password-reset/OTP tables.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS mobile CITEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email  CITEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_mobile ON users(mobile) WHERE mobile IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email  ON users(email)  WHERE email  IS NOT NULL;
+
+-- Password reset tokens. Single-use, short TTL. token is a random 32-byte hex.
+CREATE TABLE IF NOT EXISTS password_resets (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token      TEXT UNIQUE NOT NULL,
+  channel    TEXT NOT NULL,                       -- email | sms
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
+
+-- One-time codes for mobile OTP login/signup and SMS-based password resets.
+-- We index by (mobile, purpose) so we can grab the latest unused code quickly.
+CREATE TABLE IF NOT EXISTS otp_codes (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  mobile     CITEXT NOT NULL,
+  code_hash  TEXT NOT NULL,                       -- bcrypt hash of the 4-digit code
+  purpose    TEXT NOT NULL,                       -- login | signup | reset
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_otp_mobile_purpose ON otp_codes(mobile, purpose, created_at DESC);
