@@ -680,11 +680,24 @@ const _initPortfolio = async () => {
   const qa = document.querySelectorAll('.quick-actions .qa-btn');
   // qa[0] is "استثمار جديد" → already points to projects via hessa
   if (qa[0]) qa[0].setAttribute('href', 'projects.html');
-  // qa[1] "سحب" (withdraw) — backend not built yet → "قريباً"
+  // qa[1] "سحب" (withdraw) — wired to /api/portfolio/withdraw
   if (qa[1]) {
     qa[1].removeAttribute('href');
     qa[1].style.cursor = 'pointer';
-    qa[1].addEventListener('click', (e) => { e.preventDefault(); App.toast('قريباً'); });
+    qa[1].addEventListener('click', async (e) => {
+      e.preventDefault();
+      const raw = prompt('مبلغ السحب (ر.س):');
+      if (raw == null) return;
+      const amount = Number(raw);
+      if (!(amount > 0)) { App.toast('أدخل مبلغاً صحيحاً'); return; }
+      try {
+        await App.api('POST', '/api/portfolio/withdraw', { amount });
+        App.toast('تم تقديم طلب السحب');
+        location.reload();
+      } catch (err) {
+        App.toast(err.status === 400 ? 'الرصيد غير كافٍ' : 'تعذّر السحب');
+      }
+    });
   }
   // qa[2] "التقارير" (reports) — backend not built yet → "قريباً"
   if (qa[2]) {
@@ -708,7 +721,19 @@ const _initPortfolio = async () => {
     btn.style.cssText = 'position:absolute;top:16px;inset-inline-end:18px;background:#b08840;color:#fff;border:0;border-radius:99px;padding:8px 14px;font:800 12px Tajawal,sans-serif;cursor:pointer';
     balanceCard.style.position = 'relative';
     balanceCard.appendChild(btn);
-    btn.addEventListener('click', () => { App.toast('قريباً'); });
+    btn.addEventListener('click', async () => {
+      const raw = prompt('مبلغ الإيداع (ر.س)، الحد الأدنى ١٠٠:');
+      if (raw == null) return;
+      const amount = Number(raw);
+      if (!(amount >= 100)) { App.toast('الحد الأدنى للإيداع ١٠٠ ر.س'); return; }
+      try {
+        await App.api('POST', '/api/portfolio/deposit', { amount, method: 'mada' });
+        App.toast('تم إيداع الرصيد');
+        location.reload();
+      } catch (err) {
+        App.toast('تعذّر الإيداع');
+      }
+    });
   }
 
   // ── Investments section ──────────────────────

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>بوابة الدفع الآمن — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css" />
+<script src="app.js"></script>
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612;
+    --ink-soft: #1f2a23;
+    --bone: #f5efe2;
+    --paper: #fbf6ea;
+    --paper-2: #efe8d6;
+    --green: #0a4d36;
+    --green-dark: #062b1e;
+    --green-soft: #14694e;
+    --gold: #b08840;
+    --gold-light: #d4ac6e;
+    --gold-soft: #e8d3a8;
+    --muted: #6b7268;
+    --line: rgba(13,22,18,0.10);
+    --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html {
+    background: #fbf6ea;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: linear-gradient(180deg, #fbf6ea 0%, #efe8d6 100%) !important;
+    color: #0d1612;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    min-height: 100vh;
+    padding-top: var(--safe-top);
+    padding-bottom: calc(40px + var(--safe-bot));
+  }
+  button, a { font-family: inherit; touch-action: manipulation; }
+
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 60;
+    padding-top: var(--safe-top);
+  }
+  .nav {
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(13,22,18,0.05);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform .1s, background .15s;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .back-btn:active { transform: scale(0.92); background: rgba(13,22,18,0.1); }
+  .nav-title {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--green-dark);
+    flex: 1;
+  }
+  .nav-title small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+
+  .checkout-container {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+
+  /* ORDER SUMMARY CARD */
+  .order-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1.5px solid var(--line);
+    box-shadow: 0 4px 16px rgba(13,22,18,0.03);
+    padding: 18px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .order-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--green) 0%, var(--gold) 100%);
+  }
+  .order-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+  .order-project-name {
+    font-family: 'Cairo', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+  }
+  .order-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    border-top: 0.5px solid var(--line);
+    padding-top: 12px;
+  }
+  .order-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .order-item-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .order-item-val {
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .order-item-val.highlight {
+    color: var(--green);
+  }
+
+  /* PAYMENT METHOD SELECTOR */
+  .payment-methods-title {
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin: 8px 4px 12px;
+  }
+  .methods-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .method-tab {
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .method-tab:hover {
+    border-color: var(--gold-light);
+    background: var(--paper);
+  }
+  .method-tab.active {
+    border-color: var(--green);
+    background: rgba(10,77,54,0.05);
+    box-shadow: 0 4px 10px rgba(10,77,54,0.08);
+  }
+  .method-icon-wrap {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+  }
+  .method-icon-wrap svg {
+    max-height: 100%;
+    max-width: 100%;
+  }
+  .method-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .method-tab.active .method-name {
+    color: var(--green-dark);
+    font-weight: 800;
+  }
+
+  /* FORMS WRAPPERS */
+  .payment-form-panel {
+    display: none;
+    background: #fff;
+    border-radius: 16px;
+    border: 1.5px solid var(--line);
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(13,22,18,0.03);
+    animation: slideUp .25s ease;
+  }
+  .payment-form-panel.active {
+    display: block;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-h3 {
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Form Elements */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+  }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    background: var(--paper);
+    transition: all 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--green);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(10,77,54,0.08);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: 50px;
+    width: 100%;
+    transition: transform .1s ease, background .2s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  
+  .btn-primary {
+    background: var(--green);
+    color: var(--paper);
+    box-shadow: 0 4px 14px rgba(10,77,54,0.25);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--green-dark);
+  }
+
+  /* WALLET PANELS SPECIFIC */
+  .wallet-status {
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    border: 1px solid transparent;
+  }
+  .wallet-status.sufficient {
+    background: rgba(16,185,129,0.06);
+    border-color: rgba(16,185,129,0.2);
+    color: #065f46;
+  }
+  .wallet-status.insufficient {
+    background: rgba(239,68,68,0.06);
+    border-color: rgba(239,68,68,0.2);
+    color: #991b1b;
+  }
+  .wallet-balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper);
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 0.5px solid var(--line);
+    margin-bottom: 16px;
+  }
+  .wallet-balance-lbl {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .wallet-balance-val {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 900;
+    color: var(--green-dark);
+  }
+
+  /* APPLE PAY SIMULATION SHEET */
+  .apple-pay-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+  }
+  .apple-pay-sheet-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .apple-pay-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #111;
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.25, 1, .5, 1);
+    max-height: 80vh;
+    padding-bottom: calc(20px + var(--safe-bot));
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    direction: ltr;
+    text-align: left;
+  }
+  .apple-pay-sheet.active {
+    transform: translateY(0);
+  }
+  .ap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 0.5px solid #222;
+  }
+  .ap-logo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .ap-cancel {
+    color: #007aff;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .ap-body {
+    padding: 20px;
+  }
+  .ap-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 0.5px solid #222;
+    font-size: 14px;
+  }
+  .ap-lbl {
+    color: #888;
+  }
+  .ap-val {
+    color: #fff;
+    font-weight: 500;
+    text-align: right;
+  }
+  .ap-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 18px 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .ap-total-val {
+    color: #fff;
+  }
+  
+  .ap-trigger-biometric {
+    margin-top: 24px;
+    background: #fff;
+    color: #000;
+    border-radius: 12px;
+    padding: 16px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s;
+  }
+  .ap-trigger-biometric:active {
+    background: #ccc;
+  }
+
+  .biometric-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .biometric-screen.active {
+    display: flex;
+  }
+  .biometric-icon {
+    width: 80px; height: 80px;
+    border: 3px solid #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .biometric-icon svg {
+    color: #007aff;
+    width: 44px; height: 44px;
+  }
+  .biometric-scanner-ring {
+    position: absolute;
+    inset: -3px;
+    border: 3px solid transparent;
+    border-top-color: #007aff;
+    border-radius: 50%;
+    animation: ap-spin 1.2s linear infinite;
+  }
+  @keyframes ap-spin {
+    to { transform: rotate(360deg); }
+  }
+  .biometric-status {
+    font-size: 16px;
+    color: #eee;
+  }
+
+  /* SUCCESS SCREEN OVERLAY */
+  .success-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    z-index: 150;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s, visibility .3s;
+    overflow-y: auto;
+    padding: 24px 18px calc(24px + var(--safe-bot));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .success-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .success-badge {
+    width: 72px;
+    height: 72px;
+    background: #0f6e3a;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 40px auto 20px;
+    box-shadow: 0 10px 24px rgba(15,110,58,0.25);
+    animation: successPop .5s cubic-bezier(.175, .885, .32, 1.275);
+  }
+  @keyframes successPop {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  .success-title {
+    font-family: 'Cairo', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--green-dark);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .success-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 24px;
+    max-width: 320px;
+  }
+
+  .receipt-box {
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .receipt-title {
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--green-dark);
+    border-bottom: 0.5px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .receipt-row:last-child {
+    margin-bottom: 0;
+  }
+  .receipt-lbl {
+    color: var(--muted);
+  }
+  .receipt-val {
+    font-weight: 700;
+  }
+  .receipt-val.amt {
+    font-family: 'Cairo', sans-serif;
+    color: var(--green);
+    font-size: 13px;
+  }
+
+  /* SIMULATED EMAIL BOX */
+  .sim-email-container {
+    width: 100%;
+    max-width: 440px;
+    background: #1e1e1e;
+    color: #a9b7c6;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    text-align: left;
+    direction: ltr;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    border: 1px solid #333;
+  }
+  .sim-email-header {
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    color: #bbb;
+  }
+  .sim-email-body {
+    white-space: pre-wrap;
+    color: #80c080;
+  }
+
+  /* Sadad Info Design */
+  .sadad-info-card {
+    background: rgba(212,172,110,0.06);
+    border: 1.5px solid var(--gold-soft);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .sadad-biller-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 0.5px dashed var(--line);
+    font-size: 13px;
+  }
+  .sadad-biller-row:last-child {
+    border-bottom: none;
+  }
+  .sadad-lbl {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .sadad-val {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    color: var(--green-dark);
+  }
+
+  /* Error alert */
+  .payment-error {
+    background: rgba(239,68,68,0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    text-align: center;
+    display: none;
+  }
+</style>
+<meta name="description" content="بوابة الدفع الآمن لتنشيط وتفعيل استثمارك في منصة مُرابحة." />
+</head>
+<body>
+<main id="main">
+<header>
+  <nav class="nav">
+    <a href="#" class="back-btn" id="paymentBackBtn" onclick="goBackToContract(event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+        <path d="M15 18l-6-6 6-6" transform="scale(-1,1) translate(-24,0)"/>
+      </svg>
+    </a>
+    <h1 class="nav-title">
+      إتمام الاستثمار الآمن
+      <small>الخطوة الأخيرة لتنشيط العقد</small>
+    </h1>
+  </nav>
+</header>
+
+<div class="checkout-container">
+  <!-- Investment Details Summary -->
+  <div class="order-card">
+    <span class="order-label">تفاصيل طلب الاستثمار</span>
+    <h2 class="order-project-name" id="orderProjectName">جاري التحميل...</h2>
+    
+    <div class="order-grid">
+      <div class="order-item">
+        <span class="order-item-lbl">قيمة الاستثمار</span>
+        <span class="order-item-val" id="orderAmount">...</span>
+      </div>
+      <div class="order-item">
+        <span class="order-item-lbl">العائد المتوقع</span>
+        <span class="order-item-val highlight" id="orderExpectedReturn">...</span>
+      </div>
+      <div class="order-item" style="grid-column: span 2; border-top: 0.5px dashed var(--line); padding-top: 8px; margin-top: 4px;">
+        <div style="display:flex; justify-content: space-between;">
+          <span class="order-item-lbl">مدة الاستثمار</span>
+          <span class="order-item-val" id="orderTerm" style="font-size: 13px;">...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="payment-methods-title">اختر طريقة الدفع المناسبة:</h2>
+
+  <!-- Methods Tabs Selector -->
+  <div class="methods-tabs" role="tablist" aria-label="طرق الدفع">
+    <!-- Mada / Visa -->
+    <button class="method-tab active" id="tab-mada" onclick="selectPaymentMethod('mada')" role="tab" aria-selected="true" aria-controls="panel-mada">
+      <div class="method-icon-wrap">
+        <!-- SVG Mada Logo Graphic representation -->
+        <svg viewBox="0 0 60 20" width="36" height="12">
+          <rect width="60" height="20" rx="3" fill="#005C3E"/>
+          <text x="30" y="14" font-family="'Cairo', sans-serif" font-weight="900" font-size="10" fill="#fff" text-anchor="middle">mada مدى</text>
+        </svg>
+      </div>
+      <span class="method-name">مدى / فيزا</span>
+    </button>
+    <!-- Apple Pay -->
+    <button class="method-tab" id="tab-applepay" onclick="selectPaymentMethod('applepay')" role="tab" aria-selected="false" aria-controls="panel-applepay">
+      <div class="method-icon-wrap">
+        <svg viewBox="0 0 40 18" width="24" height="12" fill="currentColor">
+          <path d="M14.6 3.9c-.8.9-1.9 1.5-3 1.4-.1-1.1.4-2.2 1.2-3.1.9-1 2-1.5 2.9-1.5.1 1.2-.3 2.3-1.1 3.2zm1.2.7c-1 0-1.8.6-2.3.6-.5 0-1.2-.5-2.1-.5-2.2 0-4.1 1.7-4.1 4.5 0 2.8 1.9 6.2 3.9 6.2.9 0 1.5-.5 2.3-.5.7 0 1.2.5 2.2.5 2.1 0 3.7-3.1 3.7-3.1s-1.8-.8-1.8-3.1c0-1.9 1.4-2.8 1.4-2.8-1-.8-2.2-1.3-3.2-1.3zM25.7.1h2.8l3.9 11.5H30l-.9-2.8h-4.3l-.9 2.8h-2.5L25.7.1zm3.5 6.6L27.9 3l-1.3 3.7h2.6zm6.3-2.6H38v9h-2.1v-.8c-.4.6-1.1 1-1.9 1-1.7 0-2.8-1.4-2.8-3.3 0-2.1 1.3-3.3 2.9-3.3.8 0 1.4.3 1.8.9V4.1zm-1.8 5.7c0-1 .6-1.7 1.3-1.7.8 0 1.3.7 1.3 1.7s-.5 1.7-1.3 1.7c-.7 0-1.3-.7-1.3-1.7z"/>
+        </svg>
+      </div>
+      <span class="method-name">Apple Pay</span>
+    </button>
+    <!-- STC Pay -->
+    <button class="method-tab" id="tab-stcpay" onclick="selectPaymentMethod('stcpay')" role="tab" aria-selected="false" aria-controls="panel-stcpay">
+      <div class="method-icon-wrap">
+        <svg viewBox="0 0 50 18" width="34" height="12">
+          <rect width="50" height="18" rx="3" fill="#4F008F"/>
+          <text x="25" y="12" font-family="sans-serif" font-weight="900" font-size="8" fill="#FFC72C" text-anchor="middle">stc pay</text>
+        </svg>
+      </div>
+      <span class="method-name">stc pay</span>
+    </button>
+    <!-- Sadad -->
+    <button class="method-tab" id="tab-sadad" onclick="selectPaymentMethod('sadad')" role="tab" aria-selected="false" aria-controls="panel-sadad">
+      <div class="method-icon-wrap">
+        <svg viewBox="0 0 50 18" width="34" height="12">
+          <rect width="50" height="18" rx="3" fill="#0A3C82"/>
+          <text x="25" y="12" font-family="'Cairo', sans-serif" font-weight="900" font-size="8" fill="#F3A11C" text-anchor="middle">سداد Sadad</text>
+        </svg>
+      </div>
+      <span class="method-name">سداد</span>
+    </button>
+    <!-- Wallet -->
+    <button class="method-tab" id="tab-wallet" onclick="selectPaymentMethod('wallet')" role="tab" aria-selected="false" aria-controls="panel-wallet">
+      <div class="method-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
+          <line x1="12" y1="4" x2="12" y2="20"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <span class="method-name">رصيد المحفظة</span>
+    </button>
+  </div>
+
+  <!-- Error display -->
+  <div class="payment-error" id="paymentError"></div>
+
+  <!-- PANEL 1: Mada / Credit Card -->
+  <div class="payment-form-panel active" id="panel-mada" role="tabpanel" aria-labelledby="tab-mada">
+    <h3 class="form-h3">💳 الدفع ببطاقة مدى / البطاقة الائتمانية</h3>
+    <form id="madaPaymentForm" onsubmit="handleMadaPayment(event)">
+      <div class="form-group">
+        <label for="cardNameInput">اسم صاحب البطاقة</label>
+        <input type="text" id="cardNameInput" placeholder="اكتب اسمك كما هو مسجل على البطاقة" required />
+      </div>
+      <div class="form-group">
+        <label for="cardNumberInput">رقم البطاقة</label>
+        <input type="tel" id="cardNumberInput" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" style="direction: ltr; text-align: start;" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cardExpiryInput">تاريخ الانتهاء</label>
+          <input type="tel" id="cardExpiryInput" placeholder="شهر / سنة (MM/YY)" maxlength="5" style="direction: ltr; text-align: start;" required />
+        </div>
+        <div class="form-group">
+          <label for="cardCvvInput">الرمز السري (CVV)</label>
+          <input type="tel" id="cardCvvInput" placeholder="•••" maxlength="3" style="direction: ltr; text-align: start;" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="madaSubmitBtn">تأكيد ودفع الاستثمار الآمن</button>
+    </form>
+  </div>
+
+  <!-- PANEL 2: Apple Pay -->
+  <div class="payment-form-panel" id="panel-applepay" role="tabpanel" aria-labelledby="tab-applepay">
+    <h3 class="form-h3"> الدفع السريع عبر Apple Pay</h3>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 18px; text-align: center;">
+      أسرع وأضمن طريقة لتفعيل عقدك فوراً دون الحاجة لإدخال بيانات البطاقة يدوياً.
+    </p>
+    <button type="button" class="btn btn-primary" id="applePayBtn" onclick="triggerApplePaySimulation()" style="background: #000; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.18);">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-inline-end: 4px;">
+        <path d="M11.1.5c-.6.7-1.4 1.2-2.3 1.1-.1-.8.3-1.6.9-2.3.7-.7 1.6-1.1 2.2-1.1.1.9-.2 1.7-.8 2.3zM12 .9c-.7 0-1.3.4-1.7.4-.4 0-.9-.4-1.6-.4-1.6 0-3 1.2-3 3.3 0 2.1 1.4 4.5 2.9 4.5.7 0 1.1-.4 1.7-.4.5 0 .9.4 1.6.4 1.6 0 2.8-2.3 2.8-2.3s-1.3-.6-1.3-2.3c0-1.4 1-2.1 1-2.1-.8-.6-1.7-1-2.4-1z"/>
+      </svg>
+      Pay with Apple Pay
+    </button>
+  </div>
+
+  <!-- PANEL 3: STC Pay -->
+  <div class="payment-form-panel" id="panel-stcpay" role="tabpanel" aria-labelledby="tab-stcpay">
+    <h3 class="form-h3">📱 الدفع عبر stc pay</h3>
+    
+    <!-- Step 1: Input Mobile -->
+    <div id="stc-step-mobile">
+      <div class="form-group">
+        <label for="stcPhoneInput">رقم الجوال المسجل في stc pay</label>
+        <input type="tel" id="stcPhoneInput" placeholder="05XXXXXXXX" maxlength="10" required />
+      </div>
+      <button type="button" class="btn btn-primary" id="stcPaySubmitBtn" onclick="sendStcPayOtp()">أرسل رمز التحقق (OTP)</button>
+    </div>
+
+    <!-- Step 2: OTP (hidden at first) -->
+    <div id="stc-step-otp" style="display: none;">
+      <div style="background: rgba(79,0,143,0.06); border: 1px solid rgba(79,0,143,0.15); border-radius: 10px; padding: 12px; font-size: 13px; color: #4F008F; text-align: center; margin-bottom: 14px;">
+        تم إرسال رمز تحقق مؤقت لـ stc pay في رسالة نصية. (استخدم الرمز التجريبي: <b>٩٩٢٢</b>)
+      </div>
+      <div class="form-group">
+        <label for="stcOtpInput">أدخل رمز التحقق المكون من ٤ أرقام</label>
+        <input type="tel" id="stcOtpInput" placeholder="••••" maxlength="4" style="direction: ltr; letter-spacing: 1.5em; text-align: center;" required />
+      </div>
+      <button type="button" class="btn btn-primary" id="stcPayOtpBtn" onclick="verifyStcPayAndPay()" style="background: #4F008F; color: #fff; box-shadow: 0 4px 14px rgba(79,0,143,0.25);">تأكيد ودفع</button>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Sadad -->
+  <div class="payment-form-panel" id="panel-sadad" role="tabpanel" aria-labelledby="tab-sadad">
+    <h3 class="form-h3">🇸🇦 نظام سداد للمدفوعات</h3>
+    
+    <div class="sadad-info-card">
+      <div class="sadad-biller-row">
+        <span class="sadad-lbl">المفوتر</span>
+        <span class="sadad-val">منصة مرابحة الاستثمارية</span>
+      </div>
+      <div class="sadad-biller-row">
+        <span class="sadad-lbl">رمز المفوتر</span>
+        <span class="sadad-val">١٤٤ (144)</span>
+      </div>
+      <div class="sadad-biller-row">
+        <span class="sadad-lbl">رقم الفاتورة</span>
+        <span class="sadad-val" id="sadadBillNo">٢٠٢٦٠٠٠٠٠٠</span>
+      </div>
+      <div class="sadad-biller-row">
+        <span class="sadad-lbl">المبلغ الإجمالي</span>
+        <span class="sadad-val" id="sadadBillAmount">...</span>
+      </div>
+    </div>
+    
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 18px; text-align: justify; line-height: 1.6;">
+      تعليمات السداد: انتقل لتطبيق بنكك المفضل، اختر سداد فاتورة لمرة واحدة، حدد مفوتر "منصة مرابحة" بالرمز (١٤٤)، أدخل رقم الفاتورة أعلاه وادفع القيمة.
+    </p>
+
+    <button type="button" class="btn btn-primary" id="sadadSubmitBtn" onclick="handleSadadPayment()" style="background: #0A3C82; color: #fff; box-shadow: 0 4px 14px rgba(10,60,130,0.25);">
+      محاكاة سداد الفاتورة بنجاح ✓
+    </button>
+  </div>
+
+  <!-- PANEL 5: Wallet Balance -->
+  <div class="payment-form-panel" id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
+    <h3 class="form-h3">💼 الدفع من رصيد المحفظة الاستثمارية</h3>
+    
+    <div class="wallet-balance-row">
+      <span class="wallet-balance-lbl">رصيدك المتاح حالياً:</span>
+      <span class="wallet-balance-val" id="walletBalanceDisplay">جاري التحميل...</span>
+    </div>
+
+    <!-- Sufficient funds state -->
+    <div id="wallet-sufficient-funds" style="display: none;">
+      <div class="wallet-status sufficient">
+        ✓ رصيدك كافٍ لتأكيد تفعيل الاستثمار بنجاح. سيتم خصم القيمة مباشرة.
+      </div>
+      <button type="button" class="btn btn-primary" id="walletSubmitBtn" onclick="handleWalletPayment()">خصم وتفعيل الاستثمار</button>
+    </div>
+
+    <!-- Insufficient funds state -->
+    <div id="wallet-insufficient-funds" style="display: none;">
+      <div class="wallet-status insufficient">
+        ⚠️ رصيدك الحالي غير كافٍ. لإكمال الدفع من المحفظة، يرجى إيداع المبلغ المتبقي أدناه.
+      </div>
+      
+      <!-- Quick deposit option -->
+      <button type="button" class="btn btn-primary" id="quickDepositBtn" onclick="handleQuickDepositAndPay()" style="background: var(--gold); color: #fff; box-shadow: 0 4px 14px rgba(176,136,64,0.3);">
+        إيداع فوري للمبلغ المتبقي وتفعيل الاستثمار ✓
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Simulated Apple Pay Bottom Sheet Modal -->
+<div class="apple-pay-sheet-overlay" id="applePayOverlay">
+  <div class="apple-pay-sheet" id="applePaySheet">
+    <div class="ap-header">
+      <button class="ap-cancel" onclick="closeApplePaySheet()">Cancel</button>
+      <div class="ap-logo">
+         Pay
+      </div>
+      <div style="width: 50px;"></div>
+    </div>
+    
+    <!-- Apple Pay Standard payment sheet view -->
+    <div id="ap-sheet-view" class="ap-body">
+      <div class="ap-row">
+        <span class="ap-lbl">CARD</span>
+        <span class="ap-val">mada Card (•••• 8892)</span>
+      </div>
+      <div class="ap-row">
+        <span class="ap-lbl">MERCHANT</span>
+        <span class="ap-val">Murabaha Platform (منصة مرابحة)</span>
+      </div>
+      <div class="ap-row">
+        <span class="ap-lbl">PAYMENT AMOUNT</span>
+        <span class="ap-val" id="apAmountDisplay">...</span>
+      </div>
+      <div class="ap-total">
+        <span class="ap-lbl" style="color: #fff;">TOTAL PAY</span>
+        <span class="ap-total-val" id="apTotalDisplay">...</span>
+      </div>
+      
+      <button class="ap-trigger-biometric" id="apBiometricTriggerBtn" onclick="processApplePayBiometrics()">
+        Pay with Touch ID / Face ID
+      </button>
+    </div>
+    
+    <!-- Biometrics verification spinner screen -->
+    <div id="ap-biometric-view" class="biometric-screen">
+      <div class="biometric-icon">
+        <div class="biometric-scanner-ring"></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <!-- Fingerprint SVG icon -->
+          <path d="M12 11c0-1.1.9-2 2-2s2 .9 2 2m-2-5c2.2 0 4 1.8 4 4v3.5m-8-3.5c0-2.2 1.8-4 4-4m-6 8V11c0-4.4 3.6-8 8-8s8 3.6 8 8v3"/>
+          <path d="M3 15.5V11c0-4.4 3.6-8 8-8s8 3.6 8 8v4.5M6 14.5c0-1.1.9-2 2-2s2 .9 2 2v2"/>
+        </svg>
+      </div>
+      <div class="biometric-status" id="apBiometricStatus">Verifying biometric details...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Confirmation Screen Overlay -->
+<div class="success-overlay" id="successScreen">
+  <div class="success-badge">✓</div>
+  <h2 class="success-title">اكتمل الاستثمار بنجاح!</h2>
+  <p class="success-subtitle">تم تفعيل عقد المرابحة بنجاح واستلام كامل دفعة رأس المال الاستثماري.</p>
+  
+  <!-- Receipt box details -->
+  <div class="receipt-box">
+    <h3 class="receipt-title">سند الاستلام والتوثيق</h3>
+    <div class="receipt-row">
+      <span class="receipt-lbl">رقم العملية الموثقة:</span>
+      <span class="receipt-val" id="receiptTxId" style="direction: ltr;">TXN_...</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-lbl">رقم عقد المرابحة:</span>
+      <span class="receipt-val" id="receiptContractId" style="direction: ltr;">CTR_...</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-lbl">اسم الفرصة الاستثمارية:</span>
+      <span class="receipt-val" id="receiptProjectName">...</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-lbl">طريقة الدفع المستخدمة:</span>
+      <span class="receipt-val" id="receiptMethod">...</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-lbl">إجمالي رأس المال المدفوع:</span>
+      <span class="receipt-val amt" id="receiptAmount">...</span>
+    </div>
+  </div>
+
+  <!-- Simulated email notification -->
+  <div style="font-size: 11px; color: var(--muted); font-weight: 700; text-align: right; width: 100%; max-width: 440px; margin-bottom: 6px;">
+    📧 إشعار بريد إلكتروني مرسل تلقائياً (محاكاة):
+  </div>
+  <div class="sim-email-container">
+    <div class="sim-email-header">
+      To: <span id="simEmailTo">user@email.com</span><br/>
+      Subject: تم استلام دفعة استثمارك وتفعيل العقد بنجاح
+    </div>
+    <div class="sim-email-body" id="simEmailBody">...</div>
+  </div>
+
+  <button class="btn btn-primary" id="successDoneBtn" onclick="goToPortfolio()" style="max-width: 440px;">الذهاب إلى محفظتي الاستثمارية</button>
+</div>
+</main>
+
+<script>
+  let _contractId = '';
+  let _contract = null;
+  let _project = null;
+  let _user = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Ensure user is logged in
+    _user = await App.requireAuth('login.html');
+    if (!_user) return;
+
+    // 2. Parse contract ID from URL query
+    _contractId = App.qs('contractId');
+    if (!_contractId) {
+      App.toast('لم يتم تحديد رقم العقد بشكل صحيح.', 'warn');
+      setTimeout(() => location.href = 'portfolio.html', 1500);
+      return;
+    }
+
+    // 3. Load contract details
+    await loadContractDetails();
+    
+    // 4. Input masking for card fields
+    setupCardInputsMasking();
+  });
+
+  async function loadContractDetails() {
+    try {
+      const r = await App.api('GET', '/api/contracts/' + encodeURIComponent(_contractId));
+      _contract = r.contract;
+      _project = r.project;
+
+      // Populate elements
+      document.getElementById('orderProjectName').textContent = _project.name;
+      document.getElementById('orderAmount').textContent = App.fmt.sar(_contract.amount);
+      const _expRet = _contract.expectedReturn != null
+        ? _contract.expectedReturn
+        : _contract.amount * (1 + (_contract.profitRate || 0) * (_contract.termMonths || 12) / 12);
+      document.getElementById('orderExpectedReturn').textContent = App.fmt.sar(_expRet);
+      document.getElementById('orderTerm').textContent = App.fmt.arNum(_contract.termMonths) + ' شهراً (' + App.fmt.arNum(Math.round(_contract.termMonths/12)) + ' سنة)';
+
+      // Sadad bill details
+      document.getElementById('sadadBillNo').textContent = App.fmt.arNum(generateNumericBillNo(_contractId));
+      document.getElementById('sadadBillAmount').textContent = App.fmt.sar(_contract.amount);
+
+      // Wallet details check
+      await checkWalletBalance();
+
+    } catch (e) {
+      App.toast('تعذر تحميل تفاصيل العقد: ' + e.message, 'error');
+      setTimeout(() => location.href = 'portfolio.html', 1500);
+    }
+  }
+
+  async function checkWalletBalance() {
+    try {
+      const meData = await App.api('GET', '/api/auth/me');
+      const user = meData.user;
+      
+      const wDisplay = document.getElementById('walletBalanceDisplay');
+      if (wDisplay) {
+        wDisplay.textContent = App.fmt.sar(user.balance || 0);
+      }
+
+      const suff = document.getElementById('wallet-sufficient-funds');
+      const insuff = document.getElementById('wallet-insufficient-funds');
+      const quickDepBtn = document.getElementById('quickDepositBtn');
+
+      if ((user.balance || 0) >= _contract.amount) {
+        suff.style.display = 'block';
+        insuff.style.display = 'none';
+      } else {
+        suff.style.display = 'none';
+        insuff.style.display = 'block';
+        
+        const diff = _contract.amount - (user.balance || 0);
+        if (quickDepBtn) {
+          quickDepBtn.textContent = `إيداع فوري للمبلغ المتبقي (${App.fmt.sar(diff)}) وتفعيل العقد ✓`;
+        }
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function generateNumericBillNo(id) {
+    // Generate a fixed numeric bill number based on the string contract id
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const num = Math.abs(hash) % 1000000000;
+    return '2026' + num.toString().padStart(9, '0').substring(0, 8);
+  }
+
+  function goBackToContract(e) {
+    e.preventDefault();
+    if (_contractId) {
+      location.href = 'contract.html?id=' + encodeURIComponent(_contractId);
+    } else {
+      location.href = 'portfolio.html';
+    }
+  }
+
+  // TAB SELECTOR
+  function selectPaymentMethod(method) {
+    // Deactivate all tabs and forms
+    document.querySelectorAll('.method-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.payment-form-panel').forEach(panel => panel.classList.remove('active'));
+    
+    // Hide general error
+    document.getElementById('paymentError').style.display = 'none';
+
+    // Activate the clicked
+    document.getElementById('tab-' + method).classList.add('active');
+    document.getElementById('panel-' + method).classList.add('active');
+  }
+
+  // MASKING CARD INPUTS
+  function setupCardInputsMasking() {
+    const cardNum = document.getElementById('cardNumberInput');
+    const cardExp = document.getElementById('cardExpiryInput');
+    const cardCvv = document.getElementById('cardCvvInput');
+
+    cardNum.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+      let matches = v.match(/\d{4,16}/g);
+      let match = matches && matches[0] || '';
+      let parts = [];
+      for (let i=0, len=match.length; i<len; i+=4) {
+        parts.push(match.substring(i, i+4));
+      }
+      if (parts.length > 0) {
+        e.target.value = parts.join(' ');
+      } else {
+        e.target.value = v;
+      }
+    });
+
+    cardExp.addEventListener('input', (e) => {
+      let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+      if (v.length >= 2) {
+        e.target.value = v.substring(0,2) + '/' + v.substring(2,4);
+      } else {
+        e.target.value = v;
+      }
+    });
+
+    cardCvv.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+  }
+
+  // PAYMENT LOGIC HANDLERS
+  async function submitPaymentAPI(method) {
+    const errEl = document.getElementById('paymentError');
+    errEl.style.display = 'none';
+
+    try {
+      const res = await App.api('POST', `/api/contracts/${encodeURIComponent(_contractId)}/pay`, { method });
+      showSuccessScreen(res.contract, method);
+    } catch(err) {
+      errEl.textContent = err.message || 'حدث خطأ أثناء معالجة الدفعة. الرجاء المحاولة مجدداً.';
+      errEl.style.display = 'block';
+      App.toast(err.message || 'فشلت عملية الدفع', 'error');
+    }
+  }
+
+  // MADA PAY
+  async function handleMadaPayment(e) {
+    e.preventDefault();
+    const btn = document.getElementById('madaSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري التحقق ومعالجة الدفع الآمن...';
+
+    // Simulate small banking delay
+    setTimeout(async () => {
+      await submitPaymentAPI('mada');
+      btn.disabled = false;
+      btn.textContent = 'تأكيد ودفع الاستثمار الآمن';
+    }, 1500);
+  }
+
+  // APPLE PAY
+  function triggerApplePaySimulation() {
+    document.getElementById('apAmountDisplay').textContent = App.fmt.sar(_contract.amount);
+    document.getElementById('apTotalDisplay').textContent = App.fmt.sar(_contract.amount);
+    
+    // Show biometric button & hide status/spinners initially
+    document.getElementById('ap-sheet-view').style.display = 'block';
+    document.getElementById('ap-biometric-view').classList.remove('active');
+
+    // Show Safari simulation sheet
+    document.getElementById('applePayOverlay').classList.add('active');
+    document.getElementById('applePaySheet').classList.add('active');
+  }
+
+  function closeApplePaySheet() {
+    document.getElementById('applePayOverlay').classList.remove('active');
+    document.getElementById('applePaySheet').classList.remove('active');
+  }
+
+  function processApplePayBiometrics() {
+    // Transition to simulated FaceID scanner
+    document.getElementById('ap-sheet-view').style.display = 'none';
+    document.getElementById('ap-biometric-view').classList.add('active');
+    document.getElementById('ap-BiometricStatus').textContent = 'جاري مطابقة بصمة الوجه (Face ID)...';
+
+    setTimeout(() => {
+      document.getElementById('ap-BiometricStatus').textContent = 'تمت المصادقة الحيوية بنجاح ✓';
+      
+      setTimeout(async () => {
+        closeApplePaySheet();
+        await submitPaymentAPI('apple_pay');
+      }, 1000);
+    }, 1800);
+  }
+
+  // STC PAY
+  function sendStcPayOtp() {
+    const phone = document.getElementById('stcPhoneInput').value.trim();
+    if (!phone || phone.length < 10) {
+      App.toast('يرجى كتابة رقم الجوال المكون من ١٠ أرقام بشكل صحيح.', 'warn');
+      return;
+    }
+
+    const sendBtn = document.getElementById('stcPaySubmitBtn');
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'جاري إرسال الرمز...';
+
+    setTimeout(() => {
+      document.getElementById('stc-step-mobile').style.display = 'none';
+      document.getElementById('stc-step-otp').style.display = 'block';
+      App.toast('تم إرسال رمز التحقق بنجاح ✓', 'success');
+    }, 1200);
+  }
+
+  async function verifyStcPayAndPay() {
+    const otp = document.getElementById('stcOtpInput').value.trim();
+    if (otp !== '9922') {
+      App.toast('رمز التحقق من الجوال غير صحيح (الرمز التجريبي هو ٩٩٢٢)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('stcPayOtpBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري السحب والخصم...';
+
+    setTimeout(async () => {
+      await submitPaymentAPI('stc_pay');
+    }, 1200);
+  }
+
+  // SADAD
+  async function handleSadadPayment() {
+    const btn = document.getElementById('sadadSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري الاستعلام وتأكيد سداد الفاتورة...';
+
+    setTimeout(async () => {
+      await submitPaymentAPI('sadad');
+    }, 1500);
+  }
+
+  // WALLET PAY
+  async function handleWalletPayment() {
+    const btn = document.getElementById('walletSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري الخصم الفوري من المحفظة...';
+
+    setTimeout(async () => {
+      await submitPaymentAPI('wallet');
+    }, 1200);
+  }
+
+  // WALLET QUICK DEPOSIT + PAY
+  async function handleQuickDepositAndPay() {
+    const btn = document.getElementById('quickDepositBtn');
+    btn.disabled = true;
+    btn.textContent = 'جاري إيداع وتفعيل المحفظة آلياً...';
+
+    const diff = _contract.amount - (_user.balance || 0);
+
+    try {
+      // 1. Simulate Quick Deposit API Call
+      await App.api('POST', '/api/portfolio/deposit', { amount: diff, method: 'mada' });
+      App.toast(`تم إيداع ${App.fmt.sar(diff)} في المحفظة تلقائياً ✓`, 'success');
+      
+      // 2. Perform payment straight after
+      setTimeout(async () => {
+        await submitPaymentAPI('wallet');
+      }, 1000);
+
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'إيداع فوري للمبلغ المتبقي وتفعيل الاستثمار ✓';
+      App.toast('فشل الإيداع السريع: ' + err.message, 'error');
+    }
+  }
+
+  // SHOW CONFIRMATION SUCCESS SCREEN
+  function showSuccessScreen(contract, method) {
+    const mappedMethods = {
+      mada: 'بطاقة مدى الائتمانية',
+      apple_pay: 'Apple Pay الآمن',
+      stc_pay: 'stc pay الرقمية',
+      sadad: 'نظام سداد الوطني',
+      wallet: 'رصيد المحفظة الاستثمارية'
+    };
+
+    document.getElementById('receiptTxId').textContent = 'TXN_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    document.getElementById('receiptContractId').textContent = contract.id;
+    document.getElementById('receiptProjectName').textContent = _project.name;
+    document.getElementById('receiptMethod').textContent = mappedMethods[method] || method;
+    document.getElementById('receiptAmount').textContent = App.fmt.sar(contract.amount);
+
+    // Email mock display
+    document.getElementById('simEmailTo').textContent = _user.email || 'demo@murabaha.sa';
+    
+    // Simulate beautiful Arabic email body matching server.js logs
+    const arMethodName = method === 'wallet' ? 'رصيد المحفظة' : mappedMethods[method];
+    const emailBody = `عزيزنا المستثمر ${_user.name}،
+تم بنجاح استلام مبلغ استثماركم وقدره ${App.fmt.sar(contract.amount)}
+عبر طريقة الدفع: ${arMethodName}
+
+وتم تفعيل عقد المرابحة رقم ${contract.id} الخاص بمشروع:
+"${_project.name}"
+حالة العقد: موثّق ومفعّل ✓
+يمكنك الاطلاع على مستندات العقد ومتابعة أداء محفظتك عبر بوابة العميل.
+
+منصة مرابحة الاستثمارية.`;
+
+    document.getElementById('simEmailBody').textContent = emailBody;
+
+    // Display overlay
+    document.getElementById('successScreen').classList.add('active');
+    App.toast('تم تأكيد تفعيل استثمارك بنجاح ✓', 'success');
+  }
+
+  function goToPortfolio() {
+    location.href = 'portfolio.html';
+  }
+</script>
+</body>
+</html>
