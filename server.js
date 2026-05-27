@@ -110,6 +110,8 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/contracts', require('./routes/contracts'));
 app.use('/api', require('./routes/portfolio'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/investments', require('./routes/investments'));
 
 // ─── Page Routes ────────────────────────────────────────
 // Explicit HTML routes (clean URLs)
