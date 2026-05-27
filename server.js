@@ -130,6 +130,10 @@ const pageRoutes = {
   '/support':       'help.html',
   '/contract':      'contract.html',
   '/payment':       'payment.html',
+  '/verify-email':  'verify-email.html',
+  '/verify-mobile': 'verify-mobile.html',
+  '/verify-id':     'verify-id.html',
+  '/verify-address':'verify-address.html',
   '/legal':         'legal.html',
   '/privacy':       'privacy.html',
   '/terms':         'terms.html',
@@ -142,7 +146,10 @@ const pageRoutes = {
   '/cookies':       'cookies.html',
 };
 
-const PRIVATE = new Set(['/portfolio', '/profile', '/notifications', '/contract', '/payment']);
+const PRIVATE = new Set([
+  '/portfolio', '/profile', '/notifications', '/contract', '/payment',
+  '/verify-email', '/verify-mobile', '/verify-id', '/verify-address',
+]);
 
 Object.entries(pageRoutes).forEach(([route, file]) => {
   const handlers = PRIVATE.has(route) ? [requireAuthPage] : [];
