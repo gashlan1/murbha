@@ -1,55 +1,104 @@
-# Murabaha Platform — Copy `_1` (Express variant, with node_modules)
+# Murabaha Platform — `murabaha-platform_1`
 
 ## Purpose
-A second variant of the Saudi Sharia-compliant Murabaha investment platform. Same product story as the canonical `murabaha-platform/` (Arabic RTL landing, projects, portfolio, profile, full legal pages, Nafath login), but a **different backend implementation** and a different deployment target (Vercel/Netlify vs. Render).
+A Saudi Sharia-compliant Murabaha investment platform — Arabic-first RTL with an English toggle, Vision 2030 project catalog, full investor flow (deposit → invest → contract sign → pay), portfolio dashboard, KYC verification, and an admin portal. Investors start from SAR 500.
 
 ## Tech Stack
-- Frontend: same vanilla-HTML+CSS+JS pages as the canonical copy, with extra files: `index.html` (redirect/entry), `shared.css`, `shared.js`, `sw.js` (service worker / PWA), `404.html`, `site.webmanifest`.
-- Backend: **Express 4** (`server.js`) with `helmet`, `compression`, `cors`, `morgan`, `dotenv`, `node-fetch`. Real npm dependencies installed in `node_modules/`.
-- Deploy: `vercel.json` + `netlify.toml` configs (Vercel/Netlify-targeted, not Render).
-- Dev: `nodemon`. No DB layer, no `/app/*` REST API, no Nafath proxy implementation — just static serving + a couple of stub endpoints (`/api/health`, `/api/contact`, `/api/newsletter`).
+- **Frontend**: vanilla HTML + CSS + JS, RTL-first, bilingual via `i18n.js`. Shared utilities in `shared.css` / `shared.js` + Nafath SDK in `nafath-api.js`. PWA via `sw.js`.
+- **Backend**: **Express 4** (`server.js`) + `helmet` / `compression` / `cors` / `morgan` / `cookie-parser` / `dotenv`. Cookie-session auth (`bcryptjs` + `pg`), six REST routers under `/api/*`, optional `nodemailer` for SMTP notifications.
+- **Database**: **PostgreSQL 16** via `pg`. Schema in `db/schema.sql`, applied by `db/migrate.js`, seed in `db/seed.js`. Tables: `users`, `sessions`, `projects`, `investments`, `transactions`, `notifications`, `contracts`, `investment_extensions`, `contact_submissions`, `newsletter_subscribers`.
+- **Tests**: `node:test` + `supertest` — 43 tests, all green.
+- **Deploy**: `vercel.json` + `netlify.toml` + `docker-compose.yml` (Node + Postgres). Static-only hosts (Netlify/Vercel static) can preview the front-end but can't run `/api/*`.
 
 ## Folder Structure
 ```
 murabaha-platform_1/
-├── .env.example, .gitignore
-├── README.md
-├── 404.html, index.html
-├── server.js                Express app (security headers, CSP, page routes)
-├── package.json / package-lock.json / node_modules/
-├── shared.css, shared.js, sw.js, site.webmanifest
-├── nafath-api.js            (6 KB — smaller/older than canonical's 13 KB)
-├── netlify.toml, vercel.json
-└── HTML pages: hessa, auth, projects, project, portfolio, profile,
-   notifications, help, contract, legal, privacy, data-protection,
-   terms, risk, sharia, aml, kyc, complaints, cookies (same set as canonical)
+├── server.js                     Express entry — mounts routers, page routes, CSP
+├── i18n.js                       AR (default) + EN translation table
+├── nafath-api.js                 Nafath SDK (client-side; no server proxy yet)
+├── package.json
+├── docker-compose.yml            Node + Postgres for local dev
+│
+├── db/
+│   ├── schema.sql                All tables + indexes (idempotent)
+│   ├── migrate.js                Applies schema.sql to DATABASE_URL
+│   ├── seed.js                   11 projects + demo user + opening balance
+│   └── pool.js                   pg pool + { query } helper
+│
+├── lib/
+│   ├── auth.js                   bcrypt + session-token helpers
+│   ├── dto.js                    Row → DTO mappers (snake_case → camelCase)
+│   ├── portfolio.js              Portfolio aggregation
+│   └── mailer.js                 nodemailer wrapper (SMTP optional)
+│
+├── middleware/requireAuth.js     requireAuthApi / requireAuthPage / Admin variants
+│
+├── routes/
+│   ├── auth.js                   /api/auth/register, login, logout, me
+│   ├── projects.js               /api/projects (list, detail, invest)
+│   ├── contracts.js              /api/contracts (get, sign, pay)
+│   ├── portfolio.js              /api/portfolio, /deposit, /withdraw
+│   ├── notifications.js          /api/notifications (list, mark read)
+│   ├── admin.js                  /api/admin (stats, users, projects, extensions)
+│   └── investments.js            /api/investments/:id/extend
+│
+├── test/                         9 suites — auth, validate, projects, portfolio,
+│                                 notifications, contracts, kyc, admin, routes,
+│                                 contact-newsletter
+│
+└── HTML pages (AR-default + EN via i18n)
+    hessa · auth · projects · project · portfolio · profile · notifications
+    contract · payment · kyc · admin · help · plus legal/policy pages
 ```
 
-## Key Files / Entry Points
-- `/Users/botman/projects/murabaha-platform_1/server.js` — Express entry. Defines a CSP allowing `api.murbha.com`, clean-URL page routes (`/login` → `auth.html`, etc.), and 3 stub API endpoints.
-- `/Users/botman/projects/murabaha-platform_1/index.html` — landing entry (not present in canonical).
-- `/Users/botman/projects/murabaha-platform_1/shared.css`, `shared.js` — design system + utilities (Toast, Sheet, `toArabic`, `formatCurrency`, etc.). Not present in canonical.
-- `/Users/botman/projects/murabaha-platform_1/sw.js` — PWA service worker (canonical has no SW).
-- `/Users/botman/projects/murabaha-platform_1/nafath-api.js` — smaller Nafath SDK; no server-side proxy backs it here.
+## REST API (mounted under `/api/*`)
+- `POST /api/auth/{register,login,logout}`, `GET /api/auth/me`
+- `GET  /api/projects`, `GET /api/projects/:slug`, `POST /api/projects/:slug/invest`
+- `GET  /api/contracts/:id`, `POST /api/contracts/:id/sign`, `POST /api/contracts/:id/pay`
+- `GET  /api/portfolio`, `POST /api/portfolio/deposit`, `POST /api/portfolio/withdraw`
+- `GET  /api/notifications`, `POST /api/notifications/:id/read`
+- `GET  /api/admin/stats|users|projects|extensions`, `POST /api/investments/:id/extend`
+- `POST /api/contact`, `POST /api/newsletter`
+- `GET  /api/health`
 
 ## How to Run
 ```bash
-cd /Users/botman/projects/murabaha-platform_1
-npm install       # required — has Express + deps
+# 1. Postgres
+docker compose up -d db
+
+# 2. App
 cp .env.example .env
-npm start         # node server.js → http://localhost:3000
-# or: npm run dev (nodemon)
+npm install
+npm run migrate         # apply schema
+npm run seed            # 11 projects + demo user + opening balance
+npm start               # http://localhost:3000
+
+# or run everything in containers
+docker compose up --build
+
+# tests
+DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha \
+SESSION_SECRET=test npm test
 ```
 
-## Status
-Express scaffold with security middleware in place but **no real backend functionality** — Nafath proxy is not implemented server-side (front-end SDK has nothing same-origin to call), and `/api/contact` / `/api/newsletter` are stub `console.log` endpoints with `TODO: integrate with SendGrid/Mailchimp` comments. Front-end is content-complete and richer than canonical (has `shared.css`/`shared.js`/`sw.js`/`index.html`/`404.html`).
+## Status — what's shipped (43 tests green)
+- ✅ **Auth** (bcrypt + cookie sessions, register/login/logout)
+- ✅ **Projects catalog + invest** (creates pending investment + contract; debits balance on pay)
+- ✅ **Contracts: sign → pay** (transactional consistency)
+- ✅ **Portfolio aggregation** + deposit / withdraw
+- ✅ **Notifications**
+- ✅ **KYC**: fields on users, verify endpoints, UI
+- ✅ **Admin portal**: role-gated, full stats/users/projects/extensions API
+- ✅ **Investment extensions**: investor request → admin approve
+- ✅ **Bilingual AR / EN** across landing, projects list, and project detail
+- ✅ **Contact + newsletter** persist to Postgres; optional SMTP notification when `SMTP_*` env is set
 
-## Notes — Relationship to other copies
-Per `diff -rq`:
-- **NOT a duplicate** of the canonical `murabaha-platform/`. Substantially different:
-  - Different backend (Express + deps vs. pure-Node zero-deps).
-  - Extra files: `index.html`, `404.html`, `shared.css`, `shared.js`, `sw.js`, `site.webmanifest`, `netlify.toml`, `vercel.json`, `package-lock.json`, `node_modules/`.
-  - Missing from canonical: `assets/`, `data/`, `lib/` (no REST API), `.scripts/`, `render.yaml`, `DEPLOY.md`, `app.js`, `sitemap.xml`, `robots.txt`, `favicon.svg`, `og-image.svg`, `.git/`, `.env`.
-  - Every shared HTML file differs in content/size from canonical.
-- **Compared to `_2`**: identical `server.js`, `package.json`, `README.md`, `.env.example`, `.gitignore`, `404.html`, `index.html`, `shared.css`, `shared.js`, `sw.js`, `site.webmanifest`, `netlify.toml`, `vercel.json`, `package-lock.json`. Every HTML page (auth, projects, hessa, etc.) **differs**. `_2` adds an `app.js` (not in `_1`); `_1` has `node_modules/` (not in `_2`). `nafath-api.js` differs in size (6 KB here vs 13 KB in `_2`).
-- Best read as: `_1` and `_2` are two snapshots of the same Express-based fork at different points (likely `_1` is earlier — its `nafath-api.js` is half the size, and it has the installed `node_modules/`); canonical is a separate, more complete pure-Node implementation.
+## Remaining gaps before production
+- **Nafath server-side proxy** — the front-end SDK has no same-origin endpoint to call; verification flow stays client-side until a proxy is added.
+- **Real SMTP credentials** — `/api/contact` notification falls back to console-logging until `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` are set.
+- **Newsletter vendor sync** — list is captured in Postgres; export-to-Mailchimp/ConvertKit is not wired.
+
+## Relationship to other copies
+- `~/projects/murabaha-platform` (canonical, pure-Node) is now the older/simpler reference.
+- `~/projects/murabaha-platform_2` is an earlier snapshot of this fork without the Postgres backend.
+- `_1` is the current main work — Express + Postgres + tests.
