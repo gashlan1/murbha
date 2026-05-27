@@ -10,7 +10,12 @@
 // ─── Arabic digit utilities ─────────────────────────────
 const ARABIC_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
 
+function _isEnLang() {
+  return (typeof document !== 'undefined' && document.documentElement.lang === 'en');
+}
+
 function toArabic(n) {
+  if (_isEnLang()) return String(n);
   return String(n).replace(/\d/g, d => ARABIC_DIGITS[+d]);
 }
 
@@ -18,12 +23,14 @@ function toLatinDigits(str) {
   return String(str).replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => ARABIC_DIGITS.indexOf(d));
 }
 
-function formatCurrency(amount, currency = 'ر.س') {
+function formatCurrency(amount, currency) {
   const formatted = Number(amount).toLocaleString('en-US');
-  return toArabic(formatted) + ' ' + currency;
+  if (_isEnLang()) return 'SAR ' + formatted;
+  return toArabic(formatted) + ' ' + (currency || 'ر.س');
 }
 
 function formatPercent(n, decimals = 1) {
+  if (_isEnLang()) return Number(n).toFixed(decimals) + '%';
   return toArabic(Number(n).toFixed(decimals)) + '٪';
 }
 

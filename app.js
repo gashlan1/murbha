@@ -110,29 +110,39 @@
 
   // ─── Formatters ────────────────────────────────────────────────
   const _arDigits = '٠١٢٣٤٥٦٧٨٩';
-  const arNum = (n) => String(n).replace(/\d/g, d => _arDigits[+d]);
+  const _isEn = () => (document.documentElement.lang || 'ar') === 'en';
+  const arNum = (n) => _isEn() ? String(n) : String(n).replace(/\d/g, d => _arDigits[+d]);
   const sar = (n) => {
     if (typeof n !== 'number') n = Number(n) || 0;
     const s = Math.round(n).toLocaleString('en-US');
-    return arNum(s) + ' ر.س.';
+    return _isEn() ? ('SAR ' + s) : (arNum(s) + ' ر.س.');
   };
   const date = (iso) => {
     if (!iso) return '';
     try {
       const d = new Date(iso);
-      return new Intl.DateTimeFormat('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+      const locale = _isEn() ? 'en-GB' : 'ar-SA';
+      return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
     } catch { return iso; }
   };
   const dateTime = (iso) => {
     if (!iso) return '';
     try {
       const d = new Date(iso);
-      return new Intl.DateTimeFormat('ar-SA', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+      const locale = _isEn() ? 'en-GB' : 'ar-SA';
+      return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
     } catch { return iso; }
   };
   const relTime = (iso) => {
     if (!iso) return '';
     const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (_isEn()) {
+      if (diff < 60)      return 'just now';
+      if (diff < 3600)    return Math.floor(diff / 60)    + ' min ago';
+      if (diff < 86400)   return Math.floor(diff / 3600)  + ' hr ago';
+      if (diff < 86400*7) return Math.floor(diff / 86400) + ' days ago';
+      return date(iso);
+    }
     if (diff < 60)       return 'منذ لحظات';
     if (diff < 3600)     return 'منذ ' + arNum(Math.floor(diff / 60))   + ' دقيقة';
     if (diff < 86400)    return 'منذ ' + arNum(Math.floor(diff / 3600)) + ' ساعة';
