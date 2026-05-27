@@ -89,3 +89,18 @@ CREATE TABLE IF NOT EXISTS contracts (
   signed_at    TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_contracts_user ON contracts(user_id);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'investor';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN NOT NULL DEFAULT true;
+
+CREATE TABLE IF NOT EXISTS investment_extensions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  investment_id UUID NOT NULL REFERENCES investments(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  months        INT NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending',   -- pending | approved | rejected
+  note          TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  resolved_at   TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_ext_status ON investment_extensions(status);
