@@ -203,6 +203,40 @@
     support_card_p:  { en: 'Customer service in Saudi hands — they understand your market and speak your language.' },
     support_toll:    { en: '📞 Toll-free number' },
     support_whatsapp:{ en: '💬 WhatsApp' },
+    proj_search_ph:   { en: 'Search a project, sector or city…' },
+    proj_filter:      { en: 'Filter' },
+    proj_chip_all:         { en: 'All' },
+    proj_chip_residential: { en: 'Residential' },
+    proj_chip_tourism:     { en: 'Tourism & leisure' },
+    proj_chip_private:     { en: 'Private companies' },
+    proj_chip_tech:        { en: 'Technology' },
+    proj_chip_industrial:  { en: 'Industrial' },
+    proj_cs_badge:    { en: '🚀 Coming soon' },
+    proj_cs_title:    { en: 'The first opportunities are about to be announced' },
+    proj_cs_lede:     { en: '<b>Murbha</b> opportunities mean entering as a <b>seller</b> in Murabaha contracts on the goods and services Saudi companies need to deliver <b>contracts awarded</b> to them by government and private entities. You recover your capital plus a known profit over <b>6, 12 or 18 months</b>.' },
+    proj_cs_p1:       { en: 'Awarded, documented contracts from government and private entities' },
+    proj_cs_p2:       { en: 'A Sharia board that approves the Murabaha sale for each opportunity' },
+    proj_cs_p3:       { en: 'A known profit and a fixed term from signing — no gharar' },
+    proj_cs_p4:       { en: 'Identity verification and a documented e-signature' },
+    proj_cs_email_label: { en: 'Your email' },
+    proj_cs_email_ph: { en: 'Your email' },
+    proj_cs_notify:   { en: 'Notify me at launch' },
+    proj_cs_note:     { en: '✓ You’re on the list. We’ll email you the moment the first opportunity is available.' },
+    proj_cs_fatwa:    { en: 'Read the Sharia board fatwa →' },
+    proj_cs_contact:  { en: 'Contact us →' },
+    proj_why_title:   { en: 'What sets Murbha apart?' },
+    proj_why1_t:      { en: 'Awarded contracts' },
+    proj_why1_d:      { en: 'Every opportunity rests on a real contract won by a certified Saudi company.' },
+    proj_why2_t:      { en: 'A sound Murabaha sale' },
+    proj_why2_d:      { en: 'A real good/service sold at a known profit and a fixed term — no interest-bearing riba.' },
+    proj_why3_t:      { en: 'A clear schedule' },
+    proj_why3_d:      { en: 'Monthly payments tied to the contracting entity’s dues over 6, 12 or 18 months.' },
+    proj_why4_t:      { en: 'Electronic documentation' },
+    proj_why4_d:      { en: 'Identity verification and a documented e-signature on the Murabaha contract at the highest security standards.' },
+    proj_live_title:    { en: 'Opportunities available now' },
+    proj_live_loading:  { en: '…Loading opportunities' },
+    proj_completed_title: { en: 'Alangary Contracting — completed projects (O&M)' },
+    notif_title:      { en: 'Notifications' },
     support_hours:   { en: '🕐 Sun – Thu: 8 AM — 8 PM  |  Fri – Sat: 10 AM — 4 PM' }
   };
 
@@ -256,6 +290,9 @@
     if (window.renderHomeProjects && window.__homeProjects) {
       window.renderHomeProjects(window.__homeProjects);
     }
+    // Per-page dynamic re-render hooks (projects/portfolio/notifications/project detail).
+    ['renderProjectsPage', 'renderPortfolioPage', 'renderNotificationsPage', 'renderProjectDetailPage']
+      .forEach(function (fn) { if (typeof window[fn] === 'function') window[fn](); });
   }
   window.setLang = setLang;
 
