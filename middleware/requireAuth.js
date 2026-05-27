@@ -20,6 +20,16 @@ async function requireAuthApi(req, res, next) {
   next();
 }
 
+// For the admin page route: resolve session, redirect non-admins.
+async function requireAdminPage(req, res, next) {
+  const token = req.signedCookies?.[COOKIE];
+  const user = await getSessionUser(token).catch(() => null);
+  if (!user) return res.redirect('/login');
+  if (user.role !== 'admin') return res.redirect('/');
+  req.user = user;
+  next();
+}
+
 // For admin API routes: authenticate, then require role === 'admin'.
 async function requireAdminApi(req, res, next) {
   const token = req.signedCookies?.[COOKIE];
@@ -30,4 +40,4 @@ async function requireAdminApi(req, res, next) {
   next();
 }
 
-module.exports = { COOKIE, requireAuthPage, requireAuthApi, requireAdminApi };
+module.exports = { COOKIE, requireAuthPage, requireAuthApi, requireAdminApi, requireAdminPage };

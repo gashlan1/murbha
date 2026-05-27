@@ -14,7 +14,7 @@ const helmet     = require('helmet');
 const morgan     = require('morgan');
 const cookieParser = require('cookie-parser');
 const authRoutes   = require('./routes/auth');
-const { requireAuthPage } = require('./middleware/requireAuth');
+const { requireAuthPage, requireAdminPage } = require('./middleware/requireAuth');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -149,6 +149,11 @@ Object.entries(pageRoutes).forEach(([route, file]) => {
   app.get(route, ...handlers, (req, res) => {
     res.sendFile(path.join(__dirname, file));
   });
+});
+
+// Admin portal — gated specifically by role (not in pageRoutes/PRIVATE).
+app.get('/admin', requireAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // ─── 404 ────────────────────────────────────────────────
