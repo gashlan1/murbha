@@ -190,6 +190,8 @@ const pageRoutes = {
   '/complaints':    'complaints.html',
   '/data-protection': 'data-protection.html',
   '/cookies':       'cookies.html',
+  '/reset-password':'reset-password.html',
+  '/forgot':        'reset-password.html',
 };
 
 const PRIVATE = new Set([
