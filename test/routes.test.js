@@ -11,8 +11,9 @@ before(async () => {
   process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-secret';
   app = require('../server');
   ({ pool } = require('../db/pool'));
-  await pool.query('DELETE FROM sessions');
-  await pool.query('DELETE FROM users');
+  // Scope cleanup to this file's fixtures so it doesn't wipe rows created
+  // in parallel by other test files running against the same DB.
+  await pool.query("DELETE FROM users WHERE username IN ('tester1', 'dup', 'nobody')");
 });
 after(async () => { if (HAS_DB && pool) await pool.end(); });
 
