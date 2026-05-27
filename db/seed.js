@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { pool } = require('./pool');
+const { hashPassword } = require('../lib/auth');
 
 const PROJECTS = [
   ['aircraft-cleaning','عقد تنظيف وتجهيز الطائرات — مطار جدة','تشغيل وصيانة','جدة',4000000,1200000,5000,0.115,12,'open'],
@@ -28,6 +29,19 @@ async function seed() {
         [slug, name, category, city, goal, raised, min, rate, term, status]
       );
     }
+    // Upsert an admin user (idempotent). Promote to admin if already present.
+    const adminRow = await c.query("SELECT id FROM users WHERE username = 'admin'");
+    if (adminRow.rowCount === 0) {
+      const adminHash = await hashPassword('admin12345');
+      await c.query(
+        `INSERT INTO users (username, password_hash, full_name, role, approved)
+         VALUES ('admin', $1, 'مدير المنصة', 'admin', true)`,
+        [adminHash]
+      );
+    } else {
+      await c.query("UPDATE users SET role = 'admin', approved = true WHERE id = $1", [adminRow.rows[0].id]);
+    }
+
     const u = await c.query("SELECT id FROM users WHERE username = 'demo'");
     if (u.rowCount > 0) {
       const uid = u.rows[0].id;
