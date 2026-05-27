@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>لوحة تحكم الإدارة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --blue: #1d4ed8;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea;
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
+  .nav h1 {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--green-dark);
+  }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-outline {
+    border: 1.5px solid var(--green);
+    background: transparent;
+    color: var(--green);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover, .btn-outline:active {
+    background: var(--green);
+    color: #fff;
+  }
+  main {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 20px 48px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  @media (min-width: 992px) {
+    main {
+      grid-template-columns: 2fr 1fr;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Admin Cards */
+  .admin-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 0.5px solid var(--line);
+    box-shadow: 0 4px 20px rgba(13,22,18,0.03);
+    overflow: hidden;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-h {
+    padding: 18px 24px;
+    background: linear-gradient(to left, var(--green-dark), var(--green));
+    color: #fff;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-h-sub {
+    font-size: 12px;
+    background: rgba(255,255,255,0.15);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .card-body {
+    padding: 24px;
+  }
+
+  /* Forms & inputs */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  @media (min-width: 768px) {
+    .form-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .span-2 {
+      grid-column: span 2;
+    }
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group label {
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--green-dark);
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 12px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fdfcfa;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--gold);
+    outline: none;
+  }
+
+  /* Calculator display */
+  .calc-display {
+    background: #fbf8f0;
+    border: 1.5px dashed var(--gold-soft);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (min-width: 576px) {
+    .calc-display {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .calc-stat {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .calc-val {
+    font-family: 'Cairo';
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .calc-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    background: var(--green-soft);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Lists & Boards */
+  .extensions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .extension-item {
+    background: #fdfdfd;
+    border: 0.5px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s;
+  }
+  .extension-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .ext-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .ext-field {
+    color: var(--muted);
+  }
+  .ext-field span {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .ext-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .btn-accept {
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+  }
+  .btn-reject {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Users list */
+  .users-list { display: flex; flex-direction: column; gap: 10px; }
+  .user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #fdfdfd;
+    border: 0.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    flex-wrap: wrap;
+  }
+  .user-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .user-name { font-family: 'Cairo'; font-weight: 800; font-size: 14px; color: var(--green-dark); }
+  .user-sub { font-size: 12px; color: var(--muted); }
+  .user-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  }
+  .badge-role { background: rgba(10,77,54,0.08); color: var(--green); }
+  .badge-on { background: rgba(22,163,74,0.12); color: #16a34a; }
+  .badge-off { background: rgba(181,73,53,0.12); color: var(--red); }
+  .user-actions { display: flex; gap: 8px; }
+
+  /* Quick statistics overview */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  @media (min-width: 768px) {
+    .stats-bar {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .stat-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 0.5px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(10,77,54,0.08);
+    color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); }
+</style>
+<link rel="stylesheet" href="/assets/site.css" />
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <h1>منصة مُرابحة — لوحة التحكم</h1>
+    <div class="nav-actions">
+      <a href="/" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+        الرئيسية
+      </a>
+      <button class="btn-outline" data-action="logout">خروج</button>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- Stats Bar -->
+  <div class="stats-bar full-width">
+    <div class="stat-box">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-info">
+        <div class="stat-lbl">إجمالي المشاريع</div>
+        <div class="stat-val" id="stat-total-projects">٠</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <div class="stat-lbl">مبالغ التمويل المطلوبة</div>
+        <div class="stat-val" id="stat-total-funding">٠ ر.س</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">⌛</div>
+      <div class="stat-info">
+        <div class="stat-lbl">طلبات تمديد معلقة</div>
+        <div class="stat-val" id="stat-pending-extensions">٠</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <div class="stat-lbl">المستثمرون</div>
+        <div class="stat-val" id="stat-investors">٠</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left Column: Creator and Users -->
+  <div>
+    <!-- Project Form & ROI Calculator -->
+    <div class="admin-card">
+      <div class="card-h">
+        <span>إضافة فرصة استثمارية وحاسبة العائد (ROI)</span>
+        <span class="card-h-sub">إنشاء مشروع جديد</span>
+      </div>
+      <div class="card-body">
+        <!-- ROI Calculator Info (client-side only) -->
+        <div class="calc-display">
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-net-profit">٠ ر.س.</div>
+            <div class="calc-lbl">صافي الأرباح للمشروع</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-roi">٠.٠٠٪</div>
+            <div class="calc-lbl">عائد الاستثمار (ROI %)</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-rec-max">٠</div>
+            <div class="calc-lbl">أقصى مستثمرين (موصى)</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-term">٠ شهر</div>
+            <div class="calc-lbl">مدة الاستثمار</div>
+          </div>
+        </div>
+
+        <form id="project-form">
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="prj-name">اسم الفرصة الاستثمارية *</label>
+              <input type="text" id="prj-name" required placeholder="مثال: تمويل توريد كابلات لشركة الكهرباء" />
+            </div>
+            <div class="form-group">
+              <label for="prj-category">التصنيف</label>
+              <select id="prj-category">
+                <option value="عقاري سكني">عقاري سكني</option>
+                <option value="تشغيل وصيانة">تشغيل وصيانة O&M</option>
+                <option value="تمويل شركات">تمويل شركات</option>
+                <option value="تجاري">تجاري</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prj-city">المدينة</label>
+              <input type="text" id="prj-city" value="الرياض" />
+            </div>
+            <div class="form-group">
+              <label for="prj-goal">المبلغ المستهدف (التمويل المطلوب) *</label>
+              <input type="number" id="prj-goal" required min="1000" step="1000" placeholder="500000" />
+            </div>
+            <div class="form-group">
+              <label for="prj-min-amount">الحد الأدنى للاستثمار للعميل *</label>
+              <input type="number" id="prj-min-amount" value="1000" min="100" step="100" />
+            </div>
+            <div class="form-group">
+              <label for="prj-value">إجمالي قيمة المشروع الكلية (Total Value) *</label>
+              <input type="number" id="prj-value" required min="1000" placeholder="600000" />
+            </div>
+            <div class="form-group">
+              <label for="prj-profit-rate">نسبة الربح السنوية (٪) *</label>
+              <input type="number" id="prj-profit-rate" required min="0" step="0.1" value="8" placeholder="8" />
+            </div>
+            <div class="form-group">
+              <label for="prj-term">مدة الاستثمار (بالشهور) *</label>
+              <input type="number" id="prj-term" required value="12" min="1" max="60" />
+            </div>
+            <div class="form-group span-2">
+              <label for="prj-summary">ملخص قصير</label>
+              <input type="text" id="prj-summary" placeholder="مثال: توريد مواد وبنية تحتية مع كبرى الشركات الوطنية..." />
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; text-align: left;">
+            <button type="reset" id="btn-reset-form" class="btn-outline" style="margin-left: 10px;">إفراغ</button>
+            <button type="submit" class="btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ ونشر المشروع
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Users / Approvals -->
+    <div class="admin-card">
+      <div class="card-h">
+        <span>المستخدمون والموافقات</span>
+        <span class="card-h-sub" id="users-count-badge">٠ مستخدم</span>
+      </div>
+      <div class="card-body">
+        <div id="users-container" class="users-list">
+          <div class="empty-state">جاري تحميل المستخدمين...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Extensions -->
+  <div>
+    <div class="admin-card" style="position: sticky; top: 90px;">
+      <div class="card-h">
+        <span>طلبات تمديد الاستثمار</span>
+        <span class="card-h-sub" id="ext-count-badge">٠ طلب</span>
+      </div>
+      <div class="card-body">
+        <div id="extensions-container" class="extensions-list">
+          <div class="empty-state">جاري تحميل الطلبات...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const _initAdmin = async () => {
+  if (!window.App) return;
+
+  // Gate: confirm admin (server already gates /admin, this is a UX safety net).
+  const user = await App.requireAuth();
+  if (!user) return;
+  if (user.role !== 'admin') {
+    App.toast('عذراً، لا تمتلك صلاحيات الإدارة.', 'error');
+    location.replace('/');
+    return;
+  }
+
+  // Replace a container's children with a single styled empty/error message.
+  const setEmpty = (el, text, isError) => {
+    el.replaceChildren();
+    const d = document.createElement('div');
+    d.className = 'empty-state';
+    if (isError) d.style.color = 'var(--red)';
+    d.textContent = text;
+    el.appendChild(d);
+  };
+
+  // Stat elements
+  const statTotalProjects = document.getElementById('stat-total-projects');
+  const statTotalFunding = document.getElementById('stat-total-funding');
+  const statPendingExtensions = document.getElementById('stat-pending-extensions');
+  const statInvestors = document.getElementById('stat-investors');
+
+  // Project form elements
+  const projectForm = document.getElementById('project-form');
+  const prjName = document.getElementById('prj-name');
+  const prjCategory = document.getElementById('prj-category');
+  const prjCity = document.getElementById('prj-city');
+  const prjGoal = document.getElementById('prj-goal');
+  const prjMinAmount = document.getElementById('prj-min-amount');
+  const prjValue = document.getElementById('prj-value');
+  const prjProfitRate = document.getElementById('prj-profit-rate');
+  const prjTerm = document.getElementById('prj-term');
+  const prjSummary = document.getElementById('prj-summary');
+
+  // Calc displays
+  const calcNetProfit = document.getElementById('calc-net-profit');
+  const calcRoi = document.getElementById('calc-roi');
+  const calcRecMax = document.getElementById('calc-rec-max');
+  const calcTerm = document.getElementById('calc-term');
+
+  // Containers
+  const usersContainer = document.getElementById('users-container');
+  const usersCountBadge = document.getElementById('users-count-badge');
+  const extensionsContainer = document.getElementById('extensions-container');
+  const extCountBadge = document.getElementById('ext-count-badge');
+
+  // ─── ROI calculator (client-side only) ─────────────────────────
+  const updateCalculatorOutputs = () => {
+    const goalVal = Number(prjGoal.value) || 0;
+    const minAmtVal = Number(prjMinAmount.value) || 0;
+    const totalVal = Number(prjValue.value) || 0;
+    const term = Number(prjTerm.value) || 0;
+
+    const netProfit = totalVal - goalVal;
+    const roiPercent = goalVal > 0 ? (netProfit / goalVal) * 100 : 0;
+    const recMax = minAmtVal > 0 ? Math.ceil(goalVal / minAmtVal) : 0;
+
+    calcNetProfit.textContent = App.fmt.sar(netProfit);
+    calcRoi.textContent = App.fmt.arNum(roiPercent.toFixed(2)) + '٪';
+    calcRecMax.textContent = App.fmt.arNum(recMax);
+    calcTerm.textContent = App.fmt.arNum(term) + ' شهر';
+  };
+  [prjGoal, prjMinAmount, prjValue, prjTerm].forEach(el => {
+    el.addEventListener('input', updateCalculatorOutputs);
+  });
+
+  // ─── Load stats ─────────────────────────────────────────────────
+  const loadStats = async () => {
+    try {
+      const s = await App.api('GET', '/api/admin/stats');
+      statTotalProjects.textContent = App.fmt.arNum(s.projectCount);
+      statTotalFunding.textContent = App.fmt.sar(s.fundingNeeded);
+      statPendingExtensions.textContent = App.fmt.arNum(s.pendingExtensions);
+      statInvestors.textContent = App.fmt.arNum(s.investors);
+    } catch (e) {
+      App.toast('فشل تحميل الإحصائيات: ' + e.message, 'error');
+    }
+  };
+
+  // ─── Load users ─────────────────────────────────────────────────
+  const loadUsers = async () => {
+    try {
+      const res = await App.api('GET', '/api/admin/users');
+      const users = res.users || [];
+      usersCountBadge.textContent = App.fmt.arNum(users.length) + ' مستخدم';
+
+      if (users.length === 0) {
+        setEmpty(usersContainer, 'لا يوجد مستخدمون.');
+        return;
+      }
+
+      usersContainer.replaceChildren();
+      users.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+
+        const meta = document.createElement('div');
+        meta.className = 'user-meta';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'user-name';
+        nameEl.textContent = u.fullName || u.username;
+        const subEl = document.createElement('div');
+        subEl.className = 'user-sub';
+        subEl.textContent = '@' + u.username + ' · ' + App.fmt.sar(u.balance);
+        meta.appendChild(nameEl);
+        meta.appendChild(subEl);
+
+        const badges = document.createElement('div');
+        badges.className = 'user-badges';
+        const roleBadge = document.createElement('span');
+        roleBadge.className = 'badge badge-role';
+        roleBadge.textContent = u.role === 'admin' ? 'إدارة' : 'مستثمر';
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'badge ' + (u.approved ? 'badge-on' : 'badge-off');
+        statusBadge.textContent = u.approved ? 'مفعّل' : 'بانتظار الموافقة';
+        badges.appendChild(roleBadge);
+        badges.appendChild(statusBadge);
+
+        const actions = document.createElement('div');
+        actions.className = 'user-actions';
+        if (u.role !== 'admin') {
+          if (!u.approved) {
+            const approveBtn = document.createElement('button');
+            approveBtn.className = 'btn-accept';
+            approveBtn.dataset.action = 'approve';
+            approveBtn.dataset.id = u.id;
+            approveBtn.textContent = 'موافقة';
+            actions.appendChild(approveBtn);
+          } else {
+            const rejectBtn = document.createElement('button');
+            rejectBtn.className = 'btn-reject';
+            rejectBtn.dataset.action = 'reject';
+            rejectBtn.dataset.id = u.id;
+            rejectBtn.textContent = 'إيقاف';
+            actions.appendChild(rejectBtn);
+          }
+        }
+
+        item.appendChild(meta);
+        item.appendChild(badges);
+        if (actions.childElementCount) item.appendChild(actions);
+        usersContainer.appendChild(item);
+      });
+    } catch (e) {
+      console.error(e);
+      setEmpty(usersContainer, 'حدث خطأ في تحميل المستخدمين.', true);
+    }
+  };
+
+  // ─── Load extensions ────────────────────────────────────────────
+  const loadExtensions = async () => {
+    try {
+      const res = await App.api('GET', '/api/admin/extensions');
+      const extensions = res.extensions || [];
+      extCountBadge.textContent = App.fmt.arNum(extensions.length) + ' طلب';
+
+      if (extensions.length === 0) {
+        setEmpty(extensionsContainer, 'لا توجد طلبات تمديد معلقة حالياً.');
+        return;
+      }
+
+      extensionsContainer.replaceChildren();
+      extensions.forEach(ext => {
+        const item = document.createElement('div');
+        item.className = 'extension-item';
+
+        const details = document.createElement('div');
+        details.className = 'ext-details';
+        const f1 = document.createElement('div');
+        f1.className = 'ext-field';
+        f1.textContent = 'المستثمر: ';
+        const f1v = document.createElement('span');
+        f1v.textContent = ext.username;
+        f1.appendChild(f1v);
+        const f2 = document.createElement('div');
+        f2.className = 'ext-field';
+        f2.textContent = 'مدة التمديد: ';
+        const f2v = document.createElement('span');
+        f2v.textContent = App.fmt.arNum(ext.months) + ' شهر';
+        f2.appendChild(f2v);
+        const f3 = document.createElement('div');
+        f3.className = 'ext-field';
+        f3.textContent = 'تاريخ الطلب: ';
+        const f3v = document.createElement('span');
+        f3v.textContent = App.fmt.date(ext.createdAt);
+        f3.appendChild(f3v);
+        details.appendChild(f1);
+        details.appendChild(f2);
+        details.appendChild(f3);
+
+        const actions = document.createElement('div');
+        actions.className = 'ext-actions';
+        const accept = document.createElement('button');
+        accept.className = 'btn-accept';
+        accept.dataset.action = 'ext-approve';
+        accept.dataset.id = ext.id;
+        accept.textContent = 'قبول التمديد';
+        const reject = document.createElement('button');
+        reject.className = 'btn-reject';
+        reject.dataset.action = 'ext-reject';
+        reject.dataset.id = ext.id;
+        reject.textContent = 'رفض الطلب';
+        actions.appendChild(accept);
+        actions.appendChild(reject);
+
+        item.appendChild(details);
+        item.appendChild(actions);
+        extensionsContainer.appendChild(item);
+      });
+    } catch (e) {
+      console.error(e);
+      setEmpty(extensionsContainer, 'حدث خطأ في تحميل الطلبات.', true);
+    }
+  };
+
+  const reloadAll = async () => {
+    await Promise.all([loadStats(), loadUsers(), loadExtensions()]);
+  };
+
+  // ─── Create project ─────────────────────────────────────────────
+  projectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      name: prjName.value.trim(),
+      category: prjCategory.value,
+      city: prjCity.value.trim(),
+      goal: Number(prjGoal.value),
+      minAmount: Number(prjMinAmount.value),
+      profitRate: Number(prjProfitRate.value),
+      termMonths: Number(prjTerm.value),
+      summary: prjSummary.value.trim(),
+      totalValue: Number(prjValue.value),
+    };
+    try {
+      await App.api('POST', '/api/admin/projects', body);
+      App.toast('تم نشر المشروع الاستثماري الجديد بنجاح!', 'success');
+      projectForm.reset();
+      updateCalculatorOutputs();
+      await reloadAll();
+    } catch (err) {
+      App.toast('فشل الحفظ: ' + (err.message || ''), 'error');
+    }
+  });
+
+  // ─── User approve / reject (delegated) ──────────────────────────
+  usersContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="approve"], [data-action="reject"]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const action = btn.dataset.action; // approve | reject
+    btn.disabled = true;
+    try {
+      await App.api('POST', `/api/admin/users/${id}/${action}`);
+      App.toast(action === 'approve' ? 'تمت الموافقة على المستخدم.' : 'تم إيقاف المستخدم.', 'success');
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (err) {
+      App.toast('تعذّر تنفيذ الإجراء: ' + (err.message || ''), 'error');
+      btn.disabled = false;
+    }
+  });
+
+  // ─── Extension resolve (delegated) ──────────────────────────────
+  extensionsContainer.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="ext-approve"], [data-action="ext-reject"]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const decision = btn.dataset.action === 'ext-approve' ? 'approved' : 'rejected';
+    btn.disabled = true;
+    try {
+      await App.api('POST', `/api/admin/extensions/${id}/resolve`, { decision });
+      App.toast(decision === 'approved' ? 'تم قبول طلب التمديد.' : 'تم رفض طلب التمديد.', 'success');
+      await Promise.all([loadExtensions(), loadStats()]);
+    } catch (err) {
+      App.toast('حدث خطأ أثناء معالجة الطلب: ' + (err.message || ''), 'error');
+      btn.disabled = false;
+    }
+  });
+
+  // Initialize
+  updateCalculatorOutputs();
+  await reloadAll();
+};
+
+// app.js loads with defer, so run after it has executed.
+if (window.App) _initAdmin();
+else document.addEventListener('DOMContentLoaded', _initAdmin);
+</script>
+</body>
+</html>
