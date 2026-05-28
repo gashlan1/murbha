@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>لوحة تحكم الإدارة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --red: #b54935;
+    --blue: #1d4ed8;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea;
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
+  .nav h1 {
+    font-family: 'Cairo';
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--green-dark);
+  }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-outline {
+    border: 1.5px solid var(--green);
+    background: transparent;
+    color: var(--green);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover, .btn-outline:active {
+    background: var(--green);
+    color: #fff;
+  }
+  main {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 20px 48px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  @media (min-width: 992px) {
+    main {
+      grid-template-columns: 2fr 1fr;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Admin Cards */
+  .admin-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 0.5px solid var(--line);
+    box-shadow: 0 4px 20px rgba(13,22,18,0.03);
+    overflow: hidden;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-h {
+    padding: 18px 24px;
+    background: linear-gradient(to left, var(--green-dark), var(--green));
+    color: #fff;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-h-sub {
+    font-size: 12px;
+    background: rgba(255,255,255,0.15);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .card-body {
+    padding: 24px;
+  }
+
+  /* Forms & inputs */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  @media (min-width: 768px) {
+    .form-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .span-2 {
+      grid-column: span 2;
+    }
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group label {
+    font-family: 'Cairo';
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--green-dark);
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 12px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fdfcfa;
+    color: var(--ink);
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--gold);
+    outline: none;
+  }
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .checkbox-group input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+  .checkbox-group label {
+    font-family: 'Tajawal';
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  /* Calculator display */
+  .calc-display {
+    background: #fbf8f0;
+    border: 1.5px dashed var(--gold-soft);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (min-width: 576px) {
+    .calc-display {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .calc-stat {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .calc-val {
+    font-family: 'Cairo';
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .calc-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-family: 'Cairo';
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    background: var(--green-soft);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  /* Lists & Boards */
+  .extensions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .extension-item {
+    background: #fdfdfd;
+    border: 0.5px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.2s;
+  }
+  .extension-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .ext-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .ext-field {
+    color: var(--muted);
+  }
+  .ext-field span {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .ext-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .btn-accept {
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+  }
+  .btn-reject {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    flex: 1;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Quick statistics overview */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  @media (min-width: 768px) {
+    .stats-bar {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .stat-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    border: 0.5px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(10,77,54,0.08);
+    color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); }
+</style>
+<link rel="stylesheet" href="/assets/site.css" />
+<script src="app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <h1>منصة مُرابحة — لوحة التحكم</h1>
+    <div class="nav-actions">
+      <a href="hessa.html" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+        الرئيسية
+      </a>
+      <button class="btn-outline" data-action="logout">خروج</button>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- Stats Bar -->
+  <div class="stats-bar full-width">
+    <div class="stat-box">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-info">
+        <div class="stat-lbl">إجمالي المشاريع</div>
+        <div class="stat-val" id="stat-total-projects">٠</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">💰</div>
+      <div class="stat-info">
+        <div class="stat-lbl">مبالغ التمويل المطلوبة</div>
+        <div class="stat-val" id="stat-total-funding">٠ ر.س</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">⌛</div>
+      <div class="stat-info">
+        <div class="stat-lbl">طلبات تمديد معلقة</div>
+        <div class="stat-val" id="stat-pending-extensions">٠</div>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <div class="stat-lbl">المستثمرون</div>
+        <div class="stat-val" id="stat-investors">٠</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left Column: Creator and Updates -->
+  <div>
+    <!-- Project Form & ROI Calculator -->
+    <div class="admin-card">
+      <div class="card-h">
+        <span>إدارة الفرص وحاسبة عائد الاستثمار (ROI)</span>
+        <span class="card-h-sub">إضافة أو تحديث فرصة</span>
+      </div>
+      <div class="card-body">
+        <!-- ROI Calculator Info -->
+        <div class="calc-display">
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-net-profit">٠ ر.س.</div>
+            <div class="calc-lbl">صافي الأرباح للمشروع</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-roi">٠.٠٠٪</div>
+            <div class="calc-lbl">عائد الاستثمار (ROI %)</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-rec-min">٠</div>
+            <div class="calc-lbl">أدنى مستثمرين (موصى)</div>
+          </div>
+          <div class="calc-stat">
+            <div class="calc-val" id="calc-rec-max">٠</div>
+            <div class="calc-lbl">أقصى مستثمرين (موصى)</div>
+          </div>
+        </div>
+
+        <form id="project-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="prj-select">تعديل مشروع قائم (اختياري)</label>
+              <select id="prj-select">
+                <option value="">— إضافة مشروع جديد —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prj-name">اسم الفرصة الاستثمارية *</label>
+              <input type="text" id="prj-name" required placeholder="مثال: تمويل توريد كابلات لشركة الكهرباء" />
+            </div>
+            <div class="form-group">
+              <label for="prj-category">التصنيف</label>
+              <select id="prj-category">
+                <option value="عقاري سكني">عقاري سكني</option>
+                <option value="تشغيل وصيانة">تشغيل وصيانة O&M</option>
+                <option value="تمويل شركات">تمويل شركات</option>
+                <option value="تجاري">تجاري</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prj-city">المدينة</label>
+              <input type="text" id="prj-city" value="الرياض" />
+            </div>
+            <div class="form-group">
+              <label for="prj-goal">المبلغ المستهدف (التمويل المطلوب) *</label>
+              <input type="number" id="prj-goal" required min="1000" step="1000" placeholder="500000" />
+            </div>
+            <div class="form-group">
+              <label for="prj-min-amount">الحد الأدنى للاستثمار للعميل *</label>
+              <input type="number" id="prj-min-amount" value="1000" min="100" step="100" />
+            </div>
+
+            <!-- ROI and Cost parameters -->
+            <div class="form-group">
+              <label for="prj-value">إجمالي قيمة المشروع الكلية (Total Value) *</label>
+              <input type="number" id="prj-value" required min="1000" placeholder="600000" />
+            </div>
+            <div class="form-group">
+              <label for="prj-ops-cost">التكاليف التشغيلية (Ops Costs)</label>
+              <input type="number" id="prj-ops-cost" value="0" min="0" />
+            </div>
+            <div class="form-group font-row">
+              <label for="prj-other-cost">التكاليف الأخرى والتأسيسية</label>
+              <input type="number" id="prj-other-cost" value="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="prj-term">مدة الاستثمار (بالشهور)</label>
+              <input type="number" id="prj-term" value="12" min="1" max="60" />
+            </div>
+
+            <!-- Min/Max override inputs -->
+            <div class="form-group">
+              <label for="prj-min-investors">الحد الأدنى للمستثمرين (تجاوز يدوي)</label>
+              <input type="number" id="prj-min-investors" value="1" min="1" />
+            </div>
+            <div class="form-group">
+              <label for="prj-max-investors">الحد الأقصى للمستثمرين (تجاوز يدوي)</label>
+              <input type="number" id="prj-max-investors" value="500" min="1" />
+            </div>
+
+            <div class="form-group span-2 checkbox-group">
+              <input type="checkbox" id="prj-extendable" />
+              <label for="prj-extendable">تفعيل إمكانية طلب تمديد فترة الاستثمار من المستثمرين (تمديد ٦ أشهر إضافية)</label>
+            </div>
+
+            <div class="form-group span-2">
+              <label for="prj-summary">ملخص قصير</label>
+              <input type="text" id="prj-summary" placeholder="مثال: توريد مواد وبنية تحتية مع كبرى الشركات الوطنية..." />
+            </div>
+            <div class="form-group span-2">
+              <label for="prj-desc">تفاصيل كاملة عن الفرصة والضمانات</label>
+              <textarea id="prj-desc" rows="4" placeholder="اكتب تفاصيل المشروع والضمانات المقدمة..."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px; text-align: left;">
+            <button type="button" id="btn-reset-form" class="btn-outline" style="margin-left: 10px;">جديد</button>
+            <button type="submit" class="btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              حفظ ونشر المشروع
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Project Updates Board -->
+    <div class="admin-card">
+      <div class="card-h">
+        <span>لوحة نشر المستجدات والتحديثات</span>
+        <span class="card-h-sub">تحديثات المستثمرين</span>
+      </div>
+      <div class="card-body">
+        <form id="updates-form">
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="update-prj-select">اختيار المشروع المستهدف *</label>
+              <select id="update-prj-select" required>
+                <option value="">— اختر مشروعاً نشطاً —</option>
+              </select>
+            </div>
+            <div class="form-group span-2">
+              <label for="update-title">عنوان التحديث (الحدث الرئيسي) *</label>
+              <input type="text" id="update-title" required placeholder="مثال: اكتمال المرحلة الأولى والتوريد للموقع" />
+            </div>
+            <div class="form-group span-2">
+              <label for="update-body">تفاصيل التحديث والمستجدات *</label>
+              <textarea id="update-body" required rows="3" placeholder="تفاصيل التطور الفعلي للمشروع... سيتم إرسال إشعار للمستثمرين في هذا المشروع."></textarea>
+            </div>
+          </div>
+          <div style="margin-top: 18px; text-align: left;">
+            <button type="submit" class="btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              نشر التحديث وإخطار المستثمرين
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Extensions -->
+  <div>
+    <div class="admin-card" style="position: sticky; top: 90px;">
+      <div class="card-h">
+        <span>طلبات تمديد الاستثمار</span>
+        <span class="card-h-sub" id="ext-count-badge">٠ طلبات</span>
+      </div>
+      <div class="card-body">
+        <div id="extensions-container" class="extensions-list">
+          <div class="empty-state">جاري تحميل الطلبات...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check auth and role
+  const user = await App.requireAuth();
+  if (!user || user.role !== 'admin') {
+    App.toast('عذراً، لا تمتلك صلاحيات الإدارة.', 'error');
+    location.replace('hessa.html');
+    return;
+  }
+
+  let projects = [];
+
+  // Elements
+  const statTotalProjects = document.getElementById('stat-total-projects');
+  const statTotalFunding = document.getElementById('stat-total-funding');
+  const statPendingExtensions = document.getElementById('stat-pending-extensions');
+  const statInvestors = document.getElementById('stat-investors');
+
+  // Form Elements
+  const projectForm = document.getElementById('project-form');
+  const prjSelect = document.getElementById('prj-select');
+  const prjName = document.getElementById('prj-name');
+  const prjCategory = document.getElementById('prj-category');
+  const prjCity = document.getElementById('prj-city');
+  const prjGoal = document.getElementById('prj-goal');
+  const prjMinAmount = document.getElementById('prj-min-amount');
+  const prjValue = document.getElementById('prj-value');
+  const prjOpsCost = document.getElementById('prj-ops-cost');
+  const prjOtherCost = document.getElementById('prj-other-cost');
+  const prjTerm = document.getElementById('prj-term');
+  const prjMinInvestors = document.getElementById('prj-min-investors');
+  const prjMaxInvestors = document.getElementById('prj-max-investors');
+  const prjExtendable = document.getElementById('prj-extendable');
+  const prjSummary = document.getElementById('prj-summary');
+  const prjDesc = document.getElementById('prj-desc');
+  const btnResetForm = document.getElementById('btn-reset-form');
+
+  // Updates Form Elements
+  const updatesForm = document.getElementById('updates-form');
+  const updatePrjSelect = document.getElementById('update-prj-select');
+  const updateTitle = document.getElementById('update-title');
+  const updateBody = document.getElementById('update-body');
+
+  // Extensions container
+  const extensionsContainer = document.getElementById('extensions-container');
+  const extCountBadge = document.getElementById('ext-count-badge');
+
+  // Calc displays
+  const calcNetProfit = document.getElementById('calc-net-profit');
+  const calcRoi = document.getElementById('calc-roi');
+  const calcRecMin = document.getElementById('calc-rec-min');
+  const calcRecMax = document.getElementById('calc-rec-max');
+
+  // Real-time calculation bindings
+  const updateCalculatorOutputs = () => {
+    const goalVal = Number(prjGoal.value) || 0;
+    const minAmtVal = Number(prjMinAmount.value) || 1000;
+    const val = Number(prjValue.value) || 0;
+    const ops = Number(prjOpsCost.value) || 0;
+    const other = Number(prjOtherCost.value) || 0;
+
+    // ROI
+    const netProfit = val - ops - other;
+    const roiPercent = val > 0 ? (netProfit / val) * 100 : 0;
+
+    calcNetProfit.textContent = App.fmt.sar(netProfit);
+    calcRoi.textContent = App.fmt.arNum(roiPercent.toFixed(2)) + '٪';
+
+    // Min & Max investors recommendations
+    const recMax = minAmtVal > 0 ? Math.ceil(goalVal / minAmtVal) : 0;
+    const recMin = Math.max(1, Math.ceil(goalVal / (goalVal || 1))); // Simple default recommendation: at least 1, but we calculate it or suggest a formula
+
+    calcRecMax.textContent = App.fmt.arNum(recMax);
+    calcRecMin.textContent = App.fmt.arNum(1); // 1 is always the bare minimum if someone invests the full amount
+
+    // If inputs are untouched, update override inputs with recommended values
+    if (document.activeElement !== prjMaxInvestors && prjMaxInvestors.value === '500') {
+      prjMaxInvestors.value = recMax || 500;
+    }
+  };
+
+  // Event listeners for calculator inputs
+  [prjGoal, prjMinAmount, prjValue, prjOpsCost, prjOtherCost].forEach(el => {
+    el.addEventListener('input', updateCalculatorOutputs);
+  });
+
+  // Reload & Refresh Functions
+  const loadDashboardData = async () => {
+    try {
+      // Fetch projects
+      const projRes = await App.api('GET', '/app/projects');
+      projects = projRes.projects || [];
+
+      // Update project list dropdowns
+      // Keep selected option
+      const currentPrjSelected = prjSelect.value;
+      const currentUpdateSelected = updatePrjSelect.value;
+
+      prjSelect.innerHTML = '<option value="">— إضافة مشروع جديد —</option>';
+      updatePrjSelect.innerHTML = '<option value="">— اختر مشروعاً نشطاً —</option>';
+
+      projects.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${App.fmt.sar(p.goal)})`;
+        prjSelect.appendChild(opt.cloneNode(true));
+        
+        if (p.status === 'open' || p.status === 'active') {
+          updatePrjSelect.appendChild(opt);
+        }
+      });
+
+      prjSelect.value = currentPrjSelected;
+      updatePrjSelect.value = currentUpdateSelected;
+
+      // Stats calculations
+      statTotalProjects.textContent = App.fmt.arNum(projects.length);
+      const totalFundingVal = projects.reduce((s, p) => s + (p.goal || 0), 0);
+      statTotalFunding.textContent = App.fmt.sar(totalFundingVal);
+      const investorCountVal = projects.reduce((s, p) => s + (p.investorCount || 0), 0);
+      statInvestors.textContent = App.fmt.arNum(investorCountVal);
+
+      // Fetch extensions
+      await loadExtensions();
+
+    } catch (e) {
+      App.toast('فشل تحميل بيانات لوحة التحكم: ' + e.message, 'error');
+    }
+  };
+
+  const loadExtensions = async () => {
+    try {
+      const extRes = await App.api('GET', '/app/admin/extensions');
+      const extensions = extRes.extensions || [];
+      
+      statPendingExtensions.textContent = App.fmt.arNum(extensions.length);
+      extCountBadge.textContent = App.fmt.arNum(extensions.length) + ' طلبات';
+
+      if (extensions.length === 0) {
+        extensionsContainer.innerHTML = '<div class="empty-state">لا توجد طلبات تمديد معلقة حالياً.</div>';
+        return;
+      }
+
+      extensionsContainer.innerHTML = '';
+      extensions.forEach(ext => {
+        const item = document.createElement('div');
+        item.className = 'extension-item';
+        item.innerHTML = `
+          <div style="font-weight: 800; color: var(--green-dark); font-family: 'Cairo'; font-size: 14px;">${App.escapeHtml(ext.projectName)}</div>
+          <div class="ext-details">
+            <div class="ext-field">المستثمر: <span>${App.escapeHtml(ext.userName)}</span></div>
+            <div class="ext-field">المبلغ: <span>${App.fmt.sar(ext.amount)}</span></div>
+            <div class="ext-field">المدة الحالية: <span>${App.fmt.arNum(ext.termMonths || 12)} شهور</span></div>
+            <div class="ext-field">العائد المتوقع: <span>${App.fmt.sar(ext.expectedReturn)}</span></div>
+          </div>
+          <div class="ext-actions">
+            <button class="btn-accept" data-id="${ext.id}">قبول التمديد (+٦ أشهر)</button>
+            <button class="btn-reject" data-id="${ext.id}">رفض الطلب</button>
+          </div>
+        `;
+        extensionsContainer.appendChild(item);
+      });
+
+    } catch (e) {
+      console.error(e);
+      extensionsContainer.innerHTML = '<div class="empty-state" style="color:var(--red);">حدث خطأ في تحميل الطلبات.</div>';
+    }
+  };
+
+  // Select project to edit
+  prjSelect.addEventListener('change', () => {
+    const selectedId = prjSelect.value;
+    if (!selectedId) {
+      // Reset form
+      projectForm.reset();
+      updateCalculatorOutputs();
+      return;
+    }
+
+    const p = projects.find(x => x.id === selectedId);
+    if (!p) return;
+
+    prjName.value = p.name || '';
+    prjCategory.value = p.category || 'عقاري سكني';
+    prjCity.value = p.city || 'الرياض';
+    prjGoal.value = p.goal || '';
+    prjMinAmount.value = p.minAmount || 1000;
+    prjValue.value = p.totalProjectValue || p.goal || '';
+    prjOpsCost.value = p.opsCosts || 0;
+    prjOtherCost.value = p.otherCosts || 0;
+    prjTerm.value = p.termMonths || 12;
+    prjMinInvestors.value = p.minInvestors || 1;
+    prjMaxInvestors.value = p.maxInvestors || 500;
+    prjExtendable.checked = !!p.extendable;
+    prjSummary.value = p.summary || '';
+    prjDesc.value = p.description || '';
+
+    updateCalculatorOutputs();
+  });
+
+  // Reset form button
+  btnResetForm.addEventListener('click', () => {
+    prjSelect.value = '';
+    projectForm.reset();
+    updateCalculatorOutputs();
+    App.toast('تم إفراغ الحقول لإضافة مشروع جديد.', 'info');
+  });
+
+  // Submit Project Form
+  projectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const body = {
+      id: prjSelect.value || undefined, // undefined means create new
+      name: prjName.value.trim(),
+      category: prjCategory.value,
+      city: prjCity.value.trim(),
+      goal: Number(prjGoal.value),
+      minAmount: Number(prjMinAmount.value),
+      totalProjectValue: Number(prjValue.value),
+      opsCosts: Number(prjOpsCost.value),
+      otherCosts: Number(prjOtherCost.value),
+      minInvestors: Number(prjMinInvestors.value),
+      maxInvestors: Number(prjMaxInvestors.value),
+      termMonths: Number(prjTerm.value),
+      extendable: prjExtendable.checked,
+      summary: prjSummary.value.trim(),
+      description: prjDesc.value.trim()
+    };
+
+    try {
+      await App.api('POST', '/app/admin/projects', body);
+      App.toast(prjSelect.value ? 'تم تحديث المشروع بنجاح!' : 'تم نشر المشروع الاستثماري الجديد بنجاح!', 'success');
+      
+      // Reset form if it was a new project
+      if (!prjSelect.value) {
+        projectForm.reset();
+      }
+      
+      await loadDashboardData();
+    } catch (err) {
+      App.toast('فشل الحفظ: ' + err.message, 'error');
+    }
+  });
+
+  // Submit Updates Form
+  updatesForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const prjId = updatePrjSelect.value;
+    if (!prjId) {
+      App.toast('يجب اختيار مشروع مستهدف أولاً.', 'warn');
+      return;
+    }
+
+    const body = {
+      title: updateTitle.value.trim(),
+      body: updateBody.value.trim()
+    };
+
+    try {
+      await App.api('POST', `/app/admin/projects/${prjId}/updates`, body);
+      App.toast('تم نشر تحديث المشروع بنجاح وإخطار المستثمرين!', 'success');
+      updatesForm.reset();
+      await loadDashboardData();
+    } catch (err) {
+      App.toast('فشل نشر التحديث: ' + err.message, 'error');
+    }
+  });
+
+  // Handle extension clicks (delegated)
+  extensionsContainer.addEventListener('click', async (e) => {
+    const acceptBtn = e.target.closest('.btn-accept');
+    const rejectBtn = e.target.closest('.btn-reject');
+    
+    if (!acceptBtn && !rejectBtn) return;
+
+    const btn = acceptBtn || rejectBtn;
+    const isApprove = !!acceptBtn;
+    const invId = btn.getAttribute('data-id');
+
+    btn.disabled = true;
+    try {
+      await App.api('POST', `/app/admin/extensions/${invId}/resolve`, { approve: isApprove });
+      App.toast(isApprove ? 'تم قبول طلب تمديد الفترة بنجاح.' : 'تم رفض طلب تمديد الفترة.', 'success');
+      await loadDashboardData();
+    } catch (err) {
+      App.toast('حدث خطأ أثناء معالجة الطلب: ' + err.message, 'error');
+      btn.disabled = false;
+    }
+  });
+
+  // Initialize
+  await loadDashboardData();
+  updateCalculatorOutputs();
+});
+</script>
+</body>
+</html>

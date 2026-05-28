@@ -1,10 +1,10 @@
 /**
- * ┌─────────────────────────────────────────────┐
- * │   Murabaha — Nafath Backend Proxy            │
- * │   - Hides APP_ID / APP_KEY from the browser   │
- * │   - Bypasses CORS by relaying server→server   │
- * │   - Serves the static front-end              │
- * └─────────────────────────────────────────────┘
+ * ┌──────────────────────────────────────────────────────────┐
+ * │   Murabaha — Full-Stack Server                            │
+ * │   - Static front-end                                       │
+ * │   - REST API at /app/*  (auth, projects, investments…)    │
+ * │   - Nafath proxy at /api/v1/mfa/* and /stg/api/v2/oidc/*   │
+ * └──────────────────────────────────────────────────────────┘
  *
  * Run:   node server.js
  * Reqs:  Node.js 18+ (uses global fetch)
@@ -27,6 +27,9 @@ const url  = require('url');
   }
 })();
 
+// after env is loaded, require modules that may read env
+const api = require('./lib/api');
+
 const CONFIG = {
   PORT:     parseInt(process.env.PORT, 10) || 3000,
   APP_ID:   process.env.NAFATH_APP_ID  || 'fu5ofq88',
@@ -39,8 +42,8 @@ console.log('[murabaha] Starting…');
 console.log('[murabaha] Nafath upstream:', CONFIG.BASE_URL);
 console.log('[murabaha] APP_ID:', CONFIG.APP_ID.slice(0, 4) + '****');
 
-// ─── Allow-list of upstream paths we proxy ────────────────────────
-const ALLOWED_PREFIXES = [
+// ─── Allow-list of upstream paths we proxy to Nafath ──────────────
+const NAFATH_PREFIXES = [
   '/api/v1/mfa/request',
   '/api/v1/mfa/request/status',
   '/api/v1/mfa/jwk',
@@ -49,7 +52,8 @@ const ALLOWED_PREFIXES = [
   '/stg/api/v2/oidc/jwt/valid',
 ];
 
-const isAllowed = (p) => ALLOWED_PREFIXES.some(prefix => p === prefix || p.startsWith(prefix + '?') || p.startsWith(prefix + '/'));
+const isNafathPath = (p) =>
+  NAFATH_PREFIXES.some(prefix => p === prefix || p.startsWith(prefix + '?') || p.startsWith(prefix + '/'));
 
 // ─── MIME map ─────────────────────────────────────────────────────
 const MIME = {
@@ -70,23 +74,22 @@ const MIME = {
   '.ttf':  'font/ttf',
 };
 
-// ─── Read whole request body ──────────────────────────────────────
-const readBody = (req) => new Promise((resolve, reject) => {
+const readRawBody = (req) => new Promise((resolve, reject) => {
   const chunks = [];
   req.on('data', c => chunks.push(c));
   req.on('end',  () => resolve(Buffer.concat(chunks)));
   req.on('error', reject);
 });
 
-// ─── Proxy handler (server → ELM) ─────────────────────────────────
-const proxy = async (req, res, parsed) => {
-  if (!isAllowed(parsed.path)) {
+// ─── Nafath proxy (server → ELM) ──────────────────────────────────
+const proxyNafath = async (req, res, parsed) => {
+  if (!isNafathPath(parsed.path)) {
     res.writeHead(403, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ error: 'forbidden_path' }));
   }
 
   const upstreamUrl = CONFIG.BASE_URL + parsed.path;
-  const body = ['GET', 'HEAD'].includes(req.method) ? undefined : await readBody(req);
+  const body = ['GET', 'HEAD'].includes(req.method) ? undefined : await readRawBody(req);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -97,25 +100,16 @@ const proxy = async (req, res, parsed) => {
     'app_key':      CONFIG.APP_KEY,
   };
 
-  console.log(`[proxy] ${req.method} ${parsed.path}`);
+  console.log(`[nafath] ${req.method} ${parsed.path}`);
 
   try {
-    const upstream = await fetch(upstreamUrl, {
-      method: req.method,
-      headers,
-      body,
-    });
-
+    const upstream = await fetch(upstreamUrl, { method: req.method, headers, body });
     const buf = Buffer.from(await upstream.arrayBuffer());
     const ct  = upstream.headers.get('content-type') || 'application/json; charset=utf-8';
-
-    res.writeHead(upstream.status, {
-      'Content-Type': ct,
-      'Cache-Control': 'no-store',
-    });
+    res.writeHead(upstream.status, { 'Content-Type': ct, 'Cache-Control': 'no-store' });
     res.end(buf);
   } catch (err) {
-    console.error('[proxy] upstream error:', err.message);
+    console.error('[nafath] upstream error:', err.message);
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ error: 'upstream_unreachable', detail: err.message }));
   }
@@ -126,15 +120,22 @@ const serveStatic = (req, res, parsed) => {
   let p = decodeURIComponent(parsed.pathname);
   if (p === '/' || p === '') p = '/hessa.html';
 
-  // prevent path traversal
+  // strip trailing slashes for /foo/ → /foo.html
+  if (p.endsWith('/')) p = p.slice(0, -1) + '.html';
+  // allow extensionless URLs: /portfolio → /portfolio.html
+  if (!path.extname(p) && !p.includes('.')) p = p + '.html';
+
   const resolved = path.normalize(path.join(CONFIG.STATIC_DIR, p));
   if (!resolved.startsWith(CONFIG.STATIC_DIR)) {
     res.writeHead(403); return res.end('forbidden');
   }
-
-  // server.js, .env etc. should never be served
   const base = path.basename(resolved);
   if (base === 'server.js' || base === '.env' || base.startsWith('.')) {
+    res.writeHead(404); return res.end('not found');
+  }
+  // do not expose internal folders
+  const rel = path.relative(CONFIG.STATIC_DIR, resolved);
+  if (rel.startsWith('data' + path.sep) || rel.startsWith('lib' + path.sep) || rel === 'data' || rel === 'lib' || rel.startsWith('node_modules' + path.sep)) {
     res.writeHead(404); return res.end('not found');
   }
 
@@ -146,7 +147,7 @@ const serveStatic = (req, res, parsed) => {
     const ext = path.extname(resolved).toLowerCase();
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=300',
     });
     fs.createReadStream(resolved).pipe(res);
   });
@@ -154,32 +155,45 @@ const serveStatic = (req, res, parsed) => {
 
 // ─── Server ───────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
-  const parsed = url.parse(req.url);
+  try {
+    const parsed = url.parse(req.url);
 
-  // outbound IP for Nafath whitelist
-  if (parsed.pathname === '/myip') {
-    try {
-      const r = await fetch('https://ifconfig.me/ip');
-      const ip = (await r.text()).trim();
+    // health check
+    if (parsed.pathname === '/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ outboundIp: ip }));
-    } catch(e) {
-      res.writeHead(500); return res.end(JSON.stringify({ error: e.message }));
+      return res.end(JSON.stringify({ ok: true, upstream: CONFIG.BASE_URL }));
+    }
+
+    // outbound IP (for Nafath whitelist)
+    if (parsed.pathname === '/myip') {
+      try {
+        const r = await fetch('https://ifconfig.me/ip');
+        const ip = (await r.text()).trim();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ outboundIp: ip }));
+      } catch(e) {
+        res.writeHead(500); return res.end(JSON.stringify({ error: e.message }));
+      }
+    }
+
+    // REST API for the platform
+    if (parsed.pathname.startsWith('/app/')) {
+      return api.handle(req, res, parsed);
+    }
+
+    // Nafath upstream proxy
+    if (parsed.pathname.startsWith('/api/v1/') || parsed.pathname.startsWith('/stg/')) {
+      return proxyNafath(req, res, parsed);
+    }
+
+    return serveStatic(req, res, parsed);
+  } catch (e) {
+    console.error('[server] unhandled:', e);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'server', message: 'internal error' }));
     }
   }
-
-  // health check
-  if (parsed.pathname === '/healthz') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, upstream: CONFIG.BASE_URL }));
-  }
-
-  // proxy: anything starting with /api/ or /stg/
-  if (parsed.pathname.startsWith('/api/') || parsed.pathname.startsWith('/stg/')) {
-    return proxy(req, res, parsed);
-  }
-
-  return serveStatic(req, res, parsed);
 });
 
 server.listen(CONFIG.PORT, () => {

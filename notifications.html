@@ -310,7 +310,8 @@
 }
 </script>
 <!-- END: managed-jsonld -->
-  </head>
+    <script src="app.js"></script>
+</head>
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
 
@@ -368,14 +369,14 @@
 
   <div class="day-sep">هذا الأسبوع</div>
 
-  <a href="auth.html" class="notif">
+  <a href="login.html" class="notif">
     <div class="notif-icon system">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
     </div>
     <div class="notif-body">
-      <div class="notif-title">🪪 تكامل مع نفاذ جاهز</div>
+      <div class="notif-title">🪪 التحقق الرقمي جاهز</div>
       <div class="notif-msg">
-        أصبح بإمكانك إنشاء حسابك والتحقّق من هويتك عبر <b>نفاذ</b> في ثوانٍ معدودة.
+        أصبح بإمكانك إنشاء حسابك والتحقّق من هويتك إلكترونياً في ثوانٍ معدودة.
       </div>
       <div class="notif-meta">
         <span class="notif-time">٢ أيام</span>
@@ -411,7 +412,129 @@
   document.querySelectorAll('.filter-tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
+    _applyFilter();
   }));
+
+  // ── Real notifications wiring ─────────────────────────────
+  let _allNotifs = [];
+  const main = document.querySelector('main');
+
+  const _iconForKind = (k) => ({
+    welcome:   'system',
+    invest:    'contract',
+    contract_signed: 'contract',
+    deposit:   'system',
+    withdraw:  'system',
+    security:  'system',
+    help:      'system',
+    profit:    'profit',
+  }[k] || 'system');
+
+  function _renderNotifs(list) {
+    // wipe non-system children (keep nav + main heading); we'll fully replace main contents
+    main.innerHTML = '';
+    if (!list.length) {
+      main.innerHTML = `
+        <div style="padding: 60px 20px; text-align: center; color: #8a8a8a; font-size: 13px;">
+          <div style="font-size:40px;opacity:0.4;margin-bottom:8px;">🔔</div>
+          لا توجد إشعارات.
+        </div>`;
+      return;
+    }
+    // group by day
+    const today = new Date(); today.setHours(0,0,0,0);
+    const week  = new Date(today); week.setDate(week.getDate() - 7);
+    const groups = { today: [], week: [], older: [] };
+    list.forEach(n => {
+      const d = new Date(n.createdAt);
+      if (d >= today) groups.today.push(n);
+      else if (d >= week) groups.week.push(n);
+      else groups.older.push(n);
+    });
+    const labels = { today: 'اليوم', week: 'هذا الأسبوع', older: 'سابقاً' };
+    for (const key of ['today', 'week', 'older']) {
+      if (!groups[key].length) continue;
+      const sep = document.createElement('div');
+      sep.className = 'day-sep';
+      sep.textContent = labels[key];
+      main.appendChild(sep);
+      groups[key].forEach(n => {
+        const a = document.createElement('a');
+        a.href = _linkForNotif(n);
+        a.className = 'notif' + (n.read ? '' : ' unread');
+        a.dataset.id = n.id;
+        a.innerHTML = `
+          <div class="notif-icon ${_iconForKind(n.kind)}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+          </div>
+          <div class="notif-body">
+            <div class="notif-title">${App.escapeHtml(n.title)}</div>
+            <div class="notif-msg">${App.escapeHtml(n.body)}</div>
+            <div class="notif-meta">
+              <span class="notif-time">${App.fmt.relTime(n.createdAt)}</span>
+              ${_actionFor(n)}
+            </div>
+          </div>`;
+        a.addEventListener('click', () => {
+          if (!n.read) App.api('POST', '/app/notifications/' + n.id + '/read').catch(()=>{});
+        });
+        main.appendChild(a);
+      });
+    }
+  }
+
+  function _linkForNotif(n) {
+    if (n.kind === 'invest' && n.meta?.contractId) return 'contract.html?id=' + n.meta.contractId;
+    if (n.kind === 'contract_signed' && n.meta?.contractId) return 'contract.html?id=' + n.meta.contractId;
+    if (n.kind === 'deposit' || n.kind === 'withdraw') return 'portfolio.html';
+    if (n.kind === 'welcome') return 'projects.html';
+    if (n.kind === 'help')    return 'help.html';
+    return '#';
+  }
+  function _actionFor(n) {
+    const map = {
+      invest:          'إكمال التوقيع ←',
+      contract_signed: 'عرض العقد ←',
+      deposit:         'عرض المحفظة ←',
+      withdraw:        'عرض المحفظة ←',
+      welcome:         'تصفّح الفرص ←',
+      help:            'مركز المساعدة ←',
+    };
+    return map[n.kind] ? `<span class="notif-action">${map[n.kind]}</span>` : '';
+  }
+
+  function _applyFilter() {
+    const active = document.querySelector('.filter-tab.active')?.textContent.trim() || 'الكل';
+    if (active === 'الكل') return _renderNotifs(_allNotifs);
+    const acctKinds = ['deposit','withdraw','security','contract_signed','invest'];
+    const sysKinds  = ['welcome','help'];
+    const list = _allNotifs.filter(n =>
+      active === 'الحساب' ? acctKinds.includes(n.kind) :
+      active === 'النظام' ? sysKinds.includes(n.kind) : true);
+    _renderNotifs(list);
+  }
+
+  (async () => {
+    if (!window.App) return;
+    const user = await App.requireAuth();
+    if (!user) return;
+    try {
+      const { notifications } = await App.api('GET', '/app/notifications');
+      _allNotifs = notifications;
+      _renderNotifs(_allNotifs);
+    } catch (e) { App.toast('تعذّر تحميل الإشعارات.', 'error'); }
+  })();
+
+  // "قراءة الكل"
+  document.querySelector('.nav-action')?.addEventListener('click', async () => {
+    try {
+      await App.api('POST', '/app/notifications/read-all');
+      document.querySelectorAll('.notif.unread').forEach(el => el.classList.remove('unread'));
+      App.toast('تم تعليم الكل كمقروء.', 'success');
+    } catch (e) { App.toast(e.message, 'error'); }
+  });
 </script>
 </body>
 </html>

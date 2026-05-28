@@ -420,7 +420,8 @@
 }
 </script>
 <!-- END: managed-jsonld -->
-  </head>
+    <script src="app.js"></script>
+</head>
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
 
@@ -536,7 +537,7 @@
     <div class="faq">
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">كيف أبدأ الاستثمار في مُرابحة؟</button>
-        <div class="faq-a">١) سجّل عبر <b>نفاذ</b> أو رقم جوالك. ٢) اربط حسابك البنكي. ٣) تصفّح المشاريع واختر فرصة. ٤) حدّد المبلغ ووقّع العقد عبر نفاذ. الحد الأدنى هو <b>٥٠٠ ر.س</b> فقط.</div>
+        <div class="faq-a">١) سجّل عبر البريد الإلكتروني والبيانات الشخصية. ٢) اربط حسابك البنكي. ٣) تصفّح المشاريع واختر فرصة. ٤) حدّد المبلغ ووقّع العقد إلكترونياً. الحد الأدنى هو <b>٥٠٠ ر.س</b> فقط.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">هل المنصة متوافقة مع الشريعة الإسلامية؟</button>
@@ -552,7 +553,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">هل أموالي آمنة؟</button>
-        <div class="faq-a">نعم، تبقى جميع الأموال محتجَزة بشكل آمن، ولا تُحرَّر للمشاريع إلا بعد اكتمال الجولة بنسبة ١٠٠٪ وتوقيع جميع المستثمرين على عقود المرابحة عبر نفاذ. كل عقد مُعتمَد من الهيئة الشرعية المستقلة.</div>
+        <div class="faq-a">نعم، تبقى جميع الأموال محتجَزة بشكل آمن، ولا تُحرَّر للمشاريع إلا بعد اكتمال الجولة بنسبة ١٠٠٪ وتوقيع جميع المستثمرين على عقود المرابحة إلكترونياً. كل عقد مُعتمَد من الهيئة الشرعية المستقلة.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">هل يمكنني الانسحاب قبل نهاية المدة؟</button>
@@ -573,13 +574,100 @@
   <div class="ticket-card">
     <h4>لم تجد إجابتك؟</h4>
     <p>أرسل تذكرة دعم وسيتواصل فريقنا المتخصص خلال ساعات قليلة.</p>
-    <a href="#" class="btn btn-gold">
+    <a href="#" class="btn btn-gold" id="openTicketBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
       فتح تذكرة دعم جديدة
     </a>
   </div>
 
+  <!-- Hidden ticket form -->
+  <form id="ticketForm" style="display:none;background:#fff;border-radius:16px;padding:18px;margin:14px;border:1px solid #eadfc4;direction:rtl">
+    <h4 style="font:900 16px Cairo,sans-serif;color:#062b1e;margin:0 0 12px">تذكرة دعم جديدة</h4>
+    <label style="font:700 12px Tajawal;display:block;margin-bottom:6px">الموضوع</label>
+    <input name="subject" type="text" required style="width:100%;padding:11px;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;margin-bottom:12px;font:600 14px Tajawal" placeholder="مثال: مشكلة في تسجيل الدخول"/>
+    <label style="font:700 12px Tajawal;display:block;margin-bottom:6px">رسالتك</label>
+    <textarea name="message" required rows="4" style="width:100%;padding:11px;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;margin-bottom:12px;font:600 14px Tajawal;resize:vertical" placeholder="اشرح المشكلة أو السؤال بالتفصيل"></textarea>
+    <label style="font:700 12px Tajawal;display:block;margin-bottom:6px">وسيلة التواصل (بريد أو جوال)</label>
+    <input name="contact" type="text" style="width:100%;padding:11px;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;margin-bottom:14px;font:600 14px Tajawal" placeholder="اختياري — للتواصل خارج التطبيق"/>
+    <button type="submit" style="background:#b08840;color:#fff;border:0;padding:12px 22px;border-radius:10px;font:800 14px Tajawal,sans-serif;cursor:pointer">إرسال التذكرة</button>
+  </form>
+
 </main>
+
+<script>
+(() => {
+  if (!window.App) return;
+
+  // Live chat tile → toast (no real chat yet)
+  document.querySelectorAll('.contact-card.chat[href="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      App.toast('الدردشة المباشرة ستفتح فور تشغيلها. استخدم البريد أو الهاتف حالياً.', 'info');
+    });
+  });
+
+  // Category tiles — filter the FAQ list by keyword in the category
+  const catMap = {
+    'الحساب والتحقق':  ['حساب','تحقق','البريد','هوية'],
+    'الاستثمار':       ['استثمار','مشروع','جولة','مبلغ','حد'],
+    'الأرباح والسحب':  ['ربح','سحب','توزيع','عائد','بنكي'],
+    'العقود والتوقيع': ['عقد','توقيع','مرابحة','بنود'],
+    'الالتزام الشرعي': ['شرعي','هيئة','فتوى','زكاة','حلال','ربا','غرر'],
+    'الأمان والخصوصية':['أمان','حماية','PDPL','بيانات','خصوصية'],
+  };
+  document.querySelectorAll('a.cat-tile[href="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const name = a.querySelector('.cat-name')?.textContent.trim();
+      const keys = catMap[name] || [];
+      document.querySelectorAll('.faq-item').forEach(it => {
+        const text = it.textContent;
+        const ok = keys.length === 0 || keys.some(k => text.includes(k));
+        it.style.display = ok ? '' : 'none';
+        if (ok) it.classList.add('open');
+      });
+      App.toast('تم تصفية الأسئلة: ' + name, 'info');
+      document.querySelector('.faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Open ticket button + form submission
+  const ticketBtn  = document.getElementById('openTicketBtn');
+  const ticketForm = document.getElementById('ticketForm');
+  ticketBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    ticketForm.style.display = ticketForm.style.display === 'none' ? 'block' : 'none';
+    if (ticketForm.style.display === 'block') ticketForm.scrollIntoView({ behavior: 'smooth' });
+  });
+  ticketForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(ticketForm));
+    const submitBtn = ticketForm.querySelector('button[type=submit]');
+    submitBtn.disabled = true;
+    try {
+      await App.api('POST', '/app/help/contact', data);
+      App.toast('تم إرسال تذكرتك. سنرد خلال ٢٤ ساعة.', 'success');
+      ticketForm.reset();
+      ticketForm.style.display = 'none';
+    } catch (err) {
+      App.toast(err.message || 'تعذّر الإرسال.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // FAQ search wiring (if there's a search input)
+  const search = document.querySelector('.help-search input, input[type=search]');
+  if (search) {
+    search.addEventListener('input', () => {
+      const term = search.value.trim();
+      document.querySelectorAll('.faq-item').forEach(it => {
+        it.style.display = (!term || it.textContent.includes(term)) ? '' : 'none';
+      });
+    });
+  }
+})();
+</script>
 
 </body>
 </html>
