@@ -195,9 +195,97 @@
     });
   };
 
+  // ─── Language Translation Toggle ──────────────────────────────────
+  const _wireLangToggle = () => {
+    const btn = document.getElementById('langToggle');
+    if (!btn) return;
+    const KEY = 'murbha.lang';
+    const cur = btn.querySelector('.lang-current');
+    const oth = btn.querySelector('.lang-other');
+
+    function setLabels(lang) {
+      if (!cur || !oth) return;
+      if (lang === 'en') {
+        cur.textContent = 'EN';
+        oth.textContent = 'عربي';
+      } else {
+        cur.textContent = 'عربي';
+        oth.textContent = 'EN';
+      }
+    }
+
+    function cacheArabicText(node) {
+      if (node.dataset.ar === undefined) node.dataset.ar = node.textContent;
+    }
+    function cacheArabicChildren(node) {
+      if (node.__arChildren) return;
+      node.__arChildren = Array.from(node.childNodes).map(n => n.cloneNode(true));
+    }
+    function replaceChildrenWithMarkup(node, markup) {
+      const tpl = document.createElement('template');
+      tpl.innerHTML = markup;
+      node.replaceChildren(tpl.content);
+    }
+
+    function applyLang(lang) {
+      const root = document.documentElement;
+      root.lang = lang;
+      root.dir = lang === 'en' ? 'ltr' : 'rtl';
+      document.body && document.body.classList.toggle('lang-en', lang === 'en');
+
+      document.querySelectorAll('[data-en]').forEach(node => {
+        cacheArabicText(node);
+        node.textContent = lang === 'en' ? node.dataset.en : node.dataset.ar;
+      });
+      document.querySelectorAll('[data-en-html]').forEach(node => {
+        cacheArabicChildren(node);
+        if (lang === 'en') {
+          replaceChildrenWithMarkup(node, node.dataset.enHtml);
+        } else {
+          node.replaceChildren(...node.__arChildren.map(n => n.cloneNode(true)));
+        }
+      });
+
+      document.querySelectorAll('[data-en-aria-label]').forEach(node => {
+        if (node.dataset.arAriaLabel === undefined) node.dataset.arAriaLabel = node.getAttribute('aria-label') || '';
+        node.setAttribute('aria-label', lang === 'en' ? node.dataset.enAriaLabel : node.dataset.arAriaLabel);
+      });
+      document.querySelectorAll('[data-en-placeholder]').forEach(node => {
+        if (node.dataset.arPlaceholder === undefined) node.dataset.arPlaceholder = node.getAttribute('placeholder') || '';
+        node.setAttribute('placeholder', lang === 'en' ? node.dataset.enPlaceholder : node.dataset.arPlaceholder);
+      });
+    }
+
+    const saved = (() => { try { return localStorage.getItem(KEY); } catch { return null; } })();
+    const initial = saved === 'en' ? 'en' : 'ar';
+    setLabels(initial);
+    if (initial === 'en') applyLang('en');
+
+    btn.addEventListener('click', () => {
+      const current = document.documentElement.lang === 'en' ? 'en' : 'ar';
+      const next = current === 'ar' ? 'en' : 'ar';
+      try { localStorage.setItem(KEY, next); } catch { /* ignore */ }
+      setLabels(next);
+      applyLang(next);
+      
+      // Page specific rerenders if defined
+      if (window.MurbhaLang && typeof window.MurbhaLang.rerenderProjects === 'function') {
+        window.MurbhaLang.rerenderProjects();
+      }
+      if (typeof window.recalc === 'function') {
+        const slider = document.getElementById('calcSlider');
+        if (slider) window.recalc(+slider.value);
+      }
+    });
+
+    window.MurbhaLang = window.MurbhaLang || {};
+    window.MurbhaLang.reapply = () => applyLang(document.documentElement.lang === 'en' ? 'en' : 'ar');
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     _wireActions();
     _wireHeaderAuth();
+    _wireLangToggle();
   });
 
   window.App = {
