@@ -164,6 +164,7 @@ app.use('/api/investments', require('./routes/investments'));
 const pageRoutes = {
   '/':              'hessa.html',
   '/home':          'hessa.html',
+  '/hessa':         'hessa.html',
   '/projects':      'projects.html',
   '/project':       'project.html',
   '/portfolio':     'portfolio.html',

@@ -115,7 +115,7 @@ Public pages (landing, legal, projects list, auth) stay open.
 ```
 PORT=3000
 NODE_ENV=development
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha
 SESSION_SECRET=change-me-in-production
 CORS_ORIGIN=http://localhost:3000
 ```

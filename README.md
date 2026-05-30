@@ -48,7 +48,7 @@ docker compose up --build
 ## Project Structure
 
 ```
-murabaha-platform/
+murbha-platform/
 │
 ├── ─── Core Pages ───────────────────────────────
 │   ├── index.html              Entry point (redirects to hessa.html)

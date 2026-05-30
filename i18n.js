@@ -15,7 +15,10 @@
   var DICT = {
     brand:       { en: 'Murbha' },
     skip_link:   { en: 'Skip to main content' },
-    nav_login:   { en: 'Sign in' },
+    nav_login:   { en: 'Log In' },
+    nav_signup:  { en: 'Sign Up' },
+    badge_sharia_compliant: { en: '☪ Sharia Compliant' },
+    view_details: { en: 'View Details' },
     date_pill:   { en: '<b>May 27</b>\n2026' },
 
     hero_eyebrow: { en: 'Saudi Islamic investment platform' },
@@ -690,11 +693,11 @@
     payment_btn_confirm_pay: { en: 'Confirm and pay' },
     payment_sadad_h: { ar: '🇸🇦 نظام سداد للمدفوعات', en: '🇸🇦 SADAD payment system' },
     payment_sadad_biller: { en: 'Biller' },
-    payment_sadad_biller_name: { en: 'Murabaha Investment Platform' },
+    payment_sadad_biller_name: { en: 'Murbha Investment Platform' },
     payment_sadad_biller_code: { en: 'Biller code' },
     payment_sadad_bill_no: { en: 'Bill number' },
     payment_sadad_total: { en: 'Total amount' },
-    payment_sadad_instructions: { en: 'Payment instructions: open your preferred banking app, choose one-time bill payment, select biller "Murabaha Platform" (code 144), enter the bill number above and pay.' },
+    payment_sadad_instructions: { en: 'Payment instructions: open your preferred banking app, choose one-time bill payment, select biller "Murbha Platform" (code 144), enter the bill number above and pay.' },
     payment_sadad_btn: { en: 'Simulate successful SADAD payment ✓' },
     payment_wallet_h: { ar: '💼 الدفع من رصيد المحفظة الاستثمارية', en: '💼 Pay from your investment wallet balance' },
     payment_wallet_balance_lbl: { en: 'Your available balance:' },
@@ -1193,6 +1196,19 @@
         var isHtml = el.hasAttribute('data-i18n-html');
         arCache[key] = isHtml ? el.innerHTML.trim() : el.textContent.trim();
       }
+    });
+    // Attribute defaults (placeholder, aria-label, title, ...) must also be cached,
+    // otherwise toggling EN->AR leaves attrs stranded in English when DICT has only
+    // an `en` entry. Cache the original attribute value against each referenced key.
+    document.querySelectorAll('[data-i18n-attr]').forEach(function (el) {
+      el.getAttribute('data-i18n-attr').split(',').forEach(function (pair) {
+        var bits = pair.split(':');
+        var attr = bits[0] && bits[0].trim(), key = bits[1] && bits[1].trim();
+        if (attr && key && !(key in arCache)) {
+          var v = el.getAttribute(attr);
+          if (v != null) arCache[key] = v;
+        }
+      });
     });
   }
 

@@ -1,4 +1,4 @@
-# Murabaha Platform — `murabaha-platform_1`
+# Murbha Platform — `murbha-platform_1`
 
 ## Purpose
 A Saudi Sharia-compliant Murabaha investment platform — Arabic-first RTL with an English toggle, Vision 2030 project catalog, full investor flow (deposit → invest → contract sign → pay), portfolio dashboard, KYC verification, and an admin portal. Investors start from SAR 500.
@@ -12,7 +12,7 @@ A Saudi Sharia-compliant Murabaha investment platform — Arabic-first RTL with 
 
 ## Folder Structure
 ```
-murabaha-platform_1/
+murbha-platform_1/
 ├── server.js                     Express entry — mounts routers, page routes, CSP
 ├── i18n.js                       AR (default) + EN translation table
 ├── nafath-api.js                 Nafath SDK (client-side; no server proxy yet)
@@ -77,7 +77,7 @@ npm start               # http://localhost:3000
 docker compose up --build
 
 # tests
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha \
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha \
 SESSION_SECRET=test npm test
 ```
 
@@ -99,6 +99,6 @@ SESSION_SECRET=test npm test
 - **Newsletter vendor sync** — list is captured in Postgres; export-to-Mailchimp/ConvertKit is not wired.
 
 ## Relationship to other copies
-- `~/projects/murabaha-platform` (canonical, pure-Node) is now the older/simpler reference.
-- `~/projects/murabaha-platform_2` is an earlier snapshot of this fork without the Postgres backend.
+- `~/projects/murbha-platform` (canonical, pure-Node) is now the older/simpler reference.
+- `~/projects/murbha-platform_2` is an earlier snapshot of this fork without the Postgres backend.
 - `_1` is the current main work — Express + Postgres + tests.

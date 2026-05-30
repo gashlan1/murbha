@@ -42,15 +42,24 @@ async function seed() {
       await c.query("UPDATE users SET role = 'admin', approved = true WHERE id = $1", [adminRow.rows[0].id]);
     }
 
+    let uid;
     const u = await c.query("SELECT id FROM users WHERE username = 'demo'");
     if (u.rowCount > 0) {
-      const uid = u.rows[0].id;
+      uid = u.rows[0].id;
       await c.query('UPDATE users SET balance = 50000 WHERE id = $1', [uid]);
-      await c.query(
-        `INSERT INTO transactions (user_id,kind,amount,description) VALUES ($1,'deposit',50000,'إيداع افتتاحي عبر مدى')`, [uid]);
-      await c.query(
-        `INSERT INTO notifications (user_id,title,body,type) VALUES ($1,'أهلاً بك في مُرابحة','تم إيداع رصيدك الافتتاحي. تصفّح الفرص وابدأ الاستثمار.','welcome')`, [uid]);
+    } else {
+      const demoHash = await hashPassword('demo12345');
+      const insertRes = await c.query(
+        `INSERT INTO users (username, password_hash, full_name, role, approved, balance)
+         VALUES ('demo', $1, 'مستثمر تجريبي', 'user', true, 50000) RETURNING id`,
+        [demoHash]
+      );
+      uid = insertRes.rows[0].id;
     }
+    await c.query(
+      `INSERT INTO transactions (user_id,kind,amount,description) VALUES ($1,'deposit',50000,'إيداع افتتاحي عبر مدى')`, [uid]);
+    await c.query(
+      `INSERT INTO notifications (user_id,title,body,type) VALUES ($1,'أهلاً بك في مُرابحة','تم إيداع رصيدك الافتتاحي. تصفّح الفرص وابدأ الاستثمار.','welcome')`, [uid]);
     await c.query('COMMIT');
     console.log(`[seed] ${PROJECTS.length} projects inserted`);
   } catch (e) {

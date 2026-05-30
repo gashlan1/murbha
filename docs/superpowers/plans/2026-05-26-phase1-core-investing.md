@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make projects/invest/portfolio/notifications real in `murabaha-platform_1` — backed by PostgreSQL, ported from the canonical `murabaha-platform`'s proven `/app/*` logic, on `_1`'s Express + username/password stack.
+**Goal:** Make projects/invest/portfolio/notifications real in `murbha-platform_1` — backed by PostgreSQL, ported from the canonical `murbha-platform`'s proven `/app/*` logic, on `_1`'s Express + username/password stack.
 
 **Architecture:** Add four tables (`projects`, `investments`, `transactions`, `notifications`) + a `users.balance` column. New Express routers under `/api/*` return the canonical's camelCase JSON shape so the ported front-end runtime (`app.js`) and pages work. Invest is **simplified for Phase 1**: it immediately creates an `active` investment, debits balance, bumps `raised`, and records a transaction — all in one DB transaction. (Canonical's contract→sign→pay chain is deferred to Phase 2, which will refactor invest to insert a `pending_signature` step.)
 
-**Tech Stack:** Express 4, PostgreSQL 16 (`pg`), `node:test` + `supertest`. DB at `postgres://murabaha:murabaha@localhost:5432/murabaha`. Existing: `db/pool.js` (`{pool, query}`), `lib/auth.js`, `middleware/requireAuth.js` (`requireAuthApi`, `requireAuthPage`), auth at `/api/auth`.
+**Tech Stack:** Express 4, PostgreSQL 16 (`pg`), `node:test` + `supertest`. DB at `postgres://murbha:murbha@localhost:5432/murbha`. Existing: `db/pool.js` (`{pool, query}`), `lib/auth.js`, `middleware/requireAuth.js` (`requireAuthApi`, `requireAuthPage`), auth at `/api/auth`.
 
 ---
 
@@ -88,7 +88,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user  ON notifications(user_id);
 
 - [ ] **Step 2: Run migration**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha node db/migrate.js`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha node db/migrate.js`
 Expected: `[migrate] schema applied`
 
 - [ ] **Step 3: Verify**
@@ -170,7 +170,7 @@ seed().catch(err => { console.error('[seed] failed:', err.message); process.exit
 
 - [ ] **Step 3: Run it**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha node db/seed.js`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha node db/seed.js`
 Expected: `[seed] 11 projects inserted`
 
 - [ ] **Step 4: Verify**
@@ -285,7 +285,7 @@ test('GET /api/projects/:slug returns one; 404 when missing', { skip: !HAS_DB },
 });
 ```
 
-- [ ] **Step 3: Run → FAIL** (router not mounted): `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test node --test test/projects.test.js`
+- [ ] **Step 3: Run → FAIL** (router not mounted): `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test node --test test/projects.test.js`
 
 - [ ] **Step 4: Create `routes/projects.js`** (invest is added in Task 4; this task = catalog only)
 
@@ -451,7 +451,7 @@ router.post('/:slug/invest', requireAuthApi, ah(async (req, res) => {
 }));
 ```
 
-- [ ] **Step 4: Run → PASS**. Command: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test node --test test/projects.test.js`
+- [ ] **Step 4: Run → PASS**. Command: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test node --test test/projects.test.js`
 
 - [ ] **Step 5: Commit**
 ```bash
@@ -644,7 +644,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 ```
 
 - [ ] **Step 5: Run → PASS**, then full suite:
-`DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test node --test`
+`DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test node --test`
 Expected: all tests pass (auth + projects + portfolio + notifications).
 
 - [ ] **Step 6: Commit**
@@ -659,7 +659,7 @@ git -c user.email=dev@murbaha.com -c user.name=murbaha commit -m "feat: notifica
 
 **Files:** Create `app.js` (in project root)
 
-Port `/Users/botman/projects/murabaha-platform/app.js` into this repo with three rebases. Read the canonical file first.
+Port `/Users/botman/projects/murbha-platform/app.js` into this repo with three rebases. Read the canonical file first.
 
 - [ ] **Step 1: Copy the canonical `app.js`** to this repo root, then apply:
   1. **Base path:** its `api()` calls hit absolute paths like `/app/...`. Leave the helper generic, but ensure all call sites in the ported HTML pages use `/api/...` (handled in Task 8). No change needed inside `api()` itself beyond confirming it prefixes nothing (it takes a full path).
@@ -682,7 +682,7 @@ git -c user.email=dev@murbaha.com -c user.name=murbaha commit -m "feat: port app
 
 For each page, port the canonical's wired version and apply `_1`'s standing changes. Do ONE page per commit; verify each in the browser before moving on.
 
-- [ ] **Step 1: For each of the four pages**, copy the canonical version (`/Users/botman/projects/murabaha-platform/<page>`) into `_1`, then:
+- [ ] **Step 1: For each of the four pages**, copy the canonical version (`/Users/botman/projects/murbha-platform/<page>`) into `_1`, then:
   1. Rebase every `App.api('/app/...')` / fetch path to `/api/...` (projects→`/api/projects`, project detail→`/api/projects/:slug`, invest→`/api/projects/:slug/invest`, portfolio→`/api/portfolio`, transactions→`/api/transactions`, notifications→`/api/notifications`).
   2. Ensure `<script src="app.js" defer></script>` is present.
   3. Apply `_1` brand/a11y: brand text "Murbaha"/`murbaha.com` (keep Arabic مُرابحة), viewport meta WITHOUT `maximum-scale`/`user-scalable=no`, and confirm the `:focus-visible` + `prefers-reduced-motion` rules exist (they're in `shared.css`; if the page doesn't load `shared.css`, add the same inline block used in `auth.html`).
@@ -691,7 +691,7 @@ For each page, port the canonical's wired version and apply `_1`'s standing chan
 - [ ] **Step 2: Smoke-test each page against the running server**
 ```bash
 docker compose up -d db
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=devsecret PORT=3014 node server.js &
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=devsecret PORT=3014 node server.js &
 SV=$!; sleep 1.5
 curl -s -c /tmp/j.txt -X POST http://localhost:3014/api/auth/register -H 'Content-Type: application/json' -d '{"username":"smoke","password":"hunter2!!"}' >/dev/null
 docker compose exec -T db psql -U murabaha -d murabaha -c "UPDATE users SET balance=100000 WHERE username='smoke';" >/dev/null
@@ -725,7 +725,7 @@ npm start
 ```
 
 - [ ] **Step 2: Full suite green**
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test node --test`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test node --test`
 Expected: all tests pass (auth, projects+invest, portfolio, notifications).
 
 - [ ] **Step 3: Clean-skip without DB**

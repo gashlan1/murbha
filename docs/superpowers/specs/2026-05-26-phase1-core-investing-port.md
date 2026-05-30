@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-26
 **Status:** Approved (direction); spec pending user review
-**Context:** The canonical `murabaha-platform/` already implements the full data-backed app on pure-Node + JSON-file storage. This phase ports its **core investing slice** into `murabaha-platform_1`'s Express + PostgreSQL + username/password stack, reusing the canonical's proven API contract, business logic, seed data, and `app.js` front-end runtime. Later phases: contracts/payments (2), admin portal (3), KYC chain (4).
+**Context:** The canonical `murbha-platform/` already implements the full data-backed app on pure-Node + JSON-file storage. This phase ports its **core investing slice** into `murbha-platform_1`'s Express + PostgreSQL + username/password stack, reusing the canonical's proven API contract, business logic, seed data, and `app.js` front-end runtime. Later phases: contracts/payments (2), admin portal (3), KYC chain (4).
 
 ## Goals
 1. Real data model for projects/investments/transactions/notifications in Postgres.

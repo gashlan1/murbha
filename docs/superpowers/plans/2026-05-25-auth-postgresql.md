@@ -34,7 +34,7 @@
 - [ ] **Step 1: Init repo and make a baseline commit**
 
 ```bash
-cd /Users/botman/projects/murabaha-platform_1
+cd /Users/botman/projects/murbha-platform_1
 git init
 printf "node_modules/\n.env\n.DS_Store\n" > .gitignore   # only if not already present
 git add -A
@@ -97,15 +97,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: murabaha
-      POSTGRES_PASSWORD: murabaha
-      POSTGRES_DB: murabaha
+      POSTGRES_USER: murbha
+      POSTGRES_PASSWORD: murbha
+      POSTGRES_DB: murbha
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U murabaha"]
+      test: ["CMD-SHELL", "pg_isready -U murbha"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -115,7 +115,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgres://murabaha:murabaha@db:5432/murabaha
+      DATABASE_URL: postgres://murbha:murbha@db:5432/murbha
       SESSION_SECRET: change-me-in-production
       CORS_ORIGIN: http://localhost:3000
     ports:
@@ -162,7 +162,7 @@ PORT=3000
 NODE_ENV=development
 
 # PostgreSQL
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha
 
 # Auth
 SESSION_SECRET=change-me-in-production
@@ -255,7 +255,7 @@ migrate().catch(err => {
 - [ ] **Step 4: Run the migration**
 
 ```bash
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha node db/migrate.js
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha node db/migrate.js
 ```
 
 Expected: prints `[migrate] schema applied`.
@@ -663,7 +663,7 @@ test('unauthenticated /portfolio redirects to /login', { skip: !HAS_DB }, async 
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha node --test test/routes.test.js`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha node --test test/routes.test.js`
 Expected: FAIL — `/api/auth/register` returns 404 (router not mounted yet).
 
 - [ ] **Step 3: Modify `server.js` — add requires near the top**
@@ -719,12 +719,12 @@ Object.entries(pageRoutes).forEach(([route, file]) => {
 
 - [ ] **Step 8: Run the integration tests**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test-secret node --test test/routes.test.js`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test-secret node --test test/routes.test.js`
 Expected: PASS (4 tests).
 
 - [ ] **Step 9: Run the full suite**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test-secret node --test`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test-secret node --test`
 Expected: all tests pass.
 
 - [ ] **Step 10: Commit**
@@ -874,7 +874,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
 
 ```bash
 docker compose up -d db
-DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=dev npm start
+DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=dev npm start
 ```
 Visit `http://localhost:3000/login`, register a user, confirm redirect to
 `/portfolio`, reload `/portfolio` (stays in), then POST `/api/auth/logout` and
@@ -987,7 +987,7 @@ docker compose up --build
 
 - [ ] **Step 4: Run the full test suite one more time**
 
-Run: `DATABASE_URL=postgres://murabaha:murabaha@localhost:5432/murabaha SESSION_SECRET=test node --test`
+Run: `DATABASE_URL=postgres://murbha:murbha@localhost:5432/murbha SESSION_SECRET=test node --test`
 Expected: all tests pass.
 
 - [ ] **Step 5: Commit**
