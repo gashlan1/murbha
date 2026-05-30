@@ -110,11 +110,12 @@
 
   // ─── Formatters ────────────────────────────────────────────────
   const _arDigits = '٠١٢٣٤٥٦٧٨٩';
-  const arNum = (n) => String(n).replace(/\d/g, d => _arDigits[+d]);
+  const _isEn = () => (document.documentElement.lang || 'ar') === 'en';
+  const arNum = (n) => _isEn() ? String(n) : String(n).replace(/\d/g, d => _arDigits[+d]);
   const sar = (n) => {
     if (typeof n !== 'number') n = Number(n) || 0;
     const s = Math.round(n).toLocaleString('en-US');
-    return arNum(s) + ' ر.س.';
+    return _isEn() ? (s + ' SAR') : (arNum(s) + ' ر.س.');
   };
   const date = (iso) => {
     if (!iso) return '';
