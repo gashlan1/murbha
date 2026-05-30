@@ -545,6 +545,64 @@
   </a>
 </div>
 
+<!-- SAMA Limit Meter -->
+<div class="section" id="samaLimitSection" style="margin-top: 14px; margin-bottom: 14px;">
+  <div style="background:#fff; border:0.5px solid var(--line); border-radius:18px; padding:16px; text-align: start;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap: 8px;">
+      <span style="font-size:12px; font-weight:700; color:var(--ink-soft); display:flex; align-items:center; gap:6px;">
+        🇸🇦 الحد السنوي للاستثمار (هيئة السوق المالية)
+      </span>
+      <span id="samaLimitRatio" style="font-family:'Cairo'; font-size:12px; font-weight:800; color:var(--gold); white-space: nowrap;">
+        ٠ / ٢٥٠,٠٠٠ ر.س
+      </span>
+    </div>
+    <div style="width:100%; height:6px; background:var(--paper-2); border-radius:3px; overflow:hidden; margin-bottom:6px;">
+      <div id="samaLimitFill" style="width:0%; height:100%; background:linear-gradient(90deg, var(--gold-light), var(--gold)); border-radius:3px; transition:width 0.5s;"></div>
+    </div>
+    <div style="font-size:10px; color:var(--muted); line-height:1.4;">
+      الحد التنظيمي السنوي للاستثمار لعملاء التجزئة هو ٢٥٠,٠٠٠ ر.س. <a href="profile.html" style="color:var(--gold); font-weight:700; text-decoration:none;">رقّ حسابك كمستثمر مؤهل</a> لإلغاء الحد.
+    </div>
+  </div>
+</div>
+
+<!-- Portfolio Visualizer (Donut Chart & Payouts) -->
+<div id="portfolioVisualizer" class="section" style="display:none; margin-top: 14px; margin-bottom: 14px;">
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; text-align: start;">
+    <!-- Allocation Donut Card -->
+    <div style="background:#fff; border:0.5px solid var(--line); border-radius:18px; padding:18px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;">
+      <h3 style="font-family:'Cairo'; font-size:14px; font-weight:800; color:var(--green-dark); width:100%; text-align:start;">توزيع المحفظة الاستثمارية</h3>
+      <div style="position:relative; width:120px; height:120px; display:flex; align-items:center; justify-content:center;">
+        <!-- SVG Donut Chart -->
+        <svg width="120" height="120" viewBox="0 0 42 42" class="donut-chart" style="transform: rotate(-90deg);">
+          <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--paper-2)" stroke-width="4.5"></circle>
+          <!-- Segments will be drawn dynamically via JS -->
+          <circle id="donutSegmentRealEstate" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--green)" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
+          <circle id="donutSegmentOm" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--gold)" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
+          <circle id="donutSegmentOther" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#1e3a8a" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
+        </svg>
+        <div style="position:absolute; font-family:'Cairo'; text-align:center;">
+          <div style="font-size:10px; color:var(--muted); line-height:1;">الاستثمار</div>
+          <div id="donutCenterVal" style="font-size:14px; font-weight:900; color:var(--green-dark); white-space: nowrap;">٠ ر.س</div>
+        </div>
+      </div>
+      <!-- Donut Legend -->
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; font-size:11px; width:100%;">
+        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:var(--green); border-radius:50%;"></span>عقاري (<span id="pctRealEstate">٠٪</span>)</span>
+        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:var(--gold); border-radius:50%;"></span>تشغيل وصيانة (<span id="pctOm">٠٪</span>)</span>
+        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:#1e3a8a; border-radius:50%;"></span>أخرى (<span id="pctOther">٠٪</span>)</span>
+      </div>
+    </div>
+    
+    <!-- Payout Calendar Card -->
+    <div style="background:#fff; border:0.5px solid var(--line); border-radius:18px; padding:18px; display: flex; flex-direction: column;">
+      <h3 style="font-family:'Cairo'; font-size:14px; font-weight:800; color:var(--green-dark); margin-bottom:12px;">جدول التوزيعات القادمة</h3>
+      <div id="payoutCalendarList" style="display:flex; flex-direction:column; gap:8px; max-height:165px; overflow-y:auto; padding-inline-end:4px; flex: 1;">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Empty-state: no investments yet -->
 <div class="section">
   <div class="section-h">
@@ -673,6 +731,125 @@
   const bcMeta = document.querySelectorAll('.bc-meta-item');
   if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
   if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
+
+  // ── Competitor Enhancement: SAMA limit meter ──
+  const totalInvestedThisYear = (data.investments || []).reduce((acc, i) => i.status === 'active' || i.status === 'completed' ? acc + i.amount : acc, 0);
+  const limitMax = 250000;
+  
+  if (user.role === 'qualified_investor' || user.kycStatus === 'verified_qualified') {
+    document.getElementById('samaLimitRatio').textContent = 'غير محدود (مستثمر مؤهل)';
+    document.getElementById('samaLimitFill').style.width = '100%';
+  } else {
+    const limitPct = Math.min(100, (totalInvestedThisYear / limitMax) * 100);
+    document.getElementById('samaLimitFill').style.width = limitPct + '%';
+    document.getElementById('samaLimitRatio').textContent = App.fmt.sar(totalInvestedThisYear) + ' / ' + App.fmt.sar(limitMax);
+  }
+
+  // ── Competitor Enhancement: Donut Portfolio Allocation Chart ──
+  const cats = { realEstate: 0, om: 0, other: 0 };
+  (data.investments || []).forEach(i => {
+    if (i.status === 'active' || i.status === 'completed') {
+      const proj = i.project || {};
+      const category = proj.category || '';
+      if (category.includes('عقار')) {
+        cats.realEstate += i.amount;
+      } else if (category.includes('تشغيل') || category.includes('صيانة') || category.includes('O&M') || category.includes('تنظيف')) {
+        cats.om += i.amount;
+      } else {
+        cats.other += i.amount;
+      }
+    }
+  });
+  
+  const totalAct = cats.realEstate + cats.om + cats.other;
+  if (totalAct > 0) {
+    document.getElementById('portfolioVisualizer').style.display = 'block';
+    document.getElementById('donutCenterVal').textContent = App.fmt.sar(totalAct);
+    
+    const pctRE = Math.round((cats.realEstate / totalAct) * 100);
+    const pctOM = Math.round((cats.om / totalAct) * 100);
+    const pctOther = 100 - pctRE - pctOM; // force sum to 100
+    
+    document.getElementById('pctRealEstate').textContent = App.fmt.arNum(pctRE) + '٪';
+    document.getElementById('pctOm').textContent = App.fmt.arNum(pctOM) + '٪';
+    document.getElementById('pctOther').textContent = App.fmt.arNum(pctOther) + '٪';
+    
+    // SVG Donut calculation using direct percentages since circumference = 100
+    const segRE = document.getElementById('donutSegmentRealEstate');
+    segRE.setAttribute('stroke-dasharray', `${pctRE} ${100 - pctRE}`);
+    segRE.setAttribute('stroke-dashoffset', '0');
+    
+    const segOM = document.getElementById('donutSegmentOm');
+    segOM.setAttribute('stroke-dasharray', `${pctOM} ${100 - pctOM}`);
+    segOM.setAttribute('stroke-dashoffset', `-${pctRE}`);
+    
+    const segOther = document.getElementById('donutSegmentOther');
+    segOther.setAttribute('stroke-dasharray', `${pctOther} ${100 - pctOther}`);
+    segOther.setAttribute('stroke-dashoffset', `-${pctRE + pctOM}`);
+  } else {
+    document.getElementById('portfolioVisualizer').style.display = 'none';
+  }
+
+  // ── Competitor Enhancement: Repayment Calendar / Upcoming Payouts ──
+  const payouts = [];
+  (data.investments || []).forEach(i => {
+    if (i.status === 'active') {
+      const proj = i.project || {};
+      const term = proj.termMonths || 12;
+      const rate = proj.profitRate || 0.092;
+      const numQuarterly = Math.max(1, Math.floor(term / 3));
+      const profitPerQuarter = i.amount * rate / (12 / 3);
+      const startDate = new Date(i.signedAt || i.createdAt || Date.now());
+      
+      for (let q = 1; q <= numQuarterly; q++) {
+        const payDate = new Date(startDate.getTime());
+        payDate.setMonth(startDate.getMonth() + (q * 3));
+        
+        if (payDate > Date.now()) { // only show upcoming payouts
+          const isFinal = q === numQuarterly;
+          const amt = isFinal ? i.amount + profitPerQuarter : profitPerQuarter;
+          payouts.push({
+            projName: proj.name || 'مشروع',
+            date: payDate,
+            amount: amt,
+            type: isFinal ? 'أرباح + رأس مال' : 'أرباح ربعية',
+          });
+        }
+      }
+    }
+  });
+  
+  // Sort payouts chronologically
+  payouts.sort((a, b) => a.date - b.date);
+  
+  const calList = document.getElementById('payoutCalendarList');
+  if (calList) {
+    if (payouts.length === 0) {
+      calList.innerHTML = `<div style="text-align:center; padding:32px 0; color:var(--muted); font-size:12px; font-family:inherit;">لا توجد دفعات قادمة مجدولة حالياً. تبدأ التوزيعات بعد تغطية وتشغيل المشاريع.</div>`;
+    } else {
+      calList.innerHTML = payouts.slice(0, 5).map(p => {
+        const dateStr = App.fmt.date(p.date.toISOString());
+        const daysLeft = Math.max(0, Math.ceil((p.date - Date.now()) / 86400000));
+        const daysText = daysLeft === 0 ? 'اليوم' : `خلال ${App.fmt.arNum(daysLeft)} يوماً`;
+        return `
+          <div style="background:var(--paper); border:0.5px solid var(--line-strong); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="font-family:'Cairo'; font-size:12px; color:var(--green-dark); display:block; margin-bottom:2px; font-weight: 800; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${App.escapeHtml(p.projName)}</b>
+              <span style="font-size:10px; color:var(--muted); display:flex; gap:6px;">
+                <span>${dateStr}</span>
+                <span>•</span>
+                <span style="color:var(--gold); font-weight:700;">${daysText}</span>
+              </span>
+            </div>
+            <div style="text-align:end;">
+              <span style="font-family:'Cairo'; font-weight:900; font-size:13px; color:var(--green); display:block;">${App.fmt.sar(p.amount)}</span>
+              <span style="font-size:9px; color:var(--muted); font-weight:600;">${p.type}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
 
   // ── Quick actions: wire deposit/withdraw ─────
   const qa = document.querySelectorAll('.quick-actions .qa-btn');

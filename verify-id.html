@@ -191,7 +191,64 @@ button, a { font-family: inherit; touch-action: manipulation; }
     <p>يرجى إدخال تفاصيل هويتك الوطنية أو الإقامة ورفع صورة واضحة لها.</p>
   </div>
 
+  <!-- Nafath Quick Verification Card -->
+  <div class="nafath-card" style="background: linear-gradient(135deg, var(--green-dark) 0%, #051a12 100%); color: #fff; padding: 20px; border-radius: 16px; margin-bottom: 20px; position: relative; overflow: hidden; box-shadow: 0 8px 24px rgba(6,43,30,0.15); text-align: start;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="font-family:'Cairo'; font-weight:800; font-size:16px; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:20px;">🛡️</span>
+        التحقق السريع عبر نفاذ (Nafath)
+      </div>
+      <span style="background: var(--gold); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 8px;">موصى به</span>
+    </div>
+    <p style="font-size:12px; color:rgba(255,255,255,0.8); line-height:1.6; margin-bottom:16px;">
+      اضغط لبدء التحقق المباشر والآمن عبر تطبيق نفاذ الوطني دون الحاجة لرفع وثائق يدوياً.
+    </p>
+    <button type="button" class="btn" style="background:#b08840; color:#fff; font-weight:800; width:100%; border:none; border-radius:12px; min-height:48px;" onclick="startNafathFlow()">
+      ✦ تحقق عبر تطبيق نفاذ
+    </button>
+  </div>
+
+  <!-- Nafath Simulation Modal -->
+  <div id="nafathModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #fff; border-radius: 20px; max-width: 400px; width: 90%; padding: 28px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1.5px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 14px;">
+      <div style="font-size: 40px; line-height: 1;">📲</div>
+      <h3 style="font-family: 'Cairo'; font-weight: 900; color: var(--green-dark); margin: 0; font-size: 18px;">تأكيد الهوية عبر تطبيق نفاذ</h3>
+      <p style="font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0;">
+        افتح تطبيق نفاذ على جوالك، وافق على الطلب ثم اختر الرقم التالي لتأكيد هويتك:
+      </p>
+      
+      <!-- Random number container -->
+      <div id="nafathRandomNum" style="font-family: 'Cairo', sans-serif; font-size: 54px; font-weight: 900; color: var(--gold); background: var(--paper); border: 2px dashed var(--gold-soft); border-radius: 16px; padding: 6px 0; width: 120px; letter-spacing: -0.02em;">
+        82
+      </div>
+      
+      <!-- Status text -->
+      <div id="nafathStatus" style="font-size: 13px; color: var(--green); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span id="nafathDot" style="width: 10px; height: 10px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 1.2s infinite;"></span>
+        <span>في انتظار التأكيد من التطبيق...</span>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div style="width: 100%; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden;">
+        <div id="nafathModalProgress" style="width: 0%; height: 100%; background: var(--green); transition: width 3s linear;"></div>
+      </div>
+      
+      <button type="button" class="btn" style="background: var(--paper-2); color: var(--ink-soft); font-weight: 700; min-height: 40px; padding: 8px 16px; width: auto; border: none; border-radius: 8px;" onclick="closeNafathModal()">
+        إلغاء
+      </button>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+  </style>
+
   <form id="verifyIdForm" class="auth-form">
+    <div style="text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 700;">— أو أدخل البيانات يدوياً —</div>
     <div class="auth-form-group">
       <label for="nationalIdInput">رقم الهوية الوطنية / الإقامة</label>
       <input type="tel" id="nationalIdInput" placeholder="١٠٠٠٠٠٠٠٠٠" maxlength="10" required style="direction: ltr; text-align: start;" />
@@ -245,6 +302,63 @@ function triggerFileInput() {
   const result = document.getElementById('scanResult');
   if (result.style.display === 'flex') return; // already scanned successfully
   document.getElementById('idDocInput').click();
+}
+
+let nafathTimeout = null;
+
+async function startNafathFlow() {
+  const modal = document.getElementById('nafathModal');
+  const randNumEl = document.getElementById('nafathRandomNum');
+  const statusEl = document.getElementById('nafathStatus');
+  const progressEl = document.getElementById('nafathModalProgress');
+  
+  // Random number between 10 and 99
+  const randomNum = Math.floor(Math.random() * 90) + 10;
+  
+  // Convert digits to Arabic if lang is ar
+  const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+  const toAr = (n) => String(n).split('').map(c => isNaN(c) ? c : arabicDigits[+c]).join('');
+  randNumEl.textContent = toAr(randomNum);
+  
+  modal.style.display = 'flex';
+  
+  // Reset status text
+  statusEl.innerHTML = '<span id="nafathDot" style="width: 10px; height: 10px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 1.2s infinite;"></span><span>في انتظار التأكيد من التطبيق...</span>';
+  statusEl.style.color = 'var(--green)';
+  
+  // Reset progress and trigger CSS transition
+  progressEl.style.transition = 'none';
+  progressEl.style.width = '0%';
+  // Force reflow
+  progressEl.offsetHeight;
+  progressEl.style.transition = 'width 3s linear';
+  progressEl.style.width = '100%';
+  
+  clearTimeout(nafathTimeout);
+  nafathTimeout = setTimeout(async () => {
+    statusEl.innerHTML = '✓ تم تأكيد الهوية بنجاح!';
+    statusEl.style.color = '#16a34a';
+    
+    // Automatically make verify-id call
+    const mockNationalId = '1000000009'; // Valid mock national ID starting with 1, 10 digits
+    const mockExpiryDate = new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 5 years from now
+    
+    try {
+      await App.api('POST', '/app/auth/verify-id', { nationalId: mockNationalId, expiryDate: mockExpiryDate });
+      App.toast('تم التحقق عبر نفاذ بنجاح ✓', 'success');
+      setTimeout(() => {
+        location.href = 'verify-address.html';
+      }, 1000);
+    } catch (err) {
+      App.toast(err.message || 'فشل التحقق عبر نفاذ', 'error');
+      closeNafathModal();
+    }
+  }, 3000);
+}
+
+function closeNafathModal() {
+  clearTimeout(nafathTimeout);
+  document.getElementById('nafathModal').style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

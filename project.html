@@ -955,47 +955,73 @@
   </div>
 </div>
 
-<!-- TIMELINE -->
+<!-- GUARANTEES & COLLATERALS -->
+<div class="card-section" id="guaranteesSection" style="display:none;">
+  <h2 class="section-h">الضمانات والرهونات</h2>
+  <div id="guaranteesGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+
+<!-- TIMELINE & AMORTIZATION TABS -->
 <div class="card-section">
-  <h2 class="section-h">الجدول الزمني</h2>
-  <div class="timeline">
-    <div class="timeline-row done">
-      <div class="timeline-dot">✓</div>
-      <div class="timeline-info">
-        <b>إطلاق الجولة</b>
-        <span>١ شعبان ١٤٤٧ هـ</span>
+  <div style="display:flex; border-bottom: 2px solid var(--line); margin-bottom:16px; gap:20px;">
+    <button type="button" class="timeline-tab-btn active" onclick="switchTimelineTab(this, 'timeline-flow')" style="font-family:'Cairo'; font-weight:800; font-size:14px; padding:8px 4px; border:none; background:none; border-bottom: 3px solid var(--gold); color:var(--green-dark); cursor:pointer; transition:all 0.2s; outline:none;">
+      الجدول الزمني للجولة
+    </button>
+    <button type="button" class="timeline-tab-btn" onclick="switchTimelineTab(this, 'amortization-table')" style="font-family:'Cairo'; font-weight:800; font-size:14px; padding:8px 4px; border:none; background:none; border-bottom: 3px solid transparent; color:var(--muted); cursor:pointer; transition:all 0.2s; outline:none;">
+      جدول دفعات الأرباح
+    </button>
+  </div>
+  
+  <div id="timeline-flow" class="timeline-tab-content">
+    <div class="timeline">
+      <div class="timeline-row done">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-info">
+          <b>إطلاق الجولة</b>
+          <span id="timelineStart">١ شعبان ١٤٤٧ هـ</span>
+        </div>
+      </div>
+      <div class="timeline-row done" id="timelineProgressRow">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-info">
+          <b>تغطية الجولة الحالية</b>
+          <span id="timelineProgressPct">٧٣٪ من المستهدف</span>
+        </div>
+      </div>
+      <div class="timeline-row" id="timelineClosingRow">
+        <div class="timeline-dot">٣</div>
+        <div class="timeline-info">
+          <b>إقفال الجولة المتوقع</b>
+          <span id="timelineClosesIn">١٢ يوماً متبقّية</span>
+        </div>
+      </div>
+      <div class="timeline-row future">
+        <div class="timeline-dot">٤</div>
+        <div class="timeline-info">
+          <b>بدء تشغيل المشروع وتفعيل العقد</b>
+          <span id="timelineStartsAt">بعد إقفال الجولة</span>
+        </div>
       </div>
     </div>
-    <div class="timeline-row done">
-      <div class="timeline-dot">✓</div>
-      <div class="timeline-info">
-        <b>وصول ٧٣٪ من المستهدف</b>
-        <span>٢٤ شعبان ١٤٤٧ هـ — اليوم</span>
-      </div>
-    </div>
-    <div class="timeline-row">
-      <div class="timeline-dot">٣</div>
-      <div class="timeline-info">
-        <b>إقفال الجولة المتوقع</b>
-        <span>١٢ يوماً متبقّية</span>
-      </div>
-    </div>
-    <div class="timeline-row future">
-      <div class="timeline-dot">٤</div>
-      <div class="timeline-info">
-        <b>بدء توزيع الأرباح (الربع الأول)</b>
-        <span>بعد ٩٠ يوماً من الإقفال</span>
-      </div>
-      <div class="timeline-amt">+٢.٣٪</div>
-    </div>
-    <div class="timeline-row future">
-      <div class="timeline-dot">٥</div>
-      <div class="timeline-info">
-        <b>نهاية مدة العقد + استرجاع رأس المال</b>
-        <span>بعد ٣٦ شهراً</span>
-      </div>
-      <div class="timeline-amt">١٠٠٪</div>
-    </div>
+  </div>
+  
+  <div id="amortization-table" class="timeline-tab-content" style="display:none; overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; text-align:start; font:600 12px 'Tajawal',sans-serif; color:var(--ink-soft); min-width:400px;">
+      <thead>
+        <tr style="border-bottom:1.5px solid var(--line-strong); color:var(--green-dark); font-family:'Cairo'; font-size:12px; font-weight:800;">
+          <th style="padding:10px 6px; text-align:start;">#</th>
+          <th style="padding:10px 6px; text-align:start;">تاريخ الاستحقاق المتوقع</th>
+          <th style="padding:10px 6px; text-align:start;">نوع الدفعة</th>
+          <th style="padding:10px 6px; text-align:end;">نسبة التوزيع</th>
+          <th style="padding:10px 6px; text-align:center;">الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="amortizationTbody">
+        <!-- Generates dynamically -->
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -1469,6 +1495,106 @@
       const amt = parseInt(activeOpt.getAttribute('data-amt'), 10) || p.minAmount;
       window.selectAmt(activeOpt, amt);
     }
+
+    // ── Competitor Enhancement: Dynamic Risk Badge ──
+    let grade = 'أ';
+    if (p.slug === 'aircraft-cleaning') grade = 'أ';
+    else if (p.slug === 'riyadh-mall-expansion') grade = 'أ+';
+    else if (p.slug === 'jeddah-logistics-fleet') grade = 'ب';
+    else if (p.slug === 'neom-supplier-financing') grade = 'ب+';
+    else if (p.slug && p.slug.includes('alangary')) grade = 'أ';
+    
+    if (tagsContainer) {
+      tagsContainer.innerHTML += `<span class="hero-tag risk" style="background:#b08840; color:#fff; cursor:pointer; font-weight:900;" onclick="openRiskModal()">🛡️ تصنيف الائتمان: ${grade}</span>`;
+    }
+
+    // ── Competitor Enhancement: Guarantees & Collaterals Grid ──
+    const guarSec = document.getElementById('guaranteesSection');
+    const guarGrid = document.getElementById('guaranteesGrid');
+    if (guarSec && guarGrid && p.guarantee) {
+      guarGrid.innerHTML = '';
+      const list = p.guarantee.split('+').map(s => s.trim());
+      list.forEach(g => {
+        let icon = '📄';
+        let desc = 'كفالة وضمان مالي للمشروع';
+        if (g.includes('رهن عقاري')) {
+          icon = '🏢';
+          desc = 'رهن عقاري من الدرجة الأولى مسجل لصالح المستثمرين';
+        } else if (g.includes('سند لأمر')) {
+          icon = '✍️';
+          desc = 'سند لأمر قانوني نافذ يغطي كامل قيمة التمويل';
+        } else if (g.includes('كفالة بنكية') || g.includes('ضمان بنكي')) {
+          icon = '🏦';
+          desc = 'ضمان بنكي صادرة من بنك سعودي مرخص بقيمة ١٢٠٪';
+        } else if (g.includes('رهن أصول') || g.includes('معدات')) {
+          icon = '🚜';
+          desc = 'رهن حيازي مسجل على المعدات والأصول التشغيلية';
+        } else if (g.includes('كفالة شركة') || g.includes('كفالة غرم') || g.includes('كفالة أداء')) {
+          icon = '🛡️';
+          desc = 'كفالة غرم وأداء تضامنية من الشركة المالكة للمشروع';
+        }
+        guarGrid.innerHTML += `
+          <div style="background:var(--paper); border-radius:12px; padding:12px 14px; display:flex; gap:10px; align-items:start; border:0.5px solid var(--line-strong); text-align: start;">
+            <span style="font-size:20px; line-height:1; margin-inline-end: 4px;">${icon}</span>
+            <div>
+              <b style="font-family:'Cairo'; font-size:13px; color:var(--green-dark); display:block; margin-bottom:2px; font-weight: 800;">${App.escapeHtml(g)}</b>
+              <span style="font-size:11px; color:var(--muted); line-height:1.4; display:block;">${desc}</span>
+            </div>
+          </div>
+        `;
+      });
+      guarSec.style.display = 'block';
+    }
+
+    // ── Competitor Enhancement: Amortization Repayment Schedule ──
+    const amortTbody = document.getElementById('amortizationTbody');
+    if (amortTbody) {
+      amortTbody.innerHTML = '';
+      const numQuarterly = Math.max(1, Math.floor(p.termMonths / 3));
+      const ratePerQuarter = (p.profitRate / (12 / 3)); // quarterly profit rate
+      const startDate = p.startsAt ? new Date(p.startsAt) : new Date();
+      
+      // Loop through quarters
+      for (let i = 1; i <= numQuarterly; i++) {
+        const payDate = new Date(startDate.getTime());
+        payDate.setMonth(startDate.getMonth() + (i * 3));
+        
+        const isFinal = i === numQuarterly;
+        const payType = isFinal ? 'توزيع الأرباح + استرداد رأس المال' : 'توزيع الأرباح الربعية';
+        const payPct = isFinal ? `${(ratePerQuarter*100).toFixed(1)}٪ + ١٠٠٪` : `${(ratePerQuarter*100).toFixed(1)}٪`;
+        
+        const dateStr = App.fmt.date(payDate.toISOString());
+        
+        const statusText = p.status === 'completed' ? 'مستلمة' : 'مستقبلية';
+        const statusColor = p.status === 'completed' ? '#16a34a' : 'var(--muted)';
+        const statusBg = p.status === 'completed' ? 'rgba(22,163,74,0.08)' : 'rgba(13,22,18,0.05)';
+        
+        amortTbody.innerHTML += `
+          <tr style="border-bottom:0.5px solid var(--line); font-size:12px; text-align: start;">
+            <td style="padding:10px 6px; font-family:'Cairo'; font-weight:800; text-align: start;">${App.fmt.arNum(i)}</td>
+            <td style="padding:10px 6px; text-align: start;">${dateStr}</td>
+            <td style="padding:10px 6px; font-weight:700; text-align: start;">${payType}</td>
+            <td style="padding:10px 6px; text-align:end; font-family:'Cairo'; font-weight:800; color:var(--green);">${App.fmt.arNum(payPct)}</td>
+            <td style="padding:10px 6px; text-align:center;">
+              <span style="font-weight:800; font-size:10px; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:6px; display:inline-block;">${statusText}</span>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // ── Update Fundraising Timeline Dates ──
+    if (p.openedAt) {
+      _setText('#timelineStart', App.fmt.date(p.openedAt));
+    }
+    _setText('#timelineProgressPct', App.fmt.arNum(p.fundedPct) + '٪ من التمويل المطلوب');
+    if (p.closesAt) {
+      const days = Math.max(0, Math.ceil((new Date(p.closesAt) - Date.now()) / 86400000));
+      _setText('#timelineClosesIn', App.fmt.arNum(days) + ' يوماً متبقّية لإغلاق الجولة');
+    }
+    if (p.startsAt) {
+      _setText('#timelineStartsAt', App.fmt.date(p.startsAt) + ' (بدء التشغيل وسريان العقد)');
+    }
   }
 
   // Override selectAmt to use real rate / term
@@ -1532,8 +1658,65 @@
     });
   });
 
+  // Risk modal controls
+  window.openRiskModal = function() {
+    document.getElementById('riskExplanationModal').style.display = 'flex';
+  };
+  window.closeRiskModal = function() {
+    document.getElementById('riskExplanationModal').style.display = 'none';
+  };
+
+  // Timeline tabs switcher
+  window.switchTimelineTab = function(btn, tabId) {
+    document.querySelectorAll('.timeline-tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.style.borderBottomColor = 'transparent';
+      b.style.color = 'var(--muted)';
+    });
+    btn.classList.add('active');
+    btn.style.borderBottomColor = 'var(--gold)';
+    btn.style.color = 'var(--green-dark)';
+    
+    document.querySelectorAll('.timeline-tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById(tabId).style.display = tabId === 'amortization-table' ? 'block' : '';
+  };
+
   // kick off
   _loadProject();
 </script>
+
+<!-- Risk Rating explanation modal -->
+<div id="riskExplanationModal" style="display: none; position: fixed; inset: 0; background: rgba(6,12,8,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div style="background: #fff; border-radius: 20px; max-width: 440px; width: 92%; padding: 24px; text-align: start; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 14px; position: relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px;">
+      <h3 style="font-family:'Cairo'; font-weight:900; color:var(--green-dark); margin:0; font-size:16px;">ماذا يعني تصنيف الائتمان؟</h3>
+      <button type="button" onclick="closeRiskModal()" style="background:none; border:none; font-size:24px; color:var(--muted); cursor:pointer; line-height:1; padding: 0 4px;">&times;</button>
+    </div>
+    <div style="font-size:13px; color:var(--ink-soft); line-height:1.7; display:flex; flex-direction:column; gap:12px;">
+      <div style="display:flex; gap:10px; align-items:start; background:rgba(22,163,74,0.06); padding:10px; border-radius:10px; border-inline-start: 4px solid #16a34a; direction: rtl; text-align: start;">
+        <span style="font-family:'Cairo'; font-weight:900; font-size:16px; color:#16a34a; margin-inline-end: 4px;">أ</span>
+        <div>
+          <b style="color:var(--green-dark); display:block; margin-bottom:2px; font-family:'Cairo'; font-size:13px;">مخاطر منخفضة جداً (Grade A)</b>
+          المشروع مدعوم بعقود جهات حكومية، أو شركات شبه حكومية (صندوق الاستثمارات العامة، أرامكو)، أو رهن عقاري مغطى بالكامل.
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:start; background:rgba(176,136,64,0.06); padding:10px; border-radius:10px; border-inline-start: 4px solid var(--gold); direction: rtl; text-align: start;">
+        <span style="font-family:'Cairo'; font-weight:900; font-size:16px; color:var(--gold); margin-inline-end: 4px;">ب</span>
+        <div>
+          <b style="color:var(--green-dark); display:block; margin-bottom:2px; font-family:'Cairo'; font-size:13px;">مخاطر منخفضة إلى متوسطة (Grade B)</b>
+          المشروع مدعوم بعقود شركات كبرى من القطاع الخاص، ومضمون بسند لأمر وكفالات اعتبارية للشركاء.
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:start; background:rgba(181,73,53,0.06); padding:10px; border-radius:10px; border-inline-start: 4px solid var(--red); direction: rtl; text-align: start;">
+        <span style="font-family:'Cairo'; font-weight:900; font-size:16px; color:var(--red); margin-inline-end: 4px;">ج</span>
+        <div>
+          <b style="color:var(--green-dark); display:block; margin-bottom:2px; font-family:'Cairo'; font-size:13px;">مخاطر متوسطة (Grade C)</b>
+          المشروع يعتمد على تمويل رأس مال عامل أو توريد تجاري قصير الأجل بضمان فواتير وشيكات دفع تحت التحصيل.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
