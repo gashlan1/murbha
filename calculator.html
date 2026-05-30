@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#062b1e" />
+<meta name="color-scheme" content="light only" />
+<title>حاسبة العوائد — مُرابحة</title>
+<meta name="description" content="احسب العائد المتوقع من استثمارك في عقود المرابحة على منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest" />
+<style>
+  :root {
+    color-scheme: light only;
+    --ink: #0d1612; --ink-soft: #1f2a23;
+    --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e; --green-soft: #14694e;
+    --gold: #b08840; --gold-light: #d4ac6e; --gold-soft: #e8d3a8;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #fbf6ea; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
+    background: #fbf6ea !important;
+    color: #0d1612;
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: var(--safe-bot);
+  }
+  button, a, input { font-family: inherit; touch-action: manipulation; }
+  .skip-link { position: absolute; left: -9999px; top: 0; }
+  .skip-link:focus { left: 8px; top: 8px; background: #fff; padding: 8px 12px; border-radius: 8px; z-index: 999; }
+
+  header {
+    position: sticky; top: 0;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid var(--line);
+    z-index: 50;
+    padding-top: var(--safe-top);
+  }
+  .nav { padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(13,22,18,0.05); border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink); text-decoration: none;
+  }
+  .back-btn:active { transform: scale(0.92); }
+  .nav h1 { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); flex: 1; }
+
+  .hero {
+    text-align: center;
+    padding: 28px 18px 22px;
+    background: linear-gradient(180deg, #fbf6ea 0%, var(--paper-2) 100%);
+    border-bottom: 0.5px solid var(--line);
+  }
+  .hero h2 {
+    font-family: 'Cairo'; font-weight: 900; font-size: 24px;
+    color: var(--green-dark); margin-bottom: 6px; letter-spacing: -0.02em;
+  }
+  .hero p { font-size: 13px; color: var(--muted); max-width: 340px; margin: 0 auto; }
+
+  main { padding: 18px; max-width: 560px; margin: 0 auto; }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid var(--line);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'Cairo'; font-weight: 700; font-size: 13px;
+    color: var(--green-dark); margin-bottom: 8px;
+  }
+  .field .hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .input-row {
+    display: flex; align-items: stretch;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 12px; overflow: hidden;
+    background: var(--paper);
+  }
+  .input-row:focus-within { border-color: var(--green); background: #fff; }
+  .input-row input[type="number"] {
+    flex: 1; border: none; background: transparent;
+    padding: 14px 14px; font-size: 18px; font-weight: 700;
+    color: var(--ink); -webkit-appearance: none; -moz-appearance: textfield;
+    text-align: start; direction: ltr;
+  }
+  .input-row input::-webkit-outer-spin-button,
+  .input-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .input-row .unit {
+    padding: 0 14px; display: flex; align-items: center;
+    background: rgba(10,77,54,0.06);
+    font-family: 'Cairo'; font-weight: 700; font-size: 12px;
+    color: var(--green-dark);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    border-radius: 6px; background: var(--paper-2);
+    outline: none; margin-top: 14px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    border-radius: 50%; background: var(--green);
+    border: 3px solid #fff; box-shadow: 0 2px 6px rgba(6,43,30,.3);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--green); border: 3px solid #fff;
+    box-shadow: 0 2px 6px rgba(6,43,30,.3); cursor: pointer;
+  }
+
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .pill {
+    padding: 7px 14px; border-radius: 20px;
+    border: 1px solid var(--line-strong);
+    background: #fff; color: var(--ink);
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .pill.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+
+  /* Result card */
+  .result-card {
+    background: linear-gradient(140deg, var(--green-dark) 0%, var(--green) 100%);
+    color: #fff;
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(6,43,30,.18);
+  }
+  .result-label {
+    font-size: 12px; opacity: .8;
+    margin-bottom: 4px;
+    font-family: 'Cairo'; font-weight: 600;
+  }
+  .result-amount {
+    font-family: 'Cairo'; font-weight: 900;
+    font-size: 38px; letter-spacing: -0.02em;
+    color: var(--gold-light);
+    margin-bottom: 2px;
+  }
+  .result-currency { font-size: 14px; opacity: .7; }
+  .result-meta {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-top: 18px;
+    padding-top: 16px;
+    border-top: 0.5px solid rgba(255,255,255,.15);
+  }
+  .result-meta .cell .v { font-family: 'Cairo'; font-weight: 800; font-size: 18px; }
+  .result-meta .cell .l { font-size: 11px; opacity: .7; margin-top: 2px; }
+
+  .breakdown {
+    background: #fff;
+    border: 0.5px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .breakdown .row {
+    padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 0.5px solid var(--line);
+  }
+  .breakdown .row:last-child { border-bottom: none; }
+  .breakdown .row .l { color: var(--muted); font-size: 13px; }
+  .breakdown .row .v { font-family: 'Cairo'; font-weight: 700; color: var(--ink); }
+  .breakdown .row.total { background: var(--paper); }
+  .breakdown .row.total .v { color: var(--green-dark); font-size: 17px; }
+
+  .cta-row {
+    display: flex; gap: 10px; margin-top: 18px;
+  }
+  .btn {
+    flex: 1; padding: 14px 16px;
+    border-radius: 14px; border: none;
+    font-family: 'Cairo'; font-weight: 800; font-size: 14px;
+    text-decoration: none; text-align: center;
+    cursor: pointer; transition: transform .15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--green-dark); color: #fff; }
+  .btn.ghost {
+    background: #fff; color: var(--green-dark);
+    border: 1.5px solid var(--line-strong);
+  }
+
+  .disclaimer {
+    margin-top: 18px;
+    padding: 12px 14px;
+    background: rgba(176,136,64,.07);
+    border-right: 3px solid var(--gold);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  footer {
+    padding: 24px 18px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 0.5px solid var(--line);
+    margin-top: 20px;
+  }
+  footer .license { display: block; margin-top: 4px; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
+
+<header>
+  <nav class="nav">
+    <a href="hessa.html" class="back-btn" aria-label="رجوع">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6" transform="scale(-1, 1) translate(-24, 0)"/></svg>
+    </a>
+    <h1>حاسبة العوائد</h1>
+  </nav>
+</header>
+
+<section class="hero">
+  <h2>كم سيُربح استثمارك؟</h2>
+  <p>أدخل المبلغ والمدة لتعرف العائد المتوقع من المرابحة، باحتساب فوري وشفاف.</p>
+</section>
+
+<main id="main">
+  <div class="card">
+    <div class="field">
+      <label for="amount">
+        <span>مبلغ الاستثمار</span>
+        <span class="hint">الحد الأدنى ٥٬٠٠٠ ر.س</span>
+      </label>
+      <div class="input-row">
+        <input id="amount" type="number" inputmode="numeric" min="1000" step="500" value="50000" aria-label="مبلغ الاستثمار" />
+        <span class="unit">ر.س</span>
+      </div>
+      <div class="pills" role="group" aria-label="مبالغ سريعة">
+        <button type="button" class="pill" data-amount="10000">١٠٬٠٠٠</button>
+        <button type="button" class="pill" data-amount="25000">٢٥٬٠٠٠</button>
+        <button type="button" class="pill active" data-amount="50000">٥٠٬٠٠٠</button>
+        <button type="button" class="pill" data-amount="100000">١٠٠٬٠٠٠</button>
+        <button type="button" class="pill" data-amount="250000">٢٥٠٬٠٠٠</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="term">
+        <span>مدّة العقد</span>
+        <span class="hint"><span id="termLabel">١٢</span> شهراً</span>
+      </label>
+      <input id="term" type="range" min="3" max="36" step="1" value="12" aria-label="مدّة العقد بالأشهر" />
+      <div class="pills" role="group" aria-label="مدد شائعة">
+        <button type="button" class="pill" data-term="6">٦ أشهر</button>
+        <button type="button" class="pill active" data-term="12">١٢ شهر</button>
+        <button type="button" class="pill" data-term="18">١٨ شهر</button>
+        <button type="button" class="pill" data-term="24">٢٤ شهر</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="rate">
+        <span>نسبة الربح السنوية</span>
+        <span class="hint"><span id="rateLabel">١١٫٥</span>٪</span>
+      </label>
+      <input id="rate" type="range" min="6" max="22" step="0.5" value="11.5" aria-label="نسبة الربح السنوية" />
+      <div class="pills" role="group" aria-label="نسب نموذجية">
+        <button type="button" class="pill" data-rate="8">محافظ ٨٪</button>
+        <button type="button" class="pill active" data-rate="11.5">معتدل ١١٫٥٪</button>
+        <button type="button" class="pill" data-rate="16">نمو ١٦٪</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-card" aria-live="polite">
+    <div class="result-label">إجمالي العائد المتوقع</div>
+    <div class="result-amount"><span id="outProfit">٥٬٧٥٠</span> <span class="result-currency">ر.س</span></div>
+    <div class="result-meta">
+      <div class="cell">
+        <div class="v" id="outMonthly">٤٬٦٤٦</div>
+        <div class="l">دفعة شهرية متوقعة (ر.س)</div>
+      </div>
+      <div class="cell">
+        <div class="v" id="outTotal">٥٥٬٧٥٠</div>
+        <div class="l">إجمالي ما ستستلمه (ر.س)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="breakdown" aria-label="تفصيل الاحتساب">
+    <div class="row"><span class="l">المبلغ المستثمر</span><span class="v" id="bAmount">٥٠٬٠٠٠ ر.س</span></div>
+    <div class="row"><span class="l">معدل الربح السنوي</span><span class="v" id="bRate">١١٫٥٪</span></div>
+    <div class="row"><span class="l">المدّة</span><span class="v" id="bTerm">١٢ شهراً</span></div>
+    <div class="row"><span class="l">الربح المتوقع</span><span class="v" id="bProfit">٥٬٧٥٠ ر.س</span></div>
+    <div class="row total"><span class="l">إجمالي مستحقاتك في نهاية المدّة</span><span class="v" id="bTotal">٥٥٬٧٥٠ ر.س</span></div>
+  </div>
+
+  <div class="cta-row">
+    <a href="projects.html" class="btn primary">شاهد الفرص المتاحة</a>
+    <a href="how-it-works.html" class="btn ghost">كيف تعمل المنصة</a>
+  </div>
+
+  <div class="disclaimer">
+    <strong>إخلاء مسؤولية:</strong> هذه الحاسبة لأغراض توضيحية فقط. العوائد الفعلية تختلف باختلاف الفرصة الاستثمارية، درجة المخاطرة، وأداء الجهة الممولة. الاستثمار في عقود المرابحة لا يضمن الربح وقد يؤدي إلى خسارة جزء أو كل المبلغ المستثمر.
+  </div>
+</main>
+
+<footer>
+  &copy; ٢٠٢٦ منصة مُرابحة — جميع الحقوق محفوظة
+  <span class="license">ترخيص البنك المركزي السعودي — قيد الإصدار</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const amountEl = $('amount'), termEl = $('term'), rateEl = $('rate');
+  const termLabel = $('termLabel'), rateLabel = $('rateLabel');
+  const out = { profit: $('outProfit'), monthly: $('outMonthly'), total: $('outTotal') };
+  const b = { amount: $('bAmount'), rate: $('bRate'), term: $('bTerm'), profit: $('bProfit'), total: $('bTotal') };
+
+  const arDigits = '٠١٢٣٤٥٦٧٨٩';
+  const toAr = n => String(n).replace(/[0-9]/g, d => arDigits[d]);
+  const fmtSar = n => {
+    const rounded = Math.round(n);
+    const parts = rounded.toLocaleString('en-US').replace(/,/g, '٬');
+    return toAr(parts);
+  };
+  const fmtPct = n => toAr(n.toFixed(1).replace('.', '٫').replace(/٫٠$/, ''));
+
+  function recompute() {
+    const amount = Math.max(0, Number(amountEl.value) || 0);
+    const term   = Math.max(1, Number(termEl.value) || 1);
+    const ratePct = Math.max(0, Number(rateEl.value) || 0);
+
+    // Murabaha cost-plus: profit = amount × rate × (term/12).
+    // Equal monthly installments over term.
+    const profit  = amount * (ratePct / 100) * (term / 12);
+    const total   = amount + profit;
+    const monthly = total / term;
+
+    termLabel.textContent = toAr(term);
+    rateLabel.textContent = fmtPct(ratePct);
+
+    out.profit.textContent  = fmtSar(profit);
+    out.monthly.textContent = fmtSar(monthly);
+    out.total.textContent   = fmtSar(total);
+
+    b.amount.textContent = fmtSar(amount) + ' ر.س';
+    b.rate.textContent   = fmtPct(ratePct) + '٪';
+    b.term.textContent   = toAr(term) + ' شهراً';
+    b.profit.textContent = fmtSar(profit) + ' ر.س';
+    b.total.textContent  = fmtSar(total) + ' ر.س';
+
+    syncPills();
+  }
+
+  function syncPills() {
+    document.querySelectorAll('.pill[data-amount]').forEach(p => {
+      p.classList.toggle('active', Number(p.dataset.amount) === Number(amountEl.value));
+    });
+    document.querySelectorAll('.pill[data-term]').forEach(p => {
+      p.classList.toggle('active', Number(p.dataset.term) === Number(termEl.value));
+    });
+    document.querySelectorAll('.pill[data-rate]').forEach(p => {
+      p.classList.toggle('active', Number(p.dataset.rate) === Number(rateEl.value));
+    });
+  }
+
+  // Wire inputs
+  [amountEl, termEl, rateEl].forEach(el => el.addEventListener('input', recompute));
+
+  // Wire pills
+  document.querySelectorAll('.pill[data-amount]').forEach(p => {
+    p.addEventListener('click', () => { amountEl.value = p.dataset.amount; recompute(); });
+  });
+  document.querySelectorAll('.pill[data-term]').forEach(p => {
+    p.addEventListener('click', () => { termEl.value = p.dataset.term; recompute(); });
+  });
+  document.querySelectorAll('.pill[data-rate]').forEach(p => {
+    p.addEventListener('click', () => { rateEl.value = p.dataset.rate; recompute(); });
+  });
+
+  recompute();
+})();
+</script>
+</body>
+</html>
