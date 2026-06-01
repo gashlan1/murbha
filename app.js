@@ -282,10 +282,172 @@
     window.MurbhaLang.reapply = () => applyLang(document.documentElement.lang === 'en' ? 'en' : 'ar');
   };
 
+  // ─── Enhanced button styles (cross-page polish) ───────────────────
+  const BTN_STYLES = `
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 24px;font-family:'Cairo','Tajawal',system-ui,sans-serif;font-size:15px;font-weight:800;letter-spacing:-0.01em;line-height:1.2;border-radius:14px;border:1.5px solid transparent;cursor:pointer;text-decoration:none;transition:transform .12s cubic-bezier(.2,.9,.2,1.2),background .18s,border-color .18s,box-shadow .18s,color .18s;white-space:nowrap;min-height:50px;user-select:none;-webkit-user-select:none;position:relative;isolation:isolate}
+    html[lang="en"] .btn{letter-spacing:0.01em}
+    .btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(176,136,64,0.45),0 4px 14px rgba(10,77,54,0.25)}
+    .btn:active{transform:scale(0.97)}
+    .btn svg{width:18px;height:18px;stroke-width:2.2;flex-shrink:0}
+    .btn-primary{background:linear-gradient(180deg,#0a4d36 0%,#07412d 100%);color:#fbf6ea;box-shadow:0 6px 18px -4px rgba(10,77,54,0.45),inset 0 1px 0 rgba(255,255,255,0.08)}
+    .btn-primary:hover{background:linear-gradient(180deg,#0e5b41 0%,#0a4d36 100%);box-shadow:0 10px 24px -4px rgba(10,77,54,0.55),inset 0 1px 0 rgba(255,255,255,0.12)}
+    .btn-primary:active{background:#062b1e}
+    .btn-gold{background:linear-gradient(180deg,#b08840 0%,#9a7635 100%);color:#fff;box-shadow:0 6px 18px -4px rgba(176,136,64,0.45),inset 0 1px 0 rgba(255,255,255,0.18)}
+    .btn-gold:hover{background:linear-gradient(180deg,#c69850 0%,#b08840 100%);box-shadow:0 10px 24px -4px rgba(176,136,64,0.55),inset 0 1px 0 rgba(255,255,255,0.22)}
+    .btn-gold:active{background:#9a7635}
+    .btn-ghost{background:rgba(13,22,18,0.05);color:#0d1612;border-color:rgba(13,22,18,0.08)}
+    .btn-ghost:hover{background:rgba(13,22,18,0.09);border-color:rgba(13,22,18,0.14)}
+    .btn-nafath{background:linear-gradient(180deg,#00a651 0%,#008a44 100%);color:#fff;font-weight:800;box-shadow:0 6px 18px -4px rgba(0,166,81,0.45),inset 0 1px 0 rgba(255,255,255,0.18)}
+    .btn-nafath:hover{background:linear-gradient(180deg,#00bd5b 0%,#009a4c 100%);box-shadow:0 10px 24px -4px rgba(0,166,81,0.55)}
+    .btn-nafath:active{background:#008a44}
+    .btn-block{width:100%}
+    .btn-sm{padding:10px 16px;font-size:13px;min-height:40px;border-radius:11px;gap:6px}
+    .btn[disabled],.btn:disabled{opacity:0.55;cursor:not-allowed;pointer-events:none;filter:grayscale(0.2)}
+  `;
+
+  // ─── Floating support FAB (WhatsApp + Live chat) ──────────────────
+  const SUPPORT_WA_NUMBER = '966501234567'; // TODO: replace with real number
+  const SUPPORT_WA_TEXT_AR = 'مرحباً، أريد الاستفسار عن مُرابحة';
+  const SUPPORT_WA_TEXT_EN = 'Hi, I have a question about Murbha';
+
+  const FAB_STYLES = `
+    .fab-wrap{position:fixed;inset-block-end:calc(var(--tabbar-h,70px) + env(safe-area-inset-bottom,0px) + 14px);inset-inline-start:14px;z-index:9000;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:10px}
+    .fab-main{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0a4d36 0%,#062b1e 100%);color:#d4ac6e;border:none;box-shadow:0 8px 22px -4px rgba(6,43,30,0.5),0 2px 6px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s,background .2s;position:relative}
+    .fab-main:hover{transform:scale(1.05)}
+    .fab-main:active{transform:scale(0.96)}
+    .fab-main svg{width:26px;height:26px;stroke-width:2}
+    .fab-main .fab-pulse{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(176,136,64,0.5);animation:fab-pulse 2.2s ease-out infinite;pointer-events:none}
+    @keyframes fab-pulse{0%{transform:scale(0.85);opacity:0.9}100%{transform:scale(1.45);opacity:0}}
+    .fab-actions{display:flex;flex-direction:column;gap:8px;opacity:0;transform:translateY(10px) scale(0.92);pointer-events:none;transition:opacity .22s,transform .22s}
+    .fab-wrap.open .fab-actions{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+    .fab-wrap.open .fab-main{background:#0d1612}
+    .fab-wrap.open .fab-main .fab-pulse{display:none}
+    .fab-wrap.open .fab-main .icon-chat{display:none}
+    .fab-wrap.open .fab-main .icon-close{display:block}
+    .fab-main .icon-close{display:none}
+    .fab-action{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#0d1612;border:1px solid rgba(13,22,18,0.10);border-radius:999px;padding:10px 18px 10px 12px;text-decoration:none;font:800 13px 'Cairo','Tajawal',sans-serif;box-shadow:0 6px 18px -4px rgba(6,43,30,0.22);cursor:pointer;white-space:nowrap;transition:transform .15s}
+    .fab-action:hover{transform:translateX(-4px)}
+    .fab-action .fab-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+    .fab-action.whatsapp .fab-icon{background:#25D366}
+    .fab-action.chat .fab-icon{background:#b08840}
+    .fab-action small{display:block;font:600 10px 'Tajawal',sans-serif;color:#6b7268;margin-top:1px}
+    .chat-sheet-overlay{position:fixed;inset:0;background:rgba(6,43,30,0.55);z-index:9500;opacity:0;pointer-events:none;transition:opacity .25s}
+    .chat-sheet-overlay.open{opacity:1;pointer-events:auto}
+    .chat-sheet{position:fixed;inset-inline:0;inset-block-end:0;background:#fbf6ea;border-radius:22px 22px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));z-index:9600;transform:translateY(110%);transition:transform .35s;max-width:480px;margin-inline:auto;box-shadow:0 -10px 40px rgba(0,0,0,0.25)}
+    .chat-sheet.open{transform:translateY(0)}
+    .chat-sheet-handle{width:36px;height:4px;background:rgba(13,22,18,0.10);border-radius:99px;margin:0 auto 14px}
+    .chat-sheet h3{font:900 18px 'Cairo',sans-serif;color:#062b1e;margin-block-end:6px}
+    .chat-sheet .agent{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-radius:14px;margin-block-start:12px;border:1px solid rgba(13,22,18,0.10)}
+    .chat-sheet .agent-avatar{width:36px;height:36px;border-radius:50%;background:#0a4d36;color:#d4ac6e;display:flex;align-items:center;justify-content:center;font:900 14px 'Cairo',sans-serif}
+    .chat-sheet .agent-meta b{font:800 13px 'Cairo',sans-serif;display:block}
+    .chat-sheet .agent-meta small{font:500 11px 'Tajawal',sans-serif;color:#6b7268}
+    .chat-sheet .agent-status{margin-inline-start:auto;background:rgba(15,110,58,0.12);color:#0f6e3a;padding:4px 10px;border-radius:999px;font:800 10px 'Tajawal',sans-serif}
+  `;
+
+  // Trusted, author-baked markup (no user input flows here). Parsed via
+  // <template> rather than assigned via innerHTML on a live element.
+  const FAB_MARKUP_TEMPLATE = `
+    <div class="fab-wrap" id="fabWrap">
+      <button class="fab-main" id="fabMain" type="button" aria-label="فتح خيارات الدعم" data-en-aria-label="Open support options" aria-expanded="false">
+        <span class="fab-pulse"></span>
+        <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="fab-actions" id="fabActions" role="menu">
+        <a class="fab-action whatsapp" id="fabWhatsapp" target="_blank" rel="noopener" role="menuitem">
+          <span class="fab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg></span>
+          <span><span data-en="WhatsApp">واتساب</span><small data-en="Instant reply · within minutes">رد فوري · خلال دقائق</small></span>
+        </a>
+        <button class="fab-action chat" id="fabChat" type="button" role="menuitem">
+          <span class="fab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+          <span><span data-en="Live chat">محادثة مباشرة</span><small data-en="Support team is online">فريق الدعم متّصل الآن</small></span>
+        </button>
+      </div>
+    </div>
+    <div class="chat-sheet-overlay" id="chatOverlay"></div>
+    <div class="chat-sheet" id="chatSheet" role="dialog" aria-label="محادثة مباشرة" data-en-aria-label="Live chat">
+      <div class="chat-sheet-handle"></div>
+      <h3 data-en="Live chat with support">محادثة مباشرة مع فريق الدعم</h3>
+      <small style="color:#6b7268;font:600 12px 'Tajawal',sans-serif" data-en="Average response time: 2 minutes">متوسط وقت الاستجابة: دقيقتان</small>
+      <div class="agent">
+        <div class="agent-avatar" data-en="S">س</div>
+        <div class="agent-meta">
+          <b data-en="Sara Al-Otaibi">سارة العتيبي</b>
+          <small data-en="Customer support consultant">مستشارة دعم العملاء</small>
+        </div>
+        <div class="agent-status" data-en="● Online">● متّصلة</div>
+      </div>
+    </div>
+  `;
+
+  const _injectSupportFab = () => {
+    if (document.getElementById('fabWrap')) return;
+    if (document.body && document.body.dataset.fab === 'off') return;
+
+    if (!document.getElementById('mrb-fab-styles')) {
+      const s = document.createElement('style');
+      s.id = 'mrb-fab-styles';
+      s.textContent = FAB_STYLES;
+      document.head.appendChild(s);
+    }
+    if (!document.getElementById('mrb-btn-styles')) {
+      const s = document.createElement('style');
+      s.id = 'mrb-btn-styles';
+      s.textContent = BTN_STYLES;
+      document.head.appendChild(s);
+    }
+
+    const tpl = document.createElement('template');
+    tpl.innerHTML = FAB_MARKUP_TEMPLATE;
+    document.body.appendChild(tpl.content);
+
+    const waUrl   = `https://wa.me/${SUPPORT_WA_NUMBER}?text=${encodeURIComponent(SUPPORT_WA_TEXT_AR)}`;
+    const waUrlEn = `https://wa.me/${SUPPORT_WA_NUMBER}?text=${encodeURIComponent(SUPPORT_WA_TEXT_EN)}`;
+
+    const wrap   = document.getElementById('fabWrap');
+    const fabMain = document.getElementById('fabMain');
+    const fabChat = document.getElementById('fabChat');
+    const fabWa   = document.getElementById('fabWhatsapp');
+    const sheet   = document.getElementById('chatSheet');
+    const overlay = document.getElementById('chatOverlay');
+
+    fabWa.dataset.hrefAr = waUrl;
+    fabWa.dataset.hrefEn = waUrlEn;
+    const swapWaLang = () => {
+      fabWa.href = (document.documentElement.lang === 'en') ? fabWa.dataset.hrefEn : fabWa.dataset.hrefAr;
+    };
+    swapWaLang();
+
+    fabMain.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !wrap.classList.contains('open');
+      wrap.classList.toggle('open', open);
+      fabMain.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) wrap.classList.remove('open');
+      if (e.target.closest && e.target.closest('#langToggle')) setTimeout(swapWaLang, 0);
+    });
+    fabChat.addEventListener('click', () => {
+      wrap.classList.remove('open');
+      if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+        window.Tawk_API.toggle();
+        return;
+      }
+      sheet.classList.add('open');
+      overlay.classList.add('open');
+    });
+    overlay.addEventListener('click', () => {
+      sheet.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     _wireActions();
     _wireHeaderAuth();
     _wireLangToggle();
+    _injectSupportFab();
   });
 
   window.App = {
