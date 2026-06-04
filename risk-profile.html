@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>ملف المخاطر — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script src="app.js"></script>
+<style>
+:root {
+  --ink: #0d1612; --paper: #fbf6ea; --paper-2: #efe8d6;
+  --green: #0a4d36; --green-dark: #062b1e;
+  --gold: #b08840; --muted: #6b7268;
+  --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+  --red: #c54a3a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--paper); }
+body { font-family: 'Tajawal','Geeza Pro',system-ui,sans-serif; color: var(--ink); line-height: 1.6; padding-bottom: 80px; }
+header {
+  position: sticky; top: 0; z-index: 50; background: rgba(251,246,234,0.92);
+  backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.back { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; background: #fff; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--green-dark); font: 800 18px Cairo,sans-serif; }
+.title { font: 800 16px Cairo,sans-serif; color: var(--green-dark); }
+main { max-width: 680px; margin: 0 auto; padding: 22px; }
+.hero { background: linear-gradient(135deg, var(--green), var(--green-dark)); color: #fff; padding: 26px 22px; border-radius: 18px; margin-bottom: 22px; box-shadow: 0 12px 28px rgba(6,43,30,0.25); }
+.hero h1 { font: 900 22px Cairo,sans-serif; margin-bottom: 8px; }
+.hero p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.85); }
+.card { background: #fff; border-radius: 18px; padding: 22px; border: 1px solid var(--line); margin-bottom: 14px; }
+.q-text { font: 800 15px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 14px; }
+.q-num { display: inline-block; background: var(--gold); color: #fff; font: 900 12px Cairo,sans-serif; padding: 3px 10px; border-radius: 999px; margin-inline-end: 8px; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 12px;
+  cursor: pointer; background: var(--paper); transition: background .2s, border-color .2s;
+  font: 600 14px Tajawal,sans-serif;
+}
+.choice:hover { background: #fff; border-color: var(--gold); }
+.choice input { accent-color: var(--green); width: 18px; height: 18px; flex-shrink: 0; }
+.choice.selected { background: #fff; border-color: var(--green); box-shadow: 0 2px 8px rgba(10,77,54,0.08); }
+.submit-btn {
+  width: 100%; padding: 16px; background: var(--green); color: var(--paper);
+  border: 0; border-radius: 12px; font: 800 15px Cairo,sans-serif; cursor: pointer;
+  margin-top: 12px; min-height: 48px; box-shadow: 0 4px 14px rgba(10,77,54,0.25);
+}
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.result { padding: 30px 22px; text-align: center; border-radius: 18px; margin-bottom: 14px; }
+.result.conservative { background: linear-gradient(135deg, #0f6e3a, #075027); color: #fff; }
+.result.moderate    { background: linear-gradient(135deg, #b08840, #855f1b); color: #fff; }
+.result.aggressive  { background: linear-gradient(135deg, #c54a3a, #8b2f23); color: #fff; }
+.result h2 { font: 900 26px Cairo,sans-serif; margin-bottom: 8px; }
+.result .score { font: 700 14px Tajawal,sans-serif; opacity: 0.9; }
+.advice { background: var(--paper); padding: 18px; border-radius: 14px; font-size: 14px; line-height: 1.8; color: var(--ink); margin-bottom: 14px; }
+.cta-row { display: flex; gap: 10px; }
+.cta-row a { flex: 1; padding: 13px; text-align: center; border-radius: 12px; text-decoration: none; font: 800 13px Cairo,sans-serif; }
+.cta-row a.primary { background: var(--green); color: #fff; }
+.cta-row a.secondary { background: #fff; color: var(--green-dark); border: 1.5px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <a href="profile.html" class="back" aria-label="رجوع">←</a>
+  <div class="title">ملف المخاطر الاستثماري</div>
+</header>
+
+<main id="main">
+  <div id="introBlock">
+    <div class="hero">
+      <h1>كم أنت مرتاح للمخاطرة؟</h1>
+      <p>خمسة أسئلة قصيرة لمساعدتنا في عرض الفرص المناسبة لشخصيتك الاستثمارية. الإجابات سرّية ولا تظهر للعموم.</p>
+    </div>
+    <form id="quizForm"></form>
+  </div>
+
+  <div id="resultBlock" style="display:none;"></div>
+</main>
+
+<script>
+const QUESTIONS = [
+  {
+    q: 'ما هو هدفك الأساسي من الاستثمار؟',
+    a: [
+      { v: 1, t: 'الحفاظ على رأس المال — الأولوية للأمان' },
+      { v: 2, t: 'دخل ثابت ومنتظم' },
+      { v: 3, t: 'نمو معتدل على المدى المتوسط' },
+      { v: 4, t: 'نمو قوي مع قبول بعض المخاطر' },
+      { v: 5, t: 'تعظيم العائد حتى مع مخاطر عالية' },
+    ],
+  },
+  {
+    q: 'ماذا ستفعل إذا انخفضت قيمة استثمارك بنسبة ٢٠٪ خلال شهر؟',
+    a: [
+      { v: 1, t: 'أبيع كل شيء فوراً' },
+      { v: 2, t: 'أبيع جزءاً وأنتظر' },
+      { v: 3, t: 'أنتظر دون تغيير' },
+      { v: 4, t: 'أضيف القليل من الاستثمارات' },
+      { v: 5, t: 'أضاعف استثماري لاستغلال الفرصة' },
+    ],
+  },
+  {
+    q: 'كم سنة تنوي ترك أموالك مستثمرة قبل احتياجها؟',
+    a: [
+      { v: 1, t: 'أقل من سنة' },
+      { v: 2, t: '١-٣ سنوات' },
+      { v: 3, t: '٣-٥ سنوات' },
+      { v: 4, t: '٥-١٠ سنوات' },
+      { v: 5, t: 'أكثر من ١٠ سنوات' },
+    ],
+  },
+  {
+    q: 'ما خبرتك السابقة في الاستثمار في عقود المرابحة أو الصكوك؟',
+    a: [
+      { v: 1, t: 'لا أعرف ما هي المرابحة' },
+      { v: 2, t: 'سمعت عنها فقط' },
+      { v: 3, t: 'مستثمر مبتدئ' },
+      { v: 4, t: 'مستثمر بخبرة متوسطة' },
+      { v: 5, t: 'مستثمر محترف' },
+    ],
+  },
+  {
+    q: 'ما نسبة استثماراتك من إجمالي مدّخراتك؟',
+    a: [
+      { v: 1, t: 'أقل من ١٠٪' },
+      { v: 2, t: '١٠-٢٥٪' },
+      { v: 3, t: '٢٥-٥٠٪' },
+      { v: 4, t: '٥٠-٧٥٪' },
+      { v: 5, t: 'أكثر من ٧٥٪' },
+    ],
+  },
+];
+
+const PROFILES = {
+  conservative: {
+    label: 'محافظ',
+    score: 'النتيجة: محافظ',
+    advice: 'تفضّل الفرص الأقل مخاطرة، بضمانات قوية وأفق زمني واضح. ركّز على عقود المرابحة العقارية وقصيرة المدى مع عوائد مستقرة (٧-٩٪).',
+  },
+  moderate: {
+    label: 'متوازن',
+    score: 'النتيجة: متوازن',
+    advice: 'مستعد لتحمّل مخاطر معتدلة مقابل عوائد أعلى. مزيج من فرص العقاري والتشغيل والصيانة، بآجال ١٢-٢٤ شهراً ومستهدفات ٩-١١٪.',
+  },
+  aggressive: {
+    label: 'نمو مرتفع',
+    score: 'النتيجة: نمو مرتفع',
+    advice: 'مرتاح للمخاطر العالية مقابل عوائد كبيرة. يمكنك استكشاف فرص النقل واللوجستيات والطاقة المتجددة بآجال أطول وعوائد ١٢-١٥٪.',
+  },
+};
+
+(async function () {
+  const user = await App.requireAuth('login.html?next=/risk-profile.html');
+  if (!user) return;
+
+  // Check if already has a profile
+  try {
+    const r = await App.api('GET', '/app/me/risk-profile');
+    if (r.profile?.profile) {
+      showResult(r.profile.profile, r.profile.score, false);
+      return;
+    }
+  } catch (e) {}
+
+  const form = document.getElementById('quizForm');
+  QUESTIONS.forEach((q, i) => {
+    const card = document.createElement('div'); card.className = 'card';
+    const head = document.createElement('div'); head.className = 'q-text';
+    const num = document.createElement('span'); num.className = 'q-num'; num.textContent = (i + 1);
+    head.append(num, document.createTextNode(q.q));
+    card.appendChild(head);
+    const choices = document.createElement('div'); choices.className = 'choices';
+    q.a.forEach(a => {
+      const lbl = document.createElement('label'); lbl.className = 'choice';
+      const rad = document.createElement('input');
+      rad.type = 'radio'; rad.name = 'q' + i; rad.value = a.v;
+      rad.onchange = () => {
+        choices.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+        lbl.classList.add('selected');
+        checkAllAnswered();
+      };
+      const txt = document.createElement('span'); txt.textContent = a.t;
+      lbl.append(rad, txt);
+      choices.appendChild(lbl);
+    });
+    card.appendChild(choices);
+    form.appendChild(card);
+  });
+
+  const submit = document.createElement('button');
+  submit.type = 'submit'; submit.className = 'submit-btn'; submit.disabled = true;
+  submit.textContent = 'احسب ملفي الاستثماري';
+  form.appendChild(submit);
+
+  function checkAllAnswered() {
+    const all = QUESTIONS.every((_, i) => form.querySelector('input[name="q' + i + '"]:checked'));
+    submit.disabled = !all;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const answers = QUESTIONS.map((_, i) => Number(form.querySelector('input[name="q' + i + '"]:checked').value));
+    submit.disabled = true; submit.textContent = 'جاري الحفظ...';
+    try {
+      const r = await App.api('POST', '/app/me/risk-profile', { answers });
+      showResult(r.profile, r.score, true);
+    } catch (e2) {
+      submit.disabled = false; submit.textContent = 'احسب ملفي الاستثماري';
+      App.toast(e2.message || 'تعذّر الحفظ', 'error');
+    }
+  });
+
+  function showResult(profile, score, scrollToTop) {
+    document.getElementById('introBlock').style.display = 'none';
+    const block = document.getElementById('resultBlock');
+    block.style.display = 'block';
+    block.replaceChildren();
+    const p = PROFILES[profile] || PROFILES.moderate;
+    const head = document.createElement('div'); head.className = 'result ' + profile;
+    const eyebrow = document.createElement('div');
+    eyebrow.style.cssText = 'font:600 12px Tajawal,sans-serif;opacity:0.85;margin-bottom:6px;';
+    eyebrow.textContent = 'مستثمر';
+    const title = document.createElement('h2'); title.textContent = p.label;
+    const sc = document.createElement('div'); sc.className = 'score'; sc.textContent = 'الدرجة: ' + score + ' من ٢٥';
+    head.append(eyebrow, title, sc);
+    const advice = document.createElement('div'); advice.className = 'advice';
+    advice.textContent = p.advice;
+    const cta = document.createElement('div'); cta.className = 'cta-row';
+    const a1 = document.createElement('a'); a1.href = 'projects.html'; a1.className = 'primary'; a1.textContent = 'تصفّح الفرص المناسبة';
+    const a2 = document.createElement('a'); a2.href = '#'; a2.className = 'secondary'; a2.textContent = 'إعادة الاختبار';
+    a2.onclick = (ev) => {
+      ev.preventDefault();
+      if (confirm('سيتم استبدال ملفك الحالي بنتيجة جديدة. هل تريد الاستمرار؟')) {
+        document.getElementById('introBlock').style.display = 'block';
+        block.style.display = 'none';
+        QUESTIONS.forEach((_, i) => form.querySelectorAll('input[name="q' + i + '"]').forEach(r => r.checked = false));
+        form.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
+        submit.disabled = true; submit.textContent = 'احسب ملفي الاستثماري';
+      }
+    };
+    cta.append(a1, a2);
+    block.append(head, advice, cta);
+    if (scrollToTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+})();
+</script>
+</body>
+</html>
