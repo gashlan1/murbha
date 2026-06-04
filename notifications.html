@@ -525,6 +525,25 @@
       _allNotifs = notifications;
       _renderNotifs(_allNotifs);
     } catch (e) { App.toast('تعذّر تحميل الإشعارات.', 'error'); }
+
+    // Subscribe to the SSE stream for live updates (no polling).
+    if (typeof EventSource !== 'undefined') {
+      try {
+        const es = new EventSource('/app/events');
+        es.addEventListener('notification', (e) => {
+          try {
+            const payload = JSON.parse(e.data);
+            if (payload?.data?.userId !== user.id) return;
+            _allNotifs.unshift(payload.data);
+            _renderNotifs(_allNotifs);
+            App.toast(payload.data.title || 'إشعار جديد', 'info');
+          } catch (er) {}
+        });
+        es.addEventListener('error', () => { /* will auto-retry per retry: directive */ });
+        // Close the stream when the page unloads.
+        window.addEventListener('pagehide', () => es.close());
+      } catch (e) {}
+    }
   })();
 
   // "قراءة الكل"
