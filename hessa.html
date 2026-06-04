@@ -2115,6 +2115,18 @@
   </style>
 </section>
 
+<!-- LIVE ACTIVITY (social proof) -->
+<section class="section-pad" id="live-activity-sec" style="padding-block:16px 0;">
+  <div id="liveActivityFeed" style="background:linear-gradient(135deg,#062b1e,#051a12);color:#fff;border-radius:18px;padding:18px 20px;display:none;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4ac6e;animation:pulse 1.8s ease-out infinite;"></span>
+      <span style="font:800 12px Cairo,sans-serif;color:#d4ac6e;letter-spacing:0.5px;">نشاط مباشر</span>
+    </div>
+    <div id="liveActivityList" style="flex:1;min-width:200px;font:600 13px Tajawal,sans-serif;color:rgba(251,246,234,0.9);line-height:1.7;"></div>
+  </div>
+  <style>@keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(2);opacity:0}100%{transform:scale(2);opacity:0}}</style>
+</section>
+
 <!-- PROJECTS SECTION (DYNAMIC) -->
 <section class="section-pad" id="projects">
   <div class="projects-head" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
@@ -3303,6 +3315,52 @@
     } catch (e) {}
   }
   window.addEventListener('DOMContentLoaded', loadHessaExtras);
+
+  // Live activity rotator
+  async function loadLiveActivity() {
+    const wrap = document.getElementById('liveActivityFeed');
+    const list = document.getElementById('liveActivityList');
+    if (!wrap || !list) return;
+    let items = [];
+    try {
+      const r = await fetch('/app/activity-public?limit=10');
+      if (r.ok) items = (await r.json()).activity || [];
+    } catch (e) {}
+    if (!items.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    let idx = 0;
+    function tick() {
+      const it = items[idx % items.length];
+      const ago = (() => {
+        const m = Math.floor((Date.now() - new Date(it.at).getTime()) / 60000);
+        if (m < 1) return 'الآن';
+        if (m < 60) return 'قبل ' + m + ' دقيقة';
+        const h = Math.floor(m / 60);
+        if (h < 24) return 'قبل ' + h + ' ساعة';
+        return 'قبل ' + Math.floor(h / 24) + ' يوم';
+      })();
+      list.replaceChildren();
+      const span1 = document.createElement('span');
+      span1.style.cssText='color:#d4ac6e;font-weight:800;';
+      span1.textContent = it.name;
+      const span2 = document.createTextNode(' استثمر ');
+      const span3 = document.createElement('span');
+      span3.style.cssText='color:#fff;font-weight:800;';
+      span3.textContent = it.amount.toLocaleString('ar-SA') + ' ر.س';
+      const span4 = document.createTextNode(' في ');
+      const span5 = document.createElement('span');
+      span5.style.cssText='color:#fff;font-weight:800;';
+      span5.textContent = it.projectName;
+      const span6 = document.createElement('span');
+      span6.style.cssText='color:rgba(251,246,234,0.5);font-weight:500;margin-inline-start:8px;font-size:11px;';
+      span6.textContent = '· ' + ago;
+      list.append(span1, span2, span3, span4, span5, span6);
+      idx++;
+    }
+    tick();
+    setInterval(tick, 4500);
+  }
+  window.addEventListener('DOMContentLoaded', loadLiveActivity);
 
 </script>
 </body>

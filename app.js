@@ -98,6 +98,14 @@
     };
   };
 
+  // ─── Cookie consent banner (loaded once) ────────────────────────
+  if (typeof document !== 'undefined') {
+    const s = document.createElement('script');
+    s.src = '/cookie-consent.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
   // ─── Service worker registration (PWA) ──────────────────────────
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', () => {
