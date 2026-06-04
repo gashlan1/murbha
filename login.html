@@ -155,8 +155,9 @@ button, a { font-family: inherit; touch-action: manipulation; }
 
     <div class="auth-form-error" id="loginError" style="display: none;"></div>
     <button type="submit" class="btn btn-primary" id="loginSubmitBtn">تسجيل الدخول</button>
-    <div style="text-align:center;margin-top:6px;">
+    <div style="text-align:center;margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
       <a href="forgot-password.html" style="color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;">نسيت كلمة المرور؟</a>
+      <button type="button" id="magicLinkBtn" style="background:none;border:0;color:var(--green);font:800 13px Cairo,sans-serif;cursor:pointer;">رابط دخول عبر البريد</button>
     </div>
   </form>
 
@@ -202,6 +203,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginError = document.getElementById('loginError');
   const loginSubmitBtn = document.getElementById('loginSubmitBtn');
   const nextUrl = new URLSearchParams(location.search).get('next') || 'portfolio.html';
+
+  // Magic link request
+  const mlBtn = document.getElementById('magicLinkBtn');
+  if (mlBtn) mlBtn.addEventListener('click', async () => {
+    const email = (document.getElementById('loginIdentifier').value || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      App.toast('أدخل بريداً إلكترونياً صحيحاً للحصول على رابط دخول.', 'error');
+      return;
+    }
+    mlBtn.disabled = true;
+    const orig = mlBtn.textContent; mlBtn.textContent = 'جاري الإرسال...';
+    try {
+      await App.api('POST', '/app/auth/magic-link', { email });
+      App.toast('إذا كان البريد مسجّلاً، فقد أرسلنا لك رابط دخول. تحقق من صندوق الوارد.', 'success');
+    } catch (e) {
+      App.toast('تعذّر الإرسال. حاول لاحقاً.', 'error');
+    } finally { mlBtn.disabled = false; mlBtn.textContent = orig; }
+  });
+
+  // If redirected here with a 2FA challenge (e.g. from magic-link), show the challenge step
+  const challenge = new URLSearchParams(location.search).get('2fa');
+  if (challenge) {
+    loginForm.style.display = 'none';
+    document.getElementById('twofaForm').style.display = 'block';
+    document.getElementById('twofaCode').focus();
+    document.getElementById('twofaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = document.getElementById('twofaCode').value.trim();
+      try {
+        const r2 = await App.api('POST', '/app/auth/login-2fa', { twofaToken: challenge, code });
+        App.toast('تم تسجيل الدخول بنجاح', 'success');
+        setTimeout(() => { location.href = (r2.user?.role === 'admin' ? 'admin.html' : 'portfolio.html'); }, 600);
+      } catch (e2) {
+        const err = document.getElementById('twofaError');
+        err.textContent = e2.message || 'الرمز غير صحيح';
+        err.style.display = 'block';
+      }
+    });
+  }
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();

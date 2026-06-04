@@ -2100,6 +2100,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
+
+  // Live updates via SSE. Admins receive every event; refresh impacted cards.
+  if (typeof EventSource !== 'undefined') {
+    try {
+      const es = new EventSource('/app/events');
+      const debounce = (fn, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+      const refreshUsers = debounce(loadUsers, 500);
+      const refreshQuals = debounce(loadQualifications, 500);
+      const refreshInvs  = debounce(loadInvestments, 500);
+      const refreshAudit = debounce(loadAudit, 500);
+      const refreshHealth = debounce(loadHealth, 500);
+      const refreshQA    = debounce(loadQAInbox, 500);
+      es.addEventListener('notification', (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          const kind = payload?.data?.kind || '';
+          if (['welcome', 'account_rejected'].includes(kind)) refreshUsers();
+          if (kind === 'qualification_approved' || kind === 'qualification_rejected') { refreshQuals(); refreshUsers(); }
+          if (kind === 'invest' || kind === 'deposit' || kind === 'withdraw') { refreshInvs(); refreshHealth(); }
+          if (kind === 'new_question') refreshQA();
+          if (kind === 'sanctions_hit') refreshUsers();
+          refreshAudit();
+        } catch {}
+      });
+      es.addEventListener('error', () => {});
+      window.addEventListener('pagehide', () => es.close());
+    } catch (e) {}
+  }
 });
 </script>
 </body>

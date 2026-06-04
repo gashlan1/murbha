@@ -1264,6 +1264,13 @@
   </div>
 </div>
 
+<!-- Documents -->
+<div class="card-section">
+  <h2 class="section-h">المستندات</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">وثائق الجدوى، الفتوى الشرعية، عقد المرابحة، ووثائق الإفصاح. متاحة للمستثمرين المسجّلين.</p>
+  <div id="projectDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
 <!-- Community Q&A -->
 <div class="card-section">
   <h2 class="section-h">اسأل وأجب</h2>
@@ -1853,6 +1860,51 @@
     }).catch(() => {});
   }
 
+  // ── Project documents ─────────────────────────────────────────
+  async function _loadDocs(projectIdOrSlug) {
+    const list = document.getElementById('projectDocsList');
+    if (!list) return;
+    list.replaceChildren();
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/documents');
+      const me = await App.me();
+      if (!r.documents.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
+        e.textContent = 'لا توجد مستندات متاحة بعد.';
+        list.appendChild(e); return;
+      }
+      r.documents.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const icon = document.createElement('div');
+        icon.style.cssText = 'width:36px;height:36px;background:var(--paper);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gold);font:800 12px Cairo,sans-serif;flex-shrink:0;';
+        icon.textContent = 'PDF';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = d.title;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        meta.textContent = (d.size / 1024).toFixed(1) + ' KB';
+        info.append(t, meta);
+        row.append(icon, info);
+        if (me) {
+          const link = document.createElement('a');
+          link.href = '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/documents/' + d.id;
+          link.target = '_blank'; link.rel = 'noopener';
+          link.style.cssText = 'background:var(--green);color:#fff;padding:8px 14px;border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;';
+          link.textContent = '⬇ تحميل';
+          row.appendChild(link);
+        } else {
+          const hint = document.createElement('a');
+          hint.href = 'login.html?next=/project.html';
+          hint.style.cssText = 'color:var(--muted);font:600 12px Tajawal,sans-serif;text-decoration:none;';
+          hint.textContent = 'سجّل الدخول للتحميل';
+          row.appendChild(hint);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   // ── Community Q&A ─────────────────────────────────────────────
   async function _loadQuestions(projectIdOrSlug) {
     const list = document.getElementById('communityQList');
@@ -1928,7 +1980,30 @@
 
   // Bind sharing once the project is loaded
   const _origRender = _renderProject;
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} };
+  function _emitProductSchema(p) {
+    // Replace any prior FinancialProduct JSON-LD we injected so re-render
+    // doesn't pile up.
+    document.querySelectorAll('script[data-mrb-product]').forEach(n => n.remove());
+    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "FinancialProduct",
+      "name": p.name,
+      "description": p.summary || ('فرصة استثمار شرعية. عائد متوقع ' + ((p.profitRate || 0) * 100).toFixed(1) + '٪ سنوياً لمدة ' + (p.termMonths || 12) + ' شهراً.'),
+      "url": url,
+      "category": p.category || 'مرابحة',
+      "provider": { "@type": "FinancialService", "name": "منصة مُرابحة", "@id": "https://murbha.sa/#organization" },
+      "feesAndCommissionsSpecification": "بدون رسوم على المستثمر",
+      "interestRate": { "@type": "QuantitativeValue", "value": ((p.profitRate || 0) * 100).toFixed(2), "unitText": "PERCENT_PER_YEAR" },
+      "termsOfService": p.shariaApproval || 'اعتماد الهيئة الشرعية المستقلة'
+    };
+    const s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.dataset.mrbProduct = '1';
+    s.textContent = JSON.stringify(data);
+    document.head.appendChild(s);
+  }
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} };
 
   // kick off
   _loadProject();
