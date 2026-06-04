@@ -414,6 +414,8 @@
   <nav class="admin-toc full-width" aria-label="انتقال سريع">
     <a href="#usersCard">👥 المستثمرون</a>
     <a href="#qualificationsCard">⭐ التأهيل</a>
+    <a href="#qaCard">❓ الأسئلة</a>
+    <a href="#webhooksCard">🔗 Webhooks</a>
     <a href="#pushBroadcastCard">🔔 Push</a>
     <a href="#healthCard">💚 صحة النظام</a>
     <a href="#investmentsCard">💰 الاستثمارات</a>
@@ -654,6 +656,34 @@
         </label>
       </div>
       <div id="usersList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- PROJECT Q&A inbox -->
+  <div class="admin-card" id="qaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>❓ صندوق الأسئلة</span>
+      <span class="card-h-sub" id="qaBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="qaList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- WEBHOOKS management -->
+  <div class="admin-card" id="webhooksCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔗 Webhooks</span>
+      <span class="card-h-sub" id="webhooksBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <form id="webhookForm" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+        <input id="whUrl" type="url" placeholder="https://example.com/webhook" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;text-align:start;" />
+        <input id="whDesc" type="text" placeholder="وصف اختياري" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <button type="submit" style="padding:11px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">+ إضافة</button>
+        <div id="whEventsBox" style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </form>
+      <div id="webhooksList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
   </div>
 
@@ -1712,6 +1742,131 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
   if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
 
+  // ── Project Q&A inbox ──────────────────────────────────────────
+  async function loadQAInbox() {
+    const list = document.getElementById('qaList');
+    const badge = document.getElementById('qaBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/questions');
+      const pending = r.questions.filter(q => !q.answer).length;
+      badge.textContent = App.fmt.arNum(pending) + ' بانتظار رد';
+      list.replaceChildren();
+      if (!r.questions.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد أسئلة بعد.';
+        list.appendChild(e); return;
+      }
+      r.questions.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:14px;border:1.5px solid var(--line);border-radius:12px;background:' + (q.answer ? 'rgba(15,110,58,0.04)' : '#fff') + ';';
+        const top = document.createElement('div'); top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        top.textContent = '❓ ' + q.question;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        meta.textContent = (q.askerName || '—') + ' · ' + (q.projectName || '—') + ' · ' + new Date(q.createdAt).toLocaleString('ar-SA');
+        row.append(top, meta);
+        if (q.answer) {
+          const ans = document.createElement('div');
+          ans.style.cssText = 'background:#fff;padding:10px 12px;border-inline-start:3px solid #0f6e3a;border-radius:8px;font-size:13px;color:var(--ink);line-height:1.6;';
+          ans.textContent = '✓ ' + q.answer;
+          row.appendChild(ans);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.rows = 3; ta.maxLength = 2000; ta.placeholder = 'اكتب الإجابة...';
+          ta.style.cssText = 'width:100%;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;margin-bottom:8px;';
+          const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:8px;';
+          const send = document.createElement('button'); send.type='button';
+          send.style.cssText = 'flex:1;padding:10px;background:var(--green);color:#fff;border:0;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+          send.textContent = '✓ نشر الإجابة';
+          send.onclick = async () => {
+            const ans = ta.value.trim();
+            if (ans.length < 2) { alert('اكتب إجابة'); return; }
+            send.disabled = true;
+            try { await App.api('POST', '/app/admin/questions/' + q.id + '/answer', { answer: ans, publish: true }); loadQAInbox(); }
+            catch (e) { alert(e.message); send.disabled = false; }
+          };
+          actions.append(send);
+          row.append(ta, actions);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  // ── Webhooks management ───────────────────────────────────────
+  async function loadWebhooks() {
+    const list = document.getElementById('webhooksList');
+    const badge = document.getElementById('webhooksBadge');
+    const eventsBox = document.getElementById('whEventsBox');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/webhooks');
+      badge.textContent = App.fmt.arNum(r.webhooks.length) + ' مسجّل';
+      // Populate event checkboxes once
+      if (!eventsBox.dataset.populated) {
+        eventsBox.dataset.populated = '1';
+        r.allowedEvents.forEach(ev => {
+          const lbl = document.createElement('label');
+          lbl.style.cssText = 'display:flex;align-items:center;gap:6px;background:var(--paper);padding:6px 10px;border-radius:8px;font:600 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.value = ev; cb.style.cssText = 'accent-color:var(--green);';
+          const s = document.createElement('span'); s.textContent = ev;
+          lbl.append(cb, s); eventsBox.appendChild(lbl);
+        });
+      }
+      list.replaceChildren();
+      if (!r.webhooks.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+        e.textContent = 'لا توجد ويب-هوكس مسجّلة.';
+        list.appendChild(e); return;
+      }
+      r.webhooks.forEach(w => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const top = document.createElement('div'); top.style.cssText = 'display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;';
+        const u = document.createElement('div'); u.style.cssText = 'font:800 12px monospace,sans-serif;color:var(--green-dark);direction:ltr;text-align:start;word-break:break-all;flex:1;';
+        u.textContent = w.url;
+        const act = document.createElement('div'); act.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+        const testBtn = document.createElement('button'); testBtn.type='button';
+        testBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        testBtn.textContent = 'اختبار';
+        testBtn.onclick = async () => { try { await App.api('POST', '/app/admin/webhooks/' + w.id + '/test', {}); alert('تم إطلاق رسالة تجريبية.'); } catch (e) { alert(e.message); } };
+        const delBtn = document.createElement('button'); delBtn.type='button';
+        delBtn.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        delBtn.textContent = 'حذف';
+        delBtn.onclick = async () => { if (!confirm('حذف هذا الويب-هوك؟')) return; try { await App.api('DELETE', '/app/admin/webhooks/' + w.id); loadWebhooks(); } catch (e) { alert(e.message); } };
+        act.append(testBtn, delBtn);
+        top.append(u, act);
+        const events = document.createElement('div'); events.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        events.textContent = w.events.join(' · ');
+        row.append(top, events);
+        if (w.lastDeliveredAt) {
+          const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+          meta.textContent = 'آخر تسليم: ' + new Date(w.lastDeliveredAt).toLocaleString('ar-SA') + (w.lastStatus ? ' · ' + w.lastStatus : '');
+          row.appendChild(meta);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  const whForm = document.getElementById('webhookForm');
+  if (whForm) whForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = document.getElementById('whUrl').value.trim();
+    const description = document.getElementById('whDesc').value.trim();
+    const events = Array.from(document.querySelectorAll('#whEventsBox input:checked')).map(c => c.value);
+    if (!events.length) { alert('اختر حدثاً واحداً على الأقل'); return; }
+    try {
+      const r = await App.api('POST', '/app/admin/webhooks', { url, description, events });
+      alert('تم إنشاء الويب-هوك. السر (يُعرض مرة واحدة):\n\n' + r.webhook.secret);
+      whForm.reset();
+      document.querySelectorAll('#whEventsBox input').forEach(c => c.checked = false);
+      loadWebhooks();
+    } catch (e2) { alert(e2.message); }
+  });
+
   // ── Qualifications review ──────────────────────────────────────
   async function loadQualifications() {
     const list = document.getElementById('qualList');
@@ -1944,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
 });
 </script>
 </body>

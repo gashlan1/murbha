@@ -1264,6 +1264,22 @@
   </div>
 </div>
 
+<!-- Community Q&A -->
+<div class="card-section">
+  <h2 class="section-h">اسأل وأجب</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px;">اطّلع على الأسئلة التي طرحها المستثمرون، أو اطرح سؤالك بنفسك ليتولّى فريق المنصّة الإجابة عليه.</p>
+  <div id="communityQList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+  <form id="askQForm" style="display:none;flex-direction:column;gap:8px;">
+    <label for="askQInput" style="font:700 12px Cairo,sans-serif;color:var(--ink);">سؤالك:</label>
+    <textarea id="askQInput" rows="3" maxlength="800" required placeholder="اطرح سؤالك حول هذه الفرصة..." style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:12px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+    <div id="askQError" style="display:none;color:var(--red);font:700 12px Tajawal,sans-serif;text-align:center;"></div>
+    <button type="submit" class="btn btn-primary" style="margin-top:4px;">إرسال السؤال</button>
+  </form>
+  <p id="askQLoginHint" style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">
+    <a href="login.html?next=/project.html" style="color:var(--green);font-weight:800;text-decoration:none;">سجّل الدخول</a> لطرح سؤال.
+  </p>
+</div>
+
 <!-- STICKY CTA -->
 <div class="sticky-cta">
   <div class="cta-info">
@@ -1837,9 +1853,82 @@
     }).catch(() => {});
   }
 
+  // ── Community Q&A ─────────────────────────────────────────────
+  async function _loadQuestions(projectIdOrSlug) {
+    const list = document.getElementById('communityQList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/questions');
+      list.replaceChildren();
+      if (!r.questions.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
+        e.textContent = 'لا توجد أسئلة بعد. كن أوّل من يسأل!';
+        list.appendChild(e);
+        return;
+      }
+      r.questions.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);';
+        const qt = document.createElement('div');
+        qt.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+        qt.textContent = '❓ ' + q.question;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        meta.textContent = (q.askerName || 'مستثمر') + ' · ' + new Date(q.createdAt).toLocaleDateString('ar-SA');
+        row.append(qt, meta);
+        if (q.answer) {
+          const ans = document.createElement('div');
+          ans.style.cssText = 'background:#fff;padding:12px;border-radius:10px;border-inline-start:3px solid var(--green);font-size:13px;color:var(--ink);line-height:1.7;';
+          const lbl = document.createElement('div');
+          lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green);margin-bottom:4px;';
+          lbl.textContent = '✓ إجابة فريق المنصّة';
+          const body = document.createElement('div');
+          body.textContent = q.answer;
+          ans.append(lbl, body);
+          row.appendChild(ans);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      const x = document.createElement('div');
+      x.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+      x.textContent = 'تعذّر تحميل الأسئلة.';
+      list.appendChild(x);
+    }
+  }
+  async function _initQa(p) {
+    const id = p.slug || p.id;
+    await _loadQuestions(id);
+    const me = await App.me();
+    const form = document.getElementById('askQForm');
+    const hint = document.getElementById('askQLoginHint');
+    if (me) { form.style.display = 'flex'; hint.style.display = 'none'; }
+    else    { form.style.display = 'none'; hint.style.display = 'block'; }
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = '1';
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('askQInput');
+        const err = document.getElementById('askQError');
+        const text = input.value.trim();
+        if (text.length < 5) { err.textContent = 'يرجى كتابة سؤال أوضح.'; err.style.display='block'; return; }
+        err.style.display = 'none';
+        try {
+          await App.api('POST', '/app/projects/' + encodeURIComponent(id) + '/questions', { question: text });
+          App.toast('تم إرسال سؤالك. سنرد خلال ٢٤-٤٨ ساعة.', 'success');
+          input.value = '';
+        } catch (e2) {
+          err.textContent = e2.message || 'تعذّر الإرسال.'; err.style.display = 'block';
+        }
+      });
+    }
+  }
+
   // Bind sharing once the project is loaded
   const _origRender = _renderProject;
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} };
 
   // kick off
   _loadProject();
