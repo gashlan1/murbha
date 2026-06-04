@@ -31,6 +31,43 @@
     await _csrfReady;
   };
 
+  // ─── Platform settings auto-populate ────────────────────────────
+  // Any element with data-setting="path" gets its textContent replaced
+  // with the live value from /app/settings. Path is dot-delimited:
+  //   data-setting="support.hotline"  → settings.support.hotline
+  //   data-setting="social.twitter"   → settings.social.twitter
+  // Tel/mailto hrefs containing the same path get their href rewritten too.
+  let _settingsCache = null;
+  const _fetchSettings = async () => {
+    if (_settingsCache) return _settingsCache;
+    try {
+      const r = await fetch('/app/settings', { credentials: 'same-origin' });
+      if (r.ok) _settingsCache = await r.json();
+    } catch (e) {}
+    return _settingsCache;
+  };
+  const _readPath = (obj, path) => path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+  const _applySettings = (settings) => {
+    if (!settings) return;
+    document.querySelectorAll('[data-setting]').forEach(el => {
+      const v = _readPath(settings, el.dataset.setting);
+      if (v !== undefined && v !== null && v !== '') {
+        el.textContent = v;
+        // If the element is inside an <a href="tel:..."> or mailto, update the href too
+        const link = el.closest('a[href^="tel:"], a[href^="mailto:"]');
+        if (link) {
+          const prefix = link.href.startsWith('tel:') ? 'tel:' : 'mailto:';
+          link.href = prefix + v;
+        }
+      }
+    });
+  };
+  if (typeof document !== 'undefined') {
+    const _run = async () => _applySettings(await _fetchSettings());
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _run);
+    else _run();
+  }
+
   // ─── Service worker registration (PWA) ──────────────────────────
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', () => {

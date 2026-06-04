@@ -576,6 +576,41 @@
     </div>
   </div>
 
+  <!-- USERS — search + bulk actions -->
+  <div class="admin-card" id="usersCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>👥 المستثمرون</span>
+      <span class="card-h-sub" id="usersCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:14px;">
+        <input id="userSearchInput" type="text" placeholder="بحث بالاسم أو البريد أو الجوال أو رقم الهوية" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <select id="userStatusFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل الحالات</option>
+          <option value="pending">قيد المراجعة</option>
+          <option value="approved">معتمد</option>
+          <option value="rejected">مرفوض</option>
+        </select>
+        <select id="userKycFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل خطوات KYC</option>
+          <option value="pending">لم يبدأ</option>
+          <option value="email_verified">تحقق بريد</option>
+          <option value="mobile_verified">تحقق جوال</option>
+          <option value="id_verified">تحقق هوية</option>
+          <option value="verified">مكتمل</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button id="bulkApproveBtn" disabled style="padding:8px 14px;border:0;border-radius:8px;background:#0f6e3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✓ موافقة على المحدد</button>
+        <button id="bulkRejectBtn"  disabled style="padding:8px 14px;border:0;border-radius:8px;background:#c54a3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✗ رفض المحدد</button>
+        <label style="display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--muted);margin-inline-start:auto;cursor:pointer;">
+          <input type="checkbox" id="userSelectAll" style="accent-color:var(--green);" /> تحديد الكل
+        </label>
+      </div>
+      <div id="usersList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
   <!-- LAUNCH PLAN -->
   <div class="admin-card" id="launchPlanCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1261,6 +1296,138 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { alert(e.message || 'فشل الإلغاء. تأكد من الرمز.'); }
   });
 
+  // ── Users (search + bulk) ──────────────────────────────────────
+  const userSearch = document.getElementById('userSearchInput');
+  const userStatus = document.getElementById('userStatusFilter');
+  const userKyc    = document.getElementById('userKycFilter');
+  const usersList  = document.getElementById('usersList');
+  const usersBadge = document.getElementById('usersCountBadge');
+  const selAll     = document.getElementById('userSelectAll');
+  const bulkApprove = document.getElementById('bulkApproveBtn');
+  const bulkReject  = document.getElementById('bulkRejectBtn');
+  const selectedIds = new Set();
+
+  const STATUS_AR = { pending: 'قيد المراجعة', approved: 'معتمد', rejected: 'مرفوض' };
+  const KYC_AR = { pending: 'لم يبدأ', email_verified: 'تحقق بريد', mobile_verified: 'تحقق جوال', id_verified: 'تحقق هوية', verified: 'مكتمل' };
+
+  function statusOf(u) {
+    if (u.role === 'admin') return 'admin';
+    if (u.rejected) return 'rejected';
+    if (u.approved) return 'approved';
+    return 'pending';
+  }
+  function refreshBulkBtns() {
+    const n = selectedIds.size;
+    const dis = n === 0;
+    bulkApprove.disabled = dis; bulkReject.disabled = dis;
+    bulkApprove.style.opacity = bulkReject.style.opacity = dis ? '0.5' : '1';
+    bulkApprove.textContent = `✓ موافقة على المحدد (${App.fmt.arNum(n)})`;
+    bulkReject.textContent  = `✗ رفض المحدد (${App.fmt.arNum(n)})`;
+  }
+
+  async function loadUsers() {
+    const params = new URLSearchParams();
+    if (userSearch.value.trim()) params.set('q', userSearch.value.trim());
+    if (userStatus.value) params.set('status', userStatus.value);
+    if (userKyc.value)    params.set('kyc', userKyc.value);
+    params.set('limit', '100');
+    try {
+      const r = await App.api('GET', '/app/admin/users?' + params.toString());
+      usersBadge.textContent = App.fmt.arNum(r.total) + ' نتيجة';
+      usersList.replaceChildren();
+      if (!r.users.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد نتائج.';
+        usersList.appendChild(e);
+        return;
+      }
+      r.users.forEach(u => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.style.cssText = 'accent-color:var(--green);width:16px;height:16px;';
+        cb.checked = selectedIds.has(u.id);
+        cb.disabled = (u.role === 'admin');
+        cb.onchange = () => {
+          if (cb.checked) selectedIds.add(u.id); else selectedIds.delete(u.id);
+          refreshBulkBtns();
+        };
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const top = document.createElement('div');
+        top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        top.textContent = u.name + (u.role === 'admin' ? ' · 🛡 مسؤول' : '');
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        sub.textContent = (u.email || u.phone || '—') + ' · ' + (u.nationalId || 'no ID');
+        info.append(top, sub);
+        const tags = document.createElement('div');
+        tags.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;';
+        const stChip = document.createElement('span');
+        const st = statusOf(u);
+        const stColors = { pending: '#b08840', approved: '#0f6e3a', rejected: '#c54a3a', admin: '#0a4d36' };
+        stChip.style.cssText = `font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(13,22,18,0.06);color:${stColors[st]};`;
+        stChip.textContent = st === 'admin' ? 'مسؤول' : (STATUS_AR[st] || st);
+        tags.appendChild(stChip);
+        if (u.kycStatus && u.kycStatus !== 'verified') {
+          const kycChip = document.createElement('span');
+          kycChip.style.cssText = 'font:600 10px Tajawal,sans-serif;padding:3px 8px;border-radius:999px;background:var(--paper);color:var(--muted);';
+          kycChip.textContent = KYC_AR[u.kycStatus] || u.kycStatus;
+          tags.appendChild(kycChip);
+        }
+        if ((u.investorClass || 'retail') === 'qualified') {
+          const klassChip = document.createElement('span');
+          klassChip.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(176,136,64,0.12);color:#855f1b;';
+          klassChip.textContent = '⭐ مؤهل';
+          tags.appendChild(klassChip);
+        }
+        row.append(cb, info, tags);
+        usersList.appendChild(row);
+      });
+      refreshBulkBtns();
+    } catch (e) {
+      usersBadge.textContent = 'تعذّر التحميل';
+    }
+  }
+
+  let _searchT;
+  userSearch.addEventListener('input', () => {
+    clearTimeout(_searchT); _searchT = setTimeout(loadUsers, 250);
+  });
+  userStatus.addEventListener('change', loadUsers);
+  userKyc.addEventListener('change', loadUsers);
+  selAll.addEventListener('change', () => {
+    usersList.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if (cb.disabled) return;
+      cb.checked = selAll.checked;
+      cb.dispatchEvent(new Event('change'));
+    });
+  });
+
+  bulkApprove.addEventListener('click', async () => {
+    if (!selectedIds.size) return;
+    if (!confirm(`الموافقة على ${selectedIds.size} حساب؟`)) return;
+    bulkApprove.disabled = true;
+    try {
+      const r = await App.api('POST', '/app/admin/users/bulk-approve', { userIds: [...selectedIds] });
+      alert(`تمت الموافقة على ${r.count} حساب.`);
+      selectedIds.clear(); loadUsers();
+    } catch (e) { alert(e.message || 'فشل التنفيذ'); }
+  });
+  bulkReject.addEventListener('click', async () => {
+    if (!selectedIds.size) return;
+    const reason = prompt('سبب الرفض (اختياري):', '');
+    if (reason === null) return;
+    if (!confirm(`رفض ${selectedIds.size} حساب؟`)) return;
+    bulkReject.disabled = true;
+    try {
+      const r = await App.api('POST', '/app/admin/users/bulk-reject', { userIds: [...selectedIds], reason });
+      alert(`تم رفض ${r.count} حساب.`);
+      selectedIds.clear(); loadUsers();
+    } catch (e) { alert(e.message || 'فشل التنفيذ'); }
+  });
+
   // ── Launch plan ────────────────────────────────────────────────
   const PHASE_LABEL = {
     P0: { title: 'قبل الإطلاق — لا يمكن الإطلاق بدونها', color: '#c54a3a' },
@@ -1339,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
-  await Promise.all([loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
+  await Promise.all([loadUsers(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
 });
 </script>
 </body>

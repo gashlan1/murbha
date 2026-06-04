@@ -1046,5 +1046,162 @@
 })();
 </script>
 
+<!-- Cash sheet (deposit / withdraw) -->
+<div id="cashSheetOverlay" style="display:none;position:fixed;inset:0;background:rgba(6,12,8,0.5);backdrop-filter:blur(4px);z-index:1000;"></div>
+<div id="cashSheet" style="display:none;position:fixed;inset-inline-start:0;inset-inline-end:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:1001;padding:18px 18px calc(env(safe-area-inset-bottom,0px) + 22px);box-shadow:0 -10px 40px rgba(0,0,0,0.15);max-height:92vh;overflow-y:auto;direction:rtl;">
+  <div style="width:38px;height:4px;background:rgba(13,22,18,0.18);border-radius:2px;margin:0 auto 14px;"></div>
+  <h3 id="cashTitle" style="font:800 18px Cairo,sans-serif;color:#062b1e;text-align:center;margin-bottom:6px;">إيداع رصيد</h3>
+  <p id="cashSub" style="text-align:center;font:500 12px Tajawal,sans-serif;color:#6b7268;margin-bottom:18px;">اختر طريقة الدفع والمبلغ.</p>
+  <label style="display:block;font:700 12px Cairo,sans-serif;color:#0d1612;margin-bottom:6px;">طريقة الدفع</label>
+  <div id="cashMethods" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+  <label style="display:block;font:700 12px Cairo,sans-serif;color:#0d1612;margin-bottom:6px;">المبلغ (ر.س)</label>
+  <input id="cashAmount" type="number" inputmode="numeric" min="100" step="100" placeholder="0" style="width:100%;padding:14px 16px;border:1.5px solid rgba(13,22,18,0.20);border-radius:12px;font:800 18px Tajawal,sans-serif;direction:ltr;text-align:start;background:#fbf6ea;" />
+  <div id="cashHint" style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:6px;line-height:1.6;"></div>
+  <div id="cashError" style="display:none;color:#c54a3a;font:700 12px Tajawal,sans-serif;text-align:center;margin-top:10px;"></div>
+  <button id="cashSubmit" disabled style="width:100%;padding:14px;margin-top:16px;background:#0a4d36;color:#fbf6ea;border:0;border-radius:12px;font:800 14px Cairo,sans-serif;cursor:pointer;opacity:0.5;">تأكيد</button>
+  <button id="cashCancel" type="button" style="width:100%;padding:12px;margin-top:8px;background:transparent;color:#6b7268;border:0;font:700 13px Tajawal,sans-serif;cursor:pointer;">إلغاء</button>
+</div>
+
+<script>
+(function () {
+  const overlay = document.getElementById('cashSheetOverlay');
+  const sheet = document.getElementById('cashSheet');
+  const title = document.getElementById('cashTitle');
+  const sub = document.getElementById('cashSub');
+  const methodsEl = document.getElementById('cashMethods');
+  const amountEl = document.getElementById('cashAmount');
+  const hintEl = document.getElementById('cashHint');
+  const errEl = document.getElementById('cashError');
+  const submitBtn = document.getElementById('cashSubmit');
+  const cancelBtn = document.getElementById('cashCancel');
+
+  let _kind = 'deposit', _methods = [], _selectedId = null;
+
+  const close = () => {
+    overlay.style.display = sheet.style.display = 'none';
+    methodsEl.replaceChildren();
+    amountEl.value = ''; errEl.style.display = 'none';
+    submitBtn.disabled = true; submitBtn.style.opacity = '0.5';
+  };
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+
+  function refreshSubmit() {
+    const amt = Number(amountEl.value);
+    const ok = !!_selectedId && amt > 0 && (_kind === 'withdraw' || amt >= 100);
+    submitBtn.disabled = !ok;
+    submitBtn.style.opacity = ok ? '1' : '0.5';
+  }
+  amountEl.addEventListener('input', refreshSubmit);
+
+  function methodLabel(m) {
+    if (m.type === 'iban') return 'حساب بنكي · ' + m.ibanMasked;
+    return (m.brand || 'CARD').toUpperCase() + ' ****' + m.last4;
+  }
+  function methodSub(m) {
+    if (m.type === 'iban') return m.holder;
+    return 'انتهاء ' + String(m.expMonth).padStart(2,'0') + '/' + m.expYear + ' · ' + m.holder;
+  }
+
+  async function open(kind) {
+    _kind = kind; _selectedId = null;
+    const isDeposit = kind === 'deposit';
+    title.textContent = isDeposit ? 'إيداع رصيد' : 'سحب رصيد';
+    sub.textContent = isDeposit ? 'سيتم خصم المبلغ من بطاقتك مباشرة.' : 'سيتم تحويل المبلغ إلى حسابك البنكي خلال 1-3 أيام عمل.';
+    hintEl.textContent = isDeposit ? 'الحد الأدنى للإيداع 100 ر.س. الحد الأقصى للعملية الواحدة 1,000,000 ر.س.' : 'يجب أن يكون لديك رصيد كافٍ في المحفظة.';
+    amountEl.min = isDeposit ? '100' : '1';
+    amountEl.placeholder = isDeposit ? '500' : '1000';
+    methodsEl.replaceChildren();
+    errEl.style.display = 'none';
+    overlay.style.display = sheet.style.display = 'block';
+
+    try {
+      const r = await App.api('GET', '/app/payment-methods');
+      _methods = (r.methods || []).filter(m => m.type === (isDeposit ? 'card' : 'iban'));
+    } catch (e) { _methods = []; }
+
+    if (!_methods.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:18px;border:2px dashed rgba(13,22,18,0.10);border-radius:12px;text-align:center;color:#6b7268;font-size:13px;';
+      empty.textContent = isDeposit ? 'لم تُضف بطاقة بعد. أضف بطاقتك أولاً.' : 'لم تُضف حساباً بنكياً بعد. أضف IBAN أولاً.';
+      const a = document.createElement('a');
+      a.href = 'payment-methods.html';
+      a.textContent = 'إضافة طريقة دفع ←';
+      a.style.cssText = 'display:inline-block;margin-top:10px;color:#0a4d36;font-weight:800;text-decoration:none;font-size:13px;';
+      empty.appendChild(document.createElement('br'));
+      empty.appendChild(a);
+      methodsEl.appendChild(empty);
+      return;
+    }
+
+    const defaultM = _methods.find(m => m.isDefault) || _methods[0];
+    _methods.forEach(m => {
+      const row = document.createElement('label');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid rgba(13,22,18,0.10);border-radius:12px;background:#fff;cursor:pointer;';
+      const radio = document.createElement('input');
+      radio.type = 'radio'; radio.name = 'cashMethod';
+      radio.style.cssText = 'accent-color:#0a4d36;';
+      radio.checked = (m.id === defaultM.id);
+      if (radio.checked) _selectedId = m.id;
+      radio.onchange = () => { _selectedId = m.id; refreshSubmit(); };
+      const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+      const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#0d1612;'; t.textContent = methodLabel(m);
+      const s = document.createElement('div'); s.style.cssText = 'font:500 11px Tajawal,sans-serif;color:#6b7268;'; s.textContent = methodSub(m);
+      info.append(t, s);
+      row.append(radio, info);
+      methodsEl.appendChild(row);
+    });
+    refreshSubmit();
+  }
+  submitBtn.addEventListener('click', async () => {
+    const amt = Number(amountEl.value);
+    if (!_selectedId || !(amt > 0)) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جاري المعالجة...';
+    errEl.style.display = 'none';
+    try {
+      const path = _kind === 'deposit' ? '/app/portfolio/deposit' : '/app/portfolio/withdraw';
+      await App.api('POST', path, { amount: amt, methodId: _selectedId });
+      App.toast(_kind === 'deposit' ? 'تم الإيداع بنجاح.' : 'تم تقديم طلب السحب.', 'success');
+      close();
+      setTimeout(() => location.reload(), 500);
+    } catch (e) {
+      errEl.textContent = e.message || 'فشلت العملية.';
+      errEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'تأكيد';
+    }
+  });
+
+  // Expose openers + hijack the existing prompt-based actions
+  window._cashSheet = { open, close };
+  const origAttach = () => {
+    const qa = document.querySelectorAll('.quick-actions .qa-btn');
+    if (qa[1]) {
+      const fresh = qa[1].cloneNode(true);
+      qa[1].parentNode.replaceChild(fresh, qa[1]);
+      fresh.removeAttribute('href');
+      fresh.style.cursor = 'pointer';
+      fresh.addEventListener('click', (e) => { e.preventDefault(); open('withdraw'); });
+    }
+    const depositBtn = document.querySelector('.deposit-btn');
+    if (depositBtn) {
+      const fresh = depositBtn.cloneNode(true);
+      depositBtn.parentNode.replaceChild(fresh, depositBtn);
+      fresh.addEventListener('click', () => open('deposit'));
+    }
+  };
+  // Run after the main script finishes attaching its own handlers (it's IIFE-synced,
+  // but the deposit-btn is appended async after first data load — retry briefly).
+  let tries = 0;
+  const watcher = setInterval(() => {
+    if (document.querySelector('.deposit-btn') || tries++ > 30) {
+      clearInterval(watcher);
+      origAttach();
+    }
+  }, 100);
+})();
+</script>
+
 </body>
 </html>
