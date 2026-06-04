@@ -72,17 +72,30 @@
   main {
     max-width: 1200px;
     margin: 24px auto;
-    padding: 0 20px 48px;
+    padding: 0 16px 48px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   @media (min-width: 992px) {
     main {
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      padding: 0 20px 48px;
     }
     .full-width {
       grid-column: 1 / -1;
+    }
+  }
+  /* Mobile: collapse any inline 2-column card-body grids to 1 column */
+  @media (max-width: 767px) {
+    .admin-card .card-body[style*="grid-template-columns"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-card form[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    #lpPhases > div > div[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
     }
   }
 
@@ -306,35 +319,43 @@
   /* Quick statistics overview */
   .stats-bar {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
     margin-bottom: 8px;
   }
   @media (min-width: 768px) {
     .stats-bar {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
     }
   }
   .stat-box {
     background: #fff;
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 14px 16px;
     border: 0.5px solid var(--line);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    min-width: 0;
   }
   .stat-icon {
-    width: 44px; height: 44px;
+    width: 40px; height: 40px;
     border-radius: 12px;
     background: rgba(10,77,54,0.08);
     color: var(--green);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
+    flex-shrink: 0;
   }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-lbl { font-size: 11px; color: var(--muted); }
-  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); }
+  .stat-info { display: flex; flex-direction: column; min-width: 0; }
+  .stat-lbl { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 16px; color: var(--green-dark); overflow-wrap: anywhere; }
+  @media (min-width: 768px) {
+    .stat-box { padding: 16px 20px; gap: 14px; }
+    .stat-icon { width: 44px; height: 44px; font-size: 20px; }
+    .stat-val { font-size: 18px; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/site.css" />
 <script src="app.js"></script>
@@ -550,6 +571,162 @@
       <div class="card-body">
         <div id="extensions-container" class="extensions-list">
           <div class="empty-state">جاري تحميل الطلبات...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAUNCH PLAN -->
+  <div class="admin-card" id="launchPlanCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚀 خطة الإطلاق</span>
+      <span class="card-h-sub" id="lpStatusBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="flex:1;background:var(--paper);border-radius:999px;height:12px;overflow:hidden;border:1px solid var(--line);">
+          <div id="lpProgressBar" style="height:100%;background:linear-gradient(90deg, var(--green), var(--green-dark));width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="lpProgressLabel" style="font:800 14px Cairo,sans-serif;color:var(--green-dark);min-width:50px;text-align:end;">٠٪</div>
+      </div>
+      <div id="lpPhases" style="display:flex;flex-direction:column;gap:18px;"></div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div class="admin-card" id="announcementsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📢 الإعلانات</span>
+      <span class="card-h-sub" id="ann-count-badge">٠ نشطة</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="annForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="annTitle" type="text" placeholder="عنوان الإعلان (مثال: إطلاق فرصة استثمارية جديدة)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="annBody" placeholder="نص الإعلان..." rows="4" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <select id="annAudience" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+              <option value="all">كل الزوار</option>
+              <option value="investors">المستثمرون المعتمدون</option>
+              <option value="kyc_pending">حسابات قيد التحقق</option>
+              <option value="admins">المسؤولون فقط</option>
+            </select>
+            <select id="annLevel" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+              <option value="info">معلومة</option>
+              <option value="success">إيجابي</option>
+              <option value="warning">تحذير</option>
+              <option value="urgent">عاجل</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input id="annCta" type="text" placeholder="نص الزر (اختياري)" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            <input id="annCtaUrl" type="text" placeholder="رابط الزر" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          </div>
+          <input id="annExpiresAt" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <button type="submit" class="btn-primary" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+        </form>
+      </div>
+      <div>
+        <div id="annList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">لا توجد إعلانات</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOCIAL + SUPPORT SETTINGS -->
+  <div class="admin-card" id="settingsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔗 روابط التواصل والدعم</span>
+      <span class="card-h-sub">تظهر في تذييل الصفحة الرئيسية</span>
+    </div>
+    <div class="card-body">
+      <form id="settingsForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">X (تويتر)
+          <input id="setTwitter" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">LinkedIn
+          <input id="setLinkedin" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">WhatsApp
+          <input id="setWhatsapp" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">Instagram
+          <input id="setInstagram" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">YouTube
+          <input id="setYoutube" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">الرقم الموحد
+          <input id="setHotline" type="text" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">بريد الدعم
+          <input id="setSupportEmail" type="email" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;align-self:end;">حفظ الإعدادات</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN 2FA enrollment -->
+  <div class="admin-card" id="twofaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛡 المصادقة الثنائية (2FA)</span>
+      <span class="card-h-sub" id="twofaStatus">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div id="twofaDisabled" style="display:none;">
+        <p style="font-size:14px;color:var(--ink);line-height:1.7;margin-bottom:14px;">احمِ حساب الإدارة بطلب رمز ٦ أرقام من تطبيق المصادقة (Google Authenticator أو Authy) عند كل تسجيل دخول.</p>
+        <button id="twofaInitBtn" style="padding:12px 18px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">بدء التفعيل</button>
+        <div id="twofaSetup" style="margin-top:18px;display:none;">
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px;">أضف الرمز السري التالي يدوياً في تطبيق المصادقة:</p>
+          <code id="twofaSecret" style="display:block;background:var(--paper);padding:14px 16px;border-radius:10px;border:1.5px solid var(--gold-soft);font:800 16px 'SF Mono',Menlo,monospace;letter-spacing:1.5px;text-align:center;direction:ltr;user-select:all;"></code>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;">أو افتح هذا الرابط على جهاز فيه تطبيق المصادقة:</p>
+          <code id="twofaUri" style="display:block;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--line);font:500 11px 'SF Mono',Menlo,monospace;word-break:break-all;direction:ltr;user-select:all;color:var(--muted);"></code>
+          <div style="margin-top:14px;">
+            <input id="twofaEnableCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="أدخل الرمز من التطبيق" style="width:100%;padding:12px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 16px 'SF Mono',Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;" />
+            <button id="twofaEnableBtn" style="margin-top:10px;width:100%;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">تأكيد التفعيل</button>
+          </div>
+        </div>
+      </div>
+      <div id="twofaEnabled" style="display:none;">
+        <div style="background:rgba(15,110,58,0.08);border:1px solid rgba(15,110,58,0.20);padding:14px 16px;border-radius:12px;margin-bottom:14px;">
+          <div style="font:800 14px Cairo,sans-serif;color:#0f6e3a;margin-bottom:4px;">✓ المصادقة الثنائية مفعّلة</div>
+          <div id="twofaEnabledAt" style="font-size:12px;color:var(--muted);"></div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">للإلغاء، أدخل الرمز الحالي من تطبيق المصادقة:</p>
+        <input id="twofaDisableCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="رمز التحقق" style="width:100%;padding:12px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 16px 'SF Mono',Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;margin-bottom:10px;" />
+        <button id="twofaDisableBtn" style="width:100%;padding:12px;border:0;border-radius:10px;background:#c54a3a;color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إلغاء التفعيل</button>
+      </div>
+      <div>
+        <h4 style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">لماذا 2FA؟</h4>
+        <ul style="font-size:13px;line-height:1.9;color:var(--muted);padding-inline-start:20px;">
+          <li>يحمي من سرقة كلمة المرور</li>
+          <li>يطلب إثباتاً ثانياً من جهازك في كل دخول</li>
+          <li>إلزامي للمسؤولين في معظم منصات FinTech</li>
+          <li>متوافق مع Google Authenticator وAuthy و1Password</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY: audit log + login attempts -->
+  <div class="admin-card" id="auditCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔐 الأمان والمراجعة</span>
+      <span class="card-h-sub">سجل الإجراءات وحماية تسجيل الدخول</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">سجل الإجراءات الإدارية</div>
+        <div id="auditList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
+        </div>
+      </div>
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">محاولات تسجيل الدخول (آخر ٥٠)</div>
+        <div id="loginList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
         </div>
       </div>
     </div>
@@ -848,9 +1025,321 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // ── Helper: safe empty-state node ─────────────────────────────
+  function _emptyNode(text, color) {
+    const d = document.createElement('div');
+    d.className = 'empty-state';
+    d.style.cssText = 'text-align:center;color:' + (color || 'var(--muted)') + ';padding:32px;';
+    d.textContent = text;
+    return d;
+  }
+
+  // ── Announcements ──────────────────────────────────────────────
+  const annTitle = document.getElementById('annTitle');
+  const annBody = document.getElementById('annBody');
+  const annAudience = document.getElementById('annAudience');
+  const annLevel = document.getElementById('annLevel');
+  const annCta = document.getElementById('annCta');
+  const annCtaUrl = document.getElementById('annCtaUrl');
+  const annExpiresAt = document.getElementById('annExpiresAt');
+  const annList = document.getElementById('annList');
+  const annCount = document.getElementById('ann-count-badge');
+
+  const LEVEL_COLORS = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
+  const AUDIENCE_AR = { all: 'الجميع', investors: 'المستثمرون', kyc_pending: 'قيد التحقق', admins: 'المسؤولون' };
+
+  async function loadAnnouncements() {
+    try {
+      const { announcements } = await App.api('GET', '/app/admin/announcements');
+      const active = announcements.filter(a => !a.deletedAt && (!a.expiresAt || new Date(a.expiresAt) > new Date()));
+      annCount.textContent = App.fmt.arNum(active.length) + ' نشطة';
+      annList.replaceChildren();
+      if (!announcements.length) { annList.appendChild(_emptyNode('لا توجد إعلانات')); return; }
+      announcements.forEach(a => {
+        const row = document.createElement('div');
+        const expired = a.deletedAt || (a.expiresAt && new Date(a.expiresAt) < new Date());
+        row.style.cssText = 'padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:' + (expired ? '#f5f1e3' : '#fff') + ';opacity:' + (expired ? '0.6' : '1') + ';';
+        const title = document.createElement('div');
+        title.style.cssText = 'font:800 14px Cairo,sans-serif;color:' + (LEVEL_COLORS[a.level]||'#0d1612') + ';margin-bottom:6px;display:flex;align-items:center;gap:8px;';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (LEVEL_COLORS[a.level]||'#0d1612');
+        title.appendChild(dot);
+        const t = document.createElement('span');
+        t.textContent = a.title;
+        title.appendChild(t);
+        const body = document.createElement('div');
+        body.style.cssText = 'font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:6px;';
+        body.textContent = a.body;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;';
+        const aud = document.createElement('span');
+        aud.textContent = '👥 ' + (AUDIENCE_AR[a.audience] || a.audience);
+        meta.appendChild(aud);
+        if (a.expiresAt) {
+          const ex = document.createElement('span');
+          ex.textContent = '⏰ ينتهي: ' + new Date(a.expiresAt).toLocaleDateString('ar-SA');
+          meta.appendChild(ex);
+        }
+        if (!expired) {
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:none;border:0;color:#c54a3a;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          del.textContent = '🗑 حذف';
+          del.onclick = async () => {
+            if (!confirm('حذف هذا الإعلان؟')) return;
+            try { await App.api('DELETE', '/app/admin/announcements/' + a.id); loadAnnouncements(); }
+            catch (e) { alert(e.message || 'فشل الحذف'); }
+          };
+          meta.appendChild(del);
+        }
+        row.append(title, body, meta);
+        annList.appendChild(row);
+      });
+    } catch (e) {
+      annList.replaceChildren(_emptyNode('تعذّر تحميل الإعلانات', '#c54a3a'));
+    }
+  }
+
+  document.getElementById('annForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: annTitle.value.trim(),
+      body: annBody.value.trim(),
+      audience: annAudience.value,
+      level: annLevel.value,
+      cta: annCta.value.trim(),
+      ctaUrl: annCtaUrl.value.trim(),
+      expiresAt: annExpiresAt.value ? new Date(annExpiresAt.value).toISOString() : null,
+    };
+    try {
+      await App.api('POST', '/app/admin/announcements', payload);
+      [annTitle, annBody, annCta, annCtaUrl, annExpiresAt].forEach(el => el.value = '');
+      loadAnnouncements();
+    } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── Settings ───────────────────────────────────────────────────
+  async function loadSettings() {
+    try {
+      const s = await App.api('GET', '/app/settings');
+      document.getElementById('setTwitter').value   = s.social?.twitter   || '';
+      document.getElementById('setLinkedin').value  = s.social?.linkedin  || '';
+      document.getElementById('setWhatsapp').value  = s.social?.whatsapp  || '';
+      document.getElementById('setInstagram').value = s.social?.instagram || '';
+      document.getElementById('setYoutube').value   = s.social?.youtube   || '';
+      document.getElementById('setHotline').value   = s.support?.hotline  || '';
+      document.getElementById('setSupportEmail').value = s.support?.email || '';
+    } catch (e) {}
+  }
+  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      social: {
+        twitter: document.getElementById('setTwitter').value.trim(),
+        linkedin: document.getElementById('setLinkedin').value.trim(),
+        whatsapp: document.getElementById('setWhatsapp').value.trim(),
+        instagram: document.getElementById('setInstagram').value.trim(),
+        youtube: document.getElementById('setYoutube').value.trim(),
+      },
+      support: {
+        hotline: document.getElementById('setHotline').value.trim(),
+        email: document.getElementById('setSupportEmail').value.trim(),
+      },
+    };
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      e.target.querySelector('button[type="submit"]').textContent = '✓ تم الحفظ';
+      setTimeout(() => { e.target.querySelector('button[type="submit"]').textContent = 'حفظ الإعدادات'; }, 1500);
+    } catch (e2) { alert(e2.message || 'فشل الحفظ'); }
+  });
+
+  // ── Security: audit + login attempts ───────────────────────────
+  const ACTION_AR = {
+    'user.approve': 'وافق على مستخدم',
+    'user.reject': 'رفض مستخدم',
+    'announcement.create': 'أنشأ إعلاناً',
+    'announcement.update': 'حدّث إعلاناً',
+    'announcement.delete': 'حذف إعلاناً',
+    'settings.update': 'حدّث الإعدادات',
+  };
+  async function loadAudit() {
+    const auditList = document.getElementById('auditList');
+    const loginList = document.getElementById('loginList');
+    try {
+      const [{ entries }, { attempts }] = await Promise.all([
+        App.api('GET', '/app/admin/audit-log?limit=50'),
+        App.api('GET', '/app/admin/login-attempts?limit=50'),
+      ]);
+      auditList.replaceChildren();
+      if (!entries.length) { auditList.appendChild(_emptyNode('لا توجد إجراءات بعد')); }
+      else entries.forEach(e => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = (e.actorName || '—') + ' · ' + (ACTION_AR[e.action] || e.action);
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(e.createdAt).toLocaleString('ar-SA') + (e.ip ? ' · ' + e.ip : '');
+        row.append(t, sub);
+        auditList.appendChild(row);
+      });
+      loginList.replaceChildren();
+      if (!attempts.length) { loginList.appendChild(_emptyNode('لا توجد محاولات')); }
+      else attempts.forEach(a => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:' + (a.success ? 'rgba(15,110,58,0.06)' : 'rgba(197,74,58,0.06)') + ';font-size:13px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + (a.success ? '#0f6e3a' : '#c54a3a') + ';margin-bottom:4px;';
+        t.textContent = (a.success ? '✓ ' : '✗ ') + a.identifier;
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(a.createdAt).toLocaleString('ar-SA') + ' · ' + (a.ip || '—') + (a.reason ? ' · ' + a.reason : '');
+        row.append(t, sub);
+        loginList.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
+  // ── 2FA enrollment ─────────────────────────────────────────────
+  const twofaStatus = document.getElementById('twofaStatus');
+  const twofaDisabled = document.getElementById('twofaDisabled');
+  const twofaEnabled = document.getElementById('twofaEnabled');
+  const twofaSetup = document.getElementById('twofaSetup');
+  const twofaSecret = document.getElementById('twofaSecret');
+  const twofaUri = document.getElementById('twofaUri');
+  const twofaEnableCode = document.getElementById('twofaEnableCode');
+
+  async function refreshTwofa() {
+    try {
+      const me = await App.api('GET', '/app/auth/me');
+      if (me.user && me.user.totpEnrolled) {
+        twofaStatus.textContent = 'مفعّلة ✓';
+        twofaDisabled.style.display = 'none';
+        twofaEnabled.style.display = 'block';
+        const at = me.user.totpEnrolledAt ? new Date(me.user.totpEnrolledAt).toLocaleDateString('ar-SA') : '—';
+        document.getElementById('twofaEnabledAt').textContent = 'تم التفعيل في ' + at;
+      } else {
+        twofaStatus.textContent = 'غير مفعّلة';
+        twofaDisabled.style.display = 'block';
+        twofaEnabled.style.display = 'none';
+        twofaSetup.style.display = 'none';
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById('twofaInitBtn').addEventListener('click', async () => {
+    try {
+      const r = await App.api('POST', '/app/admin/2fa/init', {});
+      twofaSecret.textContent = r.secret;
+      twofaUri.textContent = r.uri;
+      twofaSetup.style.display = 'block';
+      twofaEnableCode.focus();
+    } catch (e) { alert(e.message || 'تعذّر البدء'); }
+  });
+
+  document.getElementById('twofaEnableBtn').addEventListener('click', async () => {
+    const code = twofaEnableCode.value.trim();
+    if (code.length !== 6) { alert('أدخل الرمز المكوّن من 6 أرقام'); return; }
+    try {
+      await App.api('POST', '/app/admin/2fa/enable', { code });
+      alert('تم تفعيل المصادقة الثنائية. في كل تسجيل دخول، سيُطلب منك إدخال رمز جديد.');
+      twofaEnableCode.value = '';
+      refreshTwofa();
+    } catch (e) { alert(e.message || 'فشل التفعيل. تأكد من الرمز.'); }
+  });
+
+  document.getElementById('twofaDisableBtn').addEventListener('click', async () => {
+    const code = document.getElementById('twofaDisableCode').value.trim();
+    if (code.length !== 6) { alert('أدخل الرمز المكوّن من 6 أرقام'); return; }
+    if (!confirm('تأكيد إلغاء المصادقة الثنائية؟ هذا يقلل من أمان حسابك.')) return;
+    try {
+      await App.api('POST', '/app/admin/2fa/disable', { code });
+      alert('تم إلغاء التفعيل.');
+      document.getElementById('twofaDisableCode').value = '';
+      refreshTwofa();
+    } catch (e) { alert(e.message || 'فشل الإلغاء. تأكد من الرمز.'); }
+  });
+
+  // ── Launch plan ────────────────────────────────────────────────
+  const PHASE_LABEL = {
+    P0: { title: 'قبل الإطلاق — لا يمكن الإطلاق بدونها', color: '#c54a3a' },
+    P1: { title: 'أسبوع الإطلاق — أساسيات', color: '#b08840' },
+    P2: { title: 'الـ 90 يوماً الأولى — تحسينات', color: '#0a4d36' },
+  };
+
+  async function loadLaunchPlan() {
+    const phases = document.getElementById('lpPhases');
+    const bar = document.getElementById('lpProgressBar');
+    const lbl = document.getElementById('lpProgressLabel');
+    const badge = document.getElementById('lpStatusBadge');
+    try {
+      const r = await App.api('GET', '/app/admin/launch-plan');
+      bar.style.width = r.pct + '%';
+      lbl.textContent = App.fmt.arNum(r.pct) + '٪';
+      badge.textContent = App.fmt.arNum(r.done) + ' / ' + App.fmt.arNum(r.total) + ' مكتمل';
+      phases.replaceChildren();
+      const groups = { P0: [], P1: [], P2: [] };
+      r.items.forEach(it => { (groups[it.phase] || (groups[it.phase] = [])).push(it); });
+      for (const phaseKey of ['P0', 'P1', 'P2']) {
+        const meta = PHASE_LABEL[phaseKey];
+        if (!meta || !groups[phaseKey].length) continue;
+        const wrap = document.createElement('div');
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + meta.color + ';margin-bottom:8px;display:flex;align-items:center;gap:8px;';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:50%;background:' + meta.color + ';';
+        head.appendChild(dot);
+        const ht = document.createElement('span');
+        ht.textContent = phaseKey + ' — ' + meta.title;
+        head.appendChild(ht);
+        const dn = groups[phaseKey].filter(x => x.done).length;
+        const cn = document.createElement('span');
+        cn.style.cssText = 'margin-inline-start:auto;font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        cn.textContent = App.fmt.arNum(dn) + ' / ' + App.fmt.arNum(groups[phaseKey].length);
+        head.appendChild(cn);
+        wrap.appendChild(head);
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;';
+        groups[phaseKey].forEach(it => {
+          const row = document.createElement('label');
+          row.style.cssText = 'display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:' + (it.done ? 'rgba(15,110,58,0.06)' : '#fff') + ';cursor:pointer;transition:background .2s;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!it.done;
+          cb.style.cssText = 'width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--green);';
+          cb.onchange = async () => {
+            cb.disabled = true;
+            try {
+              await App.api('PATCH', '/app/admin/launch-plan/' + encodeURIComponent(it.id), { done: cb.checked });
+              loadLaunchPlan();
+            } catch (e) { cb.checked = !cb.checked; alert(e.message || 'فشل التحديث'); cb.disabled = false; }
+          };
+          const txt = document.createElement('div');
+          txt.style.cssText = 'flex:1;';
+          const t = document.createElement('div');
+          t.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + (it.done ? 'var(--muted)' : 'var(--ink)') + ';margin-bottom:4px;text-decoration:' + (it.done ? 'line-through' : 'none') + ';';
+          t.textContent = it.title;
+          const d = document.createElement('div');
+          d.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.6;';
+          d.textContent = it.desc;
+          txt.append(t, d);
+          row.append(cb, txt);
+          list.appendChild(row);
+        });
+        wrap.appendChild(list);
+        phases.appendChild(wrap);
+      }
+    } catch (e) {
+      badge.textContent = 'تعذّر التحميل';
+    }
+  }
+
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
+  await Promise.all([loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
 });
 </script>
 </body>
