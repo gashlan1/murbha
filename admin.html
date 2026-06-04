@@ -611,6 +611,28 @@
     </div>
   </div>
 
+  <!-- INVESTMENTS — filterable list + CSV export -->
+  <div class="admin-card" id="investmentsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💰 الاستثمارات</span>
+      <span class="card-h-sub" id="invStats">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:10px;margin-bottom:14px;">
+        <input id="invSearchInput" type="text" placeholder="بحث بالمستثمر أو المشروع" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <select id="invStatusFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل الحالات</option>
+          <option value="pending_signature">بانتظار التوقيع</option>
+          <option value="active">نشط</option>
+          <option value="completed">مكتمل</option>
+          <option value="cancelled">ملغى</option>
+        </select>
+        <a id="invExportBtn" href="/app/admin/investments.csv" download style="padding:11px 16px;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;text-decoration:none;align-self:center;">⬇ تصدير CSV</a>
+      </div>
+      <div id="invList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
   <!-- LAUNCH PLAN -->
   <div class="admin-card" id="launchPlanCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1363,7 +1385,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         sub.textContent = (u.email || u.phone || '—') + ' · ' + (u.nationalId || 'no ID');
         info.append(top, sub);
         const tags = document.createElement('div');
-        tags.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;';
+        tags.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;';
+        if (u.kycDocs && (u.kycDocs.id_front || u.kycDocs.selfie)) {
+          const viewBtn = document.createElement('button');
+          viewBtn.type = 'button';
+          viewBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--gold-soft);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          viewBtn.textContent = '🪪 عرض KYC';
+          viewBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openKycViewer(u); };
+          tags.appendChild(viewBtn);
+        }
         const stChip = document.createElement('span');
         const st = statusOf(u);
         const stColors = { pending: '#b08840', approved: '#0f6e3a', rejected: '#c54a3a', admin: '#0a4d36' };
@@ -1427,6 +1457,104 @@ document.addEventListener('DOMContentLoaded', async () => {
       selectedIds.clear(); loadUsers();
     } catch (e) { alert(e.message || 'فشل التنفيذ'); }
   });
+
+  // ── KYC viewer ─────────────────────────────────────────────────
+  function openKycViewer(u) {
+    let modal = document.getElementById('kycViewerModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'kycViewerModal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,12,8,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      document.body.appendChild(modal);
+    }
+    modal.replaceChildren();
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:20px;max-width:720px;width:92%;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.3);direction:rtl;';
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:start;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px;';
+    const headerInfo = document.createElement('div'); headerInfo.style.cssText = 'flex:1;min-width:0;';
+    const t = document.createElement('h2'); t.style.cssText = 'font:800 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;'; t.textContent = u.name;
+    const s = document.createElement('div'); s.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;';
+    s.textContent = (u.email || u.phone || '') + ' · ID ' + (u.nationalId || '—');
+    headerInfo.append(t, s);
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;';
+    closeBtn.textContent = '✕'; closeBtn.onclick = () => modal.remove();
+    header.append(headerInfo, closeBtn);
+    card.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:18px;';
+    const KIND_AR = { id_front: 'صورة الهوية الأمامية', id_back: 'صورة الهوية الخلفية', selfie: 'صورة شخصية', address_proof: 'إثبات العنوان' };
+    Object.entries(u.kycDocs || {}).forEach(([kind, doc]) => {
+      const tile = document.createElement('div');
+      tile.style.cssText = 'border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper);';
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);background:#fff;';
+      lbl.textContent = KIND_AR[kind] || kind;
+      tile.appendChild(lbl);
+      const url = '/app/auth/kyc/file/' + encodeURIComponent(kind) + '?userId=' + encodeURIComponent(u.id);
+      if ((doc.mime || '').startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = url; img.style.cssText = 'display:block;width:100%;max-height:240px;object-fit:contain;background:#f5f1e3;';
+        img.alt = KIND_AR[kind] || kind;
+        tile.appendChild(img);
+      } else {
+        const link = document.createElement('a');
+        link.href = url; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = 'فتح المستند (' + (doc.mime || 'file') + ')';
+        link.style.cssText = 'display:block;padding:24px;text-align:center;color:var(--green-dark);font:800 13px Cairo,sans-serif;text-decoration:none;background:#fff;';
+        tile.appendChild(link);
+      }
+      const meta = document.createElement('div');
+      meta.style.cssText = 'padding:8px 12px;font:500 11px Tajawal,sans-serif;color:var(--muted);background:#fff;';
+      meta.textContent = `${(doc.size/1024).toFixed(1)} KB · ${new Date(doc.uploadedAt).toLocaleString('ar-SA')}`;
+      tile.appendChild(meta);
+      grid.appendChild(tile);
+    });
+    if (!Object.keys(u.kycDocs || {}).length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;color:var(--muted);padding:24px;';
+      empty.textContent = 'لا توجد مستندات مرفوعة بعد.';
+      grid.appendChild(empty);
+    }
+    card.appendChild(grid);
+
+    // Quick approve/reject from inside the viewer
+    if (u.role !== 'admin' && !u.rejected) {
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:8px;border-top:1px solid var(--line);padding-top:14px;';
+      if (!u.approved) {
+        const approve = document.createElement('button');
+        approve.style.cssText = 'flex:1;padding:12px;background:#0f6e3a;color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+        approve.textContent = '✓ موافقة على الحساب';
+        approve.onclick = async () => {
+          if (!confirm('الموافقة على هذا الحساب؟')) return;
+          try {
+            await App.api('POST', '/app/admin/users/approve', { userId: u.id });
+            alert('تمت الموافقة.'); modal.remove(); loadUsers();
+          } catch (e) { alert(e.message); }
+        };
+        actions.appendChild(approve);
+      }
+      const reject = document.createElement('button');
+      reject.style.cssText = 'flex:1;padding:12px;background:#c54a3a;color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      reject.textContent = '✗ رفض الحساب';
+      reject.onclick = async () => {
+        const reason = prompt('سبب الرفض (اختياري):', '');
+        if (reason === null) return;
+        try {
+          await App.api('POST', '/app/admin/users/reject', { userId: u.id, reason });
+          alert('تم الرفض.'); modal.remove(); loadUsers();
+        } catch (e) { alert(e.message); }
+      };
+      actions.appendChild(reject);
+      card.appendChild(actions);
+    }
+
+    modal.appendChild(card);
+  }
 
   // ── Launch plan ────────────────────────────────────────────────
   const PHASE_LABEL = {
@@ -1506,7 +1634,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
-  await Promise.all([loadUsers(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
 });
 </script>
 </body>

@@ -12,6 +12,38 @@
 'use strict';
 
 const CACHE_VERSION = 'mrb-v1';
+
+// ─── Push notifications ────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data ? event.data.text() : '' }; }
+  const title = data.title || 'منصة مُرابحة';
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || '',
+    icon: '/favicon.svg',
+    badge: '/favicon.svg',
+    data: { url: data.url || '/' },
+    dir: 'rtl',
+    lang: 'ar',
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification?.data?.url || '/';
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window' });
+    for (const c of all) {
+      if (new URL(c.url).origin === self.location.origin) {
+        c.focus();
+        c.navigate(url);
+        return;
+      }
+    }
+    self.clients.openWindow(url);
+  })());
+});
+
 const APP_SHELL = [
   '/',
   '/hessa.html',
