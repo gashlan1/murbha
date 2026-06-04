@@ -72,17 +72,30 @@
   main {
     max-width: 1200px;
     margin: 24px auto;
-    padding: 0 20px 48px;
+    padding: 0 16px 48px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   @media (min-width: 992px) {
     main {
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      padding: 0 20px 48px;
     }
     .full-width {
       grid-column: 1 / -1;
+    }
+  }
+  /* Mobile: collapse any inline 2-column card-body grids to 1 column */
+  @media (max-width: 767px) {
+    .admin-card .card-body[style*="grid-template-columns"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-card form[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    #lpPhases > div > div[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
     }
   }
 
@@ -306,35 +319,43 @@
   /* Quick statistics overview */
   .stats-bar {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
     margin-bottom: 8px;
   }
   @media (min-width: 768px) {
     .stats-bar {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
     }
   }
   .stat-box {
     background: #fff;
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 14px 16px;
     border: 0.5px solid var(--line);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    min-width: 0;
   }
   .stat-icon {
-    width: 44px; height: 44px;
+    width: 40px; height: 40px;
     border-radius: 12px;
     background: rgba(10,77,54,0.08);
     color: var(--green);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
+    flex-shrink: 0;
   }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-lbl { font-size: 11px; color: var(--muted); }
-  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); }
+  .stat-info { display: flex; flex-direction: column; min-width: 0; }
+  .stat-lbl { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 16px; color: var(--green-dark); overflow-wrap: anywhere; }
+  @media (min-width: 768px) {
+    .stat-box { padding: 16px 20px; gap: 14px; }
+    .stat-icon { width: 44px; height: 44px; font-size: 20px; }
+    .stat-val { font-size: 18px; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/site.css" />
 <script src="app.js"></script>
@@ -552,6 +573,23 @@
           <div class="empty-state">جاري تحميل الطلبات...</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- LAUNCH PLAN -->
+  <div class="admin-card" id="launchPlanCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚀 خطة الإطلاق</span>
+      <span class="card-h-sub" id="lpStatusBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="flex:1;background:var(--paper);border-radius:999px;height:12px;overflow:hidden;border:1px solid var(--line);">
+          <div id="lpProgressBar" style="height:100%;background:linear-gradient(90deg, var(--green), var(--green-dark));width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="lpProgressLabel" style="font:800 14px Cairo,sans-serif;color:var(--green-dark);min-width:50px;text-align:end;">٠٪</div>
+      </div>
+      <div id="lpPhases" style="display:flex;flex-direction:column;gap:18px;"></div>
     </div>
   </div>
 
@@ -1223,10 +1261,85 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { alert(e.message || 'فشل الإلغاء. تأكد من الرمز.'); }
   });
 
+  // ── Launch plan ────────────────────────────────────────────────
+  const PHASE_LABEL = {
+    P0: { title: 'قبل الإطلاق — لا يمكن الإطلاق بدونها', color: '#c54a3a' },
+    P1: { title: 'أسبوع الإطلاق — أساسيات', color: '#b08840' },
+    P2: { title: 'الـ 90 يوماً الأولى — تحسينات', color: '#0a4d36' },
+  };
+
+  async function loadLaunchPlan() {
+    const phases = document.getElementById('lpPhases');
+    const bar = document.getElementById('lpProgressBar');
+    const lbl = document.getElementById('lpProgressLabel');
+    const badge = document.getElementById('lpStatusBadge');
+    try {
+      const r = await App.api('GET', '/app/admin/launch-plan');
+      bar.style.width = r.pct + '%';
+      lbl.textContent = App.fmt.arNum(r.pct) + '٪';
+      badge.textContent = App.fmt.arNum(r.done) + ' / ' + App.fmt.arNum(r.total) + ' مكتمل';
+      phases.replaceChildren();
+      const groups = { P0: [], P1: [], P2: [] };
+      r.items.forEach(it => { (groups[it.phase] || (groups[it.phase] = [])).push(it); });
+      for (const phaseKey of ['P0', 'P1', 'P2']) {
+        const meta = PHASE_LABEL[phaseKey];
+        if (!meta || !groups[phaseKey].length) continue;
+        const wrap = document.createElement('div');
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + meta.color + ';margin-bottom:8px;display:flex;align-items:center;gap:8px;';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:50%;background:' + meta.color + ';';
+        head.appendChild(dot);
+        const ht = document.createElement('span');
+        ht.textContent = phaseKey + ' — ' + meta.title;
+        head.appendChild(ht);
+        const dn = groups[phaseKey].filter(x => x.done).length;
+        const cn = document.createElement('span');
+        cn.style.cssText = 'margin-inline-start:auto;font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        cn.textContent = App.fmt.arNum(dn) + ' / ' + App.fmt.arNum(groups[phaseKey].length);
+        head.appendChild(cn);
+        wrap.appendChild(head);
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;';
+        groups[phaseKey].forEach(it => {
+          const row = document.createElement('label');
+          row.style.cssText = 'display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:' + (it.done ? 'rgba(15,110,58,0.06)' : '#fff') + ';cursor:pointer;transition:background .2s;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!it.done;
+          cb.style.cssText = 'width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--green);';
+          cb.onchange = async () => {
+            cb.disabled = true;
+            try {
+              await App.api('PATCH', '/app/admin/launch-plan/' + encodeURIComponent(it.id), { done: cb.checked });
+              loadLaunchPlan();
+            } catch (e) { cb.checked = !cb.checked; alert(e.message || 'فشل التحديث'); cb.disabled = false; }
+          };
+          const txt = document.createElement('div');
+          txt.style.cssText = 'flex:1;';
+          const t = document.createElement('div');
+          t.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + (it.done ? 'var(--muted)' : 'var(--ink)') + ';margin-bottom:4px;text-decoration:' + (it.done ? 'line-through' : 'none') + ';';
+          t.textContent = it.title;
+          const d = document.createElement('div');
+          d.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.6;';
+          d.textContent = it.desc;
+          txt.append(t, d);
+          row.append(cb, txt);
+          list.appendChild(row);
+        });
+        wrap.appendChild(list);
+        phases.appendChild(wrap);
+      }
+    } catch (e) {
+      badge.textContent = 'تعذّر التحميل';
+    }
+  }
+
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
-  await Promise.all([loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa()]);
+  await Promise.all([loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
 });
 </script>
 </body>
