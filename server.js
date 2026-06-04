@@ -15,7 +15,6 @@
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
-const url  = require('url');
 
 // ─── Load .env (tiny parser, no deps) ─────────────────────────────
 (() => {
@@ -29,11 +28,18 @@ const url  = require('url');
 
 // after env is loaded, require modules that may read env
 const api = require('./lib/api');
+const S   = require('./lib/session');
+
+if (process.env.NODE_ENV === 'production') {
+  for (const k of ['NAFATH_APP_ID', 'NAFATH_APP_KEY', 'NAFATH_BASE_URL']) {
+    if (!process.env[k]) throw new Error(`[server] ${k} env var is required in production`);
+  }
+}
 
 const CONFIG = {
   PORT:     parseInt(process.env.PORT, 10) || 3000,
-  APP_ID:   process.env.NAFATH_APP_ID  || 'fu5ofq88',
-  APP_KEY:  process.env.NAFATH_APP_KEY || 'a79fe84a66f34f76bb63dbba04b7eaa2',
+  APP_ID:   process.env.NAFATH_APP_ID  || 'fu5ofq88',                              // staging fallback (dev only; required in prod)
+  APP_KEY:  process.env.NAFATH_APP_KEY || 'a79fe84a66f34f76bb63dbba04b7eaa2',      // staging fallback (dev only; required in prod)
   BASE_URL: process.env.NAFATH_BASE_URL || 'https://rabet-nafath.api.elm.sa',
   STATIC_DIR: __dirname,
 };
@@ -153,10 +159,47 @@ const serveStatic = (req, res, parsed) => {
   });
 };
 
+// ─── Security headers ─────────────────────────────────────────────
+// Applied on every response BEFORE the route handler writes headers, so
+// res.writeHead() in handlers preserves them via Node's behaviour
+// (setHeader before writeHead persists; writeHead with an object
+// overrides only those names). We use setHeader for the security set.
+const IS_PROD = process.env.NODE_ENV === 'production';
+const applySecurityHeaders = (res) => {
+  if (IS_PROD) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+  // CSP: tight defaults; allow inline scripts/styles (lots of inline today;
+  // tighten in a future pass once hashes/nonces are wired). Google Fonts
+  // and the Nafath upstream are the only outbound origins we expect.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "img-src 'self' data: blob:; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "script-src 'self' 'unsafe-inline'; " +
+    "connect-src 'self' https://api.resend.com https://rabet-nafath.api.elm.sa https://ifconfig.me; " +
+    "frame-ancestors 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self'"
+  );
+};
+
 // ─── Server ───────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   try {
-    const parsed = url.parse(req.url);
+    applySecurityHeaders(res);
+    const parsed = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    parsed.path = parsed.pathname + parsed.search; // back-compat with old url.parse shape used elsewhere
+
+    // Issue CSRF cookie on every GET (incl. static pages, health, etc.)
+    // so the frontend has one ready before it makes any state-changing call.
+    if (req.method === 'GET') S.setCsrfCookieIfMissing(req, res);
 
     // health check
     if (parsed.pathname === '/healthz') {
