@@ -249,6 +249,12 @@ const server = http.createServer(async (req, res) => {
   }
   // Auto-snapshot data/db.json on a timer (opt-in via BACKUPS_ENABLED).
   try { require('./lib/backups').start(); } catch (e) { console.error('[server] backups init failed:', e.message); }
+  // Daily admin digest (opt-in via DIGEST_ENABLED).
+  try {
+    const digest = require('./lib/digest');
+    const mailer = require('./lib/mailer');
+    digest.start({ db: require('./lib/db'), mailer });
+  } catch (e) { console.error('[server] digest init failed:', e.message); }
   server.listen(CONFIG.PORT, () => {
     console.log(`[murabaha] ✅ Ready on http://localhost:${CONFIG.PORT}`);
     console.log(`[murabaha]    Open:  http://localhost:${CONFIG.PORT}/hessa.html`);

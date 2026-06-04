@@ -1546,11 +1546,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── KYC viewer ─────────────────────────────────────────────────
   function openKycViewer(u) {
     let modal = document.getElementById('kycViewerModal');
+    let release = null;
+    const closeModal = () => { if (release) { release(); release = null; } modal?.remove(); };
     if (!modal) {
       modal = document.createElement('div');
       modal.id = 'kycViewerModal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-label', 'مراجعة وثائق KYC');
       modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,12,8,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      modal.onclick = (e) => { if (e.target === modal) closeModal(); };
       document.body.appendChild(modal);
     }
     modal.replaceChildren();
@@ -1565,7 +1570,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     headerInfo.append(t, s);
     const closeBtn = document.createElement('button');
     closeBtn.style.cssText = 'background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;';
-    closeBtn.textContent = '✕'; closeBtn.onclick = () => modal.remove();
+    closeBtn.setAttribute('aria-label', 'إغلاق');
+    closeBtn.textContent = '✕'; closeBtn.onclick = closeModal;
     header.append(headerInfo, closeBtn);
     card.appendChild(header);
 
@@ -1618,7 +1624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (!confirm('الموافقة على هذا الحساب؟')) return;
           try {
             await App.api('POST', '/app/admin/users/approve', { userId: u.id });
-            alert('تمت الموافقة.'); modal.remove(); loadUsers();
+            alert('تمت الموافقة.'); closeModal(); loadUsers();
           } catch (e) { alert(e.message); }
         };
         actions.appendChild(approve);
@@ -1631,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (reason === null) return;
         try {
           await App.api('POST', '/app/admin/users/reject', { userId: u.id, reason });
-          alert('تم الرفض.'); modal.remove(); loadUsers();
+          alert('تم الرفض.'); closeModal(); loadUsers();
         } catch (e) { alert(e.message); }
       };
       actions.appendChild(reject);
@@ -1639,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     modal.appendChild(card);
+    if (App.trapFocus) release = App.trapFocus(modal, { onClose: closeModal });
   }
 
   // ── Launch plan ────────────────────────────────────────────────

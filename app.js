@@ -68,6 +68,36 @@
     else _run();
   }
 
+  // ─── A11y: focus trap helper for modals + sheets ────────────────
+  // Usage:
+  //   const release = App.trapFocus(modalEl);
+  //   // ...later when closing:
+  //   release();
+  // Captures Tab + Shift+Tab inside the root, restores prior focus and
+  // unbinds on release. Also closes on Esc when an onClose is given.
+  const trapFocus = (root, { onClose } = {}) => {
+    const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const prev = document.activeElement;
+    document.body.classList.add('modal-open');
+    const focusables = () => Array.from(root.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+    const first = focusables()[0];
+    if (first) first.focus({ preventScroll: true });
+    const onKey = (e) => {
+      if (e.key === 'Escape' && onClose) { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const list = focusables(); if (!list.length) return;
+      const f = list[0], l = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); }
+      else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.classList.remove('modal-open');
+      if (prev && typeof prev.focus === 'function') prev.focus({ preventScroll: true });
+    };
+  };
+
   // ─── Service worker registration (PWA) ──────────────────────────
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', () => {
@@ -523,6 +553,7 @@
     toast,
     fmt: { sar, arNum, date, dateTime, relTime },
     storage, on, qs, escapeHtml,
+    trapFocus,
     refreshHeader: _wireHeaderAuth,
   };
 })();

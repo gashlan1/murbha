@@ -1075,16 +1075,20 @@
   const submitBtn = document.getElementById('cashSubmit');
   const cancelBtn = document.getElementById('cashCancel');
 
-  let _kind = 'deposit', _methods = [], _selectedId = null;
+  let _kind = 'deposit', _methods = [], _selectedId = null, _release = null;
 
   const close = () => {
     overlay.style.display = sheet.style.display = 'none';
     methodsEl.replaceChildren();
     amountEl.value = ''; errEl.style.display = 'none';
     submitBtn.disabled = true; submitBtn.style.opacity = '0.5';
+    if (_release) { _release(); _release = null; }
   };
   cancelBtn.addEventListener('click', close);
   overlay.addEventListener('click', close);
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-labelledby', 'cashTitle');
 
   function refreshSubmit() {
     const amt = Number(amountEl.value);
@@ -1114,6 +1118,7 @@
     methodsEl.replaceChildren();
     errEl.style.display = 'none';
     overlay.style.display = sheet.style.display = 'block';
+    if (App.trapFocus) _release = App.trapFocus(sheet, { onClose: close });
 
     try {
       const r = await App.api('GET', '/app/payment-methods');
