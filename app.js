@@ -16,13 +16,44 @@
 (function () {
   'use strict';
 
+  // ─── CSRF helper ────────────────────────────────────────────────
+  const _readCookie = (name) => {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  // One-time bootstrap: ensure the CSRF cookie is set before any state-changing call.
+  let _csrfReady = null;
+  const _ensureCsrf = async () => {
+    if (_readCookie('mrb_csrf')) return;
+    if (!_csrfReady) {
+      _csrfReady = fetch('/healthz', { credentials: 'same-origin' }).catch(() => {});
+    }
+    await _csrfReady;
+  };
+
+  // ─── Service worker registration (PWA) ──────────────────────────
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        // PWA is enhancement-only; log but never block.
+        console.warn('[pwa] sw register failed:', err.message);
+      });
+    });
+  }
+
   // ─── Tiny fetch wrapper ─────────────────────────────────────────
   const api = async (method, path, body) => {
+    const mutating = method !== 'GET' && method !== 'HEAD';
+    if (mutating) await _ensureCsrf();
     const opts = {
       method,
       credentials: 'same-origin',
       headers: { 'Accept': 'application/json' },
     };
+    if (mutating) {
+      const tok = _readCookie('mrb_csrf');
+      if (tok) opts.headers['X-CSRF-Token'] = tok;
+    }
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
