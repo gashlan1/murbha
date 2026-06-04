@@ -184,6 +184,8 @@ const applySecurityHeaders = (res) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "script-src 'self' 'unsafe-inline'; " +
     "connect-src 'self' https://api.resend.com https://rabet-nafath.api.elm.sa https://ifconfig.me; " +
+    "worker-src 'self'; " +
+    "manifest-src 'self'; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self'"
@@ -239,7 +241,14 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(CONFIG.PORT, () => {
-  console.log(`[murabaha] ✅ Ready on http://localhost:${CONFIG.PORT}`);
-  console.log(`[murabaha]    Open:  http://localhost:${CONFIG.PORT}/hessa.html`);
-});
+(async () => {
+  const db = require('./lib/db');
+  if (db.ready && typeof db.ready.then === 'function') {
+    try { await db.ready; }
+    catch (e) { console.error('[server] db init failed:', e.message); }
+  }
+  server.listen(CONFIG.PORT, () => {
+    console.log(`[murabaha] ✅ Ready on http://localhost:${CONFIG.PORT}`);
+    console.log(`[murabaha]    Open:  http://localhost:${CONFIG.PORT}/hessa.html`);
+  });
+})();

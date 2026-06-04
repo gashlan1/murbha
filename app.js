@@ -31,6 +31,16 @@
     await _csrfReady;
   };
 
+  // ─── Service worker registration (PWA) ──────────────────────────
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        // PWA is enhancement-only; log but never block.
+        console.warn('[pwa] sw register failed:', err.message);
+      });
+    });
+  }
+
   // ─── Tiny fetch wrapper ─────────────────────────────────────────
   const api = async (method, path, body) => {
     const mutating = method !== 'GET' && method !== 'HEAD';

@@ -895,6 +895,29 @@
 
   // ── Quick actions: wire deposit/withdraw ─────
   const qa = document.querySelectorAll('.quick-actions .qa-btn');
+
+  // Pick a payment method of a given type. Returns id or null (and routes
+  // the user to payment-methods.html when nothing is on file).
+  async function pickMethod(type) {
+    let methods = [];
+    try {
+      const r = await App.api('GET', '/app/payment-methods');
+      methods = (r.methods || []).filter(m => m.type === type);
+    } catch (e) { App.toast('تعذّر تحميل طرق الدفع', 'error'); return null; }
+    if (!methods.length) {
+      App.toast(type === 'card' ? 'أضف بطاقة أولاً.' : 'أضف حساباً بنكياً (IBAN) أولاً.', 'info');
+      setTimeout(() => { location.href = 'payment-methods.html'; }, 900);
+      return null;
+    }
+    const def = methods.find(m => m.isDefault) || methods[0];
+    if (methods.length === 1) return def.id;
+    // pick by label if multiple
+    const labels = methods.map(m => m.type === 'iban' ? m.ibanMasked : (m.brand?.toUpperCase() + ' ****' + m.last4));
+    const choice = prompt(`اختر طريقة الدفع:\n${labels.map((l,i)=>`${i+1}) ${l}`).join('\n')}\n\nأدخل الرقم:`, '1');
+    const idx = Number(choice) - 1;
+    return (idx >= 0 && idx < methods.length) ? methods[idx].id : def.id;
+  }
+
   // qa[0] is "استثمار جديد" → already points to projects via hessa
   if (qa[0]) qa[0].setAttribute('href', 'projects.html');
   // qa[1] currently "سحب" with href="#"
@@ -903,11 +926,13 @@
     qa[1].style.cursor = 'pointer';
     qa[1].addEventListener('click', async (e) => {
       e.preventDefault();
+      const methodId = await pickMethod('iban');
+      if (!methodId) return;
       const v = prompt('مبلغ السحب (ر.س):');
       const amt = Number(v);
       if (!(amt > 0)) return;
       try {
-        const r = await App.api('POST', '/app/portfolio/withdraw', { amount: amt });
+        await App.api('POST', '/app/portfolio/withdraw', { amount: amt, methodId });
         App.toast('تم تقديم طلب السحب.', 'success');
         setTimeout(() => location.reload(), 600);
       } catch (err) { App.toast(err.message, 'error'); }
@@ -943,11 +968,13 @@
     balanceCard.style.position = 'relative';
     balanceCard.appendChild(btn);
     btn.addEventListener('click', async () => {
+      const methodId = await pickMethod('card');
+      if (!methodId) return;
       const v = prompt('مبلغ الإيداع (ر.س، الحد الأدنى ١٠٠):');
       const amt = Number(v);
       if (!(amt >= 100)) { App.toast('الحد الأدنى للإيداع ١٠٠ ر.س.', 'warn'); return; }
       try {
-        await App.api('POST', '/app/portfolio/deposit', { amount: amt, method: 'mada' });
+        await App.api('POST', '/app/portfolio/deposit', { amount: amt, methodId });
         App.toast('تم الإيداع بنجاح.', 'success');
         setTimeout(() => location.reload(), 600);
       } catch (err) { App.toast(err.message, 'error'); }
