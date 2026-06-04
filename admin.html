@@ -86,6 +86,40 @@
       grid-column: 1 / -1;
     }
   }
+
+  /* Sticky section nav (desktop) */
+  .admin-toc {
+    position: sticky;
+    top: 70px;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    z-index: 40;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 14px rgba(13,22,18,0.04);
+  }
+  .admin-toc a {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    text-decoration: none;
+    font: 800 12px 'Cairo', sans-serif;
+    color: var(--green-dark);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .admin-toc a:hover { background: var(--green); color: #fff; border-color: var(--green); }
+  .admin-toc a.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+  html { scroll-behavior: smooth; }
+  .admin-card { scroll-margin-top: 130px; }
   /* Mobile: collapse any inline 2-column card-body grids to 1 column */
   @media (max-width: 767px) {
     .admin-card .card-body[style*="grid-template-columns"] {
@@ -377,6 +411,18 @@
 </header>
 
 <main id="main">
+  <nav class="admin-toc full-width" aria-label="انتقال سريع">
+    <a href="#usersCard">👥 المستثمرون</a>
+    <a href="#qualificationsCard">⭐ التأهيل</a>
+    <a href="#pushBroadcastCard">🔔 Push</a>
+    <a href="#healthCard">💚 صحة النظام</a>
+    <a href="#investmentsCard">💰 الاستثمارات</a>
+    <a href="#launchPlanCard">🚀 خطة الإطلاق</a>
+    <a href="#announcementsCard">📢 الإعلانات</a>
+    <a href="#settingsCard">🔗 الإعدادات</a>
+    <a href="#twofaCard">🛡 2FA</a>
+    <a href="#auditCard">🔐 الأمان</a>
+  </nav>
   <!-- Stats Bar -->
   <div class="stats-bar full-width">
     <div class="stat-box">
@@ -608,6 +654,45 @@
         </label>
       </div>
       <div id="usersList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- QUALIFICATIONS — pending review -->
+  <div class="admin-card" id="qualificationsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⭐ طلبات التأهيل كمستثمر مؤهل</span>
+      <span class="card-h-sub" id="qualCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="qualList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- PUSH BROADCAST -->
+  <div class="admin-card" id="pushBroadcastCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔔 إرسال إشعار جماعي (Push)</span>
+      <span class="card-h-sub" id="pushSubsBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <form id="pushForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <input id="pushTitle" type="text" placeholder="عنوان الإشعار" maxlength="200" required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <textarea id="pushBody" rows="3" placeholder="نص الإشعار" maxlength="500" required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        <input id="pushUrl" type="text" placeholder="رابط (اختياري) — مثال: /projects.html" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <button type="submit" id="pushSubmit" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">📣 إرسال الآن</button>
+      </form>
+      <div id="pushHint" style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.6;"></div>
+    </div>
+  </div>
+
+  <!-- SYSTEM HEALTH -->
+  <div class="admin-card" id="healthCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💚 صحة النظام</span>
+      <span class="card-h-sub" id="healthSummary">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="healthGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;"></div>
     </div>
   </div>
 
@@ -1563,6 +1648,209 @@ document.addEventListener('DOMContentLoaded', async () => {
     P2: { title: 'الـ 90 يوماً الأولى — تحسينات', color: '#0a4d36' },
   };
 
+  // ── Investments list ───────────────────────────────────────────
+  const invSearch = document.getElementById('invSearchInput');
+  const invStatusF = document.getElementById('invStatusFilter');
+  const invList = document.getElementById('invList');
+  const invStats = document.getElementById('invStats');
+  const INV_STATUS_AR = {
+    pending_signature: { ar: 'بانتظار التوقيع', color: '#b08840' },
+    active: { ar: 'نشط', color: '#0f6e3a' },
+    completed: { ar: 'مكتمل', color: '#1e3a8a' },
+    cancelled: { ar: 'ملغى', color: '#c54a3a' },
+  };
+  async function loadInvestments() {
+    if (!invList) return;
+    const params = new URLSearchParams();
+    if (invSearch?.value.trim()) params.set('q', invSearch.value.trim());
+    if (invStatusF?.value) params.set('status', invStatusF.value);
+    params.set('limit', '100');
+    try {
+      const r = await App.api('GET', '/app/admin/investments?' + params.toString());
+      invStats.textContent = `${App.fmt.arNum(r.total)} استثمار · إجمالي ${r.sum.toLocaleString('ar-SA')} ر.س`;
+      invList.replaceChildren();
+      if (!r.investments.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد نتائج.';
+        invList.appendChild(e); return;
+      }
+      r.investments.forEach(i => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const top = document.createElement('div');
+        top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        top.textContent = (i.userName || '—') + ' → ' + (i.projectName || '—');
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(i.createdAt).toLocaleString('ar-SA') + ' · ' + (i.userEmail || i.userPhone || '—');
+        info.append(top, sub);
+        row.appendChild(info);
+        const meta = document.createElement('div'); meta.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;';
+        const amt = document.createElement('div');
+        amt.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);';
+        amt.textContent = (i.amount || 0).toLocaleString('ar-SA') + ' ر.س';
+        meta.appendChild(amt);
+        const st = INV_STATUS_AR[i.status] || { ar: i.status, color: '#6b7268' };
+        const chip = document.createElement('span');
+        chip.style.cssText = `font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(13,22,18,0.06);color:${st.color};`;
+        chip.textContent = st.ar;
+        meta.appendChild(chip);
+        row.appendChild(meta);
+        invList.appendChild(row);
+      });
+    } catch (e) { invStats.textContent = 'تعذّر التحميل'; }
+  }
+  if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
+  if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
+
+  // ── Qualifications review ──────────────────────────────────────
+  async function loadQualifications() {
+    const list = document.getElementById('qualList');
+    const badge = document.getElementById('qualCountBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/qualifications');
+      badge.textContent = App.fmt.arNum(r.qualifications.length) + ' طلب';
+      list.replaceChildren();
+      if (!r.qualifications.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد طلبات تأهيل معلقة.';
+        list.appendChild(e); return;
+      }
+      r.qualifications.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:14px;padding:14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;align-items:start;flex-wrap:wrap;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:260px;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--ink);margin-bottom:6px;';
+        t.textContent = q.name + (q.request.autoEligible ? ' ⭐' : '');
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;margin-bottom:8px;';
+        sub.textContent = q.email || q.phone || '—';
+        const fields = document.createElement('div'); fields.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font:600 12px Tajawal,sans-serif;';
+        const f = (k, v) => {
+          const d = document.createElement('div');
+          d.style.cssText = 'background:var(--paper);padding:8px 10px;border-radius:8px;';
+          const a = document.createElement('div'); a.style.cssText = 'color:var(--muted);font-size:10px;'; a.textContent = k;
+          const b = document.createElement('div'); b.style.cssText = 'color:var(--ink);font-weight:800;'; b.textContent = v;
+          d.append(a, b); return d;
+        };
+        fields.append(
+          f('صافي الثروة', (q.request.netWorth || 0).toLocaleString('ar-SA') + ' ر.س'),
+          f('الدخل السنوي', (q.request.annualIncome || 0).toLocaleString('ar-SA') + ' ر.س'),
+          f('المسمى', q.request.employmentTitle || '—'),
+        );
+        if (q.request.experience) {
+          const exp = document.createElement('div');
+          exp.style.cssText = 'grid-column:1/-1;background:var(--paper);padding:8px 10px;border-radius:8px;font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.6;';
+          exp.textContent = '🎯 ' + q.request.experience;
+          fields.appendChild(exp);
+        }
+        info.append(t, sub, fields);
+        row.appendChild(info);
+
+        const actions = document.createElement('div'); actions.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+        const okBtn = document.createElement('button');
+        okBtn.style.cssText = 'padding:10px 16px;background:#0f6e3a;color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;white-space:nowrap;';
+        okBtn.textContent = '✓ موافقة';
+        okBtn.onclick = async () => {
+          if (!confirm('الموافقة على تأهيل ' + q.name + '؟')) return;
+          try { await App.api('POST', '/app/admin/qualifications/' + q.userId + '/approve', {}); loadQualifications(); }
+          catch (e) { alert(e.message); }
+        };
+        const noBtn = document.createElement('button');
+        noBtn.style.cssText = 'padding:10px 16px;background:#c54a3a;color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;white-space:nowrap;';
+        noBtn.textContent = '✗ رفض';
+        noBtn.onclick = async () => {
+          if (!confirm('رفض طلب ' + q.name + '؟')) return;
+          try { await App.api('POST', '/app/admin/qualifications/' + q.userId + '/reject', {}); loadQualifications(); }
+          catch (e) { alert(e.message); }
+        };
+        actions.append(okBtn, noBtn);
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  // ── Push broadcast ─────────────────────────────────────────────
+  async function loadPushHealth() {
+    const badge = document.getElementById('pushSubsBadge');
+    const hint = document.getElementById('pushHint');
+    if (!badge) return;
+    try {
+      const h = await App.api('GET', '/app/admin/health');
+      badge.textContent = App.fmt.arNum(h.counts.pushSubs) + ' مشترك';
+      if (hint) hint.textContent = h.providers.push === 'configured'
+        ? 'مزود VAPID مفعّل. سيتم إرسال إشعار حقيقي.'
+        : '⚠️ مفاتيح VAPID غير مهيّأة. الرسائل تُسجَّل فقط دون إرسال فعلي.';
+    } catch (e) { badge.textContent = '—'; }
+  }
+  const pushFormEl = document.getElementById('pushForm');
+  if (pushFormEl) pushFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('pushTitle').value.trim();
+    const body  = document.getElementById('pushBody').value.trim();
+    const url   = document.getElementById('pushUrl').value.trim();
+    const btn = document.getElementById('pushSubmit');
+    btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+    try {
+      const r = await App.api('POST', '/app/admin/push/broadcast', { title, body, url });
+      alert('تم الإرسال إلى ' + r.sent + ' من ' + r.total + ' مشترك.');
+      [document.getElementById('pushTitle'), document.getElementById('pushBody'), document.getElementById('pushUrl')].forEach(x => x.value = '');
+    } catch (e2) { alert(e2.message); }
+    finally { btn.disabled = false; btn.textContent = '📣 إرسال الآن'; }
+  });
+
+  // ── System health ──────────────────────────────────────────────
+  function _fmtBytes(b) {
+    if (b == null) return '—';
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1024*1024*1024) return (b/1024/1024).toFixed(2) + ' MB';
+    return (b/1024/1024/1024).toFixed(2) + ' GB';
+  }
+  function _fmtUptime(s) {
+    if (s < 60) return s + 'ث';
+    if (s < 3600) return Math.floor(s/60) + 'د ' + (s%60) + 'ث';
+    if (s < 86400) return Math.floor(s/3600) + 'س ' + Math.floor((s%3600)/60) + 'د';
+    return Math.floor(s/86400) + 'ي ' + Math.floor((s%86400)/3600) + 'س';
+  }
+  async function loadHealth() {
+    const grid = document.getElementById('healthGrid');
+    const summary = document.getElementById('healthSummary');
+    if (!grid) return;
+    try {
+      const h = await App.api('GET', '/app/admin/health');
+      summary.textContent = 'مرفوع منذ ' + _fmtUptime(h.uptimeSec) + ' · Node ' + h.nodeVersion;
+      grid.replaceChildren();
+      const tile = (label, value, sub) => {
+        const t = document.createElement('div');
+        t.style.cssText = 'padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:4px;'; l.textContent = label;
+        const v = document.createElement('div'); v.style.cssText = 'font:800 16px Cairo,sans-serif;color:var(--green-dark);'; v.textContent = value;
+        t.append(l, v);
+        if (sub) { const s = document.createElement('div'); s.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; s.textContent = sub; t.appendChild(s); }
+        return t;
+      };
+      grid.append(
+        tile('قاعدة البيانات', h.dbBackend.toUpperCase(), h.dbSizeBytes != null ? 'حجم: ' + _fmtBytes(h.dbSizeBytes) : ''),
+        tile('المستخدمون', App.fmt.arNum(h.counts.users), 'مشاريع: ' + App.fmt.arNum(h.counts.projects)),
+        tile('الاستثمارات', App.fmt.arNum(h.counts.investments), 'عقود: ' + App.fmt.arNum(h.counts.contracts)),
+        tile('طرق الدفع المحفوظة', App.fmt.arNum(h.counts.paymentMethods), 'اشتراكات Push: ' + App.fmt.arNum(h.counts.pushSubs)),
+        tile('Resend', h.providers.mail, ''),
+        tile('SMS', h.providers.sms, ''),
+        tile('Payments', h.providers.payments, ''),
+        tile('Sanctions', h.providers.sanctions, ''),
+        tile('Push (VAPID)', h.providers.push, ''),
+        tile('السجل المُدقَّق', App.fmt.arNum(h.counts.auditLog), 'سجلات التوقيع: ' + App.fmt.arNum(h.counts.signingRecords)),
+      );
+    } catch (e) {
+      summary.textContent = 'تعذّر التحميل';
+    }
+  }
+
   async function loadLaunchPlan() {
     const phases = document.getElementById('lpPhases');
     const bar = document.getElementById('lpProgressBar');
@@ -1634,7 +1922,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
-  await Promise.all([loadUsers(), loadInvestments(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan()]);
+  // Scroll-spy: highlight the TOC link nearest the top of the viewport.
+  const tocLinks = Array.from(document.querySelectorAll('.admin-toc a'));
+  const targetIds = tocLinks.map(a => a.getAttribute('href').slice(1));
+  const targets   = targetIds.map(id => document.getElementById(id)).filter(Boolean);
+  if (targets.length && 'IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-130px 0px -55% 0px', threshold: 0 });
+    targets.forEach(t => obs.observe(t));
+  }
+
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
 });
 </script>
 </body>

@@ -247,6 +247,8 @@ const server = http.createServer(async (req, res) => {
     try { await db.ready; }
     catch (e) { console.error('[server] db init failed:', e.message); }
   }
+  // Auto-snapshot data/db.json on a timer (opt-in via BACKUPS_ENABLED).
+  try { require('./lib/backups').start(); } catch (e) { console.error('[server] backups init failed:', e.message); }
   server.listen(CONFIG.PORT, () => {
     console.log(`[murabaha] ✅ Ready on http://localhost:${CONFIG.PORT}`);
     console.log(`[murabaha]    Open:  http://localhost:${CONFIG.PORT}/hessa.html`);
