@@ -691,6 +691,37 @@
     </div>
   </div>
 
+  <!-- YIELD REPORT -->
+  <div class="admin-card" id="yieldReportCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📊 تقرير العوائد المُتحقّقة</span>
+      <span class="card-h-sub" id="yieldReportBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="yieldSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">
+        <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px;text-align:center;">
+          <div id="yrDealsCount" style="font:900 20px Cairo,sans-serif;color:#fbf6ea;">٠</div>
+          <div style="font:600 10px Tajawal,sans-serif;margin-top:4px;">صفقات منجزة</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+          <div id="yrInvested" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">ر.س مُستثمَر</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+          <div id="yrDistributed" style="font:900 18px Cairo,sans-serif;color:#0f6e3a;">٠</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">ر.س موزّع</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+          <div id="yrAvgRate" style="font:900 18px Cairo,sans-serif;color:var(--gold);">٠٪</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">العائد الموزون</div>
+        </div>
+      </div>
+      <div id="yieldList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP INVESTORS LTV -->
   <div class="admin-card" id="topLtvCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2537,6 +2568,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadYieldReport() {
+    const list = document.getElementById('yieldList');
+    const badge = document.getElementById('yieldReportBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/yield-report');
+      const deals = r.deals || [];
+      const s = r.summary || {};
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      document.getElementById('yrDealsCount').textContent = (s.dealsCount || 0).toLocaleString('ar-SA');
+      document.getElementById('yrInvested').textContent = fmt(s.totalInvested);
+      document.getElementById('yrDistributed').textContent = fmt(s.totalDistributed);
+      document.getElementById('yrAvgRate').textContent = (s.avgRealizedRate || 0).toFixed(1) + '٪';
+      if (badge) badge.textContent = (s.dealsCount || 0).toLocaleString('ar-SA') + ' صفقة منجزة';
+      list.replaceChildren();
+      if (!deals.length) { list.appendChild(_emptyNode('لا توجد صفقات منجزة بعد')); return; }
+      deals.forEach(d => {
+        const row = document.createElement('div');
+        const beat = d.realizedRate >= (d.expectedRate || 0);
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;';
+        const info = document.createElement('div');
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = d.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = fmt(d.invested) + ' ر.س مُستثمَر · ' + fmt(d.distributed) + ' ر.س موزّع · توقّع ' + (d.expectedRate || 0).toFixed(1) + '٪';
+        info.append(nm, sub);
+        const rate = document.createElement('div'); rate.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (beat ? '#0f6e3a' : '#b08840') + ';';
+        rate.textContent = d.realizedRate.toFixed(1) + '٪';
+        const arrow = document.createElement('span'); arrow.style.cssText = 'font:800 12px Cairo,sans-serif;color:' + (beat ? '#0f6e3a' : '#b08840') + ';';
+        arrow.textContent = beat ? '▲' : '▼';
+        row.append(info, rate, arrow);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadTopLtv() {
     const list = document.getElementById('topLtvList');
     const badge = document.getElementById('topLtvBadge');
@@ -5484,7 +5554,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
