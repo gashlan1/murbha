@@ -2798,7 +2798,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     archBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border:1px solid ' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
     archBtn.textContent = isArchived ? '↺ إعادة النشر' : '📦 أرشفة';
     archBtn.onclick = () => archiveProject(project.id, !isArchived);
-    e.target.after(cloneBtn, archBtn);
+
+    const imgBtn = document.createElement('label');
+    imgBtn.id = 'projectImageBtn';
+    imgBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:#b08840;border:1px solid #b08840;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;display:inline-block;';
+    imgBtn.textContent = '🖼 صورة';
+    const imgInput = document.createElement('input');
+    imgInput.type = 'file';
+    imgInput.accept = 'image/jpeg,image/png,image/webp';
+    imgInput.style.display = 'none';
+    imgBtn.appendChild(imgInput);
+    imgInput.addEventListener('change', async () => {
+      const f = imgInput.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { App.toast && App.toast('الحجم الأقصى 5MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const data = String(reader.result || '');
+        const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+        const orig = imgBtn.textContent; imgBtn.textContent = '⏳ رفع…';
+        try {
+          await App.api('POST', '/app/admin/projects/' + encodeURIComponent(project.id) + '/image', { data: b64 });
+          imgBtn.textContent = '✓ مرفوعة'; imgBtn.style.color = '#0a4d36'; imgBtn.style.borderColor = '#0a4d36';
+          setTimeout(() => { imgBtn.textContent = orig; imgBtn.style.color = '#b08840'; imgBtn.style.borderColor = '#b08840'; }, 2400);
+        } catch (e) { imgBtn.textContent = orig; alert(e.message || 'فشل الرفع'); }
+      };
+      reader.readAsDataURL(f);
+    });
+    e.target.after(cloneBtn, archBtn, imgBtn);
   });
 
   // ── Project documents ─────────────────────────────────────────

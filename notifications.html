@@ -487,8 +487,31 @@
             </div>
           </div>`;
         a.addEventListener('click', () => {
-          if (!n.read) App.api('POST', '/app/notifications/' + n.id + '/read').catch(()=>{});
+          if (!n.read) {
+            App.api('POST', '/app/notifications/' + n.id + '/read').catch(()=>{});
+            n.read = true;
+            a.classList.remove('unread');
+          }
         });
+        // Inline "mark as read" button without navigating away
+        if (!n.read) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('aria-label', 'تعليم كمقروء');
+          btn.style.cssText = 'background:transparent;border:0;color:rgba(13,22,18,0.4);cursor:pointer;padding:6px;align-self:flex-start;margin-inline-start:8px;font:900 14px Cairo,sans-serif;line-height:1;';
+          btn.textContent = '✓';
+          btn.onclick = async (ev) => {
+            ev.preventDefault(); ev.stopPropagation();
+            try {
+              await App.api('POST', '/app/notifications/' + n.id + '/read');
+              n.read = true;
+              a.classList.remove('unread');
+              btn.remove();
+              _applyFilter();
+            } catch (e) {}
+          };
+          a.appendChild(btn);
+        }
         main.appendChild(a);
       });
     }

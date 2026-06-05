@@ -1994,6 +1994,74 @@
 })();
 </script>
 
+<!-- CLOSING SOON -->
+<section id="closingSoonSection" style="padding:36px 22px;background:#fbf6ea;display:none;">
+  <div style="max-width:1080px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#c54a3a;letter-spacing:2px;background:rgba(197,74,58,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="ENDING SOON">تنتهي قريباً</span>
+        <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="Don't miss these opportunities">لا تفوّت هذه الفرص</h2>
+      </div>
+      <a href="/projects.html" style="font:800 13px Cairo,sans-serif;color:#b08840;text-decoration:none;padding:8px 16px;border:1px solid #b08840;border-radius:999px;" data-en="See all">عرض الكل ←</a>
+    </div>
+    <div id="closingSoonGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/closing-soon?days=14');
+    if (!r.ok) return;
+    const { projects } = await r.json();
+    if (!projects.length) return;
+    const sec = document.getElementById('closingSoonSection');
+    const grid = document.getElementById('closingSoonGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const fmtRem = (ms) => {
+      const d = Math.floor(ms / 86400000);
+      const h = Math.floor((ms % 86400000) / 3600000);
+      if (d >= 1) return d + ' يوم' + (h > 0 ? ' و' + h + ' س' : '');
+      return h + ' ساعة';
+    };
+    projects.forEach(p => {
+      const card = document.createElement('a');
+      card.href = '/project.html?id=' + encodeURIComponent(p.slug);
+      card.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:transform .15s;';
+      card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+      card.onmouseleave = () => card.style.transform = 'translateY(0)';
+      const head = document.createElement('div');
+      head.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;';
+      const ico = document.createElement('div');
+      ico.style.cssText = 'font-size:24px;';
+      ico.textContent = p.image || '📦';
+      const remain = document.createElement('div');
+      remain.style.cssText = 'background:rgba(197,74,58,0.10);color:#c54a3a;border-radius:999px;padding:4px 10px;font:800 11px Cairo,sans-serif;';
+      remain.textContent = '⏱ ' + fmtRem(p.remainingMs);
+      head.append(ico, remain);
+      const name = document.createElement('div');
+      name.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;margin-bottom:6px;line-height:1.4;';
+      name.textContent = p.name;
+      const meta = document.createElement('div');
+      meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-bottom:10px;';
+      meta.textContent = (p.category || '') + ' · ' + ((p.profitRate || 0) * 100).toFixed(1) + '٪ سنوياً';
+      const barWrap = document.createElement('div');
+      barWrap.style.cssText = 'height:6px;background:#fbf8ee;border-radius:6px;overflow:hidden;margin-bottom:6px;';
+      const bar = document.createElement('div');
+      bar.style.cssText = 'height:100%;background:linear-gradient(90deg,#0a4d36,#0f6e3a);border-radius:6px;width:' + (p.fundedPct || 0) + '%;';
+      barWrap.appendChild(bar);
+      const footer = document.createElement('div');
+      footer.style.cssText = 'display:flex;justify-content:space-between;font:700 11px Tajawal,sans-serif;color:#6b7268;';
+      const fp = document.createElement('span'); fp.textContent = (p.fundedPct || 0) + '٪ مكتمل';
+      const ma = document.createElement('span'); ma.textContent = 'من ' + (p.minAmount || 0).toLocaleString('ar-SA') + ' ر.س';
+      footer.append(fp, ma);
+      card.append(head, name, meta, barWrap, footer);
+      grid.appendChild(card);
+    });
+  } catch (e) {}
+})();
+</script>
+
 <!-- LIVE DEAL TICKER -->
 <section style="background:#062b1e;color:#fbf6ea;padding:14px 0;overflow:hidden;border-top:1px solid rgba(212,172,110,0.18);border-bottom:1px solid rgba(212,172,110,0.18);">
   <div style="display:flex;align-items:center;gap:18px;padding:0 22px;">

@@ -467,11 +467,33 @@
     const initial = saved === 'en' ? 'en' : 'ar';
     setLabels(initial);
     if (initial === 'en') applyLang('en');
+    // If we haven't decided yet locally, defer to server-side preference (if any)
+    if (!saved) {
+      (async () => {
+        try {
+          const u = await me();
+          if (u?.locale === 'en' && document.documentElement.lang !== 'en') {
+            try { localStorage.setItem(KEY, 'en'); } catch {}
+            setLabels('en'); applyLang('en');
+            if (window.MurbhaLang?.rerenderProjects) window.MurbhaLang.rerenderProjects();
+          }
+        } catch (e) {}
+      })();
+    }
 
     btn.addEventListener('click', () => {
       const current = document.documentElement.lang === 'en' ? 'en' : 'ar';
       const next = current === 'ar' ? 'en' : 'ar';
       try { localStorage.setItem(KEY, next); } catch { /* ignore */ }
+      // Best-effort sync to server so the choice survives across devices
+      try {
+        fetch('/app/me/locale', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ locale: next }),
+        }).catch(() => {});
+      } catch (e) {}
       setLabels(next);
       applyLang(next);
       
