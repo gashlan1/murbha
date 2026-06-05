@@ -859,6 +859,29 @@
     </div>
   </div>
 
+  <!-- Privacy quick toggles -->
+  <div class="settings-group" id="privacyQuickSec">
+    <div class="settings-h">🔐 خصوصية سريعة</div>
+    <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px;">
+      <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);">
+        <span>👤 إخفاء اسمي عن المستثمرين الآخرين</span>
+        <input id="privHideName" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
+      </label>
+      <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);">
+        <span>💰 إخفاء مبالغ استثماراتي عن لوحة المتصدّرين</span>
+        <input id="privHideAmounts" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
+      </label>
+      <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);">
+        <span>🎯 تعطيل تخصيص الإعلانات حسب نشاطي</span>
+        <input id="privNoAdTargeting" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
+      </label>
+      <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);">
+        <span>📊 منع مشاركة بياناتي للأبحاث المجهّلة</span>
+        <input id="privNoAnalytics" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
+      </label>
+    </div>
+  </div>
+
   <!-- Investment goal selector -->
   <div class="settings-group" id="goalSec" style="display:none;">
     <div class="settings-h">🎯 هدفي الاستثماري</div>
@@ -2325,6 +2348,31 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Privacy quick toggles
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const prefs = me.user?.privacyPrefs || {};
+      const map = {
+        privHideName: 'hideName',
+        privHideAmounts: 'hideAmounts',
+        privNoAdTargeting: 'noAdTargeting',
+        privNoAnalytics: 'noAnalytics',
+      };
+      Object.entries(map).forEach(([id, key]) => {
+        const cb = document.getElementById(id);
+        if (!cb) return;
+        cb.checked = !!prefs[key];
+        cb.addEventListener('change', async () => {
+          try {
+            await App.api('PATCH', '/app/me/privacy-prefs', { [key]: cb.checked });
+            App.toast && App.toast(cb.checked ? '✓ مفعّل' : 'متوقّف', 'success');
+          } catch (e) { cb.checked = !cb.checked; App.toast && App.toast('فشل', 'error'); }
+        });
       });
     } catch (e) {}
   })();

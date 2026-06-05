@@ -2762,6 +2762,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       const r = await App.api('GET', '/app/admin/refunds');
       badge.textContent = r.count + ' · ' + Number(r.totalAmount || 0).toLocaleString('ar-SA') + ' ر.س';
       list.replaceChildren();
+      // Summary tiles by period
+      if (r.refunds && r.refunds.length) {
+        const now = Date.now();
+        const ms7d = 7 * 24 * 60 * 60 * 1000;
+        const ms30d = 30 * 24 * 60 * 60 * 1000;
+        const week = r.refunds.filter(rf => (now - new Date(rf.createdAt).getTime()) < ms7d);
+        const month = r.refunds.filter(rf => (now - new Date(rf.createdAt).getTime()) < ms30d);
+        const sumAmt = (arr) => arr.reduce((s, x) => s + Number(x.amount || 0), 0);
+        const tiles = document.createElement('div');
+        tiles.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;';
+        [
+          { v: week.length, l: 'استرداد آخر ٧ أيام', amt: sumAmt(week), c: '#0a4d36' },
+          { v: month.length, l: 'استرداد آخر ٣٠ يوم', amt: sumAmt(month), c: '#b08840' },
+          { v: r.refunds.length, l: 'إجمالي الاستردادات', amt: r.totalAmount, c: '#062b1e' },
+        ].forEach(t => {
+          const tile = document.createElement('div');
+          tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;border-top:3px solid ' + t.c + ';';
+          const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);';
+          v.textContent = t.v.toLocaleString('ar-SA');
+          const l = document.createElement('div'); l.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+          l.textContent = t.l;
+          const amt = document.createElement('div'); amt.style.cssText = 'font:700 11px Cairo,sans-serif;color:' + t.c + ';margin-top:4px;';
+          amt.textContent = Number(t.amt).toLocaleString('ar-SA') + ' ر.س';
+          tile.append(v, l, amt);
+          tiles.appendChild(tile);
+        });
+        list.appendChild(tiles);
+      }
       if (!r.refunds.length) {
         const e = document.createElement('div');
         e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
