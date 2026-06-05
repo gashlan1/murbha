@@ -1091,6 +1091,21 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+    <div class="setting-row" style="cursor:default;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">ملخّص أسبوعي تلقائي</div>
+        <div class="setting-sub">ملخّص محفظتك إلى بريدك كل أحد صباحاً</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="weeklySummaryToggle" style="opacity:0;width:0;height:0;" />
+        <span id="wsSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="wsKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+
     <button type="button" id="sendSummaryBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 1 1 9 9"/><path d="M3 4v7h7"/></svg>
@@ -1797,6 +1812,31 @@
       document.body.appendChild(overlay);
     } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
   });
+
+  // Weekly summary opt-in
+  (async () => {
+    const cb = document.getElementById('weeklySummaryToggle');
+    const sl = document.getElementById('wsSlider');
+    const kb = document.getElementById('wsKnob');
+    if (!cb) return;
+    const sync = (on) => {
+      cb.checked = !!on;
+      sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    try {
+      const me = await App.api('GET', '/app/me');
+      sync(!!me.user?.weeklySummaryOptIn);
+    } catch (e) { sync(false); }
+    cb.addEventListener('change', async () => {
+      const optIn = cb.checked;
+      sync(optIn);
+      try {
+        await App.api('POST', '/app/me/summary/opt', { optIn });
+        App.toast && App.toast(optIn ? '✓ تم تفعيل الملخّص الأسبوعي' : 'تم إيقاف الملخّص', 'success');
+      } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
 
   // Send portfolio summary email
   document.getElementById('sendSummaryBtn')?.addEventListener('click', async () => {

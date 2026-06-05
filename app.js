@@ -334,6 +334,64 @@
     document.querySelectorAll('[data-bind="user.initial"]').forEach(el => {
       if (user) el.textContent = (user.name || '?').trim().charAt(0);
     });
+    if (user) _installNotifBell();
+    else { document.getElementById('mrbNotifBell')?.remove(); }
+  };
+
+  // ─── Header notification bell (unread count) ─────────────────
+  const _installNotifBell = async () => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbNotifBell')) return;
+    // Pick the most likely header container; fall back to body for pages without one
+    const header = document.querySelector('header .nav, header nav, header') || document.body;
+    if (header === document.body) return; // skip on pages with no header chrome
+    const wrap = document.createElement('a');
+    wrap.id = 'mrbNotifBell';
+    wrap.href = '/notifications.html';
+    wrap.setAttribute('aria-label', 'الإشعارات');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(13,22,18,0.05);text-decoration:none;color:#0d1612;margin-inline-end:6px;';
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '18'); svg.setAttribute('height', '18');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    const path1 = document.createElementNS(svgNS, 'path');
+    path1.setAttribute('d', 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9');
+    const path2 = document.createElementNS(svgNS, 'path');
+    path2.setAttribute('d', 'M10.3 21a1.94 1.94 0 0 0 3.4 0');
+    svg.appendChild(path1); svg.appendChild(path2);
+    wrap.appendChild(svg);
+    const dot = document.createElement('span');
+    dot.id = 'mrbNotifCount';
+    dot.style.cssText = 'position:absolute;top:-2px;inset-inline-end:-2px;min-width:18px;height:18px;padding:0 5px;background:#c54a3a;color:#fff;border-radius:999px;font:900 10px Cairo,sans-serif;display:none;align-items:center;justify-content:center;border:2px solid #fbf6ea;';
+    wrap.appendChild(dot);
+    // Place before lang toggle if it exists, else at the start of the nav
+    const lang = header.querySelector('#langToggle');
+    if (lang) lang.before(wrap); else header.prepend(wrap);
+    const poll = async () => {
+      try {
+        const r = await fetch('/app/notifications', { credentials: 'same-origin' });
+        if (!r.ok) return;
+        const d = await r.json();
+        const unread = (d.notifications || []).filter(n => !n.read).length;
+        if (unread > 0) {
+          dot.style.display = 'flex';
+          dot.textContent = unread > 99 ? '99+' : String(unread);
+        } else {
+          dot.style.display = 'none';
+        }
+      } catch (e) {}
+    };
+    poll();
+    // refresh every 90s; SSE also triggers immediate updates via the event below
+    setInterval(poll, 90000);
+    if (typeof EventSource !== 'undefined') {
+      try {
+        const es = new EventSource('/app/events');
+        es.addEventListener('notification', () => poll());
+      } catch (e) {}
+    }
   };
 
   // ─── data-action="logout" wiring ───────────────────────────────

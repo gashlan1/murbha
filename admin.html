@@ -958,6 +958,36 @@
     </div>
   </div>
 
+  <!-- NEWSLETTER ISSUES -->
+  <div class="admin-card" id="newsletterCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📰 إصدارات النشرة الشهرية</span>
+      <span class="card-h-sub" id="nlBadge">—</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="nlForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="nlTitle" type="text" placeholder="عنوان الإصدار (مثال: نشرة يوليو ٢٠٢٦)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <input id="nlSummary" type="text" placeholder="ملخّص قصير يظهر في قائمة الأرشيف" maxlength="500" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="nlBody" rows="10" placeholder="نص الإصدار (يدعم Markdown بسيط: **عريض** *مائل* [نص](رابط))" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;"></textarea>
+          <label class="checkbox-group">
+            <input type="checkbox" id="nlPublish" checked />
+            <label for="nlPublish">نشر فوراً (سيظهر في الأرشيف العام)</label>
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" id="nlSubmit" style="flex:1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإصدار</button>
+            <button type="button" id="nlCancelEdit" style="display:none;padding:12px 18px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
+          </div>
+        </form>
+      </div>
+      <div>
+        <div id="nlList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
+          <div style="text-align:center;color:var(--muted);padding:18px;font-size:13px;">جاري التحميل…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SEGMENT BROADCAST -->
   <div class="admin-card" id="segNotifyCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1742,6 +1772,99 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('newFlagKey').value = '';
       await loadFlags();
     } catch (e) { alert(e.message || 'فشل'); }
+  });
+
+  // ── Newsletter issues ────────────────────────────────────────
+  let _editingNlId = null;
+  async function loadNewsletter() {
+    const list = document.getElementById('nlList');
+    const badge = document.getElementById('nlBadge');
+    if (!list) return;
+    try {
+      const r = await fetch('/app/public/newsletter-issues');
+      const d = await r.json();
+      const issues = d.issues || [];
+      // Also pull unpublished by hitting backend with admin auth — falls back to public list otherwise
+      // For drafts, we just leave them in the create form area.
+      badge.textContent = (issues.length || 0) + ' إصدار';
+      list.replaceChildren();
+      if (!issues.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
+        e.textContent = 'لم يُنشَر إصدار بعد. ابدأ بالنموذج جنباً.';
+        list.appendChild(e);
+        return;
+      }
+      issues.forEach(issue => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = issue.title;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
+        meta.textContent = new Date(issue.publishedAt).toLocaleDateString('ar-SA') + ' · ' + (issue.summary || '').slice(0, 80);
+        const acts = document.createElement('div');
+        acts.style.cssText = 'display:flex;gap:6px;';
+        const view = document.createElement('a');
+        view.href = '/newsletter-archive.html?issue=' + encodeURIComponent(issue.slug);
+        view.target = '_blank';
+        view.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);padding:5px 12px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;text-decoration:none;';
+        view.textContent = '👁 عرض';
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:5px 12px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        edit.textContent = '✏ تعديل';
+        edit.onclick = async () => {
+          try {
+            const det = await fetch('/app/public/newsletter-issues/' + encodeURIComponent(issue.slug));
+            const dd = await det.json();
+            _editingNlId = dd.issue.id;
+            document.getElementById('nlTitle').value = dd.issue.title || '';
+            document.getElementById('nlSummary').value = dd.issue.summary || '';
+            document.getElementById('nlBody').value = dd.issue.body || '';
+            document.getElementById('nlPublish').checked = !!dd.issue.publishedAt;
+            document.getElementById('nlSubmit').textContent = 'حفظ التعديل';
+            document.getElementById('nlCancelEdit').style.display = '';
+            document.getElementById('nlTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch (e) {}
+        };
+        acts.append(view, edit);
+        row.append(t, meta, acts);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  const _resetNlForm = () => {
+    document.getElementById('nlForm').reset();
+    document.getElementById('nlPublish').checked = true;
+    _editingNlId = null;
+    document.getElementById('nlSubmit').textContent = 'نشر الإصدار';
+    document.getElementById('nlCancelEdit').style.display = 'none';
+  };
+  document.getElementById('nlCancelEdit')?.addEventListener('click', _resetNlForm);
+
+  document.getElementById('nlForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById('nlTitle').value.trim(),
+      summary: document.getElementById('nlSummary').value.trim(),
+      body: document.getElementById('nlBody').value.trim(),
+    };
+    const publish = document.getElementById('nlPublish').checked;
+    try {
+      if (_editingNlId) {
+        payload.publishedAt = publish ? new Date().toISOString() : null;
+        await App.api('PATCH', '/app/admin/newsletter-issues/' + _editingNlId, payload);
+      } else {
+        payload.publish = publish;
+        await App.api('POST', '/app/admin/newsletter-issues', payload);
+      }
+      App.toast && App.toast('✓ تم الحفظ', 'success');
+      _resetNlForm();
+      loadNewsletter();
+    } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
 
   // ── Segment notify ───────────────────────────────────────────
@@ -3253,7 +3376,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

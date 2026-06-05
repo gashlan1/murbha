@@ -1282,6 +1282,27 @@
         const amt = document.createElement('div'); amt.className = 'txn-amt ' + sign;
         amt.textContent = t.amount === 0 ? '—' : (t.amount > 0 ? '+' : '') + App.fmt.sar(Math.abs(t.amount));
         row.append(left, amt);
+        // Cancel button for pending withdraws
+        if (t.kind === 'withdraw' && t.status === 'pending') {
+          const cancel = document.createElement('button');
+          cancel.type = 'button';
+          cancel.textContent = '✗ إلغاء';
+          cancel.style.cssText = 'margin-inline-start:8px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;padding:5px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          cancel.onclick = async (e) => {
+            e.stopPropagation();
+            if (!confirm('إلغاء طلب السحب وإعادة المبلغ إلى رصيدك؟')) return;
+            cancel.disabled = true; cancel.textContent = '…';
+            try {
+              await App.api('POST', '/app/portfolio/withdraw/' + encodeURIComponent(t.id) + '/cancel');
+              App.toast && App.toast('✓ تم إلغاء طلب السحب', 'success');
+              setTimeout(() => location.reload(), 600);
+            } catch (err) {
+              cancel.disabled = false; cancel.textContent = '✗ إلغاء';
+              App.toast && App.toast(err.message || 'فشل الإلغاء', 'error');
+            }
+          };
+          row.appendChild(cancel);
+        }
         list.appendChild(row);
       });
     };
