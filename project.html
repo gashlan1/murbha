@@ -967,6 +967,7 @@
     <span id="remainingBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#eaf3ee,#fff);border:1px solid #0a4d36;padding:5px 12px;border-radius:999px;"></span>
     <span id="minTicketBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
+    <span id="scarcityBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#c54a3a,#8b2e22);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
     <label id="closingReminderToggle" style="display:none;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;cursor:pointer;">
@@ -2117,6 +2118,30 @@
         }
       } catch (e) {}
     })();
+
+    // Share count (social proof)
+    if (p.shareCount && p.shareCount >= 5) {
+      const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+      if (wrap) {
+        const sh = document.createElement('span');
+        sh.style.cssText = 'display:inline-block;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;';
+        sh.textContent = '🔗 شُورك ' + Number(p.shareCount).toLocaleString('ar-SA') + ' مرّة';
+        wrap.appendChild(sh);
+      }
+    }
+
+    // Scarcity badge — slots remaining at min ticket
+    if (p.status === 'open' && p.goal && p.minTicket) {
+      const remaining = Math.max(0, p.goal - (p.raised || 0));
+      const slots = Math.floor(remaining / p.minTicket);
+      if (slots > 0 && slots <= 25) {
+        const sb = document.getElementById('scarcityBadge');
+        if (sb) {
+          sb.textContent = '🔥 ' + slots + ' حصّة فقط متاحة';
+          sb.style.display = 'inline-block';
+        }
+      }
+    }
 
     // Remaining-funding badge
     if (p.goal && p.status === 'open') {
