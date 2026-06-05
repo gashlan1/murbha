@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- PAYMENT FAILURES -->
+  <div class="admin-card" id="pfCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💳 أسباب فشل المدفوعات</span>
+      <span class="card-h-sub" id="pfBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="pfKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="pfList" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- FEATURE ADOPTION -->
   <div class="admin-card" id="faCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3122,6 +3134,52 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadPf() {
+    const kpis = document.getElementById('pfKpis');
+    const list = document.getElementById('pfList');
+    const badge = document.getElementById('pfBadge');
+    if (!kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/payment-failures');
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (badge) badge.textContent = (r.total || 0).toLocaleString('ar-SA') + ' محاولة فاشلة · نسبة ' + (r.failureRate || 0) + '٪';
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      const rateColor = (r.failureRate || 0) <= 3 ? '#0f6e3a' : ((r.failureRate || 0) <= 7 ? '#b08840' : '#c54a3a');
+      kpis.append(
+        mk('إجمالي فاشل', fmt(r.total || 0), '#c54a3a'),
+        mk('آخر ٣٠ يوم', fmt(r.last30 || 0), '#d97706'),
+        mk('قيمة فاشلة', fmt(r.totalAmount || 0) + ' ر.س', '#5c2418'),
+        mk('نسبة الفشل', (r.failureRate || 0) + '٪', rateColor),
+      );
+      list.replaceChildren();
+      const items = r.reasons || [];
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد محاولات فاشلة')); return; }
+      const max = Math.max(...items.map(i => i.count), 1);
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:700 12px Tajawal,sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        lbl.textContent = it.reason;
+        const bar = document.createElement('div'); bar.style.cssText = 'min-width:120px;height:12px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((it.count / max) * 100) + '%;background:#c54a3a;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:80px;';
+        meta.textContent = it.count + ' · ' + it.pct + '٪';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadFa() {
     const list = document.getElementById('faList');
     const badge = document.getElementById('faBadge');
@@ -7596,7 +7654,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

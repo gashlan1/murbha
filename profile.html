@@ -859,6 +859,32 @@
     </div>
   </div>
 
+  <!-- Account anniversary -->
+  <div class="settings-group" id="annivSec" style="display:none;">
+    <div class="settings-h">🎉 رحلتك مع مُرابحة</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-around;align-items:center;text-align:center;margin-bottom:14px;padding:18px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:14px;">
+        <div>
+          <div id="annivDays" style="font:900 28px Cairo,sans-serif;color:var(--gold);">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">يوم على المنصّة</div>
+        </div>
+        <div style="width:1px;height:50px;background:var(--line);"></div>
+        <div>
+          <div id="annivJoined" style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">تاريخ الانضمام</div>
+        </div>
+        <div style="width:1px;height:50px;background:var(--line);"></div>
+        <div>
+          <div id="annivNext" style="font:900 14px Cairo,sans-serif;color:#0f6e3a;">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">للذكرى السنوية</div>
+        </div>
+      </div>
+      <div id="annivBanner" style="display:none;background:linear-gradient(135deg,#0a4d36,#062b1e);color:var(--gold-light);border-radius:12px;padding:14px;text-align:center;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">معالم رحلتك</div>
+      <div id="annivMilestones" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Document expiry reminder -->
   <div class="settings-group" id="docExpSec" style="display:none;">
     <div class="settings-h">📅 وثائقك على وشك الانتهاء</div>
@@ -2683,6 +2709,48 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Account anniversary
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/anniversary');
+      const sec = document.getElementById('annivSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      document.getElementById('annivDays').textContent = fmt(r.days);
+      document.getElementById('annivJoined').textContent = new Date(r.joinedAt).toLocaleDateString('ar-SA');
+      const nextEl = document.getElementById('annivNext');
+      if (r.daysToNextAnniversary <= 0) nextEl.textContent = '🎂 اليوم!';
+      else nextEl.textContent = r.daysToNextAnniversary + ' يوم';
+      const banner = document.getElementById('annivBanner');
+      if (r.daysToNextAnniversary <= 7 && r.daysToNextAnniversary > 0) {
+        banner.style.display = '';
+        banner.replaceChildren();
+        const t = document.createElement('div'); t.style.cssText = 'font:900 16px Cairo,sans-serif;color:#fbf6ea;';
+        t.textContent = '🎂 ذكراك السنوية بعد ' + r.daysToNextAnniversary + ' أيام!';
+        const s = document.createElement('div'); s.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.9;margin-top:4px;line-height:1.7;';
+        s.textContent = 'ترقّب هديّة خاصّة منّا. شكراً على وفائك.';
+        banner.append(t, s);
+      } else if (r.daysToNextAnniversary === 0) {
+        banner.style.display = '';
+        banner.replaceChildren();
+        const t = document.createElement('div'); t.style.cssText = 'font:900 18px Cairo,sans-serif;color:#fbf6ea;';
+        t.textContent = '🎉 كل سنة وأنت بخير!';
+        banner.appendChild(t);
+      }
+      const grid = document.getElementById('annivMilestones');
+      grid.replaceChildren();
+      (r.milestones || []).forEach(m => {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'background:' + (m.achieved ? 'linear-gradient(135deg,#fbf6ea,#fff)' : 'var(--paper)') + ';border:1px solid ' + (m.achieved ? 'var(--gold)' : 'var(--line)') + ';border-radius:10px;padding:12px 6px;text-align:center;opacity:' + (m.achieved ? '1' : '0.45') + ';';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);line-height:1.4;';
+        lbl.textContent = m.label;
+        cell.appendChild(lbl);
+        grid.appendChild(cell);
       });
     } catch (e) {}
   })();
