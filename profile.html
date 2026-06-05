@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Fees summary -->
+  <div class="settings-group" id="feesSec" style="display:none;">
+    <div class="settings-h">💸 الرسوم المدفوعة</div>
+    <div style="padding:14px 18px;">
+      <div id="feesHero" style="background:linear-gradient(135deg,#fbf6ea,#fff);border:2px solid var(--gold);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;"></div>
+      <div id="feesBreakdown" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Cashflow summary -->
   <div class="settings-group" id="cfSec" style="display:none;">
     <div class="settings-h">💵 ملخّص تَدفّقاتك النقديّة</div>
@@ -3028,6 +3037,59 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Fees summary
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/fees-summary');
+      if (!r.hasData) return;
+      const sec = document.getElementById('feesSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('feesHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 28px Cairo,sans-serif;color:var(--gold);';
+      big.textContent = fmt(r.totalFees) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-top:6px;';
+      sub.textContent = 'مجموع الرسوم المدفوعة';
+      hero.append(big, sub);
+      if (r.feeAsPctOfProfit !== null) {
+        const ratio = document.createElement('div'); ratio.style.cssText = 'font:700 12px Cairo,sans-serif;color:' + (r.feeAsPctOfProfit < 10 ? '#0f6e3a' : (r.feeAsPctOfProfit < 25 ? '#b08840' : '#c54a3a')) + ';margin-top:8px;';
+        ratio.textContent = '= ' + r.feeAsPctOfProfit + '٪ من إجمالي أرباحك';
+        hero.appendChild(ratio);
+      }
+      const list = document.getElementById('feesBreakdown');
+      list.replaceChildren();
+      const items = [
+        { label: '💳 رسوم الإيداع', amount: r.depositFees },
+        { label: '📤 رسوم السحب', amount: r.withdrawFees },
+        { label: '⚙️ رسوم المنصّة', amount: r.platformFees },
+        { label: '↩ رسوم الإلغاء', amount: r.cancellationFees },
+      ].filter(i => i.amount > 0);
+      const max = Math.max(...items.map(i => i.amount), 1);
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:160px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = it.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + Math.round((it.amount / max) * 100) + '%;background:#b08840;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--gold);text-align:end;min-width:90px;';
+        meta.textContent = fmt(it.amount) + ' ر.س';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      if (!items.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;padding:14px;background:rgba(15,110,58,0.10);border-radius:10px;font:800 13px Cairo,sans-serif;color:#0f6e3a;';
+        e.textContent = '🎉 لم تَدفع أي رسوم — استخدمت طرق الدفع المجّانيّة فقط.';
+        list.appendChild(e);
+      }
     } catch (e) {}
   })();
 
