@@ -3749,6 +3749,25 @@
         } : undefined,
       };
       scriptEl.textContent = JSON.stringify(ld);
+      // Breadcrumb schema
+      let bcEl = document.getElementById('projectBreadcrumbLd');
+      if (!bcEl) {
+        bcEl = document.createElement('script');
+        bcEl.id = 'projectBreadcrumbLd';
+        bcEl.type = 'application/ld+json';
+        document.head.appendChild(bcEl);
+      }
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'الرئيسية', item: location.origin },
+          { '@type': 'ListItem', position: 2, name: 'الصفقات', item: location.origin + '/search.html' },
+          { '@type': 'ListItem', position: 3, name: p.category || 'استثمار', item: location.origin + '/search.html?cat=' + encodeURIComponent(p.category || '') },
+          { '@type': 'ListItem', position: 4, name: p.name, item: url },
+        ],
+      };
+      bcEl.textContent = JSON.stringify(breadcrumb);
     } catch (e) {}
   }
   function _bindShare(p) {
