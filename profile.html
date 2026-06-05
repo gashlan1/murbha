@@ -859,6 +859,20 @@
     </div>
   </div>
 
+  <!-- Inbox cleanup -->
+  <div class="settings-group" id="inboxSec" style="display:none;">
+    <div class="settings-h">🧹 صيانة صندوق الإشعارات</div>
+    <div style="padding:14px 18px;">
+      <div id="inKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+        <button type="button" data-act="mark_all_read" class="inActBtn" style="padding:10px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);cursor:pointer;">✓ علِّم الكل كمقروء</button>
+        <button type="button" data-act="archive_older_30d" class="inActBtn" style="padding:10px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);cursor:pointer;">📦 أرشِف ما يتجاوز ٣٠ يوم</button>
+        <button type="button" data-act="archive_read" class="inActBtn" style="padding:10px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);cursor:pointer;">📂 أرشِف المقروءة</button>
+        <button type="button" data-act="delete_archived" class="inActBtn" style="padding:10px;background:rgba(197,74,58,0.06);border:1px solid #c54a3a;border-radius:10px;font:800 12px Cairo,sans-serif;color:#c54a3a;cursor:pointer;">🗑 احذف المؤرشَف نهائياً</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification volume -->
   <div class="settings-group" id="notifVolSec" style="display:none;">
     <div class="settings-h">🔔 حجم الإشعارات</div>
@@ -2770,6 +2784,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Inbox cleanup
+  (async () => {
+    try {
+      const sec = document.getElementById('inboxSec');
+      const kpis = document.getElementById('inKpis');
+      if (!sec || !kpis) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/inbox-summary');
+        if (!r.total) { sec.style.display = 'none'; return; }
+        sec.style.display = '';
+        kpis.replaceChildren();
+        const mk = (l, v, color) => {
+          const w = document.createElement('div');
+          w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+          const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = fmt(v);
+          const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+          w.append(vv, ll);
+          return w;
+        };
+        kpis.append(
+          mk('الإجمالي', r.total, '#0a4d36'),
+          mk('غير مقروء', r.unread, r.unread > 20 ? '#c54a3a' : '#b08840'),
+          mk('مؤرشَف', r.archived, '#5c2418'),
+          mk('آخر ٣٠ يوم', r.last30, '#0f6e3a'),
+          mk('أقدم من ٩٠ يوم', r.older90, '#d97706'),
+        );
+      };
+      await render();
+      document.querySelectorAll('.inActBtn').forEach(b => {
+        b.addEventListener('click', async () => {
+          const action = b.dataset.act;
+          if (action === 'delete_archived' && !confirm('سيتمّ حذف الإشعارات المؤرشَفة نهائياً. هل أنت متأكّد؟')) return;
+          try {
+            const r = await App.api('POST', '/app/me/inbox-cleanup', { action });
+            App.toast && App.toast('✓ ' + (r.updated || 0) + ' إشعار', 'success');
+            await render();
+          } catch (e) { App.toast && App.toast('فشل', 'error'); }
+        });
       });
     } catch (e) {}
   })();

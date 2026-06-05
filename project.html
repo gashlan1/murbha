@@ -1516,6 +1516,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Funding S-curve -->
+<div class="card-section" id="curveCard" style="display:none;">
+  <h2 class="section-h">📈 منحنى التمويل التراكمي</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">شكل التراكم من الافتتاح حتى الآن — يساعد على فهم وتيرة الصفقة.</p>
+  <svg id="curveChart" width="100%" height="140" viewBox="0 0 320 140" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+  <div id="curveStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px;"></div>
+</div>
+
 <!-- Cancellation reasons -->
 <div class="card-section" id="cxlCard" style="display:none;">
   <h2 class="section-h">↩ أسباب الإلغاء</h2>
@@ -4420,6 +4428,75 @@
     recalc();
   }
 
+  async function _loadCurve(slug) {
+    const card = document.getElementById('curveCard');
+    const svg = document.getElementById('curveChart');
+    const stats = document.getElementById('curveStats');
+    if (!card || !svg || !stats) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/funding-curve');
+      if (!r.hasData) { card.style.display = 'none'; return; }
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const pts = r.points || [];
+      if (pts.length < 2) { card.style.display = 'none'; return; }
+      const W = 320, H = 140, P = 8;
+      const t0 = new Date(pts[0].at).getTime();
+      const t1 = new Date(pts[pts.length - 1].at).getTime();
+      const tr = Math.max(1, t1 - t0);
+      const maxPct = Math.max(100, ...pts.map(p => p.pct));
+      const xs = pts.map(p => P + ((new Date(p.at).getTime() - t0) / tr) * (W - 2 * P));
+      const ys = pts.map(p => H - P - (p.pct / maxPct) * (H - 2 * P));
+      const NS = 'http://www.w3.org/2000/svg';
+      const fill = document.createElementNS(NS, 'path');
+      let d = 'M ' + xs[0] + ' ' + ys[0];
+      for (let i = 1; i < xs.length; i++) d += ' L ' + xs[i] + ' ' + ys[i];
+      const fillD = d + ' L ' + xs[xs.length - 1] + ' ' + (H - P) + ' L ' + xs[0] + ' ' + (H - P) + ' Z';
+      fill.setAttribute('d', fillD);
+      fill.setAttribute('fill', 'rgba(10,77,54,0.12)');
+      svg.appendChild(fill);
+      const line = document.createElementNS(NS, 'path');
+      line.setAttribute('d', d);
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#0a4d36');
+      line.setAttribute('stroke-width', '2.5');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(line);
+      const goalLine = document.createElementNS(NS, 'line');
+      const goalY = H - P - ((100 / maxPct) * (H - 2 * P));
+      goalLine.setAttribute('x1', P); goalLine.setAttribute('x2', W - P);
+      goalLine.setAttribute('y1', goalY); goalLine.setAttribute('y2', goalY);
+      goalLine.setAttribute('stroke', '#b08840');
+      goalLine.setAttribute('stroke-width', '1.2');
+      goalLine.setAttribute('stroke-dasharray', '4,4');
+      svg.appendChild(goalLine);
+      const lastDot = document.createElementNS(NS, 'circle');
+      lastDot.setAttribute('cx', xs[xs.length - 1]);
+      lastDot.setAttribute('cy', ys[ys.length - 1]);
+      lastDot.setAttribute('r', '4');
+      lastDot.setAttribute('fill', '#b08840');
+      svg.appendChild(lastDot);
+      stats.replaceChildren();
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      const mk = (l, v) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      stats.append(
+        mk('الحالي', r.finalPct + '٪'),
+        mk('المُجمَّع', fmt(r.finalAmount) + ' ر.س'),
+        mk('مستثمرون', fmt(r.investorCount)),
+      );
+      if (r.reachedHalfAt) stats.appendChild(mk('بلغ ٥٠٪', new Date(r.reachedHalfAt).toLocaleDateString('ar-SA')));
+      if (r.reachedThreeQuarterAt) stats.appendChild(mk('بلغ ٧٥٪', new Date(r.reachedThreeQuarterAt).toLocaleDateString('ar-SA')));
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadCxl(slug) {
     const card = document.getElementById('cxlCard');
     const kpis = document.getElementById('cxlKpis');
@@ -4988,7 +5065,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setListingAge(p) {
     const badge = document.getElementById('listingAgeBadge');
