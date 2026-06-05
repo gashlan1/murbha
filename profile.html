@@ -859,6 +859,14 @@
     </div>
   </div>
 
+  <!-- Recent activity -->
+  <div class="settings-group" id="actSec" style="display:none;">
+    <div class="settings-h">📜 آخر نشاطك</div>
+    <div style="padding:14px 18px;">
+      <div id="actList" style="display:flex;flex-direction:column;gap:5px;max-height:400px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
   <!-- Consistency score -->
   <div class="settings-group" id="consistSec" style="display:none;">
     <div class="settings-h">🎯 نتيجة الثبات</div>
@@ -2965,6 +2973,38 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Recent activity
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/recent-activity');
+      if (!r.total) return;
+      const sec = document.getElementById('actSec');
+      const list = document.getElementById('actList');
+      if (!sec || !list) return;
+      sec.style.display = '';
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const colors = { invest: '#0f6e3a', deposit: '#b08840', withdraw: '#d97706', payout: '#5c2418', refund: '#1e3a8a', cancel: '#c54a3a', bonus: '#062b1e' };
+      r.events.forEach(ev => {
+        const row = document.createElement('div');
+        const color = colors[ev.kind] || '#6b7268';
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;border-inline-start:3px solid ' + color + ';';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:16px;text-align:center;';
+        ic.textContent = ev.icon;
+        const body = document.createElement('div');
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = ev.label;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);'; sub.textContent = ev.detail;
+        body.append(lbl, sub);
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + color + ';text-align:end;min-width:90px;';
+        amt.textContent = (ev.kind === 'withdraw' || ev.kind === 'invest' || ev.kind === 'cancel' ? '−' : '+') + fmt(ev.amount) + ' ر.س';
+        const ts = document.createElement('div'); ts.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);min-width:80px;text-align:end;';
+        ts.textContent = new Date(ev.at).toLocaleDateString('ar-SA');
+        row.append(ic, body, amt, ts);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
