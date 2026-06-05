@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Investment streak -->
+  <div class="settings-group" id="streakSec" style="display:none;">
+    <div class="settings-h">🔥 سلسلة استثماراتك الشهريّة</div>
+    <div style="padding:14px 18px;">
+      <div id="streakHero" style="background:linear-gradient(135deg,#5c2418,#b08840);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="streakKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Investment style -->
   <div class="settings-group" id="styleSec" style="display:none;">
     <div class="settings-h">🎨 أسلوبك الاستثماري</div>
@@ -3048,6 +3057,41 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Investment streak
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/investment-streak');
+      if (!r.hasData) return;
+      const sec = document.getElementById('streakSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('streakHero');
+      hero.replaceChildren();
+      const flame = document.createElement('div'); flame.style.cssText = 'font-size:36px;line-height:1;'; flame.textContent = r.currentStreak > 0 ? '🔥' : '⏸';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 36px Cairo,sans-serif;margin:8px 0 4px;';
+      big.textContent = r.currentStreak + ' شهر متتالي';
+      const desc = document.createElement('div'); desc.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.92;';
+      desc.textContent = r.currentStreak >= 6 ? 'مستثمر منضبط! استمر.' : (r.currentStreak >= 1 ? 'استمر بإضافة استثمار شهرياً للحفاظ على السلسلة.' : 'بدأت سلسلة جديدة عند استثمارك القادم.');
+      hero.append(flame, big, desc);
+      const kpis = document.getElementById('streakKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 18px Cairo,sans-serif;color:' + (color || '#062b1e') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('أطول سلسلة', r.longestStreak + ' شهر', '#0a4d36'),
+        mk('إجماليّ الأشهر النشطة', r.totalMonths, '#b08840'),
+        mk('أوّل استثمار', r.firstMonth, '#0a4d36'),
+        mk('آخر استثمار', r.lastMonth, '#0a4d36'),
+      );
     } catch (e) {}
   })();
 
