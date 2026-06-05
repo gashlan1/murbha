@@ -650,6 +650,52 @@
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
 
+<aside id="legalToc" aria-label="فهرس الوثائق" style="position:fixed;top:120px;inset-inline-start:14px;width:200px;max-height:70vh;overflow-y:auto;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:14px;font-family:Tajawal,system-ui,sans-serif;z-index:90;box-shadow:0 4px 16px rgba(13,22,18,0.05);display:none;">
+  <div style="font:800 12px Cairo,sans-serif;color:#062b1e;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(13,22,18,0.08);">📑 الفهرس</div>
+  <a href="#license" class="legal-toc-link">الاعتماد الشرعي والتنظيمي</a>
+  <a href="#terms" class="legal-toc-link">الشروط والأحكام</a>
+  <a href="#privacy" class="legal-toc-link">سياسة الخصوصية</a>
+  <a href="#risk" class="legal-toc-link">الإفصاح عن المخاطر</a>
+  <a href="#aml" class="legal-toc-link">مكافحة غسل الأموال</a>
+  <a href="#kyc" class="legal-toc-link">معرفة العميل</a>
+  <a href="#sharia" class="legal-toc-link">الفتوى الشرعية</a>
+  <a href="#complaints" class="legal-toc-link">الشكاوى</a>
+</aside>
+<style>
+  .legal-toc-link { display:block; padding:6px 4px; color:#0d1612; font:600 12px Tajawal,sans-serif; text-decoration:none; border-radius:6px; border-inline-start:2px solid transparent; padding-inline-start:8px; line-height:1.4; }
+  .legal-toc-link:hover { background:#fbf8ee; color:#062b1e; }
+  .legal-toc-link.active { background:#fff8e6; color:#062b1e; border-inline-start-color:#b08840; font-weight:800; }
+  @media (min-width: 1100px) { #legalToc { display:block !important; } }
+  @media print { #legalToc { display:none !important; } }
+</style>
+<script>
+(() => {
+  if (!window.matchMedia('(min-width: 1100px)').matches) return;
+  const toc = document.getElementById('legalToc');
+  if (toc) toc.style.display = 'block';
+  // Highlight current section while scrolling
+  const links = document.querySelectorAll('.legal-toc-link');
+  const sections = Array.from(document.querySelectorAll('.doc-section[id]'));
+  let ticking = false;
+  const tick = () => {
+    const y = (window.scrollY || 0) + 140;
+    let current = sections[0]?.id || '';
+    for (const s of sections) {
+      if (s.offsetTop <= y) current = s.id;
+      else break;
+    }
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(tick);
+  }, { passive: true });
+  tick();
+})();
+</script>
+
 <!-- HEADER -->
 <header>
   <nav class="nav">
@@ -1203,7 +1249,7 @@
       <div class="contact-grid">
         <div class="contact-item">
           <div class="contact-item-l">📞 الرقم المجاني</div>
-          <div class="contact-item-v">9200-12345</div>
+          <div class="contact-item-v"><span data-setting="support.hotline">9200-12345</span></div>
         </div>
         <div class="contact-item">
           <div class="contact-item-l">💬 واتساب</div>
