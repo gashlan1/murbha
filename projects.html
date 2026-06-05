@@ -785,6 +785,8 @@
           else if (mode === 'return') sorted.sort((a, b) => (b.profitRate || 0) - (a.profitRate || 0));
           else if (mode === 'funded') sorted.sort((a, b) => (b.fundedPct || 0) - (a.fundedPct || 0));
           else if (mode === 'min')    sorted.sort((a, b) => (a.minTicket || Infinity) - (b.minTicket || Infinity));
+          // Featured items always bubble to the top regardless of sort
+          sorted.sort((a, b) => Number(b.featured ? 1 : 0) - Number(a.featured ? 1 : 0));
           liveProjects = sorted;
         };
         applySort();
@@ -795,10 +797,11 @@
 
         // Render Live Projects
         grid.innerHTML = liveProjects.map(p => `
-          <a class="lp-card" href="project.html?id=${q(p.slug)}">
+          <a class="lp-card${p.featured ? ' featured' : ''}" href="project.html?id=${q(p.slug)}" style="${p.featured ? 'border:2px solid var(--gold);box-shadow:0 6px 20px rgba(176,136,64,0.18);' : ''}">
             <div class="lp-head">
               <div class="lp-emoji">${q(p.image || '📦')}</div>
               <div class="lp-name">${q(p.name)}</div>
+              ${p.featured ? '<span class="lp-status" style="background:linear-gradient(90deg,#b08840,#d4ac6e);color:#fff;font-weight:800;">★ مميّز</span>' : ''}
               ${p.inviteOnly ? '<span class="lp-status invite-only">🔒 دعوة خاصة</span>' : ''}
               <span class="lp-status ${q(p.status)}">${p.status === 'open' ? 'مفتوحة' : 'مكتملة التمويل'}</span>
             </div>

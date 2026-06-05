@@ -1280,6 +1280,7 @@
 <div class="card-section">
   <h2 class="section-h">المستثمرون</h2>
   <p style="font-size:13px;color:var(--muted);">٨٤٧ مستثمر سعودي شارك في هذه الفرصة</p>
+  <div id="topInvestorsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
   <div class="investors-grid">
     <div class="inv-avatar">ع</div>
     <div class="inv-avatar">م</div>
@@ -1676,6 +1677,35 @@
     } catch (e) {}
   }
 
+  async function _loadTopInvestors(p) {
+    const wrap = document.getElementById('topInvestorsList');
+    if (!wrap) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/top-investors');
+      if (!r.ok) return;
+      const d = await r.json();
+      wrap.replaceChildren();
+      if (!d.topInvestors.length) return;
+      const medals = ['🥇', '🥈', '🥉'];
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      d.topInvestors.slice(0, 3).forEach((row, i) => {
+        const r = document.createElement('div');
+        r.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fbf8ee;border:1px solid var(--line);border-radius:10px;';
+        const left = document.createElement('div');
+        left.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        const m = document.createElement('span'); m.style.fontSize='18px'; m.textContent = medals[i] || '';
+        const nm = document.createElement('span'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = row.display;
+        left.append(m, nm);
+        const amt = document.createElement('span');
+        amt.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--gold);';
+        amt.textContent = fmt(row.amount) + ' ر.س';
+        r.append(left, amt);
+        wrap.appendChild(r);
+      });
+    } catch (e) {}
+  }
+
   async function _loadFundingHistory(p) {
     const wrap = document.getElementById('fundingHistory');
     const svg = document.getElementById('fundingChart');
@@ -1839,6 +1869,9 @@
 
     // Funding history chart
     _loadFundingHistory(p);
+
+    // Top investors
+    _loadTopInvestors(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');

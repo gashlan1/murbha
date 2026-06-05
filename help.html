@@ -13,6 +13,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    header, footer, nav, .tabbar, .desktop-sidebar, .help-search,
+    .help-cats, .help-empty, .help-art-back, .help-art-vote, .helpAutocomplete,
+    #mrbScrollProgress, #toTopBtn, #mrbNotifBell, #mrbAvatar, #mrbPromoBar,
+    #consentBanner, #pwaInstall, #maintBanner, #maintHeadsBanner, #tourOverlay,
+    button { display: none !important; }
+    body { background: #fff !important; color: #000 !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body.has-sidebar { padding-inline-start: 0 !important; }
+    main { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    .help-art-detail { box-shadow: none !important; border: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    .help-art-detail h3, .help-art-detail .meta { page-break-after: avoid; }
+    .help-art-detail .body { font-size: 12pt !important; line-height: 1.7 !important; }
+    a { color: inherit !important; text-decoration: none !important; }
+    .help-art-detail::after {
+      content: 'مرابحة — Murbha · مركز المساعدة';
+      display: block; margin-top: 20px; font-size: 10px; color: #6b7268;
+      border-top: 1px solid #ccc; padding-top: 10px;
+    }
+  }
   :root {
     color-scheme: light only;
     --ink: #0d1612; --ink-soft: #1f2a23;
@@ -754,6 +774,11 @@
       const back = document.createElement('button'); back.type = 'button'; back.className = 'help-art-back';
       back.textContent = '← العودة إلى المقالات';
       back.onclick = loadList;
+      const printBtn = document.createElement('button');
+      printBtn.type = 'button';
+      printBtn.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.15);color:var(--green-dark);font:800 12px Cairo,sans-serif;border-radius:999px;padding:7px 14px;cursor:pointer;margin-inline-start:8px;';
+      printBtn.textContent = '🖨 طباعة';
+      printBtn.onclick = () => window.print();
       const card = document.createElement('div'); card.className = 'help-art-detail';
       const h = document.createElement('h3'); h.textContent = article.title;
       const m = document.createElement('div'); m.className = 'meta';
@@ -835,7 +860,7 @@
       } catch (e) {}
 
       card.append(h, m, body, voteBar, related);
-      list.append(back, card);
+      list.append(back, printBtn, card);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       const x = document.createElement('div'); x.className = 'help-empty'; x.textContent = 'تعذّر تحميل المقال.';

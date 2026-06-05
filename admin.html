@@ -1081,6 +1081,13 @@
       <button id="smsSendBtn" type="button" style="padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">إرسال SMS للشريحة</button>
       <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">يتم تجاهل أي رقم بدون توثيق. كل عملية تُسجَّل في سجل التدقيق.</p>
       <div id="smsResult" style="margin-top:10px;font-size:13px;color:#0f6e3a;"></div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font:800 12px Cairo,sans-serif;color:var(--green-dark);">آخر الإرسالات</span>
+          <button id="smsHistoryRefresh" type="button" style="background:transparent;border:0;color:var(--gold);font:700 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        </div>
+        <div id="smsHistoryList" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;"></div>
+      </div>
     </div>
   </div>
 
@@ -2348,6 +2355,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
 
+  // ── SMS history ────────────────────────────────────────────────
+  const SMS_SEG_AR = { 'verified-phone': 'كل الأرقام الموثَّقة', investors: 'المستثمرون', 'kyc-pending': 'KYC غير مكتمل' };
+  async function loadSmsHistory() {
+    const list = document.getElementById('smsHistoryList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/sms-broadcast/history');
+      list.replaceChildren();
+      if (!r.history.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:14px;font-size:12px;background:#fbf8ee;border-radius:8px;';
+        e.textContent = 'لا توجد إرسالات سابقة.';
+        list.appendChild(e); return;
+      }
+      r.history.forEach(h => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;';
+        const left = document.createElement('div');
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = (SMS_SEG_AR[h.segment] || h.segment) + ' · ' + h.length + ' حرف';
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = h.by + ' · ' + new Date(h.at).toLocaleString('ar-SA');
+        left.append(t, sub);
+        const right = document.createElement('span');
+        right.style.cssText = 'font:800 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:3px 8px;border-radius:999px;';
+        right.textContent = h.sent + ' / ' + h.recipients;
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+  document.getElementById('smsHistoryRefresh')?.addEventListener('click', loadSmsHistory);
+
   // ── SMS broadcast ─────────────────────────────────────────────
   document.getElementById('smsSendBtn')?.addEventListener('click', async () => {
     const text = document.getElementById('smsText').value.trim();
@@ -2361,9 +2403,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const r = await App.api('POST', '/app/admin/sms-broadcast', { text, segment });
       result.textContent = '✓ أُرسل إلى ' + r.sent + ' من أصل ' + r.recipients + ' مؤهَّل';
+      loadSmsHistory();
     } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
     finally { btn.disabled = false; btn.textContent = 'إرسال SMS للشريحة'; }
   });
+  loadSmsHistory();
 
   // ── KYC reminder ─────────────────────────────────────────────
   document.getElementById('kycRemindBtn')?.addEventListener('click', async () => {
@@ -3462,7 +3506,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadProjectsForDocs();
       } catch (e) { alert(e.message || 'فشل'); }
     };
-    e.target.after(cloneBtn, archBtn, imgBtn, faqBtn, sponsorBtn);
+    const featBtn = document.createElement('button');
+    featBtn.id = 'projectFeaturedBtn';
+    featBtn.type = 'button';
+    const isFeatured = !!project.featured;
+    featBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:' + (isFeatured ? '#b08840' : '#fff') + ';color:' + (isFeatured ? '#fff' : 'var(--muted)') + ';border:1px solid #b08840;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    featBtn.textContent = isFeatured ? '★ مميّز' : '☆ تمييز';
+    featBtn.onclick = async () => {
+      const next = !isFeatured;
+      try {
+        await App.api('PATCH', '/app/admin/projects/' + encodeURIComponent(project.id), { featured: next });
+        App.toast && App.toast(next ? '✓ مُميّز' : 'تم إلغاء التمييز', 'success');
+        loadProjectsForDocs();
+      } catch (e) { alert(e.message || 'فشل'); }
+    };
+    e.target.after(cloneBtn, archBtn, imgBtn, faqBtn, sponsorBtn, featBtn);
   });
 
   async function openProjectFaqEditor(project) {
