@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- NOTIFICATION THROUGHPUT -->
+  <div class="admin-card" id="ntCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔔 معدّل تدفّق الإشعارات</span>
+      <span class="card-h-sub" id="ntBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="ntKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <svg id="ntChart" width="100%" height="80" viewBox="0 0 320 80" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+    </div>
+  </div>
+
   <!-- IDLE FUNDS -->
   <div class="admin-card" id="idleCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3365,6 +3377,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadNt() {
+    const kpis = document.getElementById('ntKpis');
+    const svg = document.getElementById('ntChart');
+    const badge = document.getElementById('ntBadge');
+    if (!kpis || !svg) return;
+    try {
+      const r = await App.api('GET', '/app/admin/notification-throughput');
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (badge) {
+        const arrow = (r.trendPct || 0) >= 0 ? '↑' : '↓';
+        badge.textContent = arrow + ' ' + Math.abs(r.trendPct || 0) + '٪ (٧أ مقابل ٧أ سابقة)';
+      }
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      const readColor = (r.readRate || 0) >= 70 ? '#0f6e3a' : ((r.readRate || 0) >= 40 ? '#b08840' : '#c54a3a');
+      kpis.append(
+        mk('اليوم', fmt(r.today), '#0a4d36'),
+        mk('الأمس', fmt(r.yesterday), '#0f6e3a'),
+        mk('آخر ٧ أيام', fmt(r.last7), '#b08840'),
+        mk('الإجمالي', fmt(r.total), '#062b1e'),
+        mk('نسبة القراءة', r.readRate + '٪', readColor),
+      );
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const days = r.days || [];
+      const max = Math.max(...days.map(d => d.count), 1);
+      const W = 320, H = 80, P = 4;
+      const bw = (W - 2 * P) / days.length - 1;
+      const NS = 'http://www.w3.org/2000/svg';
+      days.forEach((d, i) => {
+        const x = P + i * ((W - 2 * P) / days.length);
+        const h = (d.count / max) * (H - 2 * P);
+        const y = H - P - h;
+        const rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', x); rect.setAttribute('y', y);
+        rect.setAttribute('width', bw); rect.setAttribute('height', h || 1);
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', d.count > 0 ? '#0a4d36' : 'rgba(13,22,18,0.06)');
+        const tl = document.createElementNS(NS, 'title');
+        tl.textContent = d.date + ': ' + d.count + ' إشعار · ' + d.read + ' مقروء';
+        rect.appendChild(tl);
+        svg.appendChild(rect);
+      });
+    } catch (e) {}
+  }
+
   async function loadIdle() {
     const kpis = document.getElementById('idleKpis');
     const list = document.getElementById('idleList');
@@ -8629,7 +8693,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

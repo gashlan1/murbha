@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Peer comparison -->
+  <div class="settings-group" id="peerSec" style="display:none;">
+    <div class="settings-h">🆚 أنت مقابل المستثمر النموذجي</div>
+    <div style="padding:14px 18px;">
+      <div id="peerSummary" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;"></div>
+      <div id="peerList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
   <!-- Diversification score -->
   <div class="settings-group" id="divScoreSec" style="display:none;">
     <div class="settings-h">🎯 نتيجة التنويع</div>
@@ -2936,6 +2945,58 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Peer comparison
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/peer-comparison');
+      if (!r.hasData) return;
+      const sec = document.getElementById('peerSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const summary = document.getElementById('peerSummary');
+      summary.replaceChildren();
+      const big = document.createElement('div');
+      big.style.cssText = 'font:900 22px Cairo,sans-serif;color:#fbf6ea;';
+      big.textContent = 'تَفوق ' + r.myInvestedPercentile + '٪ من المستثمرين';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:4px;';
+      sub.textContent = 'مُقارنةً بـ ' + fmt(r.totalInvestors) + ' مستثمر على المنصّة';
+      summary.append(big, sub);
+      const list = document.getElementById('peerList');
+      list.replaceChildren();
+      const renderRow = (label, you, median, avg, unit) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--line);border-radius:10px;';
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;';
+        head.textContent = label;
+        card.appendChild(head);
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;';
+        const mk = (l, v, color) => {
+          const w = document.createElement('div');
+          w.style.cssText = 'background:#fff;border-radius:8px;padding:10px;text-align:center;border:1px solid var(--line);';
+          const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + color + ';'; vv.textContent = v + (unit ? ' ' + unit : '');
+          const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+          w.append(vv, ll);
+          return w;
+        };
+        const youColor = you >= avg ? '#0f6e3a' : '#b08840';
+        grid.append(
+          mk('أنت', fmt(you), youColor),
+          mk('الوسيط', fmt(median), '#5c2418'),
+          mk('المتوسط', fmt(avg), '#062b1e'),
+        );
+        card.appendChild(grid);
+        list.appendChild(card);
+      };
+      renderRow('💰 إجمالي المُستثمَر', r.myInvested, r.medianInvested, r.avgInvested, 'ر.س');
+      renderRow('💼 عدد الصفقات', r.myDealCount, r.medianDealCount, r.avgDealCount, '');
+      renderRow('📈 العائد على الاستثمار', r.myROI, r.medianROI, r.avgROI, '٪');
     } catch (e) {}
   })();
 
