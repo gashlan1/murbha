@@ -1513,6 +1513,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Entry times heatmap -->
+<div class="card-section" id="entryCard" style="display:none;">
+  <h2 class="section-h">⏰ متى يستثمر الناس في هذه الصفقة؟</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">توزيع وقت تقديم الاستثمارات على مدار اليوم.</p>
+  <div id="entryHeat" style="display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-bottom:12px;"></div>
+  <div id="entryParts" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+</div>
+
 <!-- Investor growth -->
 <div class="card-section" id="growthCard" style="display:none;">
   <h2 class="section-h">📈 نموّ المستثمرين</h2>
@@ -4335,6 +4343,45 @@
     recalc();
   }
 
+  async function _loadEntry(slug) {
+    const card = document.getElementById('entryCard');
+    const heat = document.getElementById('entryHeat');
+    const parts = document.getElementById('entryParts');
+    if (!card || !heat || !parts) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/entry-times');
+      const hours = r.hours || [];
+      if (!hours.length || !r.total) { card.style.display = 'none'; return; }
+      heat.replaceChildren();
+      const max = Math.max(...hours.map(h => h.count), 1);
+      hours.forEach(h => {
+        const cell = document.createElement('div');
+        const intensity = Math.max(0.05, h.count / max);
+        cell.style.cssText = 'aspect-ratio:1;background:rgba(10,77,54,' + intensity + ');border-radius:3px;display:flex;align-items:flex-end;justify-content:center;font:800 8px Cairo,sans-serif;color:' + (intensity > 0.5 ? '#fbf6ea' : 'var(--green-dark)') + ';padding-bottom:2px;';
+        cell.title = h.hour + ':00 — ' + h.count + ' استثمار';
+        cell.textContent = h.hour;
+        heat.appendChild(cell);
+      });
+      parts.replaceChildren();
+      const p = r.parts || {};
+      const mk = (l, v, ic) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = ic + ' ' + v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      parts.append(
+        mk('الفجر (٠–٦)', p.night || 0, '🌙'),
+        mk('الصباح (٦–١٢)', p.morning || 0, '🌅'),
+        mk('الظهر (١٢–١٨)', p.afternoon || 0, '☀️'),
+        mk('المساء (١٨–٢٤)', p.evening || 0, '🌆'),
+      );
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadGrowth(slug) {
     const card = document.getElementById('growthCard');
     const svg = document.getElementById('growthChart');
@@ -4495,7 +4542,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setHealth(p) {
     const badge = document.getElementById('healthBadge');
