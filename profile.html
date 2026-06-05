@@ -859,6 +859,21 @@
     </div>
   </div>
 
+  <!-- Profile completeness -->
+  <div class="settings-group" id="completeSec">
+    <div class="settings-h">🧩 اكتمال الملف</div>
+    <div style="padding:14px 18px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div style="width:140px;height:140px;position:relative;">
+        <svg id="completeRing" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="completeScore" style="font:900 30px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div id="completeSub" style="font:600 10px Tajawal,sans-serif;color:var(--muted);">—</div>
+        </div>
+      </div>
+      <div id="completeMissing" style="width:100%;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Investment streak -->
   <div class="settings-group" id="streakSec" style="display:none;">
     <div class="settings-h">🔥 سلسلة استثمارك</div>
@@ -2596,6 +2611,50 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Profile completeness
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/profile-completeness');
+      const score = r.score || 0;
+      document.getElementById('completeScore').textContent = score + '٪';
+      document.getElementById('completeSub').textContent = (r.done || 0) + ' من ' + (r.total || 0);
+      const svg = document.getElementById('completeRing');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const NS = 'http://www.w3.org/2000/svg';
+      const bg = document.createElementNS(NS, 'circle');
+      bg.setAttribute('cx', 50); bg.setAttribute('cy', 50); bg.setAttribute('r', 42);
+      bg.setAttribute('fill', 'none'); bg.setAttribute('stroke', '#fbf6ea'); bg.setAttribute('stroke-width', '10');
+      const fg = document.createElementNS(NS, 'circle');
+      fg.setAttribute('cx', 50); fg.setAttribute('cy', 50); fg.setAttribute('r', 42);
+      fg.setAttribute('fill', 'none');
+      fg.setAttribute('stroke', score >= 80 ? '#0f6e3a' : (score >= 50 ? '#b08840' : '#c54a3a'));
+      fg.setAttribute('stroke-width', '10'); fg.setAttribute('stroke-linecap', 'round');
+      const C = 2 * Math.PI * 42;
+      fg.setAttribute('stroke-dasharray', C);
+      fg.setAttribute('stroke-dashoffset', C * (1 - score / 100));
+      svg.append(bg, fg);
+      const missing = document.getElementById('completeMissing');
+      missing.replaceChildren();
+      if (!r.missing || !r.missing.length) {
+        const ok = document.createElement('div');
+        ok.style.cssText = 'text-align:center;padding:14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        ok.textContent = '🎉 ملفّك مكتمل بالكامل';
+        missing.appendChild(ok); return;
+      }
+      const head = document.createElement('div');
+      head.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);';
+      head.textContent = 'لإكمال ملفّك:';
+      missing.appendChild(head);
+      r.missing.forEach(m => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const lbl = document.createElement('span'); lbl.style.cssText = 'font:700 12px Tajawal,sans-serif;color:var(--ink);'; lbl.textContent = '⭕ ' + m.label;
+        const w = document.createElement('span'); w.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--gold);'; w.textContent = '+' + m.weight + ' نقطة';
+        row.append(lbl, w); missing.appendChild(row);
       });
     } catch (e) {}
   })();

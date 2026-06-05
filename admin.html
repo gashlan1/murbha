@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- DEAL VELOCITY -->
+  <div class="admin-card" id="velCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🏎 سرعة تمويل الصفقات</span>
+      <span class="card-h-sub" id="velBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="velKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="velList" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- ONBOARDING FUNNEL -->
   <div class="admin-card" id="onbCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3039,6 +3051,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadVel() {
+    const kpis = document.getElementById('velKpis');
+    const list = document.getElementById('velList');
+    const badge = document.getElementById('velBadge');
+    if (!kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/deal-velocity');
+      if (badge) badge.textContent = (r.funded || 0).toLocaleString('ar-SA') + ' ممَوَّلة · وسيط ' + (r.medianDays || 0) + ' يوم';
+      kpis.replaceChildren();
+      const mkKpi = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mkKpi('الوسيط', r.medianDays + ' يوم', '#0f6e3a'),
+        mkKpi('المتوسط', r.avgDays + ' يوم', '#0a4d36'),
+        mkKpi('الأسرع', r.fastestDays + ' يوم', '#b08840'),
+        mkKpi('الأبطأ', r.slowestDays + ' يوم', '#d97706'),
+        mkKpi('مفتوحة', r.openCount || 0, '#1e3a8a'),
+        mkKpi('غير ممَوَّلة', r.closedUnfunded || 0, '#c54a3a'),
+      );
+      list.replaceChildren();
+      const items = r.rows || [];
+      if (!items.length) return;
+      const head = document.createElement('div');
+      head.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-top:6px;margin-bottom:4px;';
+      head.textContent = 'أحدث صفقات';
+      list.appendChild(head);
+      items.forEach(row => {
+        const r2 = document.createElement('div');
+        r2.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; nm.textContent = row.name;
+        const st = document.createElement('div'); st.style.cssText = 'font:700 10px Cairo,sans-serif;color:' + (row.status === 'funded' ? '#0f6e3a' : '#b08840') + ';'; st.textContent = row.status === 'funded' ? '✓ ممَوَّلة' : '⏳ مفتوحة';
+        const pc = document.createElement('div'); pc.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);min-width:50px;text-align:end;'; pc.textContent = row.raisedPct + '٪';
+        const dy = document.createElement('div'); dy.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0a4d36;min-width:60px;text-align:end;'; dy.textContent = row.days + ' يوم';
+        r2.append(nm, st, pc, dy);
+        list.appendChild(r2);
+      });
+    } catch (e) {}
+  }
+
   async function loadOnb() {
     const list = document.getElementById('onbList');
     const badge = document.getElementById('onbBadge');
@@ -7212,7 +7269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
