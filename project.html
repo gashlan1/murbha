@@ -2443,6 +2443,24 @@
       } catch (e) {}
     })();
 
+    // Peer amount reference
+    (async () => {
+      try {
+        const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/peer-amounts');
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.count || d.count < 5) return;
+        const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+        if (!wrap) return;
+        const badge = document.createElement('span');
+        badge.style.cssText = 'display:inline-block;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;';
+        const fmt = (n) => Number(n).toLocaleString('ar-SA');
+        badge.textContent = '💼 الأقران: ' + fmt(d.p25) + '-' + fmt(d.p75) + ' ر.س';
+        badge.title = 'الوسيط: ' + fmt(d.median) + ' · المتوسط: ' + fmt(d.avg);
+        wrap.appendChild(badge);
+      } catch (e) {}
+    })();
+
     // Investor regions breakdown
     (async () => {
       try {

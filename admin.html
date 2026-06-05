@@ -691,6 +691,28 @@
     </div>
   </div>
 
+  <!-- SIGNUP SOURCES -->
+  <div class="admin-card" id="signupSourcesCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📥 مصادر التسجيل</span>
+      <span class="card-h-sub" id="signupSourcesBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="signupSourcesRefresh" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <select id="signupSourcesDays" style="padding:7px 12px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+          <option value="7">آخر ٧ أيام</option>
+          <option value="30" selected>آخر ٣٠ يوماً</option>
+          <option value="90">آخر ٩٠ يوماً</option>
+          <option value="365">آخر سنة</option>
+        </select>
+      </div>
+      <div id="signupSourcesList" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PENDING DELETIONS -->
   <div class="admin-card" id="pendingDelCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2603,6 +2625,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadSignupSources() {
+    const list = document.getElementById('signupSourcesList');
+    const badge = document.getElementById('signupSourcesBadge');
+    if (!list) return;
+    const days = document.getElementById('signupSourcesDays')?.value || '30';
+    try {
+      const r = await App.api('GET', '/app/admin/signup-sources?days=' + days);
+      const items = r.sources || [];
+      if (badge) badge.textContent = (r.total || 0).toLocaleString('ar-SA') + ' تسجيل';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد تسجيلات')); return; }
+      const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418', '#1e3a8a', '#6b2c91'];
+      items.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = s.label;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 12px Cairo,sans-serif;color:var(--muted);';
+        meta.textContent = s.count.toLocaleString('ar-SA') + ' · ' + s.pct + '٪';
+        head.append(lbl, meta);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:8px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + s.pct + '%;background:' + palette[i % palette.length] + ';border-radius:4px;transition:width 0.5s;';
+        bar.appendChild(fill);
+        row.append(head, bar);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('signupSourcesRefresh')?.addEventListener('click', loadSignupSources);
+  document.getElementById('signupSourcesDays')?.addEventListener('change', loadSignupSources);
+
   async function loadPendingDeletions() {
     const list = document.getElementById('pendingDelList');
     const badge = document.getElementById('pendingDelBadge');
@@ -5632,7 +5689,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
