@@ -695,6 +695,20 @@
     </div>
   </div>
 
+  <!-- HOUR HEATMAP -->
+  <div class="admin-card" id="hourHmCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🌡 خريطة ساعات الاستثمار (توقيت السعوديّة)</span>
+      <span class="card-h-sub" id="hourHmBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="hourHmGrid" style="display:grid;grid-template-columns:60px repeat(24,1fr);gap:2px;font-size:9px;"></div>
+      <div style="margin-top:8px;font:600 10px Tajawal,sans-serif;color:var(--muted);text-align:center;">
+        ⬜ بدون نشاط · 🟫 منخفض · 🟧 متوسّط · 🟩 مرتفع
+      </div>
+    </div>
+  </div>
+
   <!-- AGE DISTRIBUTION -->
   <div class="admin-card" id="ageDistCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3579,6 +3593,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadHourHm() {
+    const grid = document.getElementById('hourHmGrid');
+    const badge = document.getElementById('hourHmBadge');
+    if (!grid) return;
+    try {
+      const r = await App.api('GET', '/app/admin/hour-heatmap');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = r.peakDayLabel + ' الساعة ' + r.peakHour + ':٠٠';
+      grid.replaceChildren();
+      // header row: empty + 24 hours
+      const empty = document.createElement('div'); empty.style.cssText = 'background:transparent;';
+      grid.appendChild(empty);
+      for (let h = 0; h < 24; h++) {
+        const c = document.createElement('div');
+        c.style.cssText = 'text-align:center;font:700 9px Cairo,sans-serif;color:var(--muted);';
+        c.textContent = h;
+        grid.appendChild(c);
+      }
+      const colorFor = v => {
+        if (v === 0) return '#fbf6ea';
+        const ratio = v / r.max;
+        if (ratio < 0.25) return '#e7d7b8';
+        if (ratio < 0.5) return '#d4ac6e';
+        if (ratio < 0.75) return '#b08840';
+        return '#0a4d36';
+      };
+      for (let d = 0; d < 7; d++) {
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 10px Cairo,sans-serif;color:var(--green-dark);display:flex;align-items:center;'; lbl.textContent = r.dayLabels[d];
+        grid.appendChild(lbl);
+        for (let h = 0; h < 24; h++) {
+          const v = r.grid[d][h];
+          const cell = document.createElement('div');
+          cell.style.cssText = 'aspect-ratio:1;background:' + colorFor(v) + ';border-radius:2px;display:flex;align-items:center;justify-content:center;color:' + (v > r.max * 0.5 ? '#fff' : 'var(--ink)') + ';font:700 8px Cairo,sans-serif;';
+          cell.title = r.dayLabels[d] + ' ' + h + ':00 — ' + v + ' استثمار';
+          if (v > 0 && v > r.max * 0.3) cell.textContent = v;
+          grid.appendChild(cell);
+        }
+      }
+    } catch (e) {}
+  }
+
   async function loadAgeDist() {
     const wrap = document.getElementById('ageDistRows');
     const badge = document.getElementById('ageDistBadge');
@@ -9485,7 +9540,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Tax-year summary -->
+  <div class="settings-group" id="taxYearSec" style="display:none;">
+    <div class="settings-h">📄 ملخّص السنة الماليّة</div>
+    <div style="padding:14px 18px;">
+      <div id="taxYearHero" style="background:linear-gradient(135deg,#1e3a8a,#062b1e);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="taxYearKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Income projection -->
   <div class="settings-group" id="incomeProjSec" style="display:none;">
     <div class="settings-h">📈 توقّعات دخلك (١٢ شهر)</div>
@@ -3103,6 +3112,41 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Tax-year summary
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/tax-year-summary');
+      if (!r.hasData) return;
+      const sec = document.getElementById('taxYearSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('taxYearHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '📄';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 26px Cairo,sans-serif;color:#d4ac6e;margin:6px 0 4px;';
+      big.textContent = 'سنة ' + r.year;
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 14px Cairo,sans-serif;color:#fff;';
+      sub.textContent = 'الربح الصافي: ' + fmt(r.netProfit) + ' ر.س';
+      hero.append(ic, big, sub);
+      const kpis = document.getElementById('taxYearKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div'); w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || '#062b1e') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll); return w;
+      };
+      kpis.append(
+        mk('استثمارات جديدة', fmt(r.invested) + ' (' + r.investCount + ')', '#0a4d36'),
+        mk('مسدّدة', fmt(r.repaidPrincipal) + ' (' + r.repaidCount + ')', '#0f6e3a'),
+        mk('أرباح إجماليّة', fmt(r.profit) + ' ر.س', '#b08840'),
+        mk('رسوم مدفوعة', fmt(r.fees) + ' ر.س', '#c54a3a'),
+        mk('زكاة مقدّرة (٢٫٥٪)', fmt(r.zakatable) + ' ر.س', '#5c2418'),
+      );
     } catch (e) {}
   })();
 
