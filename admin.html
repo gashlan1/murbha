@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- AT-RISK DEALS -->
+  <div class="admin-card" id="atRiskCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚨 صفقات في خطر عدم التمويل</span>
+      <span class="card-h-sub" id="atRiskBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="atRiskList" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- NPS TREND -->
   <div class="admin-card" id="npsTrendCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2725,6 +2738,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadAtRisk() {
+    const list = document.getElementById('atRiskList');
+    const badge = document.getElementById('atRiskBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/at-risk-deals');
+      const items = r.deals || [];
+      if (badge) badge.textContent = (items.length || 0) + ' في خطر';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('✓ لا توجد صفقات في خطر')); return; }
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      items.forEach(d => {
+        const sevColor = d.severity === 'high' ? '#c54a3a' : d.severity === 'medium' ? '#b08840' : '#0f6e3a';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid ' + sevColor + ';border-radius:8px;background:#fff;border-inline-start-width:4px;';
+        const info = document.createElement('div'); info.style.cssText = 'min-width:0;';
+        const nm = document.createElement('a'); nm.href = '/project.html?id=' + encodeURIComponent(d.slug || d.id); nm.target = '_blank';
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;';
+        nm.textContent = d.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = 'تمويل ' + d.fundedPct + '٪ · ينقص ' + fmt(d.needs) + ' ر.س · يُغلق خلال ' + d.remainingDays + ' يوم';
+        info.append(nm, document.createElement('br'), sub);
+        const action = document.createElement('button');
+        action.type = 'button'; action.textContent = '🔔 تنبيه المتابعين';
+        action.style.cssText = 'background:#fff;color:' + sevColor + ';border:1px solid ' + sevColor + ';padding:7px 12px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        action.onclick = async () => {
+          action.disabled = true; action.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/projects/' + encodeURIComponent(d.slug || d.id) + '/notify-closing-soon', {});
+            App.toast && App.toast('أُرسلت التنبيهات', 'success');
+          } catch (e) { alert(e.message || 'فشل'); }
+          action.disabled = false; action.textContent = '🔔 تنبيه المتابعين';
+        };
+        row.append(info, action);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadNpsTrend() {
     const list = document.getElementById('npsTrendList');
     if (!list) return;
@@ -6077,7 +6132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
