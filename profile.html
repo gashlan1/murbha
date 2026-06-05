@@ -865,6 +865,22 @@
     </div>
   </div>
 
+  <!-- Quick feedback form -->
+  <div class="settings-group" id="feedbackSec">
+    <div class="settings-h">💡 شارك فكرتك معنا</div>
+    <div style="padding:14px 18px;">
+      <select id="fbType" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:700 13px Tajawal,sans-serif;color:var(--ink);margin-bottom:8px;">
+        <option value="idea">💡 فكرة لميزة جديدة</option>
+        <option value="bug">🐞 مشكلة تقنية</option>
+        <option value="praise">⭐ ثناء</option>
+        <option value="suggestion">📝 اقتراح</option>
+      </select>
+      <textarea id="fbBody" placeholder="ما الذي تريد أن تشاركنا به؟" style="width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font:500 13px Tajawal,sans-serif;color:var(--ink);min-height:80px;resize:vertical;margin-bottom:8px;"></textarea>
+      <button type="button" id="fbSend" style="background:var(--green-dark);color:#d4ac6e;border:0;border-radius:10px;padding:10px 22px;font:800 13px Cairo,sans-serif;cursor:pointer;">📤 إرسال</button>
+      <div id="fbResult" style="margin-top:8px;font:700 12px Tajawal,sans-serif;min-height:18px;"></div>
+    </div>
+  </div>
+
   <!-- Keyboard shortcuts help -->
   <div class="settings-group" id="shortcutsSec">
     <div class="settings-h" style="display:flex;justify-content:space-between;align-items:center;">
@@ -2269,6 +2285,30 @@
       // Fallback — open the existing inline change-password handler
       const existing = Array.from(document.querySelectorAll('.setting-name')).find(el => el.textContent.includes('تغيير كلمة المرور'));
       if (existing) existing.parentElement.parentElement.click();
+    });
+  })();
+
+  // Quick feedback form
+  (() => {
+    const btn = document.getElementById('fbSend');
+    const ta = document.getElementById('fbBody');
+    const type = document.getElementById('fbType');
+    const result = document.getElementById('fbResult');
+    if (!btn || !ta) return;
+    btn.addEventListener('click', async () => {
+      const body = ta.value.trim();
+      if (!body) { result.textContent = 'اكتب ملاحظتك أوّلاً'; result.style.color = '#c54a3a'; return; }
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        await fetch('/app/feedback', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: type.value, body, meta: { from: 'profile_quick' } }),
+        });
+        result.textContent = '✓ شكراً، استلمنا ملاحظتك';
+        result.style.color = '#0f6e3a';
+        ta.value = '';
+      } catch (e) { result.textContent = 'فشل'; result.style.color = '#c54a3a'; }
+      btn.disabled = false; btn.textContent = '📤 إرسال';
     });
   })();
 
