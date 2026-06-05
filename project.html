@@ -1047,6 +1047,24 @@
   <div id="trustBadgesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;"></div>
 </div>
 
+<!-- SPONSOR CARD -->
+<div class="card-section" id="sponsorCard" style="padding:18px 22px;display:none;">
+  <h2 class="section-h" style="margin-bottom:14px;">👤 عن البائع / الراعي</h2>
+  <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+    <div id="sponsorAvatar" style="width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;display:flex;align-items:center;justify-content:center;font:900 26px Cairo,sans-serif;flex-shrink:0;">⬢</div>
+    <div style="flex:1;min-width:200px;">
+      <div id="sponsorName" style="font:900 16px Cairo,sans-serif;color:#062b1e;margin-bottom:4px;">—</div>
+      <div id="sponsorType" style="font:600 12px Tajawal,sans-serif;color:#6b7268;margin-bottom:10px;">—</div>
+      <div id="sponsorStats" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="sp-stat" id="spStatYears" style="display:none;background:rgba(10,77,54,0.08);color:#062b1e;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+        <span class="sp-stat" id="spStatDeals" style="display:none;background:rgba(176,136,64,0.10);color:#b08840;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+        <span class="sp-stat" id="spStatTrack" style="display:none;background:rgba(15,110,58,0.10);color:#0f6e3a;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+      </div>
+      <div id="sponsorBio" style="font:500 13px Tajawal,sans-serif;color:#0d1612;margin-top:12px;line-height:1.8;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ABOUT -->
 <div class="card-section">
   <h2 class="section-h">عن المشروع</h2>
@@ -2082,6 +2100,27 @@
         card.append(ic, t, s);
         grid.appendChild(card);
       });
+    })();
+
+    // Sponsor card
+    (() => {
+      const sp = p.sponsor || (p.sponsorName ? { name: p.sponsorName, type: p.sponsorType, bio: p.sponsorBio, yearsActive: p.sponsorYears, dealsCompleted: p.sponsorDeals, onTimePct: p.sponsorOnTimePct } : null);
+      if (!sp || !sp.name) return;
+      const card = document.getElementById('sponsorCard');
+      if (!card) return;
+      card.style.display = '';
+      document.getElementById('sponsorName').textContent = sp.name;
+      document.getElementById('sponsorType').textContent = sp.type || 'مطوّر عقاري معتمد';
+      const av = document.getElementById('sponsorAvatar');
+      if (av) av.textContent = (sp.name[0] || '⬢').toUpperCase();
+      const bio = document.getElementById('sponsorBio');
+      if (bio) bio.textContent = sp.bio || '';
+      const yrs = document.getElementById('spStatYears');
+      if (sp.yearsActive) { yrs.textContent = '📅 ' + sp.yearsActive + ' سنة خبرة'; yrs.style.display = 'inline-block'; }
+      const dls = document.getElementById('spStatDeals');
+      if (sp.dealsCompleted) { dls.textContent = '🏆 ' + sp.dealsCompleted + ' صفقة سابقة'; dls.style.display = 'inline-block'; }
+      const ot = document.getElementById('spStatTrack');
+      if (sp.onTimePct != null) { ot.textContent = '✓ ' + sp.onTimePct + '٪ في الوقت'; ot.style.display = 'inline-block'; }
     })();
 
     // Featured ribbon

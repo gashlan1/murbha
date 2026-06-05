@@ -672,14 +672,18 @@
         🇸🇦 الحد السنوي للاستثمار (هيئة السوق المالية)
       </span>
       <span id="samaLimitRatio" style="font-family:'Cairo'; font-size:12px; font-weight:800; color:var(--gold); white-space: nowrap;">
-        ٠ / ٢٥٠,٠٠٠ ر.س
+        ٠ / ٢٠٠,٠٠٠ ر.س
       </span>
     </div>
     <div style="width:100%; height:6px; background:var(--paper-2); border-radius:3px; overflow:hidden; margin-bottom:6px;">
       <div id="samaLimitFill" style="width:0%; height:100%; background:linear-gradient(90deg, var(--gold-light), var(--gold)); border-radius:3px; transition:width 0.5s;"></div>
     </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:var(--muted);line-height:1.4;margin-bottom:6px;">
+      <span>المتبقّي هذا العام: <b id="samaRemaining" style="color:var(--green-dark);">٢٠٠,٠٠٠ ر.س</b></span>
+      <span>الحد لكل صفقة: <b style="color:var(--green-dark);">٥٠,٠٠٠ ر.س</b></span>
+    </div>
     <div style="font-size:10px; color:var(--muted); line-height:1.4;">
-      الحد التنظيمي السنوي للاستثمار لعملاء التجزئة هو ٢٥٠,٠٠٠ ر.س. <a href="profile.html" style="color:var(--gold); font-weight:700; text-decoration:none;">رقّ حسابك كمستثمر مؤهل</a> لإلغاء الحد.
+      الحد التنظيمي السنوي لمستثمر التجزئة في التمويل الجماعي هو ٢٠٠,٠٠٠ ر.س. <a href="profile.html" style="color:var(--gold); font-weight:700; text-decoration:none;">رقّ حسابك كمستثمر مؤهل</a> لإلغاء الحد.
     </div>
   </div>
 </div>
@@ -987,15 +991,17 @@
 
   // ── Competitor Enhancement: SAMA limit meter ──
   const totalInvestedThisYear = (data.investments || []).reduce((acc, i) => i.status === 'active' || i.status === 'completed' ? acc + i.amount : acc, 0);
-  const limitMax = 250000;
-  
+  const limitMax = 200000;
+  const remainingEl = document.getElementById('samaRemaining');
   if (user.role === 'qualified_investor' || user.kycStatus === 'verified_qualified') {
     document.getElementById('samaLimitRatio').textContent = 'غير محدود (مستثمر مؤهل)';
     document.getElementById('samaLimitFill').style.width = '100%';
+    if (remainingEl) remainingEl.textContent = 'غير محدود';
   } else {
     const limitPct = Math.min(100, (totalInvestedThisYear / limitMax) * 100);
     document.getElementById('samaLimitFill').style.width = limitPct + '%';
     document.getElementById('samaLimitRatio').textContent = App.fmt.sar(totalInvestedThisYear) + ' / ' + App.fmt.sar(limitMax);
+    if (remainingEl) remainingEl.textContent = App.fmt.sar(Math.max(0, limitMax - totalInvestedThisYear));
   }
 
   // ── Donut Portfolio Allocation Chart (dynamic categories) ──
