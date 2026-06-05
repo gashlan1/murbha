@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- RETENTION COHORT -->
+  <div class="admin-card" id="retCohCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔁 تنشيط واستبقاء المستخدمين</span>
+      <span class="card-h-sub" id="retCohBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="retCohKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px;"></div>
+      <div id="retCohFunnel" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- REFUND RATIO -->
   <div class="admin-card" id="refRatioCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3544,6 +3556,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadRetCoh() {
+    const kpis = document.getElementById('retCohKpis');
+    const funnel = document.getElementById('retCohFunnel');
+    const badge = document.getElementById('retCohBadge');
+    if (!kpis || !funnel) return;
+    try {
+      const r = await App.api('GET', '/app/admin/retention-cohort');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = r.activationPct + '٪ تنشيط';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div'); w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll); return w;
+      };
+      kpis.append(
+        mk('مسجّلون', fmt(r.signed), '#062b1e'),
+        mk('فعّلوا (استثمروا)', fmt(r.activated), '#0f6e3a'),
+        mk('استثمار متكرّر', r.repeatPct + '٪', '#b08840'),
+        mk('متوسّط الصفقات/نشط', r.avgInvestmentsPerActive, '#0a4d36'),
+      );
+      funnel.replaceChildren();
+      const rows = [
+        { label: 'مسجّلون', count: r.signed, color: '#062b1e' },
+        { label: 'استثمروا مرّة واحدة', count: r.investedOnce, color: '#b08840' },
+        { label: 'استثمروا مرّتين فأكثر', count: r.investedRepeat, color: '#0f6e3a' },
+        { label: 'لم يستثمروا بعد', count: r.dormant, color: '#c54a3a' },
+      ];
+      const max = Math.max(...rows.map(x => x.count), 1);
+      rows.forEach(row => {
+        const w = document.createElement('div');
+        w.style.cssText = 'display:grid;grid-template-columns:180px 1fr 60px;gap:8px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = row.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, (row.count / max) * 100) + '%;background:' + row.color + ';';
+        bar.appendChild(fill);
+        const v = document.createElement('div'); v.style.cssText = 'font:800 11px Cairo,sans-serif;color:' + row.color + ';text-align:end;'; v.textContent = fmt(row.count);
+        w.append(lbl, bar, v);
+        funnel.appendChild(w);
+      });
+    } catch (e) {}
+  }
+
   async function loadRefRatio() {
     const chart = document.getElementById('refRatioChart');
     const legend = document.getElementById('refRatioLegend');
@@ -9351,7 +9408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
