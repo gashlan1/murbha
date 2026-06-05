@@ -1477,6 +1477,14 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Peer amount distribution -->
+<div class="card-section" id="peerDistCard" style="display:none;">
+  <h2 class="section-h">💼 توزيع مبالغ المستثمرين</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">شاهد كيف يتوزّع المستثمرون في هذه الصفقة عبر فئات المبالغ — أكثرية الناس عادة في الفئات المتوسطة.</p>
+  <div id="peerDistList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <div id="peerDistStats" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+</div>
+
 <!-- Comparable / similar deals -->
 <div class="card-section" id="similarCard" style="display:none;">
   <h2 class="section-h">🔁 صفقات مماثلة</h2>
@@ -4158,6 +4166,51 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
+  async function _loadPeerDist(slug) {
+    const card = document.getElementById('peerDistCard');
+    const list = document.getElementById('peerDistList');
+    const stats = document.getElementById('peerDistStats');
+    if (!card || !list || !stats) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/peer-amounts');
+      const buckets = r.buckets || [];
+      if (!r.count || r.count < 5 || !buckets.length) { card.style.display = 'none'; return; }
+      list.replaceChildren(); stats.replaceChildren();
+      const maxC = Math.max(...buckets.map(b => b.count), 1);
+      const palette = ['#d4ac6e', '#b08840', '#0f6e3a', '#0a4d36', '#062b1e'];
+      buckets.forEach((b, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = b.label + ' ر.س';
+        const bar = document.createElement('div'); bar.style.cssText = 'height:16px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((b.count / maxC) * 100) + '%;background:' + palette[i % palette.length] + ';border-radius:4px;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:90px;';
+        meta.textContent = b.count + ' (' + b.pct + '٪)';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      const mkStat = (l, v, suffix) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:8px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = fmt(v) + (suffix || '');
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      stats.append(
+        mkStat('الوسيط', r.median, ' ر.س'),
+        mkStat('المتوسط', r.avg, ' ر.س'),
+        mkStat('الحدّ الأدنى', r.min, ' ر.س'),
+        mkStat('الحدّ الأعلى', r.max, ' ر.س'),
+      );
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadSimilar(slug) {
     const card = document.getElementById('similarCard');
     const grid = document.getElementById('similarList');
@@ -4190,7 +4243,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} };
 
   // kick off
   _loadProject();
