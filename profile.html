@@ -859,6 +859,14 @@
     </div>
   </div>
 
+  <!-- Document expiry reminder -->
+  <div class="settings-group" id="docExpSec" style="display:none;">
+    <div class="settings-h">📅 وثائقك على وشك الانتهاء</div>
+    <div style="padding:14px 18px;">
+      <div id="docExpList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Profit forecast -->
   <div class="settings-group" id="forecastSec" style="display:none;">
     <div class="settings-h">🔮 توقّعات أرباحك</div>
@@ -2675,6 +2683,45 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Document expiry reminder
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/document-expiry');
+      if (!r.total) return;
+      const urgent = (r.expired || 0) + (r.critical || 0) + (r.warning || 0);
+      if (!urgent) return;
+      const sec = document.getElementById('docExpSec');
+      const list = document.getElementById('docExpList');
+      if (!sec || !list) return;
+      sec.style.display = '';
+      list.replaceChildren();
+      (r.docs || []).filter(d => d.status !== 'ok').forEach(d => {
+        const colors = {
+          expired:  { bg: 'linear-gradient(135deg,rgba(197,74,58,0.10),#fff)', border: '#c54a3a', txt: '#c54a3a', label: 'منتهية' },
+          critical: { bg: 'linear-gradient(135deg,rgba(217,119,6,0.10),#fff)', border: '#d97706', txt: '#d97706', label: 'حرج' },
+          warning:  { bg: 'linear-gradient(135deg,rgba(176,136,64,0.10),#fff)', border: '#b08840', txt: '#b08840', label: 'تحذير' },
+        };
+        const c = colors[d.status] || colors.warning;
+        const row = document.createElement('a');
+        row.href = d.deepLink || '#';
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 14px;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:10px;text-decoration:none;color:inherit;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = d.label;
+        const s = document.createElement('div'); s.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+        const dateTxt = new Date(d.expiryDate).toLocaleDateString('ar-SA');
+        if (d.status === 'expired') s.textContent = '⚠ انتهت في ' + dateTxt + ' (' + Math.abs(d.daysLeft) + ' يوم منذ ذلك)';
+        else s.textContent = 'تنتهي في ' + dateTxt + ' (' + d.daysLeft + ' يوم متبقّي)';
+        left.append(t, s);
+        const right = document.createElement('span');
+        right.style.cssText = 'font:900 11px Cairo,sans-serif;color:' + c.txt + ';background:#fff;padding:5px 12px;border-radius:99px;border:1px solid ' + c.border + ';';
+        right.textContent = c.label;
+        row.append(left, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
