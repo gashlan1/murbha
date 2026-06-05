@@ -859,6 +859,42 @@
     </div>
   </div>
 
+  <!-- Locale + calendar preferences -->
+  <div class="settings-group" id="localeSec">
+    <div class="settings-h">🌐 اللغة والتنسيق</div>
+    <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">اللغة
+        <select id="locLang" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:600 13px Tajawal,sans-serif;color:var(--ink);">
+          <option value="ar">العربية</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">تنسيق الأرقام
+        <select id="locFmt" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:600 13px Tajawal,sans-serif;color:var(--ink);">
+          <option value="ar-SA">عربي (١٬٢٣٤٬٥٦٧)</option>
+          <option value="en-US">English (1,234,567)</option>
+          <option value="en-GB">English UK</option>
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">المنطقة الزمنية
+        <select id="locTz" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:600 13px Tajawal,sans-serif;color:var(--ink);">
+          <option value="Asia/Riyadh">الرياض (AST +3)</option>
+          <option value="Asia/Dubai">دبي (GST +4)</option>
+          <option value="Asia/Kuwait">الكويت (AST +3)</option>
+          <option value="Europe/London">لندن (GMT)</option>
+          <option value="America/New_York">نيويورك (EST)</option>
+        </select>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">التقويم
+        <select id="locCal" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:600 13px Tajawal,sans-serif;color:var(--ink);">
+          <option value="hijri">هجري</option>
+          <option value="gregorian">ميلادي</option>
+        </select>
+      </label>
+    </div>
+    <div style="padding:0 18px 14px;font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;">تنطبق على التواريخ والأرقام في المنصة بعد إعادة التحميل.</div>
+  </div>
+
   <!-- Data usage transparency -->
   <div class="settings-group" id="dataUsageSec">
     <div class="settings-h">📡 من يصل لبياناتك؟</div>
@@ -2404,6 +2440,27 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Locale preferences
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const prefs = me.user?.localePrefs || {};
+      const fields = { locLang: 'language', locFmt: 'numberFormat', locTz: 'timezone', locCal: 'calendar' };
+      const defaults = { language: 'ar', numberFormat: 'ar-SA', timezone: 'Asia/Riyadh', calendar: 'hijri' };
+      Object.entries(fields).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = prefs[key] || defaults[key];
+        el.addEventListener('change', async () => {
+          try {
+            await App.api('PATCH', '/app/me/locale-prefs', { [key]: el.value });
+            App.toast && App.toast('✓ تم الحفظ', 'success');
+          } catch (e) { App.toast && App.toast('فشل الحفظ', 'error'); }
+        });
       });
     } catch (e) {}
   })();

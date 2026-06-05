@@ -695,6 +695,26 @@
     </div>
   </div>
 
+  <!-- PEAK HOURS / DAYS -->
+  <div class="admin-card" id="peakCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏰ ساعات وأيّام الذروة</span>
+      <span class="card-h-sub" id="peakBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">حسب الساعة (٠–٢٣)</div>
+          <div id="peakHourGrid" style="display:grid;grid-template-columns:repeat(24,1fr);gap:2px;"></div>
+        </div>
+        <div>
+          <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">حسب اليوم</div>
+          <div id="peakDayList" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- NEW vs RETURNING INVESTORS -->
   <div class="admin-card" id="nvrCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2926,6 +2946,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadPeak() {
+    const hg = document.getElementById('peakHourGrid');
+    const dl = document.getElementById('peakDayList');
+    const badge = document.getElementById('peakBadge');
+    if (!hg || !dl) return;
+    try {
+      const r = await App.api('GET', '/app/admin/peak-hours');
+      const hours = r.hours || [];
+      const days = r.days || [];
+      if (badge) badge.textContent = '🕒 ' + (r.peakHour || 0) + ':00 · 📅 ' + (r.peakDay || '—');
+      hg.replaceChildren();
+      const maxH = Math.max(...hours.map(h => h.count), 1);
+      hours.forEach(h => {
+        const cell = document.createElement('div');
+        const intensity = Math.max(0.05, h.count / maxH);
+        cell.style.cssText = 'aspect-ratio:1;background:rgba(15,110,58,' + intensity + ');border-radius:3px;display:flex;align-items:flex-end;justify-content:center;font:800 8px Cairo,sans-serif;color:' + (intensity > 0.5 ? '#fbf6ea' : 'var(--green-dark)') + ';padding-bottom:2px;';
+        cell.title = h.hour + ':00 — ' + h.count + ' استثمار · ' + Number(h.amount).toLocaleString('ar-SA') + ' ر.س';
+        cell.textContent = h.hour;
+        hg.appendChild(cell);
+      });
+      dl.replaceChildren();
+      const maxD = Math.max(...days.map(d => d.count), 1);
+      days.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:80px 1fr auto;gap:8px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = d.name;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((d.count / maxD) * 100) + '%;background:#b08840;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:140px;';
+        meta.textContent = d.count.toLocaleString('ar-SA') + ' · ' + Number(d.amount).toLocaleString('ar-SA') + ' ر.س';
+        row.append(lbl, bar, meta);
+        dl.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadNvr() {
     const list = document.getElementById('nvrList');
     const badge = document.getElementById('nvrBadge');
@@ -6740,7 +6799,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
