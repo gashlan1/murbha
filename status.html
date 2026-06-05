@@ -81,6 +81,11 @@
 
 <div class="components" id="components"></div>
 
+<div style="margin-top:30px;margin-bottom:18px;">
+  <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">سجل الصيانات الأخيرة</div>
+  <div id="incidentsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
 <div class="footer-note">
   هذه الصفحة تستخدم نقطة <code style="background:#fbf8ee;padding:2px 6px;border-radius:4px;direction:ltr;display:inline-block;">/app/public/status</code> العامة. لا تُسجَّل أي بيانات شخصية. للتقارير التشغيلية الكاملة، راسل الدعم الفنّي.
 </div>
@@ -121,6 +126,47 @@ async function refresh() {
 }
 refresh();
 setInterval(refresh, 20000);
+
+async function loadIncidents() {
+  try {
+    const r = await fetch('/app/public/maintenance/history');
+    if (!r.ok) return;
+    const d = await r.json();
+    const list = document.getElementById('incidentsList');
+    if (!list) return;
+    list.replaceChildren();
+    if (!d.incidents.length) {
+      const e = document.createElement('div');
+      e.style.cssText = 'padding:14px;background:rgba(15,159,94,0.08);border:1px solid rgba(15,159,94,0.20);border-radius:10px;color:#0f9f5e;font:600 12px Tajawal,sans-serif;text-align:center;';
+      e.textContent = '✓ لا توجد فترات صيانة مسجّلة. 100٪ تشغيل.';
+      list.appendChild(e); return;
+    }
+    const fmtDur = (ms) => {
+      if (!ms) return 'مستمرة';
+      const m = Math.round(ms / 60000);
+      if (m < 60) return m + ' دقيقة';
+      return Math.round(m / 60 * 10) / 10 + ' ساعة';
+    };
+    d.incidents.forEach(inc => {
+      const row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;';
+      const left = document.createElement('div'); left.style.cssText = 'flex:1;min-width:160px;';
+      const t = document.createElement('div');
+      t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+      t.textContent = inc.message || 'صيانة مجدولة';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+      sub.textContent = new Date(inc.startedAt).toLocaleString('ar-SA') + (inc.endedAt ? ' → ' + new Date(inc.endedAt).toLocaleString('ar-SA') : '');
+      left.append(t, sub);
+      const right = document.createElement('span');
+      right.style.cssText = 'background:' + (inc.endedAt ? 'rgba(15,110,58,0.10)' : 'rgba(176,136,64,0.16)') + ';color:' + (inc.endedAt ? '#0f6e3a' : '#7a5a10') + ';font:800 11px Cairo,sans-serif;padding:4px 10px;border-radius:999px;';
+      right.textContent = fmtDur(inc.durationMs);
+      row.append(left, right);
+      list.appendChild(row);
+    });
+  } catch (e) {}
+}
+loadIncidents();
 </script>
 </body>
 </html>

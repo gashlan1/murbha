@@ -979,6 +979,44 @@
     ]), 800);
   };
 
+  // ─── Promo bar (admin-configured) ───────────────────────────
+  const _installPromoBar = async () => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbPromoBar')) return;
+    try {
+      const r = await fetch('/app/public/promo');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d.active || !d.text) return;
+      const dismissedV = (() => { try { return +localStorage.getItem('mrb_promo_dismissed_v') || 0; } catch { return 0; } })();
+      if (dismissedV >= (d.version || 1)) return;
+      const bar = document.createElement('a');
+      bar.id = 'mrbPromoBar';
+      bar.href = d.ctaUrl || '#';
+      bar.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;gap:12px;background:' + (d.bgColor || '#062b1e') + ';color:' + (d.fgColor || '#fbf6ea') + ';padding:9px 40px 9px 16px;text-align:center;font:700 12px Cairo,Tajawal,sans-serif;text-decoration:none;flex-wrap:wrap;';
+      const txt = document.createElement('span'); txt.textContent = d.text;
+      bar.appendChild(txt);
+      if (d.cta && d.ctaUrl) {
+        const cta = document.createElement('span');
+        cta.style.cssText = 'background:rgba(255,255,255,0.18);padding:3px 12px;border-radius:999px;font:800 11px Cairo,sans-serif;';
+        cta.textContent = d.cta + ' →';
+        bar.appendChild(cta);
+      }
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.setAttribute('aria-label', 'إغلاق الإعلان');
+      close.style.cssText = 'position:absolute;top:50%;inset-inline-end:8px;transform:translateY(-50%);background:transparent;border:0;color:inherit;font:900 14px Cairo,sans-serif;cursor:pointer;opacity:0.7;padding:0 4px;';
+      close.textContent = '✕';
+      close.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        try { localStorage.setItem('mrb_promo_dismissed_v', String(d.version || 1)); } catch {}
+        bar.remove();
+      };
+      bar.appendChild(close);
+      document.body.prepend(bar);
+    } catch (e) {}
+  };
+
   // ─── Maintenance banner (poll once on load) ────────────────────
   const _checkMaintenance = async () => {
     try {
@@ -1069,7 +1107,7 @@
     _wireLangToggle();
     _injectSupportFab();
     if (!location.pathname.includes('cookies.html')) _renderConsent();
-    if (!location.pathname.includes('admin')) _checkMaintenance();
+    if (!location.pathname.includes('admin')) { _checkMaintenance(); _installPromoBar(); }
     // iOS Safari has no beforeinstallprompt; show its hint after delay.
     if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
     _maybeRunTour();

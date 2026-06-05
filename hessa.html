@@ -1994,6 +1994,61 @@
 })();
 </script>
 
+<!-- TOP INVESTORS -->
+<section id="topInvestorsSection" style="padding:30px 22px;background:#fbf6ea;display:none;">
+  <div style="max-width:880px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:18px;">
+      <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="TOP INVESTORS">أبرز المستثمرين</span>
+      <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="The people who built their portfolio with us">من بنوا محفظتهم معنا</h2>
+      <p style="color:#6b7268;font-size:13px;margin-top:6px;" data-en="Voluntary list of investors who chose to be visible." >قائمة اختيارية لمن سمحوا بإظهار حسابهم.</p>
+    </div>
+    <div id="topInvestorsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;"></div>
+    <div style="text-align:center;">
+      <a href="/leaderboard.html" style="font:800 13px Cairo,sans-serif;color:#b08840;text-decoration:none;padding:8px 16px;border:1px solid #b08840;border-radius:999px;" data-en="See full leaderboard">عرض اللوحة الكاملة ←</a>
+    </div>
+  </div>
+</section>
+<style>
+  @media (max-width:560px) { #topInvestorsGrid { grid-template-columns:1fr !important; } }
+</style>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/leaderboard');
+    if (!r.ok) return;
+    const d = await r.json();
+    const top = (d.leaderboard || []).slice(0, 3);
+    if (!top.length) return;
+    const sec = document.getElementById('topInvestorsSection');
+    const grid = document.getElementById('topInvestorsGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const medals = ['🥇', '🥈', '🥉'];
+    top.forEach((row, i) => {
+      const a = document.createElement('a');
+      a.href = '/investor.html?id=' + encodeURIComponent(row.userId);
+      a.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px;text-decoration:none;color:inherit;text-align:center;transition:transform .15s;' + (i === 0 ? 'border-color:#d4ac6e;background:linear-gradient(180deg,#fff8e6,#fff);' : '');
+      a.onmouseenter = () => a.style.transform = 'translateY(-2px)';
+      a.onmouseleave = () => a.style.transform = 'translateY(0)';
+      const m = document.createElement('div');
+      m.style.cssText = 'font:900 32px Cairo,sans-serif;color:#062b1e;line-height:1;margin-bottom:4px;';
+      m.textContent = medals[i] || '';
+      const n = document.createElement('div');
+      n.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;margin-bottom:6px;';
+      n.textContent = row.display;
+      const amt = document.createElement('div');
+      amt.style.cssText = 'font:900 17px Cairo,sans-serif;color:#b08840;';
+      amt.textContent = Number(row.invested || 0).toLocaleString('ar-SA') + ' ر.س';
+      const deals = document.createElement('div');
+      deals.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:3px;';
+      deals.textContent = row.deals + ' صفقة';
+      a.append(m, n, amt, deals);
+      grid.appendChild(a);
+    });
+  } catch (e) {}
+})();
+</script>
+
 <!-- CLOSING SOON -->
 <section id="closingSoonSection" style="padding:36px 22px;background:#fbf6ea;display:none;">
   <div style="max-width:1080px;margin:0 auto;">
