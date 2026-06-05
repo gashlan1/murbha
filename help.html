@@ -766,7 +766,44 @@
       } else {
         body.textContent = article.body;
       }
-      card.append(h, m, body);
+      // Voting bar
+      const voteBar = document.createElement('div');
+      voteBar.style.cssText = 'margin-top:24px;padding:16px;background:#fbf8ee;border-radius:12px;text-align:center;';
+      const voteLbl = document.createElement('div');
+      voteLbl.style.cssText = 'font:700 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:10px;';
+      voteLbl.textContent = 'هل كانت هذه المقالة مفيدة؟';
+      const voteRow = document.createElement('div');
+      voteRow.style.cssText = 'display:flex;gap:10px;justify-content:center;';
+      const VOTED_KEY = 'mrb_help_voted_' + article.id;
+      const alreadyVoted = (() => { try { return localStorage.getItem(VOTED_KEY); } catch { return null; } })();
+      const mkBtn = (kind, label, emoji) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const count = kind === 'up' ? (article.upvotes || 0) : (article.downvotes || 0);
+        b.style.cssText = 'min-width:90px;padding:9px 18px;background:' + (alreadyVoted === kind ? '#0a4d36' : '#fff') + ';color:' + (alreadyVoted === kind ? '#fff' : '#062b1e') + ';border:1px solid var(--green-dark,#062b1e);border-radius:999px;font:800 13px Cairo,sans-serif;cursor:' + (alreadyVoted ? 'default' : 'pointer') + ';display:inline-flex;align-items:center;gap:6px;justify-content:center;';
+        b.disabled = !!alreadyVoted;
+        b.textContent = emoji + ' ' + label + ' · ' + count;
+        b.onclick = async () => {
+          if (alreadyVoted) return;
+          try {
+            const r2 = await fetch('/app/help/articles/' + encodeURIComponent(article.id) + '/vote', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ vote: kind }),
+            });
+            if (!r2.ok) return;
+            const d2 = await r2.json();
+            try { localStorage.setItem(VOTED_KEY, kind); } catch {}
+            voteRow.replaceChildren(mkBtn('up', 'نعم', '👍'), mkBtn('down', 'لا', '👎'));
+            article.upvotes = d2.upvotes; article.downvotes = d2.downvotes;
+            voteLbl.textContent = '✓ شكراً لتقييمك';
+          } catch (e) {}
+        };
+        return b;
+      };
+      voteRow.append(mkBtn('up', 'نعم', '👍'), mkBtn('down', 'لا', '👎'));
+      voteBar.append(voteLbl, voteRow);
+      card.append(h, m, body, voteBar);
       list.append(back, card);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {

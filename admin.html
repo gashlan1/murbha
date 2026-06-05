@@ -905,9 +905,16 @@
               <input id="annExpiresAt" type="datetime-local" style="margin-top:4px;width:100%;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
             </label>
           </div>
-          <button type="submit" class="btn-primary" id="annSubmit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-primary" id="annSubmit" style="flex:1;padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+            <button type="button" id="annPreviewBtn" style="padding:12px 18px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--green-dark);font:800 13px Cairo,sans-serif;cursor:pointer;">👁 معاينة</button>
+          </div>
           <button type="button" id="annCancelEdit" style="display:none;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
         </form>
+        <div id="annPreviewBox" style="display:none;margin-top:14px;border:1px dashed var(--line-strong);border-radius:12px;padding:14px;background:#fdfcf6;">
+          <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-bottom:8px;letter-spacing:1px;">معاينة الإعلان كما سيظهر للزوّار</div>
+          <div id="annPreviewBar"></div>
+        </div>
       </div>
       <div>
         <div id="annList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
@@ -1562,6 +1569,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       annList.replaceChildren(_emptyNode('تعذّر تحميل الإعلانات', '#c54a3a'));
     }
   }
+
+  // Announcement preview
+  document.getElementById('annPreviewBtn')?.addEventListener('click', () => {
+    const box = document.getElementById('annPreviewBox');
+    const bar = document.getElementById('annPreviewBar');
+    const title = annTitle.value.trim();
+    const bodyTxt = annBody.value.trim();
+    const level = annLevel.value;
+    if (!title && !bodyTxt) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    bar.replaceChildren();
+    const COLORS = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'background:' + (COLORS[level] || '#0a4d36') + ';color:#fbf6ea;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font:600 13px Tajawal,sans-serif;border-radius:8px;';
+    const dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4ac6e;flex-shrink:0;';
+    const t = document.createElement('strong');
+    t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#fff;';
+    t.textContent = title || '— عنوان —';
+    const body = document.createElement('span');
+    body.style.cssText = 'opacity:0.9;';
+    if (window.App && typeof App.mdInline === 'function') {
+      App.mdInline(bodyTxt || '— النص —', body);
+      body.querySelectorAll('a').forEach(el => { el.style.color = '#fff'; el.style.textDecoration = 'underline'; });
+    } else { body.textContent = bodyTxt || '— النص —'; }
+    wrap.append(dot, t, body);
+    if (annCta.value.trim() && annCtaUrl.value.trim()) {
+      const cta = document.createElement('a');
+      cta.href = annCtaUrl.value.trim();
+      cta.target = '_blank'; cta.rel = 'noopener';
+      cta.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;padding:6px 14px;border-radius:999px;text-decoration:none;font:800 12px Cairo,sans-serif;margin-inline-start:auto;';
+      cta.textContent = annCta.value.trim();
+      wrap.appendChild(cta);
+    }
+    bar.appendChild(wrap);
+  });
 
   document.getElementById('annForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2590,6 +2633,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
   if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
+
+  // ── Project clone (bulk action on any cached project) ─────────
+  async function cloneProject(projectId) {
+    if (!confirm('نسخ المشروع كمسوّدة جديدة؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/projects/' + encodeURIComponent(projectId) + '/clone');
+      App.toast && App.toast('✓ تم النسخ: ' + (r.project?.name || ''), 'success');
+      loadProjectsForDocs();
+    } catch (e) { alert(e.message || 'فشل النسخ'); }
+  }
+  // Expose globally so any project list elsewhere can call it.
+  window.cloneProject = cloneProject;
+
+  // Add a "نسخ" button next to the project selector for the currently-selected one.
+  document.addEventListener('change', (e) => {
+    if (e.target?.id !== 'pdProject') return;
+    let cloneBtn = document.getElementById('cloneSelectedProjectBtn');
+    const slug = e.target.value;
+    if (!slug) { if (cloneBtn) cloneBtn.remove(); return; }
+    const project = _projectCache.find(p => (p.slug || p.id) === slug);
+    if (!cloneBtn) {
+      cloneBtn = document.createElement('button');
+      cloneBtn.id = 'cloneSelectedProjectBtn';
+      cloneBtn.type = 'button';
+      cloneBtn.style.cssText = 'margin-inline-start:8px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      cloneBtn.textContent = '📋 نسخ المشروع';
+      e.target.after(cloneBtn);
+    }
+    cloneBtn.onclick = () => project && cloneProject(project.id);
+  });
 
   // ── Project documents ─────────────────────────────────────────
   let _projectCache = [];

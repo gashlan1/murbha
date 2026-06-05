@@ -614,25 +614,15 @@
     <div style="background:#fff; border:0.5px solid var(--line); border-radius:18px; padding:18px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;">
       <h3 style="font-family:'Cairo'; font-size:14px; font-weight:800; color:var(--green-dark); width:100%; text-align:start;">توزيع المحفظة الاستثمارية</h3>
       <div style="position:relative; width:120px; height:120px; display:flex; align-items:center; justify-content:center;">
-        <!-- SVG Donut Chart -->
-        <svg width="120" height="120" viewBox="0 0 42 42" class="donut-chart" style="transform: rotate(-90deg);">
+        <svg id="donutChart" width="120" height="120" viewBox="0 0 42 42" class="donut-chart" style="transform: rotate(-90deg);">
           <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--paper-2)" stroke-width="4.5"></circle>
-          <!-- Segments will be drawn dynamically via JS -->
-          <circle id="donutSegmentRealEstate" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--green)" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
-          <circle id="donutSegmentOm" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--gold)" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
-          <circle id="donutSegmentOther" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#1e3a8a" stroke-width="4.5" stroke-dasharray="0 100" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s;"></circle>
         </svg>
         <div style="position:absolute; font-family:'Cairo'; text-align:center;">
           <div style="font-size:10px; color:var(--muted); line-height:1;">الاستثمار</div>
           <div id="donutCenterVal" style="font-size:14px; font-weight:900; color:var(--green-dark); white-space: nowrap;">٠ ر.س</div>
         </div>
       </div>
-      <!-- Donut Legend -->
-      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; font-size:11px; width:100%;">
-        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:var(--green); border-radius:50%;"></span>عقاري (<span id="pctRealEstate">٠٪</span>)</span>
-        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:var(--gold); border-radius:50%;"></span>تشغيل وصيانة (<span id="pctOm">٠٪</span>)</span>
-        <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; background:#1e3a8a; border-radius:50%;"></span>أخرى (<span id="pctOther">٠٪</span>)</span>
-      </div>
+      <div id="donutLegend" style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; font-size:11px; width:100%;"></div>
     </div>
     
     <!-- Payout Calendar Card -->
@@ -787,47 +777,50 @@
     document.getElementById('samaLimitRatio').textContent = App.fmt.sar(totalInvestedThisYear) + ' / ' + App.fmt.sar(limitMax);
   }
 
-  // ── Competitor Enhancement: Donut Portfolio Allocation Chart ──
-  const cats = { realEstate: 0, om: 0, other: 0 };
+  // ── Donut Portfolio Allocation Chart (dynamic categories) ──
+  const catTotals = new Map();
   (data.investments || []).forEach(i => {
     if (i.status === 'active' || i.status === 'completed') {
-      const proj = i.project || {};
-      const category = proj.category || '';
-      if (category.includes('عقار')) {
-        cats.realEstate += i.amount;
-      } else if (category.includes('تشغيل') || category.includes('صيانة') || category.includes('O&M') || category.includes('تنظيف')) {
-        cats.om += i.amount;
-      } else {
-        cats.other += i.amount;
-      }
+      const cat = (i.project && i.project.category) || 'أخرى';
+      catTotals.set(cat, (catTotals.get(cat) || 0) + Number(i.amount || 0));
     }
   });
-  
-  const totalAct = cats.realEstate + cats.om + cats.other;
+  const totalAct = [...catTotals.values()].reduce((s, v) => s + v, 0);
+  const PALETTE = ['#0a4d36', '#b08840', '#1e3a8a', '#7a5a10', '#c54a3a', '#0f6e3a', '#d4ac6e', '#6b7268'];
   if (totalAct > 0) {
     document.getElementById('portfolioVisualizer').style.display = 'block';
     document.getElementById('donutCenterVal').textContent = App.fmt.sar(totalAct);
-    
-    const pctRE = Math.round((cats.realEstate / totalAct) * 100);
-    const pctOM = Math.round((cats.om / totalAct) * 100);
-    const pctOther = 100 - pctRE - pctOM; // force sum to 100
-    
-    document.getElementById('pctRealEstate').textContent = App.fmt.arNum(pctRE) + '٪';
-    document.getElementById('pctOm').textContent = App.fmt.arNum(pctOM) + '٪';
-    document.getElementById('pctOther').textContent = App.fmt.arNum(pctOther) + '٪';
-    
-    // SVG Donut calculation using direct percentages since circumference = 100
-    const segRE = document.getElementById('donutSegmentRealEstate');
-    segRE.setAttribute('stroke-dasharray', `${pctRE} ${100 - pctRE}`);
-    segRE.setAttribute('stroke-dashoffset', '0');
-    
-    const segOM = document.getElementById('donutSegmentOm');
-    segOM.setAttribute('stroke-dasharray', `${pctOM} ${100 - pctOM}`);
-    segOM.setAttribute('stroke-dashoffset', `-${pctRE}`);
-    
-    const segOther = document.getElementById('donutSegmentOther');
-    segOther.setAttribute('stroke-dasharray', `${pctOther} ${100 - pctOther}`);
-    segOther.setAttribute('stroke-dashoffset', `-${pctRE + pctOM}`);
+    const chart = document.getElementById('donutChart');
+    const legend = document.getElementById('donutLegend');
+    // Remove any previously rendered dynamic segments + legend items
+    chart.querySelectorAll('circle[data-cat]').forEach(c => c.remove());
+    legend.replaceChildren();
+    // Sort biggest first for stable legend ordering
+    const entries = [...catTotals.entries()].sort((a, b) => b[1] - a[1]);
+    let offset = 0;
+    entries.forEach(([cat, amount], idx) => {
+      const pct = Math.round((amount / totalAct) * 100);
+      const color = PALETTE[idx % PALETTE.length];
+      const seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      seg.setAttribute('data-cat', cat);
+      seg.setAttribute('cx', '21'); seg.setAttribute('cy', '21'); seg.setAttribute('r', '15.91549430918954');
+      seg.setAttribute('fill', 'transparent');
+      seg.setAttribute('stroke', color);
+      seg.setAttribute('stroke-width', '4.5');
+      seg.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+      seg.setAttribute('stroke-dashoffset', `-${offset}`);
+      seg.style.transition = 'stroke-dasharray .5s';
+      chart.appendChild(seg);
+      offset += pct;
+      const item = document.createElement('span');
+      item.style.cssText = 'display:flex;align-items:center;gap:4px;';
+      const dot = document.createElement('span');
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + color + ';';
+      const txt = document.createElement('span');
+      txt.textContent = cat + ' (' + App.fmt.arNum(pct) + '٪)';
+      item.append(dot, txt);
+      legend.appendChild(item);
+    });
   } else {
     document.getElementById('portfolioVisualizer').style.display = 'none';
   }
