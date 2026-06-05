@@ -950,6 +950,41 @@
     </div>
   </div>
 
+  <!-- SEGMENT BROADCAST -->
+  <div class="admin-card" id="segNotifyCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 إشعار جماعي لشريحة</span>
+      <span class="card-h-sub">يصل كإشعار داخل المنصة (وليس بريداً)</span>
+    </div>
+    <div class="card-body">
+      <form id="segNotifyForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          الشريحة
+          <select id="segChoice" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+            <option value="all">كل المستخدمين</option>
+            <option value="approved">المعتمدون</option>
+            <option value="pending">قيد التحقق</option>
+            <option value="kyc-pending">KYC غير مكتمل</option>
+            <option value="investors">من لديهم استثمار</option>
+          </select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          العنوان
+          <input id="segTitle" type="text" maxlength="120" placeholder="مثال: تحديث في سياسة السحب" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          النص
+          <textarea id="segBody" rows="3" maxlength="1000" placeholder="نص الإشعار..." required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          رابط CTA (اختياري)
+          <input id="segCtaUrl" type="text" placeholder="https://murbha.sa/projects.html?x=1" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;" />
+        </label>
+        <button type="submit" id="segSendBtn" style="grid-column:1/-1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إرسال للشريحة</button>
+      </form>
+    </div>
+  </div>
+
   <!-- MAINTENANCE MODE -->
   <div class="admin-card" id="maintenanceCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1496,6 +1531,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
 
+  // ── Segment notify ───────────────────────────────────────────
+  const SEG_LABEL = { all: 'كل المستخدمين', approved: 'المعتمدون', pending: 'قيد التحقق', 'kyc-pending': 'KYC غير مكتمل', investors: 'من لديهم استثمار' };
+  document.getElementById('segNotifyForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const segment = document.getElementById('segChoice').value;
+    const title   = document.getElementById('segTitle').value.trim();
+    const bodyTxt = document.getElementById('segBody').value.trim();
+    const ctaUrl  = document.getElementById('segCtaUrl').value.trim();
+    if (!title || !bodyTxt) return;
+    if (!confirm('إرسال هذا الإشعار إلى شريحة "' + (SEG_LABEL[segment] || segment) + '"؟')) return;
+    const btn = document.getElementById('segSendBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/admin/notify-segment', { segment, title, body: bodyTxt, ctaUrl: ctaUrl || undefined });
+      App.toast && App.toast('✓ أُرسل إلى ' + (r.count || 0) + ' مستخدماً', 'success');
+      document.getElementById('segTitle').value = '';
+      document.getElementById('segBody').value = '';
+      document.getElementById('segCtaUrl').value = '';
+    } catch (err) { alert(err.message || 'فشل الإرسال'); }
+    finally { btn.disabled = false; btn.textContent = 'إرسال للشريحة'; }
+  });
+
   // ── Settings ───────────────────────────────────────────────────
   async function loadSettings() {
     try {
@@ -1791,6 +1848,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         stChip.style.cssText = `font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(13,22,18,0.06);color:${stColors[st]};`;
         stChip.textContent = st === 'admin' ? 'مسؤول' : (STATUS_AR[st] || st);
         tags.appendChild(stChip);
+        if (u.suspendedAt) {
+          const sus = document.createElement('span');
+          sus.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(197,74,58,0.15);color:#c54a3a;';
+          sus.textContent = '⛔ مُعلَّق';
+          tags.appendChild(sus);
+        }
         if (u.kycStatus && u.kycStatus !== 'verified') {
           const kycChip = document.createElement('span');
           kycChip.style.cssText = 'font:600 10px Tajawal,sans-serif;padding:3px 8px;border-radius:999px;background:var(--paper);color:var(--muted);';
@@ -1988,6 +2051,46 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
       noteWrap.append(noteH, noteTa, noteBtn);
       card.appendChild(noteWrap);
+
+      // Suspension control
+      const susWrap = document.createElement('div');
+      susWrap.style.cssText = 'margin-bottom:10px;background:#fdecea;border:1px solid #f1b9b1;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;';
+      const susInfo = document.createElement('div');
+      susInfo.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#7a2218;line-height:1.6;flex:1;min-width:200px;';
+      if (d.user.suspendedAt) {
+        susInfo.textContent = '⛔ مُعلَّق منذ ' + new Date(d.user.suspendedAt).toLocaleString('ar-SA') + (d.user.suspendReason ? ' — السبب: ' + d.user.suspendReason : '');
+      } else {
+        susInfo.textContent = 'الحساب نشط. التعليق يبطل الجلسات فوراً ويمنع تسجيل الدخول.';
+      }
+      const susBtn = document.createElement('button');
+      susBtn.type = 'button';
+      if (d.user.suspendedAt) {
+        susBtn.textContent = 'إلغاء التعليق';
+        susBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        susBtn.onclick = async () => {
+          if (!confirm('إلغاء تعليق هذا الحساب؟')) return;
+          try {
+            await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/unsuspend');
+            App.toast && App.toast('تم إلغاء التعليق', 'success');
+            modal.remove(); loadUsers();
+          } catch (e) { alert(e.message || 'فشل العمل'); }
+        };
+      } else {
+        susBtn.textContent = '⛔ تعليق الحساب';
+        susBtn.style.cssText = 'background:#c54a3a;color:#fff;border:0;border-radius:8px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        susBtn.onclick = async () => {
+          const reason = prompt('سبب التعليق (يظهر في سجل التدقيق):', '');
+          if (reason === null) return;
+          if (!confirm('تأكيد تعليق هذا الحساب؟ سيتم إنهاء جلساته الحالية.')) return;
+          try {
+            await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/suspend', { reason });
+            App.toast && App.toast('✓ تم تعليق الحساب', 'success');
+            modal.remove(); loadUsers();
+          } catch (e) { alert(e.message || 'فشل العمل'); }
+        };
+      }
+      susWrap.append(susInfo, susBtn);
+      card.appendChild(susWrap);
 
       // Send notification composer
       const notifWrap = document.createElement('div');
