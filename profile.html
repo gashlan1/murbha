@@ -1322,6 +1322,7 @@
   <div class="settings-group">
     <div class="settings-h">تفضيلات الإشعارات</div>
     <div id="notifPrefsBox" style="padding:14px 18px;"><div style="color:var(--muted);font-size:13px;text-align:center;padding:8px;">جاري التحميل…</div></div>
+    <div id="categoryPrefsBox" style="padding:6px 18px 16px;display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);"></div>
   </div>
 
   <!-- Referral -->
@@ -2444,6 +2445,36 @@
     e.preventDefault();
     location.href = '/app/me/export.csv';
   });
+
+  // Notification category preferences
+  (async () => {
+    const box = document.getElementById('categoryPrefsBox');
+    if (!box) return;
+    try {
+      const r = await App.api('GET', '/app/me/notification-categories');
+      const c = r.categories || {};
+      const items = [
+        { k: 'deals', label: '🎯 صفقات جديدة وتحديثاتها' },
+        { k: 'payments', label: '💳 الإيداعات والسحوبات' },
+        { k: 'marketing', label: '📣 العروض الترويجية' },
+      ];
+      box.replaceChildren();
+      items.forEach(it => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);';
+        const lbl = document.createElement('span'); lbl.textContent = it.label;
+        const sw = document.createElement('input'); sw.type = 'checkbox';
+        sw.checked = c[it.k] !== false && (it.k === 'marketing' ? c[it.k] === true : c[it.k] !== false);
+        sw.style.cssText = 'accent-color:var(--green);width:18px;height:18px;';
+        sw.onchange = async () => {
+          try { await App.api('PATCH', '/app/me/notification-categories', { [it.k]: sw.checked }); }
+          catch (e) { sw.checked = !sw.checked; App.toast && App.toast('تعذّر الحفظ', 'error'); }
+        };
+        row.append(lbl, sw);
+        box.appendChild(row);
+      });
+    } catch (e) {}
+  })();
 
   // Notification preferences
   (async () => {
