@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Saved searches -->
+  <div class="settings-group" id="svdSrSec" style="display:none;">
+    <div class="settings-h">🔎 بحثك المحفوظ</div>
+    <div style="padding:14px 18px;">
+      <div id="svdSrList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">💡 احفظ بحثاً من <a href="/search.html" style="color:var(--gold);font-weight:800;">صفحة البحث ←</a> لتلقّي تنبيه بكل صفقة جديدة مطابقة.</p>
+    </div>
+  </div>
+
   <!-- Scheduled reminders -->
   <div class="settings-group" id="remSec" style="display:none;">
     <div class="settings-h">🔔 تذكيرات مجدولة</div>
@@ -2842,6 +2851,58 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Saved searches
+  (async () => {
+    try {
+      const sec = document.getElementById('svdSrSec');
+      const list = document.getElementById('svdSrList');
+      if (!sec || !list) return;
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/saved-searches');
+        if (!r.total) { sec.style.display = 'none'; return; }
+        sec.style.display = '';
+        list.replaceChildren();
+        r.searches.forEach(s => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+          const left = document.createElement('a');
+          const qs = new URLSearchParams();
+          Object.entries(s.filters || {}).forEach(([k, v]) => { if (v != null && v !== '') qs.set(k, v); });
+          left.href = '/search.html?' + qs.toString();
+          left.style.cssText = 'text-decoration:none;color:inherit;display:block;overflow:hidden;';
+          const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          t.textContent = '🔎 ' + s.label;
+          const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+          const parts = [];
+          if (s.filters?.category) parts.push('فئة: ' + s.filters.category);
+          if (s.filters?.city) parts.push('مدينة: ' + s.filters.city);
+          if (s.filters?.minReturn) parts.push('عائد ≥ ' + s.filters.minReturn + '٪');
+          sub.textContent = parts.length ? parts.join(' · ') : 'بدون فلاتر';
+          left.append(t, sub);
+          const notify = document.createElement('span');
+          notify.style.cssText = 'font:800 10px Cairo,sans-serif;padding:4px 10px;border-radius:99px;' + (s.notify ? 'color:#0f6e3a;background:rgba(15,110,58,0.10);' : 'color:#6b7268;background:rgba(107,114,104,0.10);');
+          notify.textContent = s.notify ? '🔔 تنبيه' : '🔕 صامت';
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:transparent;color:#c54a3a;border:1px solid #c54a3a;padding:4px 10px;border-radius:6px;font:800 10px Cairo,sans-serif;cursor:pointer;';
+          del.textContent = '🗑';
+          del.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!confirm('حذف البحث المحفوظ "' + s.label + '"؟')) return;
+            try {
+              await App.api('DELETE', '/app/me/saved-searches/' + encodeURIComponent(s.id));
+              App.toast && App.toast('✓ حُذف', 'success');
+              render();
+            } catch (e) { App.toast && App.toast('فشل', 'error'); }
+          });
+          row.append(left, notify, del);
+          list.appendChild(row);
+        });
+      };
+      await render();
     } catch (e) {}
   })();
 
