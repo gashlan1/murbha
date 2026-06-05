@@ -1538,6 +1538,13 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">📌 العائد الفعلي قد يختلف. هذه أرقام استرشاديّة بناءً على العائد المُعلَن.</p>
 </div>
 
+<!-- Investment thesis -->
+<div class="card-section" id="thesisCard" style="display:none;">
+  <h2 class="section-h">💡 لماذا هذه الصفقة؟</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">٤ أسباب رئيسة تجعل هذه الصفقة جذّابة بناءً على بياناتها وخصائصها.</p>
+  <div id="thesisList" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
 <!-- Profitability index -->
 <div class="card-section" id="piCard" style="display:none;">
   <h2 class="section-h">💎 مؤشّر الربحيّة</h2>
@@ -4508,6 +4515,47 @@
     card.style.display = '';
   }
 
+  function _initThesis(p) {
+    const card = document.getElementById('thesisCard');
+    const list = document.getElementById('thesisList');
+    if (!card || !list) return;
+    const reasons = [];
+    const rate = Number(p.expectedReturn || 0);
+    const months = Number(p.durationMonths || 0);
+    const fundedPct = Number(p.fundedPct || 0);
+    const investorCount = Number(p.investorCount || 0);
+    if (rate >= 10) reasons.push({ ic: '📈', t: 'عائد مرتفع', d: 'عائد ' + rate + '٪ سنوياً، أعلى بـ ' + Math.round(rate - 3) + '٪ من الادخار البنكي.' });
+    else if (rate >= 7) reasons.push({ ic: '📊', t: 'عائد جيّد', d: 'عائد ' + rate + '٪ سنوياً، يفوق التضخّم بفارق ملموس.' });
+    if (months > 0 && months <= 24) reasons.push({ ic: '⏳', t: 'مدّة قصيرة', d: months + ' شهر فقط — سيولة سريعة مقارنة بصفقات أطول.' });
+    else if (months > 0 && months >= 36) reasons.push({ ic: '🌳', t: 'استثمار طويل المدى', d: months + ' شهر — تَراكم العوائد مع الوقت يَزيد القيمة.' });
+    if (fundedPct >= 70) reasons.push({ ic: '🔥', t: 'ثقة عالية من السوق', d: fundedPct + '٪ من الصفقة ممَوَّلة بالفعل — مؤشّر على اهتمام كبير.' });
+    else if (fundedPct < 30) reasons.push({ ic: '⭐', t: 'وصول مبكر', d: 'فرصة الدخول في بدايات الصفقة قبل ازدحام المستثمرين.' });
+    if (investorCount >= 50) reasons.push({ ic: '👥', t: 'تنويع جيّد', d: investorCount + '+ مستثمر — تركّز منخفض ومخاطر موزّعة.' });
+    if (p.category) {
+      const sectorMap = { residential: '🏠 قطاع السكن — أساسي ومُستقرّ', commercial: '🏢 القطاع التجاري — نموّ مع رؤية ٢٠٣٠', industrial: '🏭 القطاع الصناعي — مدعوم باتفاقيّات حكوميّة', logistics: '🚚 اللوجستيّات — نموّ ٤٥٪ سنوياً', tourism: '🏨 السياحة — رؤية ٢٠٣٠ تَستهدف ١٠٠م سائح', healthcare: '🏥 الصحّي — طلب متزايد', education: '🎓 التعليم — قطاع نموّ مدعوم', agritech: '🌾 الأمن الغذائي — أولويّة استراتيجيّة' };
+      const txt = sectorMap[p.category];
+      if (txt) reasons.push({ ic: '🎯', t: 'قطاع نموّ', d: txt });
+    }
+    if (p.sponsor || p.developer) reasons.push({ ic: '🏗', t: 'مطوّر موثوق', d: 'مطوّر معتمَد ولديه سجلّ مع المنصّة.' });
+    if (!reasons.length) { card.style.display = 'none'; return; }
+    list.replaceChildren();
+    reasons.slice(0, 5).forEach(r => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:50px 1fr;gap:14px;padding:14px;background:var(--paper);border-radius:12px;border-inline-start:4px solid var(--gold);';
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:28px;text-align:center;';
+      ic.textContent = r.ic;
+      const body = document.createElement('div');
+      const t = document.createElement('div'); t.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+      t.textContent = r.t;
+      const d = document.createElement('div'); d.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.85;';
+      d.textContent = r.d;
+      body.append(t, d);
+      row.append(ic, body);
+      list.appendChild(row);
+    });
+    card.style.display = '';
+  }
+
   async function _loadPI(slug) {
     const card = document.getElementById('piCard');
     const hero = document.getElementById('piHero');
@@ -5181,7 +5229,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setHistFund(slug) {
     const badge = document.getElementById('histFundBadge');

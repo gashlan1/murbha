@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- COHORT RETENTION -->
+  <div class="admin-card" id="cohCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📅 الاحتفاظ بالأفواج</span>
+      <span class="card-h-sub">آخر ٦ أشهر</span>
+    </div>
+    <div class="card-body">
+      <div style="overflow-x:auto;">
+        <table id="cohTable" style="width:100%;border-collapse:separate;border-spacing:4px;font:600 11px Tajawal,sans-serif;"></table>
+      </div>
+    </div>
+  </div>
+
   <!-- ENGAGEMENT RATIO -->
   <div class="admin-card" id="engCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3261,6 +3274,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadCoh() {
+    const table = document.getElementById('cohTable');
+    if (!table) return;
+    try {
+      const r = await App.api('GET', '/app/admin/cohort-retention');
+      const cohorts = r.cohorts || [];
+      table.replaceChildren();
+      const thead = document.createElement('thead');
+      const trH = document.createElement('tr');
+      ['الفوج', 'الحجم', 'بعد شهر', 'بعد شهرين', 'بعد ٣ أشهر', 'بعد ٦ أشهر'].forEach(h => {
+        const th = document.createElement('th');
+        th.style.cssText = 'background:var(--green-dark);color:var(--gold-light);padding:8px;border-radius:8px;font:800 11px Cairo,sans-serif;text-align:center;';
+        th.textContent = h;
+        trH.appendChild(th);
+      });
+      thead.appendChild(trH);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      cohorts.forEach(c => {
+        const tr = document.createElement('tr');
+        const tdLbl = document.createElement('td');
+        tdLbl.style.cssText = 'background:var(--paper);padding:8px;border-radius:6px;font:800 11px Cairo,sans-serif;text-align:center;color:var(--green-dark);';
+        tdLbl.textContent = c.label;
+        tr.appendChild(tdLbl);
+        const tdSize = document.createElement('td');
+        tdSize.style.cssText = 'background:var(--paper);padding:8px;border-radius:6px;font:800 11px Cairo,sans-serif;text-align:center;color:var(--ink);';
+        tdSize.textContent = c.size.toLocaleString('ar-SA');
+        tr.appendChild(tdSize);
+        ['m1Pct', 'm2Pct', 'm3Pct', 'm6Pct'].forEach(k => {
+          const v = c[k];
+          const td = document.createElement('td');
+          const intensity = Math.min(1, (v || 0) / 80);
+          const bg = 'rgba(10,77,54,' + (0.08 + intensity * 0.5) + ')';
+          const fg = intensity > 0.5 ? '#fbf6ea' : 'var(--green-dark)';
+          td.style.cssText = 'background:' + bg + ';color:' + fg + ';padding:8px;border-radius:6px;text-align:center;font:800 11px Cairo,sans-serif;';
+          td.textContent = v + '٪';
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    } catch (e) {}
+  }
+
   async function loadEng() {
     const kpis = document.getElementById('engKpis');
     const bars = document.getElementById('engBars');
@@ -8200,7 +8257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
