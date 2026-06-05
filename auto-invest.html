@@ -363,6 +363,12 @@
         <input id="excludeInviteOnly" type="checkbox" checked />
         <span class="cb-label">استبعاد الفرص المخصّصة بدعوة خاصة فقط</span>
       </label>
+
+      <div style="margin-top:18px;">
+        <div style="font:800 13px Cairo,sans-serif;color:var(--green-dark,#062b1e);margin-bottom:8px;">القطاعات المسموح بها</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted,#6b7268);margin-bottom:10px;line-height:1.7;">اترك الكل بدون تحديد لقبول جميع القطاعات.</div>
+        <div id="categoryChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
     </div>
   </div>
 
@@ -415,6 +421,28 @@
     rulesSec.classList.toggle('dim', !enabled);
   }
 
+  const KNOWN_CATEGORIES = ['عقاري', 'تقني', 'صناعي', 'تجاري', 'سياحي', 'صحي', 'تعليمي', 'حكومي'];
+  let _selectedCats = new Set();
+
+  function renderCategoryChips() {
+    const wrap = document.getElementById('categoryChips');
+    if (!wrap) return;
+    wrap.textContent = '';
+    KNOWN_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      const on = _selectedCats.has(cat);
+      chip.style.cssText = 'padding:7px 14px;border-radius:999px;border:1px solid ' + (on ? '#0a4d36' : 'rgba(13,22,18,0.15)') + ';background:' + (on ? '#0a4d36' : '#fff') + ';color:' + (on ? '#fff' : '#0d1612') + ';font:700 12px Cairo,sans-serif;cursor:pointer;';
+      chip.textContent = cat;
+      chip.onclick = () => {
+        if (_selectedCats.has(cat)) _selectedCats.delete(cat);
+        else _selectedCats.add(cat);
+        renderCategoryChips();
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
   function readForm() {
     return {
       enabled,
@@ -423,6 +451,7 @@
       maxTermMonths:     Number($('maxTerm').value)    || 24,
       minProfitRate:     (Number($('minRate').value)  || 8) / 100,
       excludeInviteOnly: $('excludeInviteOnly').checked,
+      categories:        [..._selectedCats],
     };
   }
 
@@ -434,6 +463,8 @@
     $('maxTerm').value   = r.maxTermMonths;
     $('minRate').value   = (r.minProfitRate * 100).toFixed(1).replace(/\.0$/, '');
     $('excludeInviteOnly').checked = !!r.excludeInviteOnly;
+    _selectedCats = new Set(Array.isArray(r.categories) ? r.categories : []);
+    renderCategoryChips();
   }
 
   function toast(msg) {

@@ -986,6 +986,18 @@
     </div>
   </div>
 
+  <!-- SCHEDULED JOBS -->
+  <div class="admin-card" id="jobsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏱ المهام المجدولة</span>
+      <span class="card-h-sub" id="jobsBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="jobsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">عرض للقراءة فقط لمهام المنصة المجدولة. إذا تأخّر تنفيذ مهمة عن وقتها المتوقّع بأكثر من ٥٠٪، يظهر مؤشر "متأخّر".</p>
+    </div>
+  </div>
+
   <!-- FEATURE FLAGS -->
   <div class="admin-card" id="flagsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1557,6 +1569,55 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
+
+  // ── Scheduled jobs ─────────────────────────────────────────────
+  async function loadJobs() {
+    const list = document.getElementById('jobsList');
+    const badge = document.getElementById('jobsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/jobs');
+      const jobs = r.jobs || [];
+      const overdue = jobs.filter(j => j.overdue).length;
+      badge.textContent = overdue ? overdue + ' متأخّرة' : jobs.length + ' مهمة';
+      badge.style.background = overdue ? 'rgba(197,74,58,0.20)' : 'rgba(255,255,255,0.15)';
+      list.replaceChildren();
+      jobs.forEach(j => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;flex-wrap:wrap;gap:8px;';
+        const left = document.createElement('div');
+        left.style.cssText = 'flex:1;min-width:200px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:2px;';
+        t.textContent = j.title;
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        const lastRun = j.lastRunAt ? new Date(j.lastRunAt).toLocaleString('ar-SA') : '— لم تُسجَّل';
+        sub.textContent = j.cadence + ' · آخر تنفيذ: ' + lastRun;
+        left.append(t, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        if (j.overdue) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(197,74,58,0.12);color:#c54a3a;';
+          pill.textContent = 'متأخّر';
+          right.appendChild(pill);
+        } else if (j.lastRunAt) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(15,110,58,0.12);color:#0f6e3a;';
+          pill.textContent = j.lastResult === 'error' ? 'خطأ' : '✓ يعمل';
+          right.appendChild(pill);
+        } else {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(13,22,18,0.06);color:var(--muted);';
+          pill.textContent = 'لم تُسجَّل بعد';
+          right.appendChild(pill);
+        }
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
 
   // ── Feature flags ─────────────────────────────────────────────
   async function loadFlags() {
@@ -3089,7 +3150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
