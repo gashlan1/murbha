@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Consistency score -->
+  <div class="settings-group" id="consistSec" style="display:none;">
+    <div class="settings-h">🎯 نتيجة الثبات</div>
+    <div style="padding:14px 18px;">
+      <div id="consistHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="consistKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">مكوّنات الدرجة</div>
+      <div id="consistComps" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Ticket growth -->
   <div class="settings-group" id="ticketGrowthSec" style="display:none;">
     <div class="settings-h">📊 تَطوّر متوسط استثمارك</div>
@@ -2954,6 +2965,62 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Consistency score
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/consistency-score');
+      if (!r.hasData) return;
+      const sec = document.getElementById('consistSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('consistHero');
+      hero.replaceChildren();
+      const gradeColors = { 'A+': '#fbf6ea', 'A': '#fbf6ea', 'B': '#fbf6ea', 'C': '#d4ac6e', 'D': '#d4ac6e' };
+      const grade = document.createElement('div'); grade.style.cssText = 'font:900 56px Cairo,sans-serif;color:' + (gradeColors[r.grade] || '#fbf6ea') + ';line-height:1;';
+      grade.textContent = r.grade;
+      const score = document.createElement('div'); score.style.cssText = 'font:900 14px Cairo,sans-serif;color:#fbf6ea;margin:8px 0;';
+      score.textContent = r.score + ' / 100';
+      const adv = document.createElement('div'); adv.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.9;line-height:1.85;max-width:340px;margin:0 auto;';
+      adv.textContent = r.advice;
+      hero.append(grade, score, adv);
+      const kpis = document.getElementById('consistKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('أشهر نشطة', r.activeMonths + '/' + r.accountMonths, '#0a4d36'),
+        mk('عدد الصفقات', r.totalDeals, '#0f6e3a'),
+        mk('متوسط الفجوة', r.avgGapDays + ' يوم', '#b08840'),
+      );
+      const comps = document.getElementById('consistComps');
+      comps.replaceChildren();
+      const items = [
+        { label: '📅 الانتظام الشهري (٥٠٪)', score: r.investRate, max: 100 },
+        { label: '⏱ انتظام الفترات (٥٠٪)', score: r.regularityScore, max: 100 },
+      ];
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:170px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = it.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + it.score + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:60px;';
+        meta.textContent = it.score + '/' + it.max;
+        row.append(lbl, bar, meta);
+        comps.appendChild(row);
       });
     } catch (e) {}
   })();
