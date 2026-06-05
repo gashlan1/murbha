@@ -836,6 +836,21 @@
     </div>
   </div>
 
+  <!-- Birthday wish opt-in -->
+  <div class="settings-group" id="birthdaySec" style="display:none;">
+    <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:160px;">
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);">🎂 تمنّيات عيد ميلادك</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;">نُرسل لك تمنيات + مكافأة ١٠٠ ر.س على رصيدك في يوم ميلادك.</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="birthdayToggle" style="opacity:0;width:0;height:0;" />
+        <span id="birthdaySlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="birthdayKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+  </div>
+
   <!-- Investment goal selector -->
   <div class="settings-group" id="goalSec" style="display:none;">
     <div class="settings-h">🎯 هدفي الاستثماري</div>
@@ -2125,6 +2140,34 @@
         grid.appendChild(cell);
       });
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Birthday opt-in
+  (async () => {
+    try {
+      const sec = document.getElementById('birthdaySec');
+      const cb = document.getElementById('birthdayToggle');
+      const sl = document.getElementById('birthdaySlider');
+      const kb = document.getElementById('birthdayKnob');
+      if (!sec || !cb) return;
+      sec.style.display = '';
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const sync = (on) => {
+        cb.checked = !!on;
+        sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+        kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+      };
+      sync(!!u.birthdayOptIn);
+      cb.addEventListener('change', async () => {
+        const optIn = cb.checked;
+        sync(optIn);
+        try {
+          await App.api('PATCH', '/app/me/birthday-opt', { optIn });
+          App.toast && App.toast(optIn ? '🎂 سنحتفل معك!' : 'تم الإلغاء', 'success');
+        } catch (e) { sync(!optIn); App.toast && App.toast('فشل', 'error'); }
+      });
     } catch (e) {}
   })();
 
