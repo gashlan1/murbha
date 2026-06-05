@@ -1572,6 +1572,24 @@
   </div>
 </div>
 
+<!-- CONFIDENCE METER -->
+<div class="card-section" id="confidenceCard" style="display:none;padding:18px 22px;">
+  <h2 class="section-h" style="margin-bottom:12px;">📊 مؤشّر الثقة</h2>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div id="confidenceBadge" style="font:900 16px Cairo,sans-serif;padding:10px 22px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#0a4d36,#062b1e);">—</div>
+    <div style="flex:1;min-width:200px;">
+      <div id="confidenceBar" style="height:14px;background:rgba(13,22,18,0.08);border-radius:7px;overflow:hidden;">
+        <div id="confidenceFill" style="height:100%;width:0%;background:linear-gradient(90deg,#0f6e3a,#0a4d36);border-radius:7px;transition:width .8s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font:600 10px Tajawal,sans-serif;color:#6b7268;margin-top:4px;">
+        <span>منخفض</span><span>متوسط</span><span>مرتفع جداً</span>
+      </div>
+    </div>
+  </div>
+  <div id="confidenceFactors" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+  <p style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:10px;line-height:1.7;">يجمع المؤشّر بين عدد المستثمرين، نسبة التمويل، تفاصيل البائع، والتقييمات. لا يضمن النجاح.</p>
+</div>
+
 <!-- TRUST SIGNALS BAR -->
 <div class="card-section" style="padding:14px 22px;background:linear-gradient(90deg,#fbf6ea,#fff);">
   <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;text-align:center;font:600 11px Tajawal,sans-serif;color:#6b7268;">
@@ -2317,6 +2335,49 @@
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
     }
+
+    // Confidence meter — composite score
+    (() => {
+      let score = 0;
+      const factors = [];
+      const investorsCount = p.investorsCount || p.investors || 0;
+      const goal = p.goal || 1;
+      const raised = p.raised || 0;
+      const fundedPct = (raised / goal) * 100;
+      if (investorsCount >= 100) { score += 25; factors.push('✓ ١٠٠+ مستثمر'); }
+      else if (investorsCount >= 30) { score += 15; factors.push('✓ ٣٠+ مستثمر'); }
+      else if (investorsCount >= 10) { score += 8; }
+      if (fundedPct >= 50) { score += 20; factors.push('✓ تجاوز ٥٠٪'); }
+      else if (fundedPct >= 25) { score += 10; }
+      if (p.sponsorVerified) { score += 20; factors.push('✓ بائع موثّق'); }
+      if (p.appraisalReport || p.appraisalDate) { score += 15; factors.push('✓ تقييم مستقل'); }
+      if (p.escrow || p.escrowAccount) { score += 10; factors.push('✓ حساب ضمان'); }
+      if (p.featured) { score += 10; factors.push('✓ مميّز'); }
+      score = Math.min(100, score);
+      const card = document.getElementById('confidenceCard');
+      const fill = document.getElementById('confidenceFill');
+      const badge = document.getElementById('confidenceBadge');
+      const factorsEl = document.getElementById('confidenceFactors');
+      if (!card || !badge) return;
+      let label, color;
+      if (score >= 75) { label = '🟢 ثقة عالية جداً'; color = 'linear-gradient(135deg,#0f6e3a,#0a4d36)'; }
+      else if (score >= 50) { label = '🟢 ثقة جيّدة'; color = 'linear-gradient(135deg,#0a4d36,#062b1e)'; }
+      else if (score >= 30) { label = '🟡 ثقة متوسطة'; color = 'linear-gradient(135deg,#b08840,#8a6a30)'; }
+      else { label = '🔵 ناشئة'; color = 'linear-gradient(135deg,#5c2418,#3d1a16)'; }
+      badge.textContent = label + ' · ' + score + '/١٠٠';
+      badge.style.background = color;
+      fill.style.width = score + '%';
+      if (factorsEl) {
+        factorsEl.replaceChildren();
+        factors.forEach(f => {
+          const c = document.createElement('span');
+          c.style.cssText = 'font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.08);padding:4px 10px;border-radius:999px;';
+          c.textContent = f;
+          factorsEl.appendChild(c);
+        });
+      }
+      card.style.display = '';
+    })();
 
     // Trust badges
     (() => {
