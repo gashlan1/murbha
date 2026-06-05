@@ -994,6 +994,7 @@
     <span id="popularityBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;"></span>
     <span id="listingAgeBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"></span>
     <span id="closeSpeedBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+    <span id="histFundBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fbf6ea,#fff);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="velocityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.08);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -5066,7 +5067,19 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+
+  async function _setHistFund(slug) {
+    const badge = document.getElementById('histFundBadge');
+    if (!badge) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/historical-fund-time');
+      if (!r.hasHistory) return;
+      badge.textContent = '⏱ مشابهة تموّلت في ~' + r.medianDays + ' يوم';
+      badge.title = 'استناداً إلى ' + r.sampleSize + ' صفقة مماثلة (' + r.sameCityCount + ' في نفس المدينة) · أسرع ' + r.fastestDays + ' يوم · أبطأ ' + r.slowestDays + ' يوم';
+      badge.style.display = '';
+    } catch (e) {}
+  }
 
   function _setCloseSpeed(p) {
     const badge = document.getElementById('closeSpeedBadge');
