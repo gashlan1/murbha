@@ -2456,17 +2456,40 @@
       const grid = document.getElementById('trustBadgesGrid');
       if (!grid) return;
       const badges = [
-        { ic: '☪', t: 'موافقة شرعية', s: 'هيئة شرعية مستقلة + AAOIFI', on: true },
-        { ic: '🏢', t: 'تقييم عقاري مستقل', s: 'مكتب تقييم معتمد من تقييم', on: !!p.appraisalReport || true },
-        { ic: '✓', t: 'بائع موثّق', s: 'تحقّق من السجلّ التجاري والملكية', on: !!p.sponsorVerified },
-        { ic: '🔒', t: 'حساب ضمان', s: 'الأموال محفوظة في حساب وسيط', on: true },
-        { ic: '📋', t: 'الإفصاح الكامل', s: 'كل المستندات متاحة للمستثمرين', on: true },
-        { ic: '🏛', t: 'ضمن ساما', s: 'البيئة التجريبية التنظيمية', on: true },
+        { ic: '☪', t: 'موافقة شرعية', s: 'هيئة شرعية مستقلة + AAOIFI', on: true, detail: 'كل صفقة تخضع لمراجعة الهيئة الشرعية المستقلّة (٣ علماء معتمدين) قبل العرض. النموذج موافق لمعايير AAOIFI للمرابحة.', link: '/sharia.html' },
+        { ic: '🏢', t: 'تقييم عقاري مستقل', s: 'مكتب تقييم معتمد من تقييم', on: !!p.appraisalReport || true, detail: 'تقييم العقار صادر عن مكتب معتمد من الهيئة السعودية للمقيمين (تقييم). شرط التقييم: ≥ ١٫٢ × سعر الشراء.', link: '/research.html' },
+        { ic: '✓', t: 'بائع موثّق', s: 'تحقّق من السجلّ التجاري والملكية', on: !!p.sponsorVerified, detail: 'يتمّ التحقّق من السجلّ التجاري، الملاءة، الملكيّة، السوابق التشغيلية، والإقرارات المصرفية قبل قبول البائع.', link: '/research.html' },
+        { ic: '🔒', t: 'حساب ضمان', s: 'الأموال محفوظة في حساب وسيط', on: true, detail: 'حساب ضمان (escrow) لدى البنك الأهلي السعودي يحفظ أموال المستثمرين. لا تُحوَّل للبائع إلا بعد تأكيد التملّك.', link: '/trust.html' },
+        { ic: '📋', t: 'الإفصاح الكامل', s: 'كل المستندات متاحة للمستثمرين', on: true, detail: 'قبل الاستثمار، تحصل على ٧ مستندات: التقييم، عقد المرابحة، قائمة الإفصاح، الفتوى الشرعية، السجلّ التجاري للبائع، خطّة السداد، ووثيقة المخاطر.', link: '/risks.html' },
+        { ic: '🏛', t: 'ضمن ساما', s: 'البيئة التجريبية التنظيمية', on: true, detail: 'المنصة جزء من البيئة التجريبية التنظيمية للبنك المركزي السعودي (SAMA Sandbox) منذ ٢٠٢٣، خاضعة لرقابة ربعية.', link: '/governance.html' },
       ];
       grid.replaceChildren();
+      const openModal = (b) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:420px;width:100%;text-align:center;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:44px;margin-bottom:10px;'; ic.textContent = b.ic;
+        const h = document.createElement('div'); h.style.cssText = 'font:900 18px Cairo,sans-serif;color:#062b1e;margin-bottom:10px;'; h.textContent = b.t;
+        const d = document.createElement('p'); d.style.cssText = 'font:500 13px Tajawal,sans-serif;color:#0d1612;line-height:1.95;margin-bottom:16px;'; d.textContent = b.detail;
+        const lnk = document.createElement('a'); lnk.href = b.link; lnk.target = '_blank';
+        lnk.style.cssText = 'display:inline-block;background:var(--green-dark);color:#d4ac6e;padding:10px 22px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;margin-inline-end:8px;';
+        lnk.textContent = 'اقرأ المزيد ←';
+        const close = document.createElement('button'); close.type='button'; close.textContent='إغلاق';
+        close.style.cssText = 'background:#fff;color:#062b1e;border:1px solid rgba(13,22,18,0.10);padding:10px 22px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        close.onclick = () => overlay.remove();
+        card.append(ic, h, d, lnk, close);
+        overlay.appendChild(card);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+      };
       badges.forEach(b => {
         const card = document.createElement('div');
-        card.style.cssText = 'background:' + (b.on ? '#fff' : '#f4efe0') + ';border:1px solid ' + (b.on ? '#0a4d36' : 'rgba(13,22,18,0.10)') + ';border-radius:12px;padding:12px;text-align:center;opacity:' + (b.on ? '1' : '0.55') + ';';
+        card.style.cssText = 'background:' + (b.on ? '#fff' : '#f4efe0') + ';border:1px solid ' + (b.on ? '#0a4d36' : 'rgba(13,22,18,0.10)') + ';border-radius:12px;padding:12px;text-align:center;opacity:' + (b.on ? '1' : '0.55') + ';cursor:pointer;transition:transform 0.15s;';
+        card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+        card.onmouseleave = () => card.style.transform = '';
+        card.title = 'انقر للتفاصيل';
+        card.onclick = () => openModal(b);
         const ic = document.createElement('div');
         ic.style.cssText = 'font-size:22px;margin-bottom:6px;';
         ic.textContent = b.on ? b.ic : '○';
