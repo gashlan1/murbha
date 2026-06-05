@@ -686,6 +686,7 @@
           <input id="puTitle" type="text" maxlength="200" placeholder="عنوان التحديث (مثل: اكتمال الحفر)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:600 14px Tajawal,sans-serif;" />
           <textarea id="puText" rows="4" maxlength="4000" placeholder="تفاصيل التحديث..." required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:500 14px Tajawal,sans-serif;resize:vertical;"></textarea>
           <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">📤 نشر التحديث</button>
+          <button type="button" id="puNotifyCloseBtn" style="padding:10px;border:1px solid var(--gold);border-radius:10px;background:#fff;color:var(--gold);font:800 12px Cairo,sans-serif;cursor:pointer;">🔔 تنبيه المشتركين بقرب الإغلاق</button>
         </form>
       </div>
       <div>
@@ -2405,6 +2406,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   document.getElementById('puProject')?.addEventListener('change', loadProjectUpdates);
+  document.getElementById('puNotifyCloseBtn')?.addEventListener('click', async () => {
+    const slug = document.getElementById('puProject').value;
+    if (!slug) { alert('اختر مشروعاً أولاً'); return; }
+    const ok = await App.confirmDestructive({
+      title: '🔔 تنبيه المشتركين',
+      body: 'سيُرسَل إشعار إلى كل من فعّل "نبّهني قبل الإغلاق" لهذا المشروع. اكتب NOTIFY للتأكيد.',
+      challenge: 'NOTIFY',
+      confirmLabel: 'تنبيه',
+    });
+    if (!ok) return;
+    try {
+      const r = await App.api('POST', '/app/admin/projects/' + encodeURIComponent(slug) + '/notify-closing-soon', {});
+      App.toast && App.toast('أُرسل لـ ' + r.sent + ' مشترك', 'success');
+    } catch (e) { alert(e.message || 'فشل'); }
+  });
   document.getElementById('puForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const slug = document.getElementById('puProject').value;

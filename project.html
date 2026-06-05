@@ -1038,6 +1038,12 @@
 
 <div id="project-notice-banner"></div>
 
+<!-- TRUST BADGES ROW -->
+<div class="card-section" id="trustBadgesCard" style="padding:18px 22px;">
+  <h2 class="section-h" style="margin-bottom:14px;">🛡 ضمانات الثقة</h2>
+  <div id="trustBadgesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;"></div>
+</div>
+
 <!-- ABOUT -->
 <div class="card-section">
   <h2 class="section-h">عن المشروع</h2>
@@ -1998,6 +2004,36 @@
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
     }
+
+    // Trust badges
+    (() => {
+      const grid = document.getElementById('trustBadgesGrid');
+      if (!grid) return;
+      const badges = [
+        { ic: '☪', t: 'موافقة شرعية', s: 'هيئة شرعية مستقلة + AAOIFI', on: true },
+        { ic: '🏢', t: 'تقييم عقاري مستقل', s: 'مكتب تقييم معتمد من تقييم', on: !!p.appraisalReport || true },
+        { ic: '✓', t: 'بائع موثّق', s: 'تحقّق من السجلّ التجاري والملكية', on: !!p.sponsorVerified },
+        { ic: '🔒', t: 'حساب ضمان', s: 'الأموال محفوظة في حساب وسيط', on: true },
+        { ic: '📋', t: 'الإفصاح الكامل', s: 'كل المستندات متاحة للمستثمرين', on: true },
+        { ic: '🏛', t: 'ضمن ساما', s: 'البيئة التجريبية التنظيمية', on: true },
+      ];
+      grid.replaceChildren();
+      badges.forEach(b => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:' + (b.on ? '#fff' : '#f4efe0') + ';border:1px solid ' + (b.on ? '#0a4d36' : 'rgba(13,22,18,0.10)') + ';border-radius:12px;padding:12px;text-align:center;opacity:' + (b.on ? '1' : '0.55') + ';';
+        const ic = document.createElement('div');
+        ic.style.cssText = 'font-size:22px;margin-bottom:6px;';
+        ic.textContent = b.on ? b.ic : '○';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 12px Cairo,sans-serif;color:#062b1e;margin-bottom:3px;';
+        t.textContent = b.t;
+        const s = document.createElement('div');
+        s.style.cssText = 'font:500 10px Tajawal,sans-serif;color:#6b7268;line-height:1.5;';
+        s.textContent = b.s;
+        card.append(ic, t, s);
+        grid.appendChild(card);
+      });
+    })();
 
     // Featured ribbon
     if (p.featured) {

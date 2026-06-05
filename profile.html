@@ -849,6 +849,12 @@
   <!-- Activity timeline -->
   <div class="settings-group">
     <div class="settings-h">آخر الأنشطة</div>
+    <div id="activityFilters" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 4px;">
+      <button type="button" data-filter="all" class="actChip" style="padding:5px 12px;border:1px solid var(--green-dark);background:var(--green-dark);color:#d4ac6e;border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">الكل</button>
+      <button type="button" data-filter="investment" class="actChip" style="padding:5px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">💎 استثمارات</button>
+      <button type="button" data-filter="txn" class="actChip" style="padding:5px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">💳 معاملات</button>
+      <button type="button" data-filter="login" class="actChip" style="padding:5px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">🔑 جلسات</button>
+    </div>
     <div id="activityList" style="padding: 12px 16px;"><div style="color:var(--muted);text-align:center;padding:14px;font-size:13px;">جاري التحميل...</div></div>
   </div>
 
@@ -2570,38 +2576,74 @@
     }
   })();
 
-  // Activity timeline
+  // Activity timeline (with filter chips + day grouping)
   (async () => {
     const list = document.getElementById('activityList');
     if (!list) return;
-    try {
-      const r = await App.api('GET', '/app/me/activity');
+    let allEvents = [];
+    let currentFilter = 'all';
+    const ICONS = { investment: '💎', signing: '✍', deposit: '↓', withdraw: '↑', registered: '🎉', security: '🛡', profile: '📋', login: '🔑', login_fail: '⚠' };
+    const COLORS = { investment: '#0a4d36', signing: '#062b1e', deposit: '#0f6e3a', withdraw: '#b08840', registered: '#b08840', security: '#062b1e', profile: '#0a4d36', login: '#6b7268', login_fail: '#c54a3a' };
+    const matchesFilter = (kind, f) => {
+      if (f === 'all') return true;
+      if (f === 'txn') return kind && (kind.startsWith('txn:') || kind === 'deposit' || kind === 'withdraw');
+      if (f === 'login') return kind === 'login' || kind === 'login_fail';
+      return kind === f;
+    };
+    const dayKey = (iso) => new Date(iso).toLocaleDateString('ar-SA');
+    const render = () => {
       list.replaceChildren();
-      if (!r.events.length) {
+      const filtered = allEvents.filter(ev => matchesFilter(ev.kind, currentFilter));
+      if (!filtered.length) {
         const e = document.createElement('div');
         e.style.cssText = 'color:var(--muted);text-align:center;padding:14px;font-size:13px;';
-        e.textContent = 'لا يوجد نشاط بعد.';
+        e.textContent = 'لا يوجد نشاط في هذه الفئة.';
         list.appendChild(e); return;
       }
-      const ICONS = { investment: '💎', signing: '✍', deposit: '↓', withdraw: '↑', registered: '🎉', security: '🛡', profile: '📋', login: '🔑' };
-      const COLORS = { investment: '#0a4d36', signing: '#062b1e', deposit: '#0f6e3a', withdraw: '#b08840', registered: '#b08840', security: '#062b1e', profile: '#0a4d36', login: '#6b7268' };
-      r.events.forEach(ev => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);';
-        const ic = document.createElement('div');
-        ic.style.cssText = 'width:32px;height:32px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px;color:' + (COLORS[ev.kind] || '#6b7268') + ';flex-shrink:0;';
-        ic.textContent = ICONS[ev.kind] || '•';
-        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
-        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = ev.title;
-        const m = document.createElement('div'); m.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
-        m.textContent = new Date(ev.at).toLocaleString('ar-SA') + (ev.meta ? ' · ' + ev.meta : '');
-        info.append(t, m);
-        row.append(ic, info);
-        list.appendChild(row);
+      const groups = new Map();
+      filtered.forEach(ev => {
+        const k = dayKey(ev.at);
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(ev);
       });
-      // remove last border
+      groups.forEach((evs, day) => {
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 4px;';
+        head.textContent = day;
+        list.appendChild(head);
+        evs.forEach(ev => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);';
+          const kind = (ev.kind || '').split(':')[0];
+          const ic = document.createElement('div');
+          ic.style.cssText = 'width:32px;height:32px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px;color:' + (COLORS[kind] || '#6b7268') + ';flex-shrink:0;';
+          ic.textContent = ICONS[kind] || '•';
+          const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+          const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = ev.title;
+          const m = document.createElement('div'); m.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+          m.textContent = new Date(ev.at).toLocaleTimeString('ar-SA');
+          info.append(t, m);
+          row.append(ic, info);
+          list.appendChild(row);
+        });
+      });
       const last = list.lastElementChild;
       if (last) last.style.borderBottom = '0';
+    };
+    document.querySelectorAll('.actChip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.actChip').forEach(b => {
+          b.style.background = '#fff'; b.style.color = 'var(--green-dark)'; b.style.borderColor = 'var(--line)';
+        });
+        btn.style.background = 'var(--green-dark)'; btn.style.color = '#d4ac6e'; btn.style.borderColor = 'var(--green-dark)';
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+    try {
+      const r = await App.api('GET', '/app/me/activity');
+      allEvents = (r.events || []).sort((a, b) => new Date(b.at) - new Date(a.at));
+      render();
     } catch (e) {}
   })();
 
