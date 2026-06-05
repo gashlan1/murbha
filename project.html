@@ -1200,6 +1200,13 @@
     <div class="calc-input">
       <div class="calc-input-l">المبلغ المراد استثماره</div>
       <input type="text" class="calc-amount num" id="calcAmt" value="٢٥,٠٠٠"/>
+      <div id="amountPresets" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 6px;">
+        <button type="button" data-amt="1000" style="padding:5px 12px;border:1px solid var(--line-strong);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">١٬٠٠٠</button>
+        <button type="button" data-amt="5000" style="padding:5px 12px;border:1px solid var(--line-strong);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">٥٬٠٠٠</button>
+        <button type="button" data-amt="10000" style="padding:5px 12px;border:1px solid var(--line-strong);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">١٠٬٠٠٠</button>
+        <button type="button" data-amt="25000" style="padding:5px 12px;border:1px solid var(--line-strong);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">٢٥٬٠٠٠</button>
+        <button type="button" data-amt="50000" style="padding:5px 12px;border:1px solid var(--line-strong);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">الحد الأقصى ٥٠٬٠٠٠</button>
+      </div>
       <input type="range" class="calc-slider" id="calcSlider" min="500" max="200000" step="500" value="25000"/>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px;">
         <span>٥٠٠</span>
@@ -1497,6 +1504,21 @@
   }
   const slider = document.getElementById('calcSlider');
   const amtIn = document.getElementById('calcAmt');
+  document.querySelectorAll('#amountPresets button[data-amt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const amt = parseInt(btn.dataset.amt, 10);
+      if (!Number.isFinite(amt)) return;
+      if (slider) slider.value = amt;
+      if (amtIn) amtIn.value = toArabic(amt);
+      recalc(amt);
+      document.querySelectorAll('#amountPresets button[data-amt]').forEach(b => {
+        const on = b === btn;
+        b.style.background = on ? 'var(--green-dark)' : '#fff';
+        b.style.color = on ? '#d4ac6e' : 'var(--green-dark)';
+        b.style.borderColor = on ? 'var(--green-dark)' : 'var(--line-strong)';
+      });
+    });
+  });
   // Sticky CTA scroll trigger (mobile-first): hide until past hero, then slide in
   (() => {
     const cta = document.querySelector('.sticky-cta');
@@ -2693,6 +2715,22 @@
         e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
         e.textContent = 'لا توجد مستندات متاحة بعد.';
         list.appendChild(e); return;
+      }
+      if (!me) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#fbf6ea,#fff);border:1px solid #b08840;border-radius:12px;margin-bottom:10px;flex-wrap:wrap;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#062b1e;';
+        t.textContent = '🔒 المستندات متاحة للمستثمرين المسجّلين';
+        const s = document.createElement('div'); s.style.cssText = 'font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:2px;';
+        s.textContent = 'سجّل دخولك أو أنشئ حساباً (يستغرق دقيقتين) للوصول الكامل.';
+        left.append(t, s);
+        const cta = document.createElement('a');
+        cta.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
+        cta.style.cssText = 'background:#062b1e;color:#d4ac6e;padding:8px 16px;border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;flex-shrink:0;';
+        cta.textContent = 'سجّل الدخول';
+        banner.append(left, cta);
+        list.appendChild(banner);
       }
       r.documents.forEach(d => {
         const row = document.createElement('div');
