@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Tax certificate download -->
+  <div class="settings-group" id="taxCertSec">
+    <div class="settings-h">📋 شهادات الزكاة والضريبة السنوية</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:12px;line-height:1.7;">شهادة موقّعة رسمياً تَلَخّص استثماراتك وأرباحك للسنة المختارة. مقبولة لدى هيئة الزكاة والضريبة (ZATCA) والإقرارات الدوليّة.</p>
+      <div id="taxCertList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- My reviews -->
   <div class="settings-group" id="myRvSec" style="display:none;">
     <div class="settings-h">⭐ مراجعاتك</div>
@@ -2872,6 +2881,78 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Tax certificate download
+  (() => {
+    const list = document.getElementById('taxCertList');
+    if (!list) return;
+    list.replaceChildren();
+    const currentYear = new Date().getFullYear();
+    const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+    for (let y = currentYear; y >= currentYear - 4; y--) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:12px 14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+      const left = document.createElement('div');
+      const t = document.createElement('div'); t.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);';
+      t.textContent = '📜 شهادة عام ' + y;
+      const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+      sub.textContent = 'شهادة موثَّقة JSON · رقم تسلسلي فريد';
+      left.append(t, sub);
+      const json = document.createElement('a');
+      json.href = '/app/me/tax-statement?year=' + y;
+      json.target = '_blank';
+      json.rel = 'noopener';
+      json.style.cssText = 'background:var(--green-dark);color:var(--gold-light);padding:8px 14px;border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;';
+      json.textContent = '📥 JSON';
+      const view = document.createElement('button');
+      view.type = 'button';
+      view.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);padding:8px 14px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      view.textContent = '👁 عرض';
+      view.addEventListener('click', async () => {
+        try {
+          const data = await App.api('GET', '/app/me/tax-statement?year=' + y);
+          const overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed;inset:0;background:rgba(6,12,8,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px;';
+          const modal = document.createElement('div');
+          modal.style.cssText = 'background:#fff;border-radius:18px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;';
+          const head = document.createElement('h2');
+          head.style.cssText = 'font:900 22px Cairo,sans-serif;color:var(--green-dark);border-bottom:3px solid var(--gold);padding-bottom:10px;margin-bottom:14px;';
+          head.textContent = '📋 شهادة عام ' + y;
+          modal.appendChild(head);
+          const mkLine = (l, v) => {
+            const row = document.createElement('p');
+            row.style.cssText = 'margin:8px 0;font:500 13px Tajawal,sans-serif;color:var(--ink);';
+            const lb = document.createElement('span'); lb.style.cssText = 'color:var(--muted);'; lb.textContent = l + ': ';
+            const val = document.createElement('b'); val.textContent = v;
+            row.append(lb, val);
+            return row;
+          };
+          modal.appendChild(mkLine('رقم الشهادة', data.certificateNumber));
+          modal.appendChild(mkLine('المالك', data.holder?.name || '—'));
+          modal.appendChild(mkLine('تاريخ الإصدار', new Date(data.issuedAt).toLocaleString('ar-SA')));
+          const h3 = document.createElement('h3'); h3.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-top:18px;margin-bottom:10px;'; h3.textContent = 'الملخّص';
+          modal.appendChild(h3);
+          modal.appendChild(mkLine('عدد الاستثمارات', data.summary.investmentsCount));
+          modal.appendChild(mkLine('إجمالي مستثمر', fmt(data.summary.totalInvested) + ' ر.س'));
+          modal.appendChild(mkLine('إجمالي الأرباح', fmt(data.summary.totalProfit) + ' ر.س'));
+          modal.appendChild(mkLine('المبالغ المُستردّة', fmt(data.summary.totalRefunds) + ' ر.س'));
+          modal.appendChild(mkLine('صافي الربح', fmt(data.summary.netGain) + ' ر.س'));
+          modal.appendChild(mkLine('الزكاة المُقدّرة (٢٫٥٪)', fmt(Math.round(data.summary.netGain * 0.025)) + ' ر.س'));
+          const close = document.createElement('button');
+          close.type = 'button';
+          close.style.cssText = 'margin-top:18px;width:100%;padding:12px;background:var(--green-dark);color:var(--gold-light);border:none;border-radius:10px;font:900 13px Cairo,sans-serif;cursor:pointer;';
+          close.textContent = 'إغلاق';
+          close.addEventListener('click', () => overlay.remove());
+          modal.appendChild(close);
+          overlay.appendChild(modal);
+          overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
+          document.body.appendChild(overlay);
+        } catch (e) { App.toast && App.toast('تعذّر التحضير', 'error'); }
+      });
+      row.append(left, json, view);
+      list.appendChild(row);
+    }
   })();
 
   // My reviews
