@@ -640,6 +640,32 @@
     document.body.appendChild(banner);
   };
 
+  // ─── Scroll to top button ──────────────────────────────────────
+  const _installScrollTopBtn = () => {
+    if (document.getElementById('toTopBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'toTopBtn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'العودة إلى الأعلى');
+    btn.textContent = '↑';
+    btn.style.cssText = 'position:fixed;inset-block-end:calc(var(--tabbar-h,70px) + env(safe-area-inset-bottom,0px) + 70px);inset-inline-end:14px;z-index:8998;width:42px;height:42px;border-radius:50%;background:#062b1e;color:#fbf6ea;border:0;font:900 20px Cairo,sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.25);opacity:0;transform:translateY(20px);transition:opacity .25s,transform .25s;pointer-events:none;';
+    btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.appendChild(btn);
+    let ticking = false;
+    const tick = () => {
+      const show = (window.scrollY || 0) > 600;
+      btn.style.opacity = show ? '0.95' : '0';
+      btn.style.transform = show ? 'translateY(0)' : 'translateY(20px)';
+      btn.style.pointerEvents = show ? 'auto' : 'none';
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(tick);
+    }, { passive: true });
+  };
+
   // ─── PWA install prompt ────────────────────────────────────────
   const PWA_DISMISS_KEY = 'mrb_pwa_dismissed_at';
   let _deferredInstall = null;
@@ -868,6 +894,7 @@
     // iOS Safari has no beforeinstallprompt; show its hint after delay.
     if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
     _maybeRunTour();
+    _installScrollTopBtn();
   });
 
   window.App = {

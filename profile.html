@@ -1103,6 +1103,30 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </button>
+    <a href="/tax-certificate.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الشهادة الضريبية السنوية</div>
+        <div class="setting-sub">بيان جاهز للطباعة لكل سنة ضريبية</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <a href="/activity.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">سجلّ نشاط حسابي</div>
+        <div class="setting-sub">دخول، أمان، عمليات مالية، استثمارات</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
     <a href="/app/me/payouts.ics" id="icsExportLink" class="setting-row" download="murbha-payouts.ics">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1132,6 +1156,17 @@
       </label>
     </div>
     <a href="/leaderboard.html" style="display:block;padding:10px 18px;text-decoration:none;color:var(--gold);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);">عرض اللوحة العامة ←</a>
+  </div>
+
+  <!-- Active sessions / devices -->
+  <div class="settings-group">
+    <div class="settings-h">الأجهزة النشطة</div>
+    <div id="sessionsList" style="padding:12px 16px;">
+      <div style="color:var(--muted);text-align:center;padding:8px;font-size:13px;">جاري التحميل…</div>
+    </div>
+    <div style="padding:0 16px 14px;">
+      <button type="button" id="revokeAllSessionsBtn" style="width:100%;padding:11px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">⛔ تسجيل خروج من جميع الأجهزة الأخرى</button>
+    </div>
   </div>
 
   <!-- Privacy / PDPL -->
@@ -1714,6 +1749,62 @@
       sub.textContent = original;
       App.toast && App.toast(e.message || 'فشل الإرسال', 'error');
     }
+  });
+
+  // Active sessions
+  (async () => {
+    const list = document.getElementById('sessionsList');
+    if (!list) return;
+    try {
+      const d = await App.api('GET', '/app/me/sessions');
+      list.replaceChildren();
+      if (!d.devices.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'color:var(--muted);text-align:center;padding:12px;font-size:13px;';
+        e.textContent = 'لا توجد جلسات مسجّلة بعد.';
+        list.appendChild(e); return;
+      }
+      d.devices.forEach(g => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:6px;';
+        const isCurrent = g.fingerprint === d.currentFingerprint;
+        const title = document.createElement('div');
+        title.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;';
+        const name = document.createElement('span'); name.textContent = g.ua;
+        title.appendChild(name);
+        if (isCurrent) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 10px Cairo,sans-serif;padding:2px 8px;border-radius:999px;background:rgba(15,110,58,0.12);color:#0f6e3a;';
+          pill.textContent = 'هذا الجهاز';
+          title.appendChild(pill);
+        }
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;';
+        meta.textContent = g.ip + ' · ' + new Date(g.lastSeen).toLocaleString('ar-SA');
+        row.append(title, meta);
+        list.appendChild(row);
+      });
+      if (d.sessionsInvalidAfter) {
+        const note = document.createElement('div');
+        note.style.cssText = 'font-size:11px;color:var(--muted);margin-top:8px;text-align:center;';
+        note.textContent = '✓ آخر إلغاء عام: ' + new Date(d.sessionsInvalidAfter).toLocaleString('ar-SA');
+        list.appendChild(note);
+      }
+    } catch (e) {
+      list.replaceChildren();
+      const x = document.createElement('div'); x.style.cssText='color:var(--muted);text-align:center;padding:12px;font-size:13px;';
+      x.textContent = 'تعذّر التحميل';
+      list.appendChild(x);
+    }
+  })();
+
+  document.getElementById('revokeAllSessionsBtn')?.addEventListener('click', async () => {
+    if (!confirm('سيتم تسجيل خروجك من كل الأجهزة الأخرى. تبقى متصلاً على هذا الجهاز. تأكيد؟')) return;
+    try {
+      await App.api('POST', '/app/me/sessions/revoke-all');
+      App.toast && App.toast('✓ تم تسجيل الخروج من جميع الأجهزة الأخرى', 'success');
+      setTimeout(() => location.reload(), 800);
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
   });
 
   // SMS 2FA toggle
