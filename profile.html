@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Support tickets -->
+  <div class="settings-group" id="suppSec" style="display:none;">
+    <div class="settings-h">🎫 تذاكر الدعم والملاحظات</div>
+    <div style="padding:14px 18px;">
+      <div id="suppKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">آخر التذاكر</div>
+      <div id="suppList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Pending actions -->
   <div class="settings-group" id="pendActSec" style="display:none;">
     <div class="settings-h">🎯 المهامّ المعلّقة</div>
@@ -2815,6 +2825,54 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Support tickets
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/support-tickets');
+      if (!r.hasTickets) return;
+      const sec = document.getElementById('suppSec');
+      const kpis = document.getElementById('suppKpis');
+      const list = document.getElementById('suppList');
+      if (!sec || !kpis || !list) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('الإجمالي', fmt(r.total), '#0a4d36'),
+        mk('مفتوحة', fmt(r.open), r.open > 0 ? '#d97706' : '#0f6e3a'),
+        mk('مغلقة', fmt(r.closed), '#0f6e3a'),
+        mk('آخر ٣٠ يوم', fmt(r.last30), '#b08840'),
+      );
+      if (r.medianResponseHours !== null) kpis.appendChild(mk('وسيط الردّ', r.medianResponseHours + ' ساعة', '#5c2418'));
+      list.replaceChildren();
+      (r.recent || []).forEach(t => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--paper);border-radius:8px;border-inline-start:3px solid ' + (t.status === 'open' ? '#d97706' : '#0f6e3a') + ';';
+        const left = document.createElement('div');
+        const h = document.createElement('div'); h.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        h.textContent = t.preview || ('تذكرة #' + t.id);
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+        sub.textContent = '#' + t.category + ' · ' + new Date(t.createdAt).toLocaleDateString('ar-SA');
+        left.append(h, sub);
+        const score = document.createElement('div'); score.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--gold);';
+        score.textContent = t.score !== undefined && t.score !== null ? '★ ' + t.score : '';
+        const status = document.createElement('div');
+        status.style.cssText = 'font:800 10px Cairo,sans-serif;padding:4px 10px;border-radius:99px;' + (t.status === 'open' ? 'color:#d97706;background:rgba(217,119,6,0.10);' : 'color:#0f6e3a;background:rgba(15,110,58,0.10);');
+        status.textContent = t.status === 'open' ? 'مفتوحة' : 'مغلقة';
+        row.append(left, score, status);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();

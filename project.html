@@ -1518,6 +1518,16 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Return sensitivity table -->
+<div class="card-section" id="sensCard" style="display:none;">
+  <h2 class="section-h">📊 جدول الحساسيّة</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">انظر كيف يتغيّر إجمالي الربح حسب مبلغ استثمارك وعائد الصفقة (يفترض المدّة كاملة).</p>
+  <div style="overflow-x:auto;">
+    <table id="sensTable" style="width:100%;border-collapse:separate;border-spacing:4px;font:600 12px Tajawal,sans-serif;"></table>
+  </div>
+  <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">📌 العائد الفعلي قد يختلف. هذه أرقام استرشاديّة بناءً على العائد المُعلَن.</p>
+</div>
+
 <!-- Profitability index -->
 <div class="card-section" id="piCard" style="display:none;">
   <h2 class="section-h">💎 مؤشّر الربحيّة</h2>
@@ -4438,6 +4448,56 @@
     recalc();
   }
 
+  function _loadSensitivity(p) {
+    const card = document.getElementById('sensCard');
+    const table = document.getElementById('sensTable');
+    if (!card || !table) return;
+    const baseRate = Number(p.expectedReturn || 0);
+    const months = Number(p.durationMonths || 0);
+    if (!baseRate || !months) { card.style.display = 'none'; return; }
+    const amounts = [1000, 5000, 10000, 25000, 50000];
+    const rateOffsets = [-2, -1, 0, 1, 2];
+    const fmt = n => Number(Math.round(n)).toLocaleString('ar-SA');
+    table.replaceChildren();
+    const thead = document.createElement('thead');
+    const trH = document.createElement('tr');
+    const corner = document.createElement('th');
+    corner.style.cssText = 'background:var(--green-dark);color:var(--gold-light);padding:8px;border-radius:8px;font:800 11px Cairo,sans-serif;text-align:center;';
+    corner.textContent = 'المبلغ \\ العائد';
+    trH.appendChild(corner);
+    rateOffsets.forEach(off => {
+      const th = document.createElement('th');
+      const rate = baseRate + off;
+      const isBase = off === 0;
+      th.style.cssText = 'background:' + (isBase ? 'var(--gold)' : 'var(--paper)') + ';color:' + (isBase ? 'var(--green-dark)' : 'var(--green-dark)') + ';padding:8px;border-radius:8px;font:900 11px Cairo,sans-serif;text-align:center;';
+      th.textContent = rate.toFixed(1) + '٪' + (isBase ? ' ⭐' : '');
+      trH.appendChild(th);
+    });
+    thead.appendChild(trH);
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    amounts.forEach(amt => {
+      const tr = document.createElement('tr');
+      const tdLbl = document.createElement('td');
+      tdLbl.style.cssText = 'background:var(--green-dark);color:var(--gold-light);padding:8px;border-radius:8px;font:800 11px Cairo,sans-serif;text-align:center;';
+      tdLbl.textContent = fmt(amt) + ' ر.س';
+      tr.appendChild(tdLbl);
+      rateOffsets.forEach(off => {
+        const rate = baseRate + off;
+        const profit = amt * (rate / 100) * (months / 12);
+        const td = document.createElement('td');
+        const isBase = off === 0;
+        const color = profit >= amt * 0.10 ? '#0f6e3a' : (profit >= amt * 0.05 ? '#b08840' : 'var(--ink)');
+        td.style.cssText = 'background:' + (isBase ? 'rgba(176,136,64,0.10)' : '#fff') + ';color:' + color + ';padding:8px;border-radius:8px;text-align:center;font:800 11px Cairo,sans-serif;border:1px solid var(--line);';
+        td.textContent = '+' + fmt(profit);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    card.style.display = '';
+  }
+
   async function _loadPI(slug) {
     const card = document.getElementById('piCard');
     const hero = document.getElementById('piHero');
@@ -5111,7 +5171,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setHistFund(slug) {
     const badge = document.getElementById('histFundBadge');
