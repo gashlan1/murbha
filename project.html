@@ -1523,6 +1523,13 @@
   <div id="cdNote" style="text-align:center;font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:10px;"></div>
 </div>
 
+<!-- ELIGIBILITY CHECKLIST -->
+<div class="card-section" id="eligibilityCard" style="display:none;padding:18px 22px;">
+  <h2 class="section-h" style="margin-bottom:12px;">✅ متطلّبات الاستثمار في هذه الصفقة</h2>
+  <div id="eligibilityList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  <div id="eligibilityCta" style="margin-top:14px;display:none;"></div>
+</div>
+
 <!-- POST-INVESTMENT STEPS -->
 <div class="card-section" id="postInvestSteps" style="padding:18px 22px;">
   <h2 class="section-h" style="margin-bottom:14px;">📍 ماذا بعد الاستثمار؟</h2>
@@ -2502,6 +2509,61 @@
       if (sp.dealsCompleted) { dls.textContent = '🏆 ' + sp.dealsCompleted + ' صفقة سابقة'; dls.style.display = 'inline-block'; }
       const ot = document.getElementById('spStatTrack');
       if (sp.onTimePct != null) { ot.textContent = '✓ ' + sp.onTimePct + '٪ في الوقت'; ot.style.display = 'inline-block'; }
+    })();
+
+    // Eligibility checklist (for authenticated users)
+    (async () => {
+      try {
+        const me = await App.me();
+        if (!me?.id) return;
+        const fresh = await App.api('GET', '/app/me');
+        const u = fresh.user || me;
+        const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [], balance: 0 }));
+        const minTicket = p.minTicket || p.minAmount || 1000;
+        const balance = port.balance || 0;
+        const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+        const investedThisYear = (port.investments || [])
+          .filter(i => i.status !== 'canceled' && new Date(i.createdAt || 0).getTime() >= yearStart)
+          .reduce((s, i) => s + Number(i.amount || 0), 0);
+        const annualCap = 200000;
+        const isQualified = u.role === 'qualified_investor' || u.kycStatus === 'verified_qualified';
+        const checks = [
+          { label: 'البريد الإلكتروني مؤكّد', ok: !!u.emailVerifiedAt, fix: '/profile.html#email' },
+          { label: 'الجوال مؤكّد', ok: !!u.mobileVerifiedAt, fix: '/profile.html#phone' },
+          { label: 'التحقّق من الهوية الوطنية مكتمل', ok: u.kycStatus === 'verified' || u.kycStatus === 'verified_qualified', fix: '/kyc.html' },
+          { label: 'اعتماد الإدارة', ok: !!u.approved, fix: null },
+          { label: 'رصيد كافٍ (' + minTicket.toLocaleString('ar-SA') + ' ر.س)', ok: balance >= minTicket, fix: '/portfolio.html' },
+          { label: 'ضمن السقف السنوي (٢٠٠ك)', ok: isQualified || investedThisYear < annualCap, fix: null },
+        ];
+        const card = document.getElementById('eligibilityCard');
+        const list = document.getElementById('eligibilityList');
+        if (!card || !list) return;
+        list.replaceChildren();
+        let failedFix = null;
+        checks.forEach(c => {
+          if (!c.ok && !failedFix && c.fix) failedFix = c;
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid ' + (c.ok ? 'rgba(15,110,58,0.30)' : 'rgba(176,136,64,0.30)') + ';border-radius:10px;background:' + (c.ok ? 'rgba(15,110,58,0.05)' : 'rgba(176,136,64,0.05)') + ';';
+          const dot = document.createElement('span');
+          dot.style.cssText = 'width:24px;height:24px;border-radius:50%;background:' + (c.ok ? '#0f6e3a' : '#b08840') + ';color:#fff;display:flex;align-items:center;justify-content:center;font:900 12px Cairo,sans-serif;flex-shrink:0;';
+          dot.textContent = c.ok ? '✓' : '!';
+          const lbl = document.createElement('span'); lbl.style.cssText = 'font:600 13px Tajawal,sans-serif;color:#062b1e;flex:1;';
+          lbl.textContent = c.label;
+          row.append(dot, lbl);
+          list.appendChild(row);
+        });
+        if (failedFix) {
+          const cta = document.getElementById('eligibilityCta');
+          cta.style.display = '';
+          cta.replaceChildren();
+          const a = document.createElement('a');
+          a.href = failedFix.fix;
+          a.style.cssText = 'display:inline-block;background:var(--green-dark);color:#d4ac6e;padding:10px 22px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;';
+          a.textContent = '➔ ' + failedFix.label;
+          cta.appendChild(a);
+        }
+        card.style.display = '';
+      } catch (e) {}
     })();
 
     // Featured ribbon
