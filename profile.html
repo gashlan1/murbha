@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Private notes -->
+  <div class="settings-group" id="notesSec">
+    <div class="settings-h">📝 ملاحظاتك الخاصّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;line-height:1.7;">دفترك الشخصي لتسجيل أفكار وملاحظات عن استثماراتك. مرئيّ لك فقط، مُشفَّر.</p>
+      <textarea id="noteText" placeholder="مثال: استثمار في صفقة الرياض الفلل — أراقب أداءه قبل التوسّع في الفئة." maxlength="2000" style="width:100%;min-height:80px;padding:11px;border:1px solid var(--line);border-radius:10px;font:500 13px Tajawal,sans-serif;background:var(--paper);resize:vertical;margin-bottom:10px;"></textarea>
+      <button type="button" id="noteAddBtn" style="background:var(--green-dark);color:var(--gold-light);border:none;padding:10px 20px;border-radius:10px;font:900 12px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ أضف ملاحظة</button>
+      <div id="notesList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Portfolio worth over time -->
   <div class="settings-group" id="worthSec" style="display:none;">
     <div class="settings-h">💎 قيمة محفظتك عبر الزمن</div>
@@ -2914,6 +2925,65 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Private notes
+  (async () => {
+    try {
+      const textarea = document.getElementById('noteText');
+      const addBtn = document.getElementById('noteAddBtn');
+      const list = document.getElementById('notesList');
+      if (!textarea || !addBtn || !list) return;
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/notes');
+        list.replaceChildren();
+        if (!r.notes.length) {
+          const e = document.createElement('div');
+          e.style.cssText = 'text-align:center;padding:14px;background:var(--paper);border-radius:10px;font:500 12px Tajawal,sans-serif;color:var(--muted);';
+          e.textContent = '✏️ لا توجد ملاحظات بعد. ابدأ بأوّل واحدة فوق.';
+          list.appendChild(e);
+          return;
+        }
+        r.notes.forEach(n => {
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:12px 14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--line);border-radius:10px;';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:start;gap:8px;margin-bottom:6px;';
+          const date = document.createElement('span'); date.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+          date.textContent = new Date(n.createdAt).toLocaleString('ar-SA');
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:transparent;color:#c54a3a;border:1px solid #c54a3a;padding:4px 10px;border-radius:6px;font:800 10px Cairo,sans-serif;cursor:pointer;';
+          del.textContent = '🗑';
+          del.addEventListener('click', async () => {
+            if (!confirm('حذف هذه الملاحظة نهائياً؟')) return;
+            try {
+              await App.api('DELETE', '/app/me/notes/' + encodeURIComponent(n.id));
+              App.toast && App.toast('✓ حُذفت', 'success');
+              render();
+            } catch (e) { App.toast && App.toast('فشل', 'error'); }
+          });
+          head.append(date, del);
+          const body = document.createElement('div'); body.style.cssText = 'font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.85;white-space:pre-wrap;';
+          body.textContent = n.text;
+          row.append(head, body);
+          list.appendChild(row);
+        });
+      };
+      addBtn.addEventListener('click', async () => {
+        const text = textarea.value.trim();
+        if (!text) { App.toast && App.toast('اكتب نصاً أولاً', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/notes', { text });
+          App.toast && App.toast('✓ أُضيفت', 'success');
+          textarea.value = '';
+          render();
+        } catch (e) {
+          const err = e?.body?.error || '';
+          App.toast && App.toast(err === 'limit_reached' ? 'بلغت الحدّ الأقصى ١٠٠ ملاحظة' : 'فشل', 'error');
+        }
+      });
+      await render();
     } catch (e) {}
   })();
 
