@@ -836,6 +836,20 @@
     </div>
   </div>
 
+  <!-- Investment goal selector -->
+  <div class="settings-group" id="goalSec" style="display:none;">
+    <div class="settings-h">🎯 هدفي الاستثماري</div>
+    <div style="padding:10px 18px 14px;display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" data-goal="retirement" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">👴 التقاعد</button>
+      <button type="button" data-goal="education" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">🎓 تعليم الأبناء</button>
+      <button type="button" data-goal="home" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">🏡 شراء منزل</button>
+      <button type="button" data-goal="marriage" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">💍 الزواج</button>
+      <button type="button" data-goal="children" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">👶 ادّخار للأبناء</button>
+      <button type="button" data-goal="wealth" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">💰 بناء ثروة</button>
+      <button type="button" data-goal="income" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">📊 دخل إضافي</button>
+    </div>
+  </div>
+
   <!-- Quick actions -->
   <div class="settings-group" id="quickActionsRow">
     <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -2098,6 +2112,38 @@
         grid.appendChild(cell);
       });
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Investment goal selector
+  (async () => {
+    try {
+      const sec = document.getElementById('goalSec');
+      const chips = document.querySelectorAll('.goalChip');
+      if (!sec || !chips.length) return;
+      sec.style.display = '';
+      const me = await App.api('GET', '/app/me');
+      let cur = me.user?.investmentGoal || null;
+      const syncChips = () => {
+        chips.forEach(c => {
+          const on = c.dataset.goal === cur;
+          c.style.background = on ? 'var(--green-dark)' : '#fff';
+          c.style.color = on ? '#d4ac6e' : 'var(--green-dark)';
+          c.style.borderColor = on ? 'var(--green-dark)' : 'var(--line)';
+        });
+      };
+      syncChips();
+      chips.forEach(c => {
+        c.addEventListener('click', async () => {
+          const g = c.dataset.goal === cur ? null : c.dataset.goal;
+          try {
+            await App.api('PATCH', '/app/me/investment-goal', { goal: g });
+            cur = g;
+            syncChips();
+            App.toast && App.toast(g ? 'تم تحديث الهدف' : 'تم إزالة الهدف', 'success');
+          } catch (e) { App.toast && App.toast('فشل', 'error'); }
+        });
+      });
     } catch (e) {}
   })();
 
