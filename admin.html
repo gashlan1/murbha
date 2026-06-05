@@ -695,6 +695,17 @@
     </div>
   </div>
 
+  <!-- QUARTER RECAP -->
+  <div class="admin-card" id="qrCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📅 ملخّص الربع</span>
+      <span class="card-h-sub" id="qrBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="qrGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;"></div>
+    </div>
+  </div>
+
   <!-- UPTIME SUMMARY -->
   <div class="admin-card" id="upCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3452,6 +3463,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadQr() {
+    const grid = document.getElementById('qrGrid');
+    const badge = document.getElementById('qrBadge');
+    if (!grid) return;
+    try {
+      const r = await App.api('GET', '/app/admin/quarter-recap');
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (badge) badge.textContent = r.label;
+      grid.replaceChildren();
+      const tiles = [
+        { ic: '👋', label: 'تسجيلات جديدة', val: fmt(r.signups), color: '#0a4d36' },
+        { ic: '🪪', label: 'KYC مُعتمَد', val: fmt(r.kycApproved), color: '#0f6e3a' },
+        { ic: '💼', label: 'استثمارات', val: fmt(r.invCount), color: '#b08840' },
+        { ic: '💰', label: 'قيمة الاستثمارات', val: fmt(r.invAmount) + ' ر.س', color: '#062b1e' },
+        { ic: '💳', label: 'إيداعات', val: fmt(r.depCount), color: '#5c2418' },
+        { ic: '🏦', label: 'قيمة الإيداعات', val: fmt(r.depAmount) + ' ر.س', color: '#1e3a8a' },
+        { ic: '💸', label: 'أرباح موزّعة', val: fmt(r.payoutAmount) + ' ر.س', color: '#d97706' },
+        { ic: '🏗', label: 'مشاريع جديدة', val: fmt(r.newProjects), color: '#0a4d36' },
+        { ic: '✓', label: 'مشاريع ممَوَّلة', val: fmt(r.fundedProjects), color: '#0f6e3a' },
+      ];
+      tiles.forEach(t => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;text-align:center;border-top:3px solid ' + t.color + ';';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:22px;margin-bottom:4px;'; ic.textContent = t.ic;
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + t.color + ';'; vv.textContent = t.val;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = t.label;
+        w.append(ic, vv, ll);
+        grid.appendChild(w);
+      });
+    } catch (e) {}
+  }
+
   async function loadUp() {
     const list = document.getElementById('upList');
     const badge = document.getElementById('upBadge');
@@ -8961,7 +9004,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

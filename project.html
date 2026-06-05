@@ -1575,6 +1575,13 @@
   <div id="regsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"></div>
 </div>
 
+<!-- Sector market check -->
+<div class="card-section" id="priceCheckCard" style="display:none;">
+  <h2 class="section-h">💹 تَدقيق السوق</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">قارن العائد المُعلَن مع متوسّط السوق لهذه الفئة. للمساعدة في تقييم الصفقة.</p>
+  <div id="priceCheckList" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
 <!-- Investment thesis -->
 <div class="card-section" id="thesisCard" style="display:none;">
   <h2 class="section-h">💡 لماذا هذه الصفقة؟</h2>
@@ -4698,6 +4705,67 @@
     card.style.display = '';
   }
 
+  function _initPriceCheck(p) {
+    const card = document.getElementById('priceCheckCard');
+    const list = document.getElementById('priceCheckList');
+    if (!card || !list) return;
+    const ret = Number(p.expectedReturn || 0);
+    if (!ret) { card.style.display = 'none'; return; }
+    const cat = (p.category || '').toString();
+    const ranges = {
+      residential:    { low: 7,  high: 10, label: 'سكني' },
+      commercial:     { low: 9,  high: 12, label: 'تجاري' },
+      industrial:     { low: 10, high: 13, label: 'صناعي' },
+      logistics:      { low: 9,  high: 13, label: 'لوجستي' },
+      retail:         { low: 8,  high: 11, label: 'تجزئة' },
+      healthcare:     { low: 9,  high: 12, label: 'صحّي' },
+      education:      { low: 8,  high: 11, label: 'تعليمي' },
+      tourism:        { low: 9,  high: 12, label: 'سياحة' },
+      hospitality:    { low: 9,  high: 12, label: 'ضيافة' },
+      mining:         { low: 11, high: 15, label: 'تعدين' },
+      renewable:      { low: 8,  high: 11, label: 'طاقة متجدّدة' },
+      water:          { low: 7,  high: 10, label: 'مياه' },
+      defense:        { low: 9,  high: 12, label: 'دفاع' },
+      space:          { low: 11, high: 15, label: 'فضاء' },
+      biotech:        { low: 11, high: 14, label: 'بيوتك' },
+      fintech:        { low: 10, high: 13, label: 'فينتك' },
+      ai:             { low: 12, high: 16, label: 'AI' },
+      esports:        { low: 10, high: 13, label: 'إي-سبورتس' },
+      agritech:       { low: 8,  high: 12, label: 'زراعي' },
+      telecom:        { low: 8,  high: 11, label: 'اتصالات' },
+      aviation:       { low: 9,  high: 12, label: 'طيران' },
+      maritime:       { low: 8,  high: 11, label: 'بحري' },
+      mosque:         { low: 7,  high: 9,  label: 'وقف' },
+      robotics:       { low: 10, high: 13, label: 'روبوتات' },
+      quantum:        { low: 12, high: 18, label: 'كم' },
+    };
+    const range = ranges[cat] || { low: 8, high: 11, label: 'متوسّط السوق' };
+    const fair = (ret >= range.low && ret <= range.high);
+    const high = ret > range.high;
+    const low = ret < range.low;
+    list.replaceChildren();
+    const mk = (title, value, status) => {
+      const colorMap = { good: '#0f6e3a', warn: '#b08840', bad: '#c54a3a', neutral: '#062b1e' };
+      const color = colorMap[status] || '#062b1e';
+      const row = document.createElement('div');
+      row.style.cssText = 'padding:14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid ' + color + ';border-radius:10px;';
+      const t = document.createElement('div'); t.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      t.textContent = title;
+      const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;color:' + color + ';';
+      v.textContent = value;
+      row.append(t, v);
+      return row;
+    };
+    list.appendChild(mk('📊 العائد المُعلَن', ret + '٪', fair ? 'good' : (high ? 'warn' : 'bad')));
+    list.appendChild(mk('🎯 المتوسّط لفئة ' + range.label, range.low + '–' + range.high + '٪', 'neutral'));
+    let conclusionTxt, conclusionStatus;
+    if (fair) { conclusionTxt = '✅ العائد ضمن النطاق العادل للفئة'; conclusionStatus = 'good'; }
+    else if (high) { conclusionTxt = '⚠️ العائد أعلى من المتوسّط — قد يعني مخاطر أعلى'; conclusionStatus = 'warn'; }
+    else { conclusionTxt = '⚠️ العائد أقلّ من المتوسّط — ربّما لمزايا أخرى'; conclusionStatus = 'warn'; }
+    list.appendChild(mk('🔍 التَّقييم', conclusionTxt, conclusionStatus));
+    card.style.display = '';
+  }
+
   function _initThesis(p) {
     const card = document.getElementById('thesisCard');
     const list = document.getElementById('thesisList');
@@ -5440,7 +5508,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initPriceCheck(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setLiveCount(slug) {
     const badge = document.getElementById('liveCountBadge');

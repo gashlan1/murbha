@@ -859,6 +859,23 @@
     </div>
   </div>
 
+  <!-- Legacy / beneficiaries -->
+  <div class="settings-group" id="legacySec">
+    <div class="settings-h">🕊 خطّة الإرث (المستفيدون)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:12px;line-height:1.85;">حدّد المستفيدين من استثماراتك (الورثة) لتسهيل عمليّة النقل في حالة الوفاة. مجموع الحصص يَجب أن يكون ١٠٠٪.</p>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <input id="benefName" type="text" placeholder="الاسم *" maxlength="80" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:500 12px Tajawal,sans-serif;background:var(--paper);" />
+        <input id="benefRel" type="text" placeholder="القرابة" maxlength="40" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:500 12px Tajawal,sans-serif;background:var(--paper);" />
+        <input id="benefShare" type="number" min="1" max="100" placeholder="حصّة٪ *" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:500 12px Tajawal,sans-serif;background:var(--paper);" />
+      </div>
+      <button type="button" id="benefAddBtn" style="background:var(--green-dark);color:var(--gold-light);border:none;padding:10px 18px;border-radius:10px;font:900 12px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ أضف مستفيداً</button>
+      <div id="benefShareBar" style="margin-bottom:12px;display:none;"></div>
+      <div id="benefList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:12px;line-height:1.7;">📜 ملاحظة: هذه قائمة مرجعيّة. النقل القانوني للورثة يَتمّ وفق صكّ حصر الإرث الشرعي.</p>
+    </div>
+  </div>
+
   <!-- Next milestones -->
   <div class="settings-group" id="nextMileSec" style="display:none;">
     <div class="settings-h">🎯 الإنجازات القادمة</div>
@@ -3002,6 +3019,85 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Beneficiaries / legacy
+  (async () => {
+    try {
+      const nameIn = document.getElementById('benefName');
+      const relIn = document.getElementById('benefRel');
+      const shareIn = document.getElementById('benefShare');
+      const addBtn = document.getElementById('benefAddBtn');
+      const list = document.getElementById('benefList');
+      const shareBar = document.getElementById('benefShareBar');
+      if (!list) return;
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/beneficiaries');
+        list.replaceChildren();
+        if (!r.beneficiaries.length) {
+          const e = document.createElement('div');
+          e.style.cssText = 'text-align:center;padding:14px;background:var(--paper);border-radius:10px;font:500 12px Tajawal,sans-serif;color:var(--muted);';
+          e.textContent = 'لا يوجد مستفيدون بعد.';
+          list.appendChild(e);
+          shareBar.style.display = 'none';
+          return;
+        }
+        shareBar.style.display = '';
+        shareBar.replaceChildren();
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;justify-content:space-between;margin-bottom:6px;font:700 11px Cairo,sans-serif;color:var(--muted);';
+        const lbl = document.createElement('span'); lbl.textContent = 'مجموع الحصص';
+        const val = document.createElement('span'); val.style.color = r.valid ? '#0f6e3a' : '#c54a3a';
+        val.textContent = r.totalShare + '٪' + (r.valid ? ' ✓' : ' (يَجب ١٠٠٪)');
+        head.append(lbl, val);
+        shareBar.appendChild(head);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:8px;background:var(--paper);border-radius:99px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + Math.min(100, r.totalShare) + '%;background:' + (r.valid ? 'linear-gradient(90deg,#0a4d36,#b08840)' : '#c54a3a') + ';';
+        bar.appendChild(fill);
+        shareBar.appendChild(bar);
+        r.beneficiaries.forEach(b => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:12px 14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+          const left = document.createElement('div');
+          const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; nm.textContent = '👤 ' + b.name;
+          const rel = document.createElement('div'); rel.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; rel.textContent = b.relationship || '—';
+          left.append(nm, rel);
+          const share = document.createElement('div'); share.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--gold);min-width:60px;text-align:center;'; share.textContent = b.sharePct + '٪';
+          const added = document.createElement('div'); added.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);min-width:80px;text-align:center;'; added.textContent = new Date(b.addedAt).toLocaleDateString('ar-SA');
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:transparent;color:#c54a3a;border:1px solid #c54a3a;padding:4px 10px;border-radius:6px;font:800 10px Cairo,sans-serif;cursor:pointer;';
+          del.textContent = '🗑';
+          del.addEventListener('click', async () => {
+            if (!confirm('حذف "' + b.name + '" من المستفيدين؟')) return;
+            try {
+              await App.api('DELETE', '/app/me/beneficiaries/' + encodeURIComponent(b.id));
+              App.toast && App.toast('✓ حُذف', 'success');
+              render();
+            } catch (e) { App.toast && App.toast('فشل', 'error'); }
+          });
+          row.append(left, share, added, del);
+          list.appendChild(row);
+        });
+      };
+      addBtn.addEventListener('click', async () => {
+        const name = nameIn.value.trim();
+        const relationship = relIn.value.trim();
+        const sharePct = Number(shareIn.value);
+        if (!name || !sharePct) { App.toast && App.toast('املأ الاسم والحصّة', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/beneficiaries', { name, relationship, sharePct });
+          App.toast && App.toast('✓ أُضيف', 'success');
+          nameIn.value = ''; relIn.value = ''; shareIn.value = '';
+          render();
+        } catch (e) {
+          const err = e?.body?.error || '';
+          App.toast && App.toast(err === 'limit_reached' ? 'بلغت ١٠ مستفيدين' : 'فشل', 'error');
+        }
+      });
+      await render();
     } catch (e) {}
   })();
 
