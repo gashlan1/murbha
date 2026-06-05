@@ -909,6 +909,7 @@
       <button type="button" id="quickPwBtn" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;font-family:inherit;">🔐 تغيير كلمة المرور</button>
       <a href="/auto-invest.html" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--gold);color:var(--gold);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;text-align:center;">⚡ الاستثمار التلقائي</a>
       <button type="button" id="acctSummaryBtn" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;font-family:inherit;">📦 ملخّص بياناتي</button>
+      <button type="button" id="shareJourneyBtn" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--gold);color:var(--gold);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;font-family:inherit;">📤 شارك رحلتي</button>
     </div>
   </div>
 
@@ -2336,6 +2337,34 @@
         });
       });
     } catch (e) {}
+  })();
+
+  // Share my journey (text snippet)
+  (() => {
+    const btn = document.getElementById('shareJourneyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      try {
+        const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [] }));
+        const me = await App.api('GET', '/app/me');
+        const invs = (port.investments || []).filter(i => i.status !== 'canceled');
+        const totalInv = invs.reduce((s, i) => s + Number(i.amount || 0), 0);
+        const since = me.user?.createdAt ? new Date(me.user.createdAt) : null;
+        const months = since ? Math.max(1, Math.round((Date.now() - since.getTime()) / (30 * 24 * 60 * 60 * 1000))) : 0;
+        const text = '🚀 رحلتي مع مُرابحة:\n\n' +
+          '⏰ عضو منذ ' + months + ' شهر\n' +
+          '💎 ' + invs.length + ' صفقة استثمارية\n' +
+          '💰 إجمالي ' + Number(totalInv).toLocaleString('ar-SA') + ' ر.س\n' +
+          '☪ استثمار شرعي ١٠٠٪\n\n' +
+          'انضمّ معي: ' + location.origin;
+        if (navigator.share) {
+          await navigator.share({ title: 'رحلتي مع مُرابحة', text });
+        } else {
+          await navigator.clipboard.writeText(text);
+          App.toast && App.toast('تم نسخ نص الرحلة', 'success');
+        }
+      } catch (e) { App.toast && App.toast('فشل', 'error'); }
+    });
   })();
 
   // Account summary download (compact JSON)

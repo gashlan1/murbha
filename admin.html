@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- INVESTMENTS BY CATEGORY -->
+  <div class="admin-card" id="invByCatCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🏷 الاستثمارات حسب الفئة</span>
+      <span class="card-h-sub" id="invByCatBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="invByCatList" style="display:flex;flex-direction:column;gap:6px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- WEEKLY TREND -->
   <div class="admin-card" id="weeklyTrendCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2846,6 +2859,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadInvByCat() {
+    const list = document.getElementById('invByCatList');
+    const badge = document.getElementById('invByCatBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/investments-by-category');
+      const items = r.categories || [];
+      if (badge) badge.textContent = 'الإجمالي ' + Number(r.total || 0).toLocaleString('ar-SA') + ' ر.س';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد استثمارات')); return; }
+      const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418', '#1e3a8a'];
+      const max = Math.max(...items.map(i => i.total), 1);
+      items.forEach((c, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = c.category;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:20px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((c.total / max) * 100) + '%;background:' + palette[i % palette.length] + ';border-radius:4px;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:150px;';
+        meta.textContent = Number(c.total).toLocaleString('ar-SA') + ' ر.س · ' + c.pct + '٪ · ' + c.projects + ' مشروع';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadWeeklyTrend() {
     const list = document.getElementById('weeklyTrendList');
     if (!list) return;
@@ -6532,7 +6574,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

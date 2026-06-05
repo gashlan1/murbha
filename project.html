@@ -1605,6 +1605,7 @@
   </div>
   <div id="confidenceFactors" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;"></div>
   <p style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:10px;line-height:1.7;">يجمع المؤشّر بين عدد المستثمرين، نسبة التمويل، تفاصيل البائع، والتقييمات. لا يضمن النجاح.</p>
+  <button type="button" id="confidenceExplainBtn" style="background:transparent;border:0;color:var(--gold);font:800 11px Cairo,sans-serif;cursor:pointer;text-decoration:underline;padding:4px;margin-top:4px;">كيف نحسب المؤشّر؟ ←</button>
 </div>
 
 <!-- TRUST SIGNALS BAR -->
@@ -2401,6 +2402,54 @@
       }
       card.style.display = '';
     })();
+
+    // Confidence explainer button
+    const explainBtn = document.getElementById('confidenceExplainBtn');
+    if (explainBtn) {
+      explainBtn.onclick = () => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:520px;width:100%;';
+        const h = document.createElement('div'); h.style.cssText = 'font:900 17px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;';
+        h.textContent = '📊 كيف نحسب مؤشّر الثقة؟';
+        const intro = document.createElement('p'); intro.style.cssText = 'font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.85;margin-bottom:14px;';
+        intro.textContent = 'نجمع ٦ إشارات متنوّعة لإعطاء صورة شاملة عن مدى التحقّق من الصفقة. النتيجة من ٠ إلى ١٠٠.';
+        const items = [
+          ['👥 عدد المستثمرين', '٢٥ نقطة (≥١٠٠) / ١٥ (≥٣٠) / ٨ (≥١٠)'],
+          ['📈 نسبة التمويل', '٢٠ نقطة (≥٥٠٪) / ١٠ (≥٢٥٪)'],
+          ['✓ بائع موثّق', '٢٠ نقطة'],
+          ['🏢 تقييم مستقل', '١٥ نقطة'],
+          ['🔒 حساب ضمان', '١٠ نقاط'],
+          ['★ مميّز', '١٠ نقاط'],
+        ];
+        items.forEach(it => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--paper);border-radius:8px;margin-bottom:6px;gap:10px;';
+          const k = document.createElement('span'); k.style.cssText = 'font:700 13px Tajawal,sans-serif;color:var(--green-dark);'; k.textContent = it[0];
+          const v = document.createElement('span'); v.style.cssText = 'font:700 12px Tajawal,sans-serif;color:var(--muted);'; v.textContent = it[1];
+          row.append(k, v);
+          card.appendChild(row);
+        });
+        const interp = document.createElement('div'); interp.style.cssText = 'background:linear-gradient(135deg,#fbf6ea,#fff);border-inline-start:4px solid var(--gold);padding:12px 16px;border-radius:8px;margin-top:14px;font:600 12px Tajawal,sans-serif;color:var(--green-dark);line-height:1.85;';
+        interp.innerHTML = '<b>تفسير النتيجة:</b><br>🟢 ٧٥-١٠٠ = ثقة عالية جداً<br>🟢 ٥٠-٧٤ = ثقة جيّدة<br>🟡 ٣٠-٤٩ = ثقة متوسطة<br>🔵 < ٣٠ = صفقة ناشئة';
+        const close = document.createElement('button'); close.type='button'; close.textContent='فهمت';
+        close.style.cssText = 'margin-top:14px;background:var(--green-dark);color:#d4ac6e;border:0;padding:10px 22px;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;width:100%;';
+        close.onclick = () => overlay.remove();
+        const wrap = document.createElement('div');
+        wrap.append(h, intro);
+        const fragment = document.createDocumentFragment();
+        while (card.children.length > 0) fragment.appendChild(card.firstChild);
+        card.appendChild(wrap);
+        const inner = document.createDocumentFragment();
+        while (fragment.firstChild) inner.appendChild(fragment.firstChild);
+        card.appendChild(inner);
+        card.append(interp, close);
+        overlay.appendChild(card);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+      };
+    }
 
     // Trust badges
     (() => {
