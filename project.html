@@ -1515,6 +1515,13 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Amount tiers -->
+<div class="card-section" id="amtTiersCard" style="display:none;">
+  <h2 class="section-h">🧱 توزيع المبالغ على المستثمرين</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">قسّم مستثمرو هذه الصفقة إلى ٤ شرائح حسب حجم استثمارهم.</p>
+  <div id="amtTiersList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;"></div>
+</div>
+
 <!-- Realized ROI from similar deals -->
 <div class="card-section" id="roiBandCard" style="display:none;">
   <h2 class="section-h">📈 العوائد المحقّقة في صفقات مماثلة</h2>
@@ -4380,6 +4387,33 @@
     recalc();
   }
 
+  async function _loadAmtTiers(slug) {
+    const card = document.getElementById('amtTiersCard');
+    const list = document.getElementById('amtTiersList');
+    if (!card || !list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/amount-tiers');
+      if (!r.hasData || !r.tiers || r.tiers.length < 2) { card.style.display = 'none'; return; }
+      list.replaceChildren();
+      const palette = ['#0a4d36', '#0f6e3a', '#b08840', '#5c2418'];
+      r.tiers.forEach((t, i) => {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;border-top:4px solid ' + palette[i % palette.length] + ';';
+        const head = document.createElement('div'); head.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:2px;';
+        head.textContent = t.label;
+        const range = document.createElement('div'); range.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        range.textContent = t.range;
+        const count = document.createElement('div'); count.style.cssText = 'font:900 22px Cairo,sans-serif;color:' + palette[i % palette.length] + ';';
+        count.textContent = t.count + ' (' + t.countPct + '٪)';
+        const sumLine = document.createElement('div'); sumLine.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);margin-top:4px;';
+        sumLine.textContent = '💰 ' + Number(t.sum).toLocaleString('ar-SA') + ' ر.س · ' + t.sumPct + '٪ من القيمة';
+        cell.append(head, range, count, sumLine);
+        list.appendChild(cell);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadRoiBand(slug) {
     const card = document.getElementById('roiBandCard');
     const stats = document.getElementById('roiBandStats');
@@ -4742,7 +4776,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setPopularity(p) {
     const badge = document.getElementById('popularityBadge');
