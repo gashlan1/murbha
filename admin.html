@@ -673,6 +673,23 @@
     </div>
   </div>
 
+  <!-- PENDING KYC QUEUE -->
+  <div class="admin-card" id="kycQueueCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🪪 طلبات KYC قيد المراجعة</span>
+      <span class="card-h-sub" id="kycQueueBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="kycQueueRefresh" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <span style="font:600 11px Tajawal,sans-serif;color:var(--muted);">المعتمدون يستطيعون الاستثمار. الرفض يعطّل الحساب.</span>
+      </div>
+      <div id="kycQueueList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PROJECT UPDATES -->
   <div class="admin-card" id="projectUpdatesCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2344,6 +2361,61 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadKycQueue() {
+    const list = document.getElementById('kycQueueList');
+    const badge = document.getElementById('kycQueueBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/users?status=pending&limit=200');
+      const users = (r.users || []).filter(u => !u.approved && !u.rejected && (u.kycStatus === 'verified' || u.kycStatus === 'mobile_verified' || u.kycStatus === 'nafath'));
+      if (badge) badge.textContent = users.length + ' بانتظار المراجعة';
+      list.replaceChildren();
+      if (!users.length) { list.appendChild(_emptyNode('لا توجد طلبات قيد المراجعة')); return; }
+      users.forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;gap:10px;flex-wrap:wrap;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; nm.textContent = u.name || '—';
+        const em = document.createElement('div'); em.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);direction:ltr;'; em.textContent = (u.email || '') + ' · ' + (u.phone || '');
+        const dt = document.createElement('div'); dt.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+        dt.textContent = 'سُجّل ' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '—') + ' · KYC: ' + (u.kycStatus || '—');
+        info.append(nm, em, dt);
+        const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:6px;';
+        const approve = document.createElement('button');
+        approve.type = 'button'; approve.textContent = '✓ اعتماد';
+        approve.style.cssText = 'padding:7px 12px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        approve.onclick = async () => {
+          approve.disabled = true; approve.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/users/approve', { userId: u.id });
+            App.toast && App.toast('تم اعتماد ' + u.name, 'success');
+            loadKycQueue();
+          } catch (e) { approve.disabled = false; approve.textContent = '✓ اعتماد'; alert(e.message || 'فشل'); }
+        };
+        const reject = document.createElement('button');
+        reject.type = 'button'; reject.textContent = '✗ رفض';
+        reject.style.cssText = 'padding:7px 12px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        reject.onclick = async () => {
+          const reason = prompt('سبب الرفض (اختياري):') || '';
+          if (reason === null) return;
+          reject.disabled = true; reject.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/users/reject', { userId: u.id, reason });
+            App.toast && App.toast('تم رفض ' + u.name, 'success');
+            loadKycQueue();
+          } catch (e) { reject.disabled = false; reject.textContent = '✗ رفض'; alert(e.message || 'فشل'); }
+        };
+        actions.append(approve, reject);
+        row.append(info, actions);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('kycQueueRefresh')?.addEventListener('click', loadKycQueue);
+
   async function populatePuProjectSelect() {
     try {
       const r = await App.api('GET', '/app/projects');
@@ -4824,7 +4896,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
