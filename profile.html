@@ -1404,6 +1404,7 @@
   <div class="settings-group">
     <div class="settings-h">ادعُ صديقاً</div>
     <div id="referralBox" style="padding:14px 18px;"><div style="color:var(--muted);font-size:13px;text-align:center;padding:8px;">جاري التحميل…</div></div>
+    <div id="invitesList" style="padding:0 18px 14px;display:none;"></div>
   </div>
 
   <!-- Help -->
@@ -2863,6 +2864,36 @@
       };
       wrap.append(tag, code, stats, linkRow, share);
       box.appendChild(wrap);
+      // Invites list
+      try {
+        const inv = await App.api('GET', '/app/me/referral/invites');
+        const invBox = document.getElementById('invitesList');
+        if (invBox && (inv.invites || []).length) {
+          invBox.style.display = '';
+          invBox.replaceChildren();
+          const title = document.createElement('div');
+          title.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--muted);margin-bottom:8px;letter-spacing:1px;';
+          title.textContent = 'دعواتك (' + inv.total.toLocaleString('ar-SA') + ')';
+          invBox.appendChild(title);
+          inv.invites.slice(0, 10).forEach(it => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:#fff;';
+            const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+            const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+            nm.textContent = it.displayName || '— مستثمر —';
+            const em = document.createElement('div'); em.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);direction:ltr;';
+            em.textContent = it.maskedEmail || '';
+            info.append(nm, em);
+            const pill = document.createElement('span');
+            pill.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 9px;border-radius:999px;flex-shrink:0;';
+            if (it.status === 'activated') { pill.textContent = '✓ نشط'; pill.style.background = 'rgba(15,110,58,0.10)'; pill.style.color = '#0f6e3a'; }
+            else if (it.status === 'signed') { pill.textContent = '📥 سجّل'; pill.style.background = 'rgba(176,136,64,0.10)'; pill.style.color = '#b08840'; }
+            else { pill.textContent = '⏳ مدعوّ'; pill.style.background = 'rgba(13,22,18,0.06)'; pill.style.color = '#6b7268'; }
+            row.append(info, pill);
+            invBox.appendChild(row);
+          });
+        }
+      } catch (e) {}
     } catch (e) {
       box.replaceChildren();
       const x = document.createElement('div'); x.style.cssText='color:var(--muted);text-align:center;padding:8px;'; x.textContent='تعذّر التحميل';
