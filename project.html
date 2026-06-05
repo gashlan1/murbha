@@ -1478,6 +1478,14 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Investor growth -->
+<div class="card-section" id="growthCard" style="display:none;">
+  <h2 class="section-h">📈 نموّ المستثمرين</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">عدد المستثمرين والمبالغ المُستَلَمة عبر الزمن منذ افتتاح الصفقة.</p>
+  <svg id="growthChart" width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+  <div id="growthStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;"></div>
+</div>
+
 <!-- Investor regions -->
 <div class="card-section" id="regionsCard" style="display:none;">
   <h2 class="section-h">🗺 المستثمرون حسب المدينة</h2>
@@ -4174,6 +4182,60 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
+  async function _loadGrowth(slug) {
+    const card = document.getElementById('growthCard');
+    const svg = document.getElementById('growthChart');
+    const stats = document.getElementById('growthStats');
+    if (!card || !svg || !stats) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/investor-growth');
+      const pts = r.points || [];
+      if (!pts.length || pts.length < 3) { card.style.display = 'none'; return; }
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const W = 320, H = 120, P = 8;
+      const xs = pts.map((p, i) => P + (i / (pts.length - 1)) * (W - 2 * P));
+      const maxU = Math.max(...pts.map(p => p.users), 1);
+      const ys = pts.map(p => H - P - (p.users / maxU) * (H - 2 * P));
+      const NS = 'http://www.w3.org/2000/svg';
+      const path = document.createElementNS(NS, 'path');
+      let d = 'M ' + xs[0] + ' ' + ys[0];
+      for (let i = 1; i < xs.length; i++) d += ' L ' + xs[i] + ' ' + ys[i];
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', '#0a4d36');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      const fill = document.createElementNS(NS, 'path');
+      fill.setAttribute('d', d + ' L ' + xs[xs.length - 1] + ' ' + (H - P) + ' L ' + xs[0] + ' ' + (H - P) + ' Z');
+      fill.setAttribute('fill', 'rgba(10,77,54,0.10)');
+      svg.appendChild(fill); svg.appendChild(path);
+      const lastDot = document.createElementNS(NS, 'circle');
+      lastDot.setAttribute('cx', xs[xs.length - 1]); lastDot.setAttribute('cy', ys[ys.length - 1]);
+      lastDot.setAttribute('r', '4'); lastDot.setAttribute('fill', '#b08840');
+      svg.appendChild(lastDot);
+      stats.replaceChildren();
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      const mk = (l, v) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      const first = pts[0], last = pts[pts.length - 1];
+      const days = Math.max(1, Math.round((new Date(last.at) - new Date(first.at)) / 86400e3));
+      stats.append(
+        mk('مستثمرون', fmt(r.finalUsers)),
+        mk('استثمارات', fmt(r.total)),
+        mk('أيام منذ الافتتاح', fmt(days)),
+        mk('متوسط يومياً', fmt(Math.round(r.total / days))),
+      );
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadRegions(slug) {
     const card = document.getElementById('regionsCard');
     const list = document.getElementById('regionsList');
@@ -4280,7 +4342,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} };
 
   function _setMilestone(p) {
     const badge = document.getElementById('milestoneBadge');
