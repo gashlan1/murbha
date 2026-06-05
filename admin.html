@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- SECURITY-RISK USERS -->
+  <div class="admin-card" id="secRiskCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔓 مستخدمون عاليو القيمة بدون 2FA</span>
+      <span class="card-h-sub" id="secRiskBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="secRiskList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- INVESTOR SEGMENTS -->
   <div class="admin-card" id="segmentsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2793,6 +2806,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadSecRisk() {
+    const list = document.getElementById('secRiskList');
+    const badge = document.getElementById('secRiskBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/security-risk-users');
+      const items = r.users || [];
+      if (badge) badge.textContent = items.length + ' مستخدم في خطر';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('✓ كل المستخدمين عاليي القيمة مؤمّنون')); return; }
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      items.forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid rgba(197,74,58,0.30);border-radius:8px;background:#fff;gap:10px;border-inline-start:4px solid #c54a3a;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = u.name;
+        const em = document.createElement('div'); em.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;';
+        em.textContent = u.email;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:#c54a3a;margin-top:2px;';
+        meta.textContent = '💰 ' + fmt(u.invested + u.balance) + ' ر.س معرّضة (مُستثمَر ' + fmt(u.invested) + ' · رصيد ' + fmt(u.balance) + ')';
+        info.append(nm, em, meta);
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = '📨 ذكّر بـ 2FA';
+        btn.style.cssText = 'padding:6px 12px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        btn.onclick = async () => {
+          btn.disabled = true; btn.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/notify-user', {
+              email: u.email,
+              title: '🛡 فعّل المصادقة الثنائية لحمايتك',
+              text: 'لديك ' + fmt(u.invested + u.balance) + ' ر.س على المنصة بدون مصادقة ثنائية. فعّلها الآن (دقيقتان) لحماية حسابك من السرقة.',
+              ctaUrl: '/profile.html#totpCard',
+            });
+            App.toast && App.toast('تم الإرسال', 'success');
+          } catch (e) { alert(e.message || 'فشل'); }
+          btn.disabled = false; btn.textContent = '📨 ذكّر بـ 2FA';
+        };
+        row.append(info, btn);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadSegments() {
     const list = document.getElementById('segmentsList');
     const badge = document.getElementById('segmentsBadge');
@@ -6343,7 +6403,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
