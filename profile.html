@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Referral network -->
+  <div class="settings-group" id="refNetSec" style="display:none;">
+    <div class="settings-h">🤝 شبكة الدعوات</div>
+    <div style="padding:14px 18px;">
+      <div id="rnKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="rnList" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;"></div>
+      <a href="/referrals.html" style="display:block;margin-top:12px;text-align:center;padding:10px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;">ادعُ أصدقاء جدد ←</a>
+    </div>
+  </div>
+
   <!-- Achievement badges -->
   <div class="settings-group" id="badgesSec">
     <div class="settings-h">🏆 الإنجازات</div>
@@ -2488,6 +2498,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Referral network
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/referral-network');
+      if (!r.total) return;
+      const sec = document.getElementById('refNetSec');
+      const kpis = document.getElementById('rnKpis');
+      const list = document.getElementById('rnList');
+      if (!sec || !kpis || !list) return;
+      sec.style.display = '';
+      kpis.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const mkKpi = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mkKpi('عدد الدعوات', fmt(r.total), '#0a4d36'),
+        mkKpi('مستثمرون نشطون', fmt(r.activeCount), '#0f6e3a'),
+        mkKpi('استثمروا (ر.س)', fmt(r.totalInvested), '#b08840'),
+        mkKpi('مكافآتك (ر.س)', fmt(r.earnedReward), '#062b1e'),
+      );
+      list.replaceChildren();
+      (r.friends || []).forEach(f => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const left = document.createElement('div');
+        const n = document.createElement('div'); n.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; n.textContent = f.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);'; sub.textContent = 'انضمّ ' + new Date(f.joinedAt).toLocaleDateString('ar-SA') + ' · ' + (f.kycStatus === 'approved' || f.kycStatus === 'qualified' ? '✓ مُوثَّق' : 'قيد التحقّق');
+        left.append(n, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'font:800 11px Cairo,sans-serif;color:' + (f.hasInvested ? '#0f6e3a' : '#6b7268') + ';text-align:end;';
+        right.textContent = f.hasInvested ? '💼 ' + fmt(f.investedAmount) + ' ر.س' : 'لم يستثمر بعد';
+        row.append(left, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
