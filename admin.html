@@ -660,7 +660,8 @@
     <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
       <div>
         <form id="pdForm" style="display:flex;flex-direction:column;gap:10px;">
-          <select id="pdProject" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;"><option value="">— اختر المشروع —</option></select>
+          <input id="pdProjectSearch" type="search" placeholder="🔎 ابحث عن مشروع…" style="padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:600 13px Tajawal,sans-serif;" />
+          <select id="pdProject" size="1" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;"><option value="">— اختر المشروع —</option></select>
           <input id="pdTitle" type="text" maxlength="200" placeholder="عنوان المستند (مثل: عقد المرابحة)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
           <input id="pdFile" type="file" accept="application/pdf,image/jpeg,image/png" required style="padding:8px;border:1.5px dashed var(--line-strong);border-radius:10px;font-family:inherit;font-size:13px;" />
           <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">⬆ رفع المستند</button>
@@ -3986,6 +3987,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { badge.textContent = 'تعذّر التحميل'; }
   }
   document.getElementById('pdProject')?.addEventListener('change', loadProjectDocs);
+  document.getElementById('pdProjectSearch')?.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const sel = document.getElementById('pdProject');
+    if (!sel) return;
+    Array.from(sel.querySelectorAll('option, optgroup')).forEach(node => {
+      if (node.tagName === 'OPTGROUP') return;
+      if (!node.value) return;
+      const match = !q || node.textContent.toLowerCase().includes(q);
+      node.hidden = !match;
+    });
+    Array.from(sel.querySelectorAll('optgroup')).forEach(g => {
+      const anyVisible = Array.from(g.querySelectorAll('option')).some(o => !o.hidden);
+      g.hidden = !anyVisible;
+    });
+  });
   document.getElementById('pdForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const slug = document.getElementById('pdProject').value;
