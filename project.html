@@ -979,6 +979,7 @@
     <span id="minTicketBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
     <span id="scarcityBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#c54a3a,#8b2e22);padding:5px 12px;border-radius:999px;"></span>
+    <span id="loyaltyBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:rgba(176,136,64,0.10);border:1px solid rgba(176,136,64,0.30);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
     <label id="closingReminderToggle" style="display:none;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;cursor:pointer;">
@@ -2335,6 +2336,21 @@
         const badge = document.getElementById('myInvestmentBadge');
         if (badge) {
           badge.textContent = '★ استثمرت ' + Number(sum).toLocaleString('ar-SA') + ' ر.س في هذا المشروع';
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) {}
+    })();
+
+    // Repeat-investor loyalty signal
+    (async () => {
+      try {
+        const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/investor-loyalty');
+        if (!r.ok) return;
+        const d = await r.json();
+        if ((d.repeatInvestors || 0) < 3) return;
+        const badge = document.getElementById('loyaltyBadge');
+        if (badge) {
+          badge.textContent = '🔁 ' + d.repeatInvestors.toLocaleString('ar-SA') + ' مستثمر يعود مرّةً ثانية';
           badge.style.display = 'inline-block';
         }
       } catch (e) {}
