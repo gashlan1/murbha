@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Bonus credit history -->
+  <div class="settings-group" id="crSec" style="display:none;">
+    <div class="settings-h">🎁 سجلّ المكافآت والإضافات</div>
+    <div style="padding:14px 18px;">
+      <div id="crKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="crByKind" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">آخر العمليّات</div>
+      <div id="crList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Saved searches -->
   <div class="settings-group" id="svdSrSec" style="display:none;">
     <div class="settings-h">🔎 بحثك المحفوظ</div>
@@ -2850,6 +2861,71 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Bonus credit history
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/credit-history');
+      if (!r.hasCredits) return;
+      const sec = document.getElementById('crSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const kpis = document.getElementById('crKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('إجمالي مكتسب', fmt(r.totalEarned) + ' ر.س', '#0a4d36'),
+        mk('آخر ٣٠ يوم', fmt(r.last30Sum) + ' ر.س', '#0f6e3a'),
+        mk('عدد العمليّات', fmt(r.totalCount), '#b08840'),
+      );
+      const byKind = document.getElementById('crByKind');
+      byKind.replaceChildren();
+      const labels = { referral: '🤝 مكافآت الإحالة', reward: '🏆 جوائز', bonus: '🎁 رصيد إضافي', other: '✨ أخرى' };
+      const palette = { referral: '#0a4d36', reward: '#b08840', bonus: '#0f6e3a', other: '#5c2418' };
+      const max = Math.max(...r.byKind.map(k => k.sum), 1);
+      r.byKind.forEach(k => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = labels[k.kind] || k.kind;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((k.sum / max) * 100) + '%;background:' + (palette[k.kind] || '#6b7268') + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:130px;';
+        meta.textContent = k.count + ' · ' + fmt(k.sum) + ' ر.س';
+        row.append(lbl, bar, meta);
+        byKind.appendChild(row);
+      });
+      const list = document.getElementById('crList');
+      list.replaceChildren();
+      (r.recent || []).forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = c.label || (labels[c.kind] || c.kind);
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+        sub.textContent = new Date(c.at).toLocaleDateString('ar-SA') + (c.reason ? ' · ' + c.reason : '');
+        left.append(t, sub);
+        const kindChip = document.createElement('span');
+        kindChip.style.cssText = 'font:800 10px Cairo,sans-serif;padding:4px 8px;border-radius:99px;background:rgba(176,136,64,0.10);color:var(--gold);';
+        kindChip.textContent = (labels[c.kind] || c.kind).split(' ')[0];
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0f6e3a;';
+        amt.textContent = '+' + fmt(c.amount) + ' ر.س';
+        row.append(left, kindChip, amt);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
