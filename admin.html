@@ -1133,7 +1133,7 @@
           رابط CTA (اختياري)
           <input id="segCtaUrl" type="text" placeholder="https://murbha.sa/projects.html?x=1" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;" />
         </label>
-        <button type="submit" id="segSendBtn" style="grid-column:1/-1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إرسال للشريحة</button>
+        <button type="submit" id="segSendBtn" style="grid-column:1/-1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إرسال للشريحة <span id="segPreview" style="margin-inline-start:8px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;font:800 11px Cairo,sans-serif;display:none;">— مستلم</span></button>
       </form>
     </div>
   </div>
@@ -1782,7 +1782,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           del.style.cssText = 'background:none;border:0;color:#c54a3a;font:700 11px Tajawal,sans-serif;cursor:pointer;';
           del.textContent = '🗑 حذف';
           del.onclick = async () => {
-            if (!confirm('حذف هذا الإعلان؟')) return;
+            const ok = await App.confirmDestructive({
+              title: '🗑 حذف الإعلان',
+              body: '"' + (a.title || '') + '" سيُحذف نهائياً ولن يظهر للزوّار مجدّداً. اكتب DELETE للتأكيد.',
+              challenge: 'DELETE',
+              confirmLabel: 'حذف',
+            });
+            if (!ok) return;
             try { await App.api('DELETE', '/app/admin/announcements/' + a.id); loadAnnouncements(); }
             catch (e) { alert(e.message || 'فشل الحذف'); }
           };
@@ -2321,6 +2327,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Segment notify ───────────────────────────────────────────
   const SEG_LABEL = { all: 'كل المستخدمين', approved: 'المعتمدون', pending: 'قيد التحقق', 'kyc-pending': 'KYC غير مكتمل', investors: 'من لديهم استثمار' };
+  async function refreshSegmentPreview() {
+    const seg = document.getElementById('segChoice')?.value;
+    const pill = document.getElementById('segPreview');
+    if (!seg || !pill) return;
+    try {
+      const r = await App.api('GET', '/app/admin/segment-size?segment=' + encodeURIComponent(seg));
+      pill.textContent = (r.count || 0).toLocaleString('ar-SA') + ' مستلم';
+      pill.style.display = '';
+    } catch (e) { pill.style.display = 'none'; }
+  }
+  document.getElementById('segChoice')?.addEventListener('change', refreshSegmentPreview);
+  refreshSegmentPreview();
+
   document.getElementById('segNotifyForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const segment = document.getElementById('segChoice').value;
@@ -3593,7 +3612,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const del = document.createElement('button'); del.type='button';
         del.style.cssText='background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         del.textContent = 'حذف';
-        del.onclick = async () => { if (!confirm('حذف المستند؟')) return; try { await App.api('DELETE', '/app/admin/project-documents/' + d.id); loadProjectDocs(); } catch (e) { alert(e.message); } };
+        del.onclick = async () => {
+          const ok = await App.confirmDestructive({
+            title: '🗑 حذف المستند',
+            body: 'سيتم حذف ملف "' + d.title + '" نهائياً من تخزين الملفات. اكتب DELETE للتأكيد.',
+            challenge: 'DELETE',
+            confirmLabel: 'حذف',
+          });
+          if (!ok) return;
+          try { await App.api('DELETE', '/app/admin/project-documents/' + d.id); loadProjectDocs(); }
+          catch (e) { alert(e.message); }
+        };
         row.appendChild(del);
         list.appendChild(row);
       });

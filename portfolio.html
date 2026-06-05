@@ -1142,12 +1142,16 @@
     mLbl.textContent = 'الحساب البنكي';
     const mSel = document.createElement('select');
     mSel.style.cssText = 'width:100%;padding:11px 14px;background:#fff;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;font:600 13px Tajawal,sans-serif;color:#0d1612;margin-bottom:14px;';
+    methods.sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
     methods.forEach(m => {
       const opt = document.createElement('option');
       opt.value = m.id;
-      opt.textContent = '🏦 ' + (m.bankName || m.brand || 'بنك') + ' · ' + (m.ibanMasked || m.last4 || '');
+      const star = m.isDefault ? '★ ' : '';
+      opt.textContent = star + '🏦 ' + (m.bankName || m.brand || 'بنك') + ' · ' + (m.ibanMasked || m.last4 || '');
       mSel.appendChild(opt);
     });
+    const defIban = methods.find(m => m.isDefault) || methods[0];
+    if (defIban) mSel.value = defIban.id;
     card.append(mLbl, mSel);
 
     const note = document.createElement('div');
@@ -1321,12 +1325,17 @@
         const opt = document.createElement('option'); opt.value = ''; opt.textContent = 'لا توجد طرق دفع — أضف طريقة'; mSel.appendChild(opt);
         mSel.disabled = true;
       } else {
+        // Sort so default method is first; then pick it as the initial value.
+        methods.sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
         methods.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id;
-          opt.textContent = (m.kind === 'card' ? '💳 ' : '🏦 ') + (m.brand || m.bankName || '') + ' •••• ' + (m.last4 || '----');
+          const star = m.isDefault ? '★ ' : '';
+          opt.textContent = star + (m.kind === 'card' ? '💳 ' : '🏦 ') + (m.brand || m.bankName || '') + ' •••• ' + (m.last4 || '----');
           mSel.appendChild(opt);
         });
+        const def = methods.find(m => m.isDefault) || methods[0];
+        if (def) mSel.value = def.id;
       }
     } catch (e) {
       const opt = document.createElement('option'); opt.value = ''; opt.textContent = 'تعذّر تحميل طرق الدفع'; mSel.appendChild(opt);

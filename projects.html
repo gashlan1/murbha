@@ -508,10 +508,19 @@
 
   <div class="search-row">
     <input class="search-input" type="search" placeholder="ابحث عن مشروع، قطاع، أو مدينة..." />
-    <button class="filter-btn">
+    <button class="filter-btn" id="advFilterBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/></svg>
       تصفية
     </button>
+  </div>
+  <div id="advFilters" style="display:none;padding:0 18px 10px;gap:8px;flex-wrap:wrap;">
+    <select id="filterCity" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:600 12px Tajawal,sans-serif;color:var(--ink);">
+      <option value="">كل المدن</option>
+    </select>
+    <select id="filterCategory" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:600 12px Tajawal,sans-serif;color:var(--ink);">
+      <option value="">كل القطاعات</option>
+    </select>
+    <button type="button" id="resetFiltersBtn" style="padding:8px 14px;background:transparent;border:1px solid var(--line);border-radius:8px;font:800 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;">إعادة تعيين</button>
   </div>
 
   <div class="chips-row">
@@ -855,19 +864,57 @@
           chips.forEach(x => x.classList.remove('active'));
           c.classList.add('active');
         }));
+        // Populate advanced filter selects from unique values
+        const cityCounts = new Map();
+        const catCounts = new Map();
+        liveProjects.forEach(p => {
+          if (p.city) cityCounts.set(p.city, (cityCounts.get(p.city) || 0) + 1);
+          if (p.category) catCounts.set(p.category, (catCounts.get(p.category) || 0) + 1);
+        });
+        const citySel = document.getElementById('filterCity');
+        const catSel = document.getElementById('filterCategory');
+        if (citySel && citySel.children.length === 1) {
+          [...cityCounts.entries()].sort().forEach(([city, count]) => {
+            const o = document.createElement('option'); o.value = city; o.textContent = city + ' (' + count + ')';
+            citySel.appendChild(o);
+          });
+        }
+        if (catSel && catSel.children.length === 1) {
+          [...catCounts.entries()].sort().forEach(([cat, count]) => {
+            const o = document.createElement('option'); o.value = cat; o.textContent = cat + ' (' + count + ')';
+            catSel.appendChild(o);
+          });
+        }
+        document.getElementById('advFilterBtn')?.addEventListener('click', () => {
+          const f = document.getElementById('advFilters');
+          if (f) f.style.display = f.style.display === 'flex' ? 'none' : 'flex';
+        });
+        document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+          if (citySel) citySel.value = '';
+          if (catSel) catSel.value = '';
+          if (search) search.value = '';
+          chips.forEach(x => x.classList.remove('active'));
+          chips[0]?.classList.add('active');
+          apply();
+        });
+
         const apply = () => {
           const activeChip = document.querySelector('.chips-row .chip.active');
           const filter = activeChip ? activeChip.textContent.trim() : 'الكل';
           const term = (search.value || '').trim().toLowerCase();
+          const advCity = citySel?.value || '';
+          const advCat = catSel?.value || '';
           let shownLive = 0;
 
           document.querySelectorAll('.lp-card').forEach((card, i) => {
             const p = liveProjects[i];
             if (!p) return;
             const okCat  = filter === 'الكل' || (p.category || '').includes(filter.split(' ')[0]);
+            const okAdvCity = !advCity || p.city === advCity;
+            const okAdvCat  = !advCat || p.category === advCat;
             const haystack = [p.name, p.summary, p.city, p.category].filter(Boolean).join(' ').toLowerCase();
             const okTerm = !term || haystack.includes(term);
-            const show = okCat && okTerm;
+            const show = okCat && okTerm && okAdvCity && okAdvCat;
             card.style.display = show ? '' : 'none';
             if (show) shownLive++;
           });
@@ -900,6 +947,8 @@
           search.addEventListener('input', apply);
           search.addEventListener('search', apply);
         }
+        citySel?.addEventListener('change', apply);
+        catSel?.addEventListener('change', apply);
       } catch (e) {
         ld.textContent = 'تعذّر تحميل الفرص.';
       }
