@@ -1426,6 +1426,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
           <input id="auditQ" type="search" placeholder="بحث (إجراء/هدف/منفّذ)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
           <input id="auditAction" type="text" placeholder="action (مثال: admin.user.suspend)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px 'SF Mono',Menlo,monospace;direction:ltr;" />
+          <input id="auditActorEmail" type="email" placeholder="بريد المنفّذ" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;direction:ltr;" />
           <input id="auditFrom" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
           <input id="auditTo" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
         </div>
@@ -2845,10 +2846,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const auditParams = new URLSearchParams({ limit: '50' });
       const q = document.getElementById('auditQ')?.value.trim();
       const action = document.getElementById('auditAction')?.value.trim();
+      const actorEmail = document.getElementById('auditActorEmail')?.value.trim();
       const from = document.getElementById('auditFrom')?.value;
       const to = document.getElementById('auditTo')?.value;
       if (q) auditParams.set('q', q);
       if (action) auditParams.set('action', action);
+      if (actorEmail) auditParams.set('actorEmail', actorEmail);
       if (from) auditParams.set('from', from);
       if (to) auditParams.set('to', to);
       const [{ entries }, { attempts }] = await Promise.all([
@@ -2874,7 +2877,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadAudit._listenersAttached = true;
         let t;
         const fire = () => { clearTimeout(t); t = setTimeout(loadAudit, 250); };
-        ['auditQ','auditAction','auditFrom','auditTo'].forEach(id => {
+        ['auditQ','auditAction','auditActorEmail','auditFrom','auditTo'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.addEventListener('input', fire);
         });
@@ -2883,10 +2886,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           const params = new URLSearchParams();
           const q = document.getElementById('auditQ')?.value.trim();
           const a = document.getElementById('auditAction')?.value.trim();
+          const ae = document.getElementById('auditActorEmail')?.value.trim();
           const f = document.getElementById('auditFrom')?.value;
           const tt = document.getElementById('auditTo')?.value;
           if (q) params.set('q', q);
           if (a) params.set('action', a);
+          if (ae) params.set('actorEmail', ae);
           if (f) params.set('from', f);
           if (tt) params.set('to', tt);
           location.href = '/app/admin/audit-log.csv' + (params.toString() ? '?' + params.toString() : '');
