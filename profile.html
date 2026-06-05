@@ -1040,7 +1040,8 @@
         <div class="setting-name">رموز احتياط للمصادقة الثنائية</div>
         <div class="setting-sub" id="backupCodesSub">للدخول إذا فقدت جوالك أو تطبيق المصادقة</div>
       </div>
-      <div class="setting-meta">
+      <div class="setting-meta" style="display:flex;align-items:center;gap:6px;">
+        <span id="backupCodesPill" style="display:none;font:800 10px Cairo,sans-serif;padding:3px 9px;border-radius:999px;"></span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </button>
@@ -2545,10 +2546,30 @@
     if (!btn) return;
     try {
       const info = await App.api('GET', '/app/me/2fa/backup-codes/info');
+      const pill = document.getElementById('backupCodesPill');
       if (info.remaining > 0) {
         sub.textContent = 'متبقّي ' + info.remaining + ' رمز' + (info.generatedAt ? ' · جُدّدت ' + new Date(info.generatedAt).toLocaleDateString('ar-SA') : '');
+        if (pill) {
+          pill.style.display = 'inline-block';
+          if (info.remaining >= 5) {
+            pill.textContent = '✓ ' + info.remaining;
+            pill.style.background = 'rgba(15,110,58,0.10)'; pill.style.color = '#0f6e3a';
+          } else if (info.remaining >= 2) {
+            pill.textContent = '⚠ ' + info.remaining;
+            pill.style.background = 'rgba(176,136,64,0.10)'; pill.style.color = '#b08840';
+          } else {
+            pill.textContent = '⛔ ' + info.remaining;
+            pill.style.background = 'rgba(197,74,58,0.10)'; pill.style.color = '#c54a3a';
+          }
+        }
       } else {
         sub.textContent = 'لم تُولَّد بعد — اضغط لإنشاء ٨ رموز';
+        if (pill) {
+          pill.style.display = 'inline-block';
+          pill.textContent = '— غير مُفعّل';
+          pill.style.background = 'rgba(13,22,18,0.06)';
+          pill.style.color = '#6b7268';
+        }
       }
     } catch (e) {}
     btn.addEventListener('click', async () => {
