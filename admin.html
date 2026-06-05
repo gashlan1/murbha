@@ -938,6 +938,10 @@
           <input id="settingsImportFile" type="file" accept="application/json" style="display:none;" />
         </label>
         <span id="settingsImportResult" style="align-self:center;font:600 12px Tajawal,sans-serif;color:var(--muted);"></span>
+        <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">
+          <input type="checkbox" id="defaultThemeToggle" style="margin:0;" />
+          🌙 الوضع الداكن افتراضي
+        </label>
       </div>
       <form id="settingsForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
         <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">X (تويتر)
@@ -2666,6 +2670,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('setYoutube').value   = s.social?.youtube   || '';
       document.getElementById('setHotline').value   = s.support?.hotline  || '';
       document.getElementById('setSupportEmail').value = s.support?.email || '';
+      // Default public theme
+      try {
+        const f = await fetch('/app/public/flags').then(r => r.json());
+        const t = document.getElementById('defaultThemeToggle');
+        if (t) t.checked = (f.defaultTheme === 'dark');
+      } catch {}
       // Maintenance mode
       const m = s.maintenance || {};
       const cb = document.getElementById('maintToggle');
@@ -2763,6 +2773,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       App.toast && App.toast('تم حفظ إعدادات الصيانة', 'success');
       loadSettings();
     } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
+  document.getElementById('defaultThemeToggle')?.addEventListener('change', async (e) => {
+    const t = e.target.checked ? 'dark' : 'light';
+    try {
+      await App.api('PATCH', '/app/admin/default-theme', { theme: t });
+    } catch (err) {
+      alert(err.message || 'فشل التحديث');
+      e.target.checked = !e.target.checked;
+    }
   });
   document.getElementById('settingsImportFile')?.addEventListener('change', async (e) => {
     const f = e.target.files[0]; if (!f) return;

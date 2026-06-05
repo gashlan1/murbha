@@ -957,6 +957,8 @@
     <span id="closingCountdown">متبقّي <b>١٢ يوماً</b></span>
   </div>
   <div style="margin-top:10px;text-align:center;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+    <span id="myInvestmentBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#0a4d36,#062b1e);padding:5px 12px;border-radius:999px;"></span>
+    <span id="remainingBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#eaf3ee,#fff);border:1px solid #0a4d36;padding:5px 12px;border-radius:999px;"></span>
     <span id="minTicketBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -1980,6 +1982,35 @@
       calLink.href = '/app/projects/' + encodeURIComponent(p.slug || p.id) + '/closing.ics';
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
+    }
+
+    // My investment badge (auth users who already invested)
+    (async () => {
+      try {
+        const me = await App.me();
+        if (!me) return;
+        const port = await App.api('GET', '/app/portfolio');
+        const mine = (port.investments || []).filter(i => i.projectId === p.id && i.status !== 'canceled');
+        if (!mine.length) return;
+        const sum = mine.reduce((s, i) => s + Number(i.amount || 0), 0);
+        const badge = document.getElementById('myInvestmentBadge');
+        if (badge) {
+          badge.textContent = '★ استثمرت ' + Number(sum).toLocaleString('ar-SA') + ' ر.س في هذا المشروع';
+          badge.style.display = 'inline-block';
+        }
+      } catch (e) {}
+    })();
+
+    // Remaining-funding badge
+    if (p.goal && p.status === 'open') {
+      const remaining = Math.max(0, p.goal - (p.raised || 0));
+      if (remaining > 0) {
+        const badge = document.getElementById('remainingBadge');
+        if (badge) {
+          badge.textContent = '🎯 متبقّي ' + Number(remaining).toLocaleString('ar-SA') + ' ر.س لاكتمال التمويل';
+          badge.style.display = 'inline-block';
+        }
+      }
     }
 
     // Minimum-ticket badge

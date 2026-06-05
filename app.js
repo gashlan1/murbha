@@ -106,12 +106,20 @@
   const getTheme = () => {
     try { return localStorage.getItem(THEME_KEY) || 'light'; } catch { return 'light'; }
   };
+  const hasExplicitTheme = () => { try { return !!localStorage.getItem(THEME_KEY); } catch { return false; } };
   const setTheme = (theme) => {
     try { localStorage.setItem(THEME_KEY, theme); } catch {}
     applyTheme(theme);
   };
   // Apply early so first paint matches saved preference.
-  if (typeof document !== 'undefined') applyTheme(getTheme());
+  if (typeof document !== 'undefined') {
+    applyTheme(getTheme());
+    if (!hasExplicitTheme() && typeof fetch !== 'undefined') {
+      fetch('/app/public/flags').then(r => r.ok ? r.json() : null).then(j => {
+        if (j && j.defaultTheme === 'dark' && !hasExplicitTheme()) applyTheme('dark');
+      }).catch(() => {});
+    }
+  }
 
   // ─── Tiny safe Markdown renderer ────────────────────────────────
   // Supports: # / ## / ### headings, **bold**, *italic*, `code`,
