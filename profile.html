@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Payment method usage -->
+  <div class="settings-group" id="pmuSec" style="display:none;">
+    <div class="settings-h">💳 طرق الدفع المفضّلة</div>
+    <div style="padding:14px 18px;">
+      <div id="pmuPref" style="background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:12px;padding:14px;text-align:center;margin-bottom:12px;"></div>
+      <div id="pmuList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Returns summary -->
   <div class="settings-group" id="returnsSec" style="display:none;">
     <div class="settings-h">💎 ملخّص أرباحك</div>
@@ -2642,6 +2651,47 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Payment method usage
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/payment-method-usage');
+      if (!r.totalCount) return;
+      const sec = document.getElementById('pmuSec');
+      const pref = document.getElementById('pmuPref');
+      const list = document.getElementById('pmuList');
+      if (!sec || !pref || !list) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      pref.replaceChildren();
+      if (r.preferredMethod) {
+        const t = document.createElement('div');
+        t.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = r.preferredMethod.label;
+        const s = document.createElement('div');
+        s.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.7;';
+        s.textContent = 'استخدمتها ' + r.preferredMethod.count + ' مرة (' + r.preferredMethod.countPct + '٪) — ' + fmt(r.preferredMethod.amount) + ' ر.س';
+        pref.append(t, s);
+      }
+      list.replaceChildren();
+      const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418'];
+      const max = Math.max(...r.methods.map(m => m.amount), 1);
+      r.methods.forEach((m, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:130px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = m.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:16px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((m.amount / max) * 100) + '%;background:' + palette[i % palette.length] + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:120px;';
+        meta.textContent = m.count + ' · ' + fmt(m.amount) + ' ر.س';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
