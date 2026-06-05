@@ -1294,6 +1294,7 @@
       </label>
     </div>
     <a href="/leaderboard.html" style="display:block;padding:10px 18px;text-decoration:none;color:var(--gold);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);">عرض اللوحة العامة ←</a>
+    <a id="publicProfileLink" href="#" style="display:none;padding:10px 18px;text-decoration:none;color:var(--green-dark);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);background:#fbf8ee;">👁 معاينة بطاقتي العامة ←</a>
   </div>
 
   <!-- Active sessions / devices -->
@@ -2156,6 +2157,13 @@
     try {
       const me = await App.api('GET', '/app/me');
       sync(!!me.user?.publicLeaderboard);
+      const link = document.getElementById('publicProfileLink');
+      if (link && me.user?.publicLeaderboard && me.user?.id) {
+        link.href = '/investor.html?id=' + encodeURIComponent(me.user.id);
+        link.style.display = 'block';
+      } else if (link) {
+        link.style.display = 'none';
+      }
     } catch (e) { sync(false); }
     cb.addEventListener('change', async () => {
       const optIn = cb.checked;
