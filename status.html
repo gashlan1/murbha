@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>حالة الخدمة — مُرابحة</title>
+<meta name="description" content="حالة فورية لمكوّنات منصة مُرابحة: API، قاعدة البيانات، الدفع، البريد، والرسائل." />
+<meta property="og:title" content="حالة الخدمة — مُرابحة" />
+<meta property="og:description" content="مراقبة فورية لمكوّنات منصة مُرابحة." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36;
+    --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.08);
+    --ok:#0f9f5e; --warn:#b08840; --bad:#c54a3a;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:24px 18px 80px; max-width:760px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 26px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; margin-bottom:22px; line-height:1.8; }
+  .overall { background:#fff; border-radius:16px; padding:24px; margin-bottom:20px; display:flex; align-items:center; gap:14px; border:2px solid var(--ok); }
+  .overall.degraded { border-color:var(--warn); }
+  .overall.down { border-color:var(--bad); }
+  .overall.maintenance { border-color:var(--gold); }
+  .dot-lg { width:18px; height:18px; border-radius:50%; background:var(--ok); flex-shrink:0; box-shadow:0 0 0 4px rgba(15,159,94,0.18); animation:pulseDot 2s infinite; }
+  .overall.degraded .dot-lg { background:var(--warn); box-shadow:0 0 0 4px rgba(176,136,64,0.18); }
+  .overall.down .dot-lg { background:var(--bad); box-shadow:0 0 0 4px rgba(197,74,58,0.18); }
+  .overall.maintenance .dot-lg { background:var(--gold); box-shadow:0 0 0 4px rgba(176,136,64,0.18); }
+  @keyframes pulseDot { 50% { transform:scale(1.18); opacity:0.7; } }
+  .overall .label { font:900 18px Cairo,sans-serif; color:var(--green-dark); }
+  .overall .sub { font:500 12px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .components { background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:20px; }
+  .comp { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); }
+  .comp:last-child { border-bottom:0; }
+  .comp .name { font:700 14px Cairo,sans-serif; color:var(--ink); }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font:800 11px Cairo,sans-serif; }
+  .pill .d { width:8px; height:8px; border-radius:50%; }
+  .pill.operational { background:rgba(15,159,94,0.10); color:var(--ok); }
+  .pill.operational .d { background:var(--ok); }
+  .pill.degraded { background:rgba(176,136,64,0.10); color:var(--warn); }
+  .pill.degraded .d { background:var(--warn); }
+  .pill.down { background:rgba(197,74,58,0.10); color:var(--bad); }
+  .pill.down .d { background:var(--bad); }
+  .pill.maintenance { background:rgba(176,136,64,0.15); color:var(--gold); }
+  .pill.maintenance .d { background:var(--gold); }
+  .metrics { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+  @media (max-width:560px) { .metrics { grid-template-columns:1fr; } }
+  .metric { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; text-align:center; }
+  .metric .v { font:900 24px Cairo,sans-serif; color:var(--green-dark); }
+  .metric .l { font:600 11px Tajawal,sans-serif; color:var(--muted); margin-top:4px; }
+  .footer-note { color:var(--muted); font-size:12px; line-height:1.7; padding:14px; background:#fff; border:1px solid var(--line); border-radius:12px; }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / حالة الخدمة</div>
+<h1>حالة الخدمة</h1>
+<p class="lede">مراقبة فورية لمكوّنات منصة مُرابحة. الصفحة تُحدِّث نفسها كل ٢٠ ثانية.</p>
+
+<div id="overall" class="overall">
+  <div class="dot-lg"></div>
+  <div>
+    <div class="label" id="overallLabel">جارٍ التحقّق…</div>
+    <div class="sub" id="overallSub">آخر تحقّق: —</div>
+  </div>
+</div>
+
+<div class="metrics" id="metrics">
+  <div class="metric"><div class="v" id="m-projects">—</div><div class="l">فرصة مفتوحة الآن</div></div>
+  <div class="metric"><div class="v" id="m-inv">—</div><div class="l">استثمار في آخر ٢٤ ساعة</div></div>
+  <div class="metric"><div class="v" id="m-users">—</div><div class="l">مستخدم نشط</div></div>
+</div>
+
+<div class="components" id="components"></div>
+
+<div style="margin-top:30px;margin-bottom:18px;">
+  <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">سجل الصيانات الأخيرة</div>
+  <div id="incidentsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<div class="footer-note">
+  هذه الصفحة تستخدم نقطة <code style="background:#fbf8ee;padding:2px 6px;border-radius:4px;direction:ltr;display:inline-block;">/app/public/status</code> العامة. لا تُسجَّل أي بيانات شخصية. للتقارير التشغيلية الكاملة، راسل الدعم الفنّي.
+</div>
+
+<script>
+const STATUS_AR = { operational: 'تعمل', degraded: 'متراجعة', down: 'متوقّفة', maintenance: 'صيانة' };
+const OVERALL_AR = { operational: '✓ كل الأنظمة تعمل', degraded: '⚠ بعض الخدمات متراجعة', down: '✗ يوجد عطل', maintenance: '🛠 صيانة جارية' };
+
+async function refresh() {
+  try {
+    const r = await fetch('/app/public/status');
+    if (!r.ok) throw new Error('bad');
+    const d = await r.json();
+    const ov = document.getElementById('overall');
+    ov.className = 'overall ' + d.overall;
+    document.getElementById('overallLabel').textContent = OVERALL_AR[d.overall] || d.overall;
+    document.getElementById('overallSub').textContent = 'آخر تحقّق: ' + new Date(d.serverTime).toLocaleString('ar-SA');
+    document.getElementById('m-projects').textContent = (d.metrics?.projectsOpen ?? 0).toLocaleString('ar-SA');
+    document.getElementById('m-inv').textContent = (d.metrics?.investmentsLast24h ?? 0).toLocaleString('ar-SA');
+    document.getElementById('m-users').textContent = (d.metrics?.userCount ?? 0).toLocaleString('ar-SA');
+    const list = document.getElementById('components');
+    list.textContent = '';
+    (d.components || []).forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'comp';
+      const name = document.createElement('div'); name.className = 'name'; name.textContent = c.name;
+      const pill = document.createElement('span'); pill.className = 'pill ' + c.status;
+      const dot = document.createElement('span'); dot.className = 'd';
+      const lbl = document.createElement('span'); lbl.textContent = STATUS_AR[c.status] || c.status;
+      pill.append(dot, lbl);
+      row.append(name, pill);
+      list.appendChild(row);
+    });
+  } catch (e) {
+    document.getElementById('overallLabel').textContent = '✗ تعذّر الاتصال';
+    document.getElementById('overall').className = 'overall down';
+  }
+}
+refresh();
+setInterval(refresh, 20000);
+
+async function loadIncidents() {
+  try {
+    const r = await fetch('/app/public/maintenance/history');
+    if (!r.ok) return;
+    const d = await r.json();
+    const list = document.getElementById('incidentsList');
+    if (!list) return;
+    list.replaceChildren();
+    if (!d.incidents.length) {
+      const e = document.createElement('div');
+      e.style.cssText = 'padding:14px;background:rgba(15,159,94,0.08);border:1px solid rgba(15,159,94,0.20);border-radius:10px;color:#0f9f5e;font:600 12px Tajawal,sans-serif;text-align:center;';
+      e.textContent = '✓ لا توجد فترات صيانة مسجّلة. 100٪ تشغيل.';
+      list.appendChild(e); return;
+    }
+    const fmtDur = (ms) => {
+      if (!ms) return 'مستمرة';
+      const m = Math.round(ms / 60000);
+      if (m < 60) return m + ' دقيقة';
+      return Math.round(m / 60 * 10) / 10 + ' ساعة';
+    };
+    d.incidents.forEach(inc => {
+      const row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;';
+      const left = document.createElement('div'); left.style.cssText = 'flex:1;min-width:160px;';
+      const t = document.createElement('div');
+      t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+      t.textContent = inc.message || 'صيانة مجدولة';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+      sub.textContent = new Date(inc.startedAt).toLocaleString('ar-SA') + (inc.endedAt ? ' → ' + new Date(inc.endedAt).toLocaleString('ar-SA') : '');
+      left.append(t, sub);
+      const right = document.createElement('span');
+      right.style.cssText = 'background:' + (inc.endedAt ? 'rgba(15,110,58,0.10)' : 'rgba(176,136,64,0.16)') + ';color:' + (inc.endedAt ? '#0f6e3a' : '#7a5a10') + ';font:800 11px Cairo,sans-serif;padding:4px 10px;border-radius:999px;';
+      right.textContent = fmtDur(inc.durationMs);
+      row.append(left, right);
+      list.appendChild(row);
+    });
+  } catch (e) {}
+}
+loadIncidents();
+</script>
+</body>
+</html>
