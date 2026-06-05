@@ -1293,6 +1293,14 @@
         <span id="leaderboardKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
       </label>
     </div>
+    <div id="displayNameRow" style="display:none;padding:14px 18px;border-top:1px solid var(--line);">
+      <label for="displayNameInput" style="display:block;font:700 12px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">الاسم المعروض للعامّة</label>
+      <div style="display:flex;gap:6px;">
+        <input id="displayNameInput" type="text" maxlength="60" placeholder="مثال: محمد ع." style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:700 14px Tajawal,sans-serif;color:var(--ink);" />
+        <button id="displayNameSaveBtn" type="button" style="padding:10px 18px;background:var(--green-dark);color:#d4ac6e;border:0;border-radius:8px;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+      <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:6px;line-height:1.6;">يُستخدم في اللوحة العامة وبطاقتك العامة. لا تشارك معلوماتك الكاملة.</div>
+    </div>
     <a href="/leaderboard.html" style="display:block;padding:10px 18px;text-decoration:none;color:var(--gold);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);">عرض اللوحة العامة ←</a>
     <a id="publicProfileLink" href="#" style="display:none;padding:10px 18px;text-decoration:none;color:var(--green-dark);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);background:#fbf8ee;">👁 معاينة بطاقتي العامة ←</a>
   </div>
@@ -2158,11 +2166,19 @@
       const me = await App.api('GET', '/app/me');
       sync(!!me.user?.publicLeaderboard);
       const link = document.getElementById('publicProfileLink');
+      const dnRow = document.getElementById('displayNameRow');
+      const dnInput = document.getElementById('displayNameInput');
       if (link && me.user?.publicLeaderboard && me.user?.id) {
         link.href = '/investor.html?id=' + encodeURIComponent(me.user.id);
         link.style.display = 'block';
       } else if (link) {
         link.style.display = 'none';
+      }
+      if (dnRow && me.user?.publicLeaderboard) {
+        dnRow.style.display = '';
+        if (dnInput) dnInput.value = me.user.displayName || '';
+      } else if (dnRow) {
+        dnRow.style.display = 'none';
       }
     } catch (e) { sync(false); }
     cb.addEventListener('change', async () => {
@@ -2173,6 +2189,20 @@
         App.toast && App.toast(optIn ? '✓ ستظهر في اللوحة العامة' : 'تم إخفاء اسمك', 'success');
       } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
     });
+    const dnSave = document.getElementById('displayNameSaveBtn');
+    const dnInput = document.getElementById('displayNameInput');
+    if (dnSave && dnInput) {
+      dnSave.addEventListener('click', async () => {
+        const v = dnInput.value.trim();
+        if (!v) { App.toast && App.toast('الاسم لا يمكن أن يكون فارغاً', 'error'); return; }
+        dnSave.disabled = true; dnSave.textContent = '…';
+        try {
+          await App.api('PATCH', '/app/me/leaderboard-opt', { optIn: true, displayName: v });
+          App.toast && App.toast('تم تحديث الاسم', 'success');
+        } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        dnSave.disabled = false; dnSave.textContent = 'حفظ';
+      });
+    }
   })();
 
   // Calendar feed subscribe modal
