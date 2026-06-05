@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Top categories & cities -->
+  <div class="settings-group" id="topCatsSec" style="display:none;">
+    <div class="settings-h">📊 محفظتك حسب القطاع والمدينة</div>
+    <div style="padding:14px 18px;">
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">أعلى القطاعات</div>
+      <div id="topCatsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">أعلى المدن</div>
+      <div id="topCitiesList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Tax certificate download -->
   <div class="settings-group" id="taxCertSec">
     <div class="settings-h">📋 شهادات الزكاة والضريبة السنوية</div>
@@ -2880,6 +2891,40 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Top categories & cities
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/top-categories');
+      if (!r.hasData) return;
+      const sec = document.getElementById('topCatsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418', '#1e3a8a'];
+      const render = (listId, items) => {
+        const list = document.getElementById(listId);
+        list.replaceChildren();
+        const max = Math.max(...items.map(i => i.amount), 1);
+        items.forEach((it, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+          lbl.textContent = it.name;
+          const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+          const fill = document.createElement('div');
+          fill.style.cssText = 'height:100%;width:' + ((it.amount / max) * 100) + '%;background:' + palette[i % palette.length] + ';';
+          bar.appendChild(fill);
+          const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:140px;';
+          meta.textContent = fmt(it.amount) + ' ر.س · ' + it.pct + '٪';
+          row.append(lbl, bar, meta);
+          list.appendChild(row);
+        });
+      };
+      render('topCatsList', r.categories || []);
+      render('topCitiesList', r.cities || []);
     } catch (e) {}
   })();
 
