@@ -1397,6 +1397,10 @@
       const pillText = { active: 'نشط', pending_signature: 'بانتظار التوقيع', completed: 'مكتمل' }[i.status] || i.status;
       const linkContract = i.status === 'pending_signature' && i.contractId
         ? `<a href="contract.html?id=${i.contractId}" style="margin-top:8px;display:inline-block;background:#062b1e;color:#fbf6ea;padding:8px 14px;border-radius:10px;text-decoration:none;font:800 12px Tajawal,sans-serif">إكمال التوقيع</a>` : '';
+      // Cancel within 24h grace window
+      const ageMs = Date.now() - new Date(i.createdAt).getTime();
+      const inGrace = i.status === 'pending_signature' && ageMs < 24 * 60 * 60 * 1000;
+      const cancelBtn = inGrace ? `<button type="button" class="inv-cancel-btn" data-inv-id="${i.id}" style="margin-top:8px;margin-inline-start:6px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;padding:7px 12px;border-radius:10px;font:800 12px Tajawal,sans-serif;cursor:pointer;">✗ إلغاء (${Math.max(0, Math.floor((24 * 60 * 60 * 1000 - ageMs) / (60 * 60 * 1000)))} س متبقية)</button>` : '';
       return `<div class="inv-card">
         <div class="inv-head">
           <div class="inv-name">${App.escapeHtml(proj.name || '—')}</div>
@@ -1406,8 +1410,24 @@
         <div class="inv-row"><span>العائد المتوقع</span><b style="color:#0f6e3a">${App.fmt.sar(i.expectedReturn)}</b></div>
         <div class="inv-row"><span>تاريخ البدء</span><b>${App.fmt.date(i.signedAt || i.createdAt)}</b></div>
         ${linkContract}
+        ${cancelBtn}
       </div>`;
     }).join('');
+    // Wire cancel buttons after innerHTML write
+    setTimeout(() => {
+      list.querySelectorAll('.inv-cancel-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.invId;
+          if (!id) return;
+          if (!await App.confirmDestructive({ title: '✗ إلغاء طلب الاستثمار', body: 'سيتم إعادة فتح المقعد للمستثمرين الآخرين ولا يمكن التراجع لاحقاً.', challenge: 'CANCEL', confirmLabel: 'إلغاء الطلب' })) return;
+          try {
+            await App.api('POST', '/app/portfolio/investments/' + encodeURIComponent(id) + '/cancel');
+            App.toast && App.toast('✓ تم إلغاء طلب الاستثمار', 'success');
+            setTimeout(() => location.reload(), 600);
+          } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        });
+      });
+    }, 0);
     invSection.appendChild(list);
   }
 

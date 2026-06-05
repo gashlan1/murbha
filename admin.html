@@ -1001,6 +1001,31 @@
     </div>
   </div>
 
+  <!-- ROADMAP EDITOR -->
+  <div class="admin-card" id="roadmapCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🗺 خارطة الطريق</span>
+      <span class="card-h-sub" id="roadmapBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="roadmapList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;background:#fbf8ee;border:1px dashed var(--gold);border-radius:12px;padding:14px;">
+        <div style="font:800 12px Cairo,sans-serif;color:#7a5a10;">إضافة عنصر جديد</div>
+        <input id="rmTitle" type="text" maxlength="200" placeholder="عنوان العنصر" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font-family:inherit;font-size:13px;" />
+        <textarea id="rmBody" rows="2" maxlength="600" placeholder="وصف موجز" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
+        <div style="display:flex;gap:8px;">
+          <select id="rmStage" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font-family:inherit;font-size:13px;background:#fff;">
+            <option value="planned">مخطّط</option>
+            <option value="considering">قيد الدراسة</option>
+            <option value="shipped">مُنجَز</option>
+          </select>
+          <button id="rmAddBtn" type="button" style="flex:1;padding:10px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 13px Cairo,sans-serif;cursor:pointer;">إضافة</button>
+        </div>
+      </div>
+      <button id="rmSaveBtn" type="button" style="margin-top:12px;padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ الخارطة</button>
+    </div>
+  </div>
+
   <!-- NEWSLETTER ISSUES -->
   <div class="admin-card" id="newsletterCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2078,6 +2103,85 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { badge.textContent = 'تعذّر التحميل'; }
   }
   document.getElementById('fbOnlyOpen')?.addEventListener('change', loadFeedback);
+
+  // ── Roadmap editor ────────────────────────────────────────────
+  let _roadmapItems = [];
+  const STAGE_AR = { planned: 'مخطّط', considering: 'قيد الدراسة', shipped: 'مُنجَز' };
+  async function loadRoadmap() {
+    const list = document.getElementById('roadmapList');
+    const badge = document.getElementById('roadmapBadge');
+    if (!list) return;
+    try {
+      const r = await fetch('/app/public/roadmap');
+      const d = await r.json();
+      _roadmapItems = (d.items || []).map(i => ({ ...i }));
+      badge.textContent = _roadmapItems.length + ' عنصر';
+      renderRoadmap();
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  function renderRoadmap() {
+    const list = document.getElementById('roadmapList');
+    list.replaceChildren();
+    if (!_roadmapItems.length) {
+      const e = document.createElement('div');
+      e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
+      e.textContent = 'لا توجد عناصر بعد.';
+      list.appendChild(e); return;
+    }
+    _roadmapItems.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;';
+      const head = document.createElement('div');
+      head.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;';
+      const left = document.createElement('div'); left.style.flex='1';
+      const tIn = document.createElement('input');
+      tIn.type='text'; tIn.maxLength = 200; tIn.value = item.title;
+      tIn.style.cssText = 'width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:700 13px Cairo,sans-serif;background:#fff;margin-bottom:4px;';
+      tIn.oninput = () => { _roadmapItems[idx].title = tIn.value; };
+      const bIn = document.createElement('textarea');
+      bIn.rows = 2; bIn.maxLength = 600; bIn.value = item.body || '';
+      bIn.style.cssText = 'width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font:600 12px Tajawal,sans-serif;background:#fff;resize:vertical;';
+      bIn.oninput = () => { _roadmapItems[idx].body = bIn.value; };
+      left.append(tIn, bIn);
+      const right = document.createElement('div'); right.style.cssText='display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;';
+      const sSel = document.createElement('select');
+      sSel.style.cssText = 'padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;background:#fff;';
+      ['planned','considering','shipped'].forEach(st => {
+        const o = document.createElement('option'); o.value = st; o.textContent = STAGE_AR[st];
+        if (item.stage === st) o.selected = true;
+        sSel.appendChild(o);
+      });
+      sSel.onchange = () => { _roadmapItems[idx].stage = sSel.value; };
+      const votes = document.createElement('span');
+      votes.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--gold);';
+      votes.textContent = '▲ ' + (item.votes || 0);
+      const del = document.createElement('button');
+      del.type='button'; del.textContent='🗑 حذف';
+      del.style.cssText='background:transparent;border:0;color:#c54a3a;font:800 11px Cairo,sans-serif;cursor:pointer;padding:2px 4px;';
+      del.onclick = () => { _roadmapItems.splice(idx, 1); renderRoadmap(); };
+      right.append(sSel, votes, del);
+      head.append(left, right);
+      row.appendChild(head);
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('rmAddBtn')?.addEventListener('click', () => {
+    const title = document.getElementById('rmTitle').value.trim();
+    const body = document.getElementById('rmBody').value.trim();
+    const stage = document.getElementById('rmStage').value;
+    if (!title) return;
+    _roadmapItems.push({ id: 'rmp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, body, stage, voterFingerprints: {} });
+    document.getElementById('rmTitle').value = '';
+    document.getElementById('rmBody').value = '';
+    renderRoadmap();
+  });
+  document.getElementById('rmSaveBtn')?.addEventListener('click', async () => {
+    try {
+      await App.api('PUT', '/app/admin/roadmap', { items: _roadmapItems });
+      App.toast && App.toast('✓ تم حفظ الخارطة', 'success');
+      loadRoadmap();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
 
   // ── Newsletter issues ────────────────────────────────────────
   let _editingNlId = null;
@@ -3376,13 +3480,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       const r = await App.api('GET', '/app/projects');
       _projectCache = r.projects || [];
       const sel = document.getElementById('pdProject');
-      if (sel && sel.children.length <= 1) {
-        _projectCache.forEach(p => {
-          const o = document.createElement('option');
-          o.value = p.slug || p.id; o.textContent = p.name;
-          sel.appendChild(o);
-        });
+      if (!sel) return;
+      const currentValue = sel.value;
+      // Rebuild always so archive toggles reflect in the dropdown labels
+      sel.replaceChildren();
+      const placeholder = document.createElement('option');
+      placeholder.value = ''; placeholder.textContent = '— اختر المشروع —';
+      sel.appendChild(placeholder);
+      // Active first, then archived
+      const active = _projectCache.filter(p => !p.archived);
+      const archived = _projectCache.filter(p => p.archived);
+      const renderOpt = (p, archivedFlag) => {
+        const o = document.createElement('option');
+        o.value = p.slug || p.id;
+        o.textContent = (archivedFlag ? '📦 ' : '') + p.name;
+        if (archivedFlag) o.style.color = '#c54a3a';
+        return o;
+      };
+      if (active.length) {
+        const g1 = document.createElement('optgroup'); g1.label = 'فعّالة';
+        active.forEach(p => g1.appendChild(renderOpt(p, false)));
+        sel.appendChild(g1);
       }
+      if (archived.length) {
+        const g2 = document.createElement('optgroup'); g2.label = 'مؤرشفة (' + archived.length + ')';
+        archived.forEach(p => g2.appendChild(renderOpt(p, true)));
+        sel.appendChild(g2);
+      }
+      sel.value = currentValue;
     } catch (e) {}
   }
   async function openDocsHistory(slug) {
@@ -4057,7 +4182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
