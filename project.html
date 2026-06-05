@@ -961,7 +961,15 @@
       <div class="raised-l">جُمع حتى الآن</div>
       <div class="raised-amt">٥,٨٥٠,٤٠٠ <small>ر.س</small></div>
     </div>
-    <div class="raised-pct">٧٣٪</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg id="fundingRing" width="68" height="68" viewBox="0 0 68 68" aria-hidden="true">
+        <circle cx="34" cy="34" r="28" fill="none" stroke="rgba(212,172,110,0.20)" stroke-width="6" />
+        <circle id="fundingRingFill" cx="34" cy="34" r="28" fill="none" stroke="#d4ac6e" stroke-width="6"
+                stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="48"
+                transform="rotate(-90 34 34)" style="transition:stroke-dashoffset .6s ease;" />
+      </svg>
+      <div class="raised-pct">٧٣٪</div>
+    </div>
   </div>
   <div class="funding-bar"><div class="funding-fill"></div></div>
   <div class="funding-meta">
@@ -2630,6 +2638,13 @@
     _setText('.raised-amt', App.fmt.arNum(Math.round(p.raised).toLocaleString('en-US')) + ' ر.س');
     _setText('.raised-pct', App.fmt.arNum(p.fundedPct) + '٪');
     document.querySelector('.funding-fill').style.width = p.fundedPct + '%';
+    const ringFill = document.getElementById('fundingRingFill');
+    if (ringFill) {
+      const C = 2 * Math.PI * 28;
+      ringFill.setAttribute('stroke-dasharray', String(C));
+      const pct = Math.max(0, Math.min(100, p.fundedPct || 0));
+      ringFill.setAttribute('stroke-dashoffset', String(C - (C * pct / 100)));
+    }
     const fm = document.querySelectorAll('.funding-meta span');
     if (fm[0]) fm[0].innerHTML = 'المستهدف <b>' + App.fmt.sar(p.goal) + '</b>';
     if (fm[1]) fm[1].innerHTML = '<b>' + App.fmt.arNum(p.investorCount) + '</b> مستثمر';

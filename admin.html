@@ -673,6 +673,24 @@
     </div>
   </div>
 
+  <!-- LIVE EVENT LOG -->
+  <div class="admin-card" id="liveLogCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📡 سجلّ الأحداث المباشر</span>
+      <span class="card-h-sub" id="liveLogBadge">في انتظار…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="liveLogClear" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">🗑 مسح</button>
+        <label style="display:flex;align-items:center;gap:6px;font:600 11px Tajawal,sans-serif;color:var(--muted);"><input id="liveLogPause" type="checkbox" /> إيقاف مؤقت</label>
+        <span style="font:600 11px Tajawal,sans-serif;color:var(--muted);">آخر ٢٠٠ حدث</span>
+      </div>
+      <div id="liveLogList" style="display:flex;flex-direction:column-reverse;gap:4px;max-height:380px;overflow-y:auto;font:600 11px 'SF Mono',Menlo,monospace;direction:ltr;text-align:start;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;font-family:inherit;direction:rtl;">في انتظار الأحداث…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PAYMENT METHOD STATS -->
   <div class="admin-card" id="paymStatsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -5353,9 +5371,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       const refreshAudit = debounce(loadAudit, 500);
       const refreshHealth = debounce(loadHealth, 500);
       const refreshQA    = debounce(loadQAInbox, 500);
+      // Live log card hookup
+      const liveLogList = document.getElementById('liveLogList');
+      const liveLogBadge = document.getElementById('liveLogBadge');
+      let liveLogCount = 0;
+      const _pushLog = (payload) => {
+        if (document.getElementById('liveLogPause')?.checked) return;
+        if (!liveLogList) return;
+        if (liveLogList.firstElementChild?.classList?.contains('empty-state')) {
+          liveLogList.replaceChildren();
+        }
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:6px 10px;background:#fff;border:1px solid var(--line);border-radius:6px;';
+        const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const kind = payload?.data?.kind || payload?.event || 'event';
+        const summary = (payload?.data?.title || payload?.data?.message || JSON.stringify(payload?.data || {}, null, 0)).slice(0, 200);
+        row.textContent = '[' + ts + '] ' + kind + ' · ' + summary;
+        liveLogList.appendChild(row);
+        while (liveLogList.children.length > 200) liveLogList.removeChild(liveLogList.firstChild);
+        liveLogCount++;
+        if (liveLogBadge) liveLogBadge.textContent = liveLogCount.toLocaleString('ar-SA') + ' حدث';
+      };
+      document.getElementById('liveLogClear')?.addEventListener('click', () => {
+        if (liveLogList) liveLogList.replaceChildren();
+        liveLogCount = 0;
+        if (liveLogBadge) liveLogBadge.textContent = 'تم المسح';
+      });
       es.addEventListener('notification', (e) => {
         try {
           const payload = JSON.parse(e.data);
+          _pushLog(payload);
           const kind = payload?.data?.kind || '';
           if (['welcome', 'account_rejected'].includes(kind)) refreshUsers();
           if (kind === 'qualification_approved' || kind === 'qualification_rejected') { refreshQuals(); refreshUsers(); }
