@@ -110,6 +110,11 @@
     color: var(--paper);
     border-color: var(--green-dark);
   }
+  .filter-tab .badge {
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.7;
+  }
   .badge {
     background: var(--gold);
     color: #fff;
@@ -321,13 +326,17 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6" transform="scale(-1, 1) translate(-24, 0)"/></svg>
     </a>
     <h1>الإشعارات</h1>
-    <button class="nav-action">قراءة الكل</button>
+    <button class="nav-action" id="snoozeBtn" type="button" style="margin-inline-end:8px;">🔕 كتم ٢٤س</button>
+    <button class="nav-action" id="markAllBtn">قراءة الكل</button>
   </nav>
 
-  <div class="filter-tabs">
-    <button class="filter-tab active">الكل</button>
-    <button class="filter-tab">النظام</button>
-    <button class="filter-tab">الحساب</button>
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-filter="all">الكل <span class="badge" id="badgeAll"></span></button>
+    <button class="filter-tab" data-filter="unread">غير مقروءة <span class="badge" id="badgeUnread"></span></button>
+    <button class="filter-tab" data-filter="payments">العمليات</button>
+    <button class="filter-tab" data-filter="security">الأمان</button>
+    <button class="filter-tab" data-filter="system">النظام</button>
+    <button class="filter-tab" data-filter="archived">الأرشيف</button>
   </div>
 </header>
 
@@ -506,15 +515,56 @@
   }
 
   function _applyFilter() {
-    const active = document.querySelector('.filter-tab.active')?.textContent.trim() || 'الكل';
-    if (active === 'الكل') return _renderNotifs(_allNotifs);
-    const acctKinds = ['deposit','withdraw','security','contract_signed','invest'];
-    const sysKinds  = ['welcome','help'];
+    const f = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
+    const paymentKinds  = ['deposit','withdraw','invest','contract_signed','profit'];
+    const securityKinds = ['security'];
+    const sysKinds      = ['welcome','help'];
+    const ARCHIVE_DAYS  = 30;
+    const archiveCutoff = Date.now() - ARCHIVE_DAYS * 24 * 60 * 60 * 1000;
+    const isArchived = (n) => new Date(n.createdAt).getTime() < archiveCutoff;
+    // Default filters hide archived items unless explicitly viewing archive.
+    const inWindow = (n) => f === 'archived' ? isArchived(n) : !isArchived(n);
     const list = _allNotifs.filter(n =>
-      active === 'الحساب' ? acctKinds.includes(n.kind) :
-      active === 'النظام' ? sysKinds.includes(n.kind) : true);
+      f === 'unread'   ? (!n.read && !isArchived(n)) :
+      f === 'payments' ? (paymentKinds.includes(n.kind) && inWindow(n)) :
+      f === 'security' ? (securityKinds.includes(n.kind) && inWindow(n)) :
+      f === 'system'   ? (sysKinds.includes(n.kind) && inWindow(n)) :
+      f === 'archived' ? isArchived(n) :
+      inWindow(n));
     _renderNotifs(list);
+    const badgeAll = document.getElementById('badgeAll');
+    const badgeUnread = document.getElementById('badgeUnread');
+    const recent = _allNotifs.filter(n => !isArchived(n));
+    if (badgeAll) badgeAll.textContent = recent.length ? '(' + recent.length + ')' : '';
+    if (badgeUnread) {
+      const u = recent.filter(n => !n.read).length;
+      badgeUnread.textContent = u ? '(' + u + ')' : '';
+    }
   }
+
+  // Snooze a kind for 24h
+  document.getElementById('snoozeBtn')?.addEventListener('click', async () => {
+    const KIND_AR = { all: 'كل الإشعارات', invest: 'الاستثمار', deposit: 'الإيداعات', withdraw: 'السحوبات', contract_signed: 'العقود', profit: 'الأرباح', security: 'الأمان', welcome: 'الترحيب', help: 'المساعدة', admin: 'إعلانات الإدارة' };
+    const kinds = Object.keys(KIND_AR);
+    const choice = prompt('اكتب الفئة لكتمها ٢٤ ساعة (أو "all"):\n' + kinds.join(' / '), 'admin');
+    if (!choice) return;
+    const kind = choice.trim();
+    if (!KIND_AR[kind]) { App.toast && App.toast('فئة غير معروفة', 'warn'); return; }
+    try {
+      await App.api('POST', '/app/me/notifications/snooze', { kind, hours: 24 });
+      App.toast && App.toast('🔕 تم كتم "' + KIND_AR[kind] + '" لمدة ٢٤ ساعة', 'success');
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+  });
+
+  // Mark-all-read
+  document.getElementById('markAllBtn')?.addEventListener('click', async () => {
+    try {
+      await App.api('POST', '/app/notifications/read-all');
+      _allNotifs.forEach(n => n.read = true);
+      _applyFilter();
+      App.toast && App.toast('✓ تمّ تعليم الكل كمقروء', 'success');
+    } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+  });
 
   (async () => {
     if (!window.App) return;
@@ -525,6 +575,25 @@
       _allNotifs = notifications;
       _renderNotifs(_allNotifs);
     } catch (e) { App.toast('تعذّر تحميل الإشعارات.', 'error'); }
+
+    // Subscribe to the SSE stream for live updates (no polling).
+    if (typeof EventSource !== 'undefined') {
+      try {
+        const es = new EventSource('/app/events');
+        es.addEventListener('notification', (e) => {
+          try {
+            const payload = JSON.parse(e.data);
+            if (payload?.data?.userId !== user.id) return;
+            _allNotifs.unshift(payload.data);
+            _renderNotifs(_allNotifs);
+            App.toast(payload.data.title || 'إشعار جديد', 'info');
+          } catch (er) {}
+        });
+        es.addEventListener('error', () => { /* will auto-retry per retry: directive */ });
+        // Close the stream when the page unloads.
+        window.addEventListener('pagehide', () => es.close());
+      } catch (e) {}
+    }
   })();
 
   // "قراءة الكل"
