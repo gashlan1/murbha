@@ -147,8 +147,17 @@ const serveStatic = (req, res, parsed) => {
 
   fs.stat(resolved, (err, stat) => {
     if (err || !stat.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      return res.end('Not found: ' + p);
+      const fb = path.join(CONFIG.STATIC_DIR, '404.html');
+      fs.stat(fb, (e2, st2) => {
+        if (!e2 && st2.isFile()) {
+          res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+          fs.createReadStream(fb).pipe(res);
+        } else {
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('Not found: ' + p);
+        }
+      });
+      return;
     }
     const ext = path.extname(resolved).toLowerCase();
     res.writeHead(200, {
@@ -235,8 +244,24 @@ const server = http.createServer(async (req, res) => {
   } catch (e) {
     console.error('[server] unhandled:', e);
     if (!res.headersSent) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'server', message: 'internal error' }));
+      // Serve the branded 500.html for HTML/page navigation, JSON for API.
+      const acceptsHtml = (req.headers['accept'] || '').includes('text/html');
+      const isApi = req.url && req.url.startsWith('/app/');
+      if (acceptsHtml && !isApi) {
+        const fb = path.join(CONFIG.STATIC_DIR, '500.html');
+        fs.stat(fb, (err, st) => {
+          if (!err && st.isFile()) {
+            res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+            fs.createReadStream(fb).pipe(res);
+          } else {
+            res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('internal error');
+          }
+        });
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'server', message: 'internal error' }));
+      }
     }
   }
 });

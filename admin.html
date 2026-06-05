@@ -894,8 +894,18 @@
             <input id="annCta" type="text" placeholder="نص الزر (اختياري)" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
             <input id="annCtaUrl" type="text" placeholder="رابط الزر" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
           </div>
-          <input id="annExpiresAt" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
-          <button type="submit" class="btn-primary" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <label style="font:600 11px Cairo,sans-serif;color:var(--muted);">
+              ينشر في
+              <input id="annPublishAt" type="datetime-local" style="margin-top:4px;width:100%;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            </label>
+            <label style="font:600 11px Cairo,sans-serif;color:var(--muted);">
+              ينتهي في
+              <input id="annExpiresAt" type="datetime-local" style="margin-top:4px;width:100%;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            </label>
+          </div>
+          <button type="submit" class="btn-primary" id="annSubmit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+          <button type="button" id="annCancelEdit" style="display:none;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
         </form>
       </div>
       <div>
@@ -1332,9 +1342,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const annLevel = document.getElementById('annLevel');
   const annCta = document.getElementById('annCta');
   const annCtaUrl = document.getElementById('annCtaUrl');
+  const annPublishAt = document.getElementById('annPublishAt');
   const annExpiresAt = document.getElementById('annExpiresAt');
   const annList = document.getElementById('annList');
   const annCount = document.getElementById('ann-count-badge');
+  const annSubmit = document.getElementById('annSubmit');
+  const annCancelEdit = document.getElementById('annCancelEdit');
+  let _editingAnnId = null;
+
+  const _resetAnnForm = () => {
+    [annTitle, annBody, annCta, annCtaUrl, annExpiresAt, annPublishAt].forEach(el => { if (el) el.value = ''; });
+    annAudience.value = 'all'; annLevel.value = 'info';
+    _editingAnnId = null;
+    annSubmit.textContent = 'نشر الإعلان';
+    annCancelEdit.style.display = 'none';
+  };
+  annCancelEdit.onclick = _resetAnnForm;
 
   const LEVEL_COLORS = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
   const AUDIENCE_AR = { all: 'الجميع', investors: 'المستثمرون', kyc_pending: 'قيد التحقق', admins: 'المسؤولون' };
@@ -1366,15 +1389,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         const aud = document.createElement('span');
         aud.textContent = '👥 ' + (AUDIENCE_AR[a.audience] || a.audience);
         meta.appendChild(aud);
+        if (a.publishAt && new Date(a.publishAt) > new Date()) {
+          const sched = document.createElement('span');
+          sched.style.color = '#b08840';
+          sched.textContent = '📅 مجدول: ' + new Date(a.publishAt).toLocaleString('ar-SA');
+          meta.appendChild(sched);
+        }
         if (a.expiresAt) {
           const ex = document.createElement('span');
           ex.textContent = '⏰ ينتهي: ' + new Date(a.expiresAt).toLocaleDateString('ar-SA');
           meta.appendChild(ex);
         }
         if (!expired) {
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.style.cssText = 'background:none;border:0;color:#0a4d36;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          editBtn.textContent = '✏ تعديل';
+          editBtn.onclick = () => {
+            _editingAnnId = a.id;
+            annTitle.value = a.title || '';
+            annBody.value = a.body || '';
+            annAudience.value = a.audience || 'all';
+            annLevel.value = a.level || 'info';
+            annCta.value = a.cta || '';
+            annCtaUrl.value = a.ctaUrl || '';
+            const toLocal = (iso) => iso ? new Date(iso).toISOString().slice(0, 16) : '';
+            annPublishAt.value = toLocal(a.publishAt);
+            annExpiresAt.value = toLocal(a.expiresAt);
+            annSubmit.textContent = 'حفظ التعديل';
+            annCancelEdit.style.display = '';
+            annTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          };
+          meta.appendChild(editBtn);
+
           const del = document.createElement('button');
           del.type = 'button';
-          del.style.cssText = 'background:none;border:0;color:#c54a3a;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          del.style.cssText = 'background:none;border:0;color:#c54a3a;font:700 11px Tajawal,sans-serif;cursor:pointer;';
           del.textContent = '🗑 حذف';
           del.onclick = async () => {
             if (!confirm('حذف هذا الإعلان؟')) return;
@@ -1400,11 +1450,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       level: annLevel.value,
       cta: annCta.value.trim(),
       ctaUrl: annCtaUrl.value.trim(),
+      publishAt: annPublishAt.value ? new Date(annPublishAt.value).toISOString() : null,
       expiresAt: annExpiresAt.value ? new Date(annExpiresAt.value).toISOString() : null,
     };
     try {
-      await App.api('POST', '/app/admin/announcements', payload);
-      [annTitle, annBody, annCta, annCtaUrl, annExpiresAt].forEach(el => el.value = '');
+      if (_editingAnnId) {
+        await App.api('PATCH', '/app/admin/announcements/' + _editingAnnId, payload);
+      } else {
+        await App.api('POST', '/app/admin/announcements', payload);
+      }
+      _resetAnnForm();
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
