@@ -235,6 +235,11 @@ const server = http.createServer(async (req, res) => {
       return api.handle(req, res, parsed);
     }
 
+    // Dynamic sitemap subdocuments live at root for crawlers but go through api
+    if (parsed.pathname === '/sitemap-projects.xml') {
+      return api.handle(req, res, parsed);
+    }
+
     // Nafath upstream proxy
     if (parsed.pathname.startsWith('/api/v1/') || parsed.pathname.startsWith('/stg/')) {
       return proxyNafath(req, res, parsed);

@@ -803,7 +803,35 @@
       };
       voteRow.append(mkBtn('up', 'نعم', '👍'), mkBtn('down', 'لا', '👎'));
       voteBar.append(voteLbl, voteRow);
-      card.append(h, m, body, voteBar);
+
+      // Related articles from the same category
+      const related = document.createElement('div');
+      related.style.cssText = 'margin-top:24px;';
+      try {
+        const all = await (async () => { if (_allArticles) return _allArticles; try { const r2 = await fetch('/app/help/articles'); const d2 = await r2.json(); _allArticles = d2.articles || []; return _allArticles; } catch (e) { return []; } })();
+        const peers = all.filter(a => a.id !== article.id && a.category === article.category).slice(0, 3);
+        if (peers.length) {
+          const rh = document.createElement('div');
+          rh.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark,#062b1e);margin-bottom:10px;';
+          rh.textContent = 'مقالات ذات صلة';
+          related.appendChild(rh);
+          const grid = document.createElement('div');
+          grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;';
+          peers.forEach(p => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.style.cssText = 'text-align:start;background:#fff;border:1px solid var(--line,rgba(13,22,18,0.10));border-radius:10px;padding:10px 12px;cursor:pointer;font-family:inherit;';
+            const t = document.createElement('div'); t.style.cssText='font:800 12px Cairo,sans-serif;color:var(--green-dark,#062b1e);margin-bottom:4px;line-height:1.4;'; t.textContent = p.title;
+            const s = document.createElement('div'); s.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted,#6b7268);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;'; s.textContent = p.summary || '';
+            b.append(t, s);
+            b.onclick = () => loadDetail(p.id || p.slug);
+            grid.appendChild(b);
+          });
+          related.appendChild(grid);
+        }
+      } catch (e) {}
+
+      card.append(h, m, body, voteBar, related);
       list.append(back, card);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
