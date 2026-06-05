@@ -811,6 +811,20 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- Onboarding compact bar -->
+  <div id="onboardBar" style="display:none;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid rgba(176,136,64,0.30);border-radius:14px;padding:14px 18px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <div>
+        <div style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">🚀 إعداد الحساب</div>
+        <div id="onboardBarSub" style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">—</div>
+      </div>
+      <div id="onboardBarPct" style="font:900 18px Cairo,sans-serif;color:var(--gold);">٠٪</div>
+    </div>
+    <div style="height:6px;background:var(--paper-2);border-radius:3px;overflow:hidden;">
+      <div id="onboardBarFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--green-dark));border-radius:3px;transition:width .6s ease;"></div>
+    </div>
+  </div>
+
   <!-- Deletion banner (when scheduled) -->
   <div id="deletionBanner" style="display:none;padding:18px 22px;background:linear-gradient(135deg,#5c2418,#8b2e22);color:#fff;border-radius:18px;margin-bottom:14px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
@@ -1961,6 +1975,32 @@
       document.getElementById('cntFavs').textContent = fmt((favs.ids || []).length);
       document.getElementById('cntDevices').textContent = fmt((sess.devices || []).length);
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Onboarding compact progress bar
+  (async () => {
+    try {
+      const sec = document.getElementById('onboardBar');
+      if (!sec) return;
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const steps = [
+        { done: !!u.emailVerifiedAt, label: 'تأكيد البريد' },
+        { done: !!u.mobileVerifiedAt, label: 'تأكيد الجوال' },
+        { done: u.kycStatus === 'verified' || u.kycStatus === 'verified_qualified', label: 'التحقّق من الهوية' },
+        { done: !!u.approved, label: 'اعتماد الإدارة' },
+        { done: !!u.totpEnrolled || !!u.sms2faEnabled, label: 'المصادقة الثنائية' },
+        { done: !!(me.paymentMethods || []).filter(m => !m.removedAt).length, label: 'طريقة دفع' },
+      ];
+      const done = steps.filter(s => s.done).length;
+      const pct = Math.round((done / steps.length) * 100);
+      if (pct === 100) { sec.style.display = 'none'; return; }
+      sec.style.display = '';
+      document.getElementById('onboardBarPct').textContent = pct + '٪';
+      document.getElementById('onboardBarFill').style.width = pct + '%';
+      const next = steps.find(s => !s.done);
+      document.getElementById('onboardBarSub').textContent = done + ' / ' + steps.length + ' خطوات مكتملة · التالي: ' + (next?.label || '—');
     } catch (e) {}
   })();
 

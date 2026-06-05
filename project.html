@@ -1673,6 +1673,30 @@
   </div>
 </div>
 
+<!-- TOTAL EXPECTED PAYOUT -->
+<div class="card-section" id="totalPayoutCard" style="display:none;">
+  <h2 class="section-h">💰 إجمالي العائد المتوقّع لكل ١٬٠٠٠ ر.س</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+      <div id="payoutCapital" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">رأس المال</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+      <div id="payoutAnnualProfit" style="font:900 18px Cairo,sans-serif;color:var(--gold);">٠</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">ربح سنوي متوقّع</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+      <div id="payoutTotalProfit" style="font:900 18px Cairo,sans-serif;color:#0f6e3a;">٠</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">إجمالي الأرباح</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;padding:14px;border-radius:12px;text-align:center;">
+      <div id="payoutFinal" style="font:900 18px Cairo,sans-serif;color:#fbf6ea;">٠</div>
+      <div style="font:600 10px Tajawal,sans-serif;margin-top:4px;">المجموع النهائي</div>
+    </div>
+  </div>
+  <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:8px;line-height:1.7;text-align:center;">* الأرقام لكل ١٬٠٠٠ ر.س استثمار. التوزيع ربع سنوي حسب الجدول.</p>
+</div>
+
 <!-- INVESTOR REGIONS -->
 <div class="card-section" id="regionsCard" style="display:none;">
   <h2 class="section-h" style="margin-bottom:12px;">🗺 من أين يستثمر المستثمرون؟</h2>
@@ -2348,6 +2372,25 @@
       badge.style.background = spec.bg;
       badge.style.color = spec.color;
       explain.textContent = spec.explain;
+      card.style.display = '';
+    })();
+
+    // Total expected payout (per 1000 ر.س)
+    (() => {
+      const card = document.getElementById('totalPayoutCard');
+      if (!card) return;
+      const rate = (p.rate || p.expectedReturn || p.profitRate || 9.2) / 100;
+      const months = p.termMonths || 36;
+      const years = months / 12;
+      const base = 1000;
+      const annual = base * rate;
+      const totalProfit = annual * years;
+      const final = base + totalProfit;
+      const fmt = (n) => Math.round(n).toLocaleString('ar-SA');
+      document.getElementById('payoutCapital').textContent = fmt(base) + ' ر.س';
+      document.getElementById('payoutAnnualProfit').textContent = fmt(annual) + ' ر.س';
+      document.getElementById('payoutTotalProfit').textContent = fmt(totalProfit) + ' ر.س';
+      document.getElementById('payoutFinal').textContent = fmt(final) + ' ر.س';
       card.style.display = '';
     })();
 
