@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- KYC AGING -->
+  <div class="admin-card" id="kycAgeCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🕒 عمر طلبات KYC المعلّقة</span>
+      <span class="card-h-sub" id="kycAgeBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="kycAgeList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+      <div id="kycAgeOldest" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- TIME TO FIRST INVESTMENT -->
   <div class="admin-card" id="ttfiCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2994,6 +3006,55 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadKycAge() {
+    const list = document.getElementById('kycAgeList');
+    const oldest = document.getElementById('kycAgeOldest');
+    const badge = document.getElementById('kycAgeBadge');
+    if (!list || !oldest) return;
+    try {
+      const r = await App.api('GET', '/app/admin/kyc-aging');
+      if (badge) badge.textContent = (r.pending || 0).toLocaleString('ar-SA') + ' معلّق · تجاوز SLA ' + (r.slaPct || 0) + '٪';
+      list.replaceChildren();
+      const palette = ['#0f6e3a', '#0a4d36', '#b08840', '#d97706', '#c54a3a'];
+      const items = r.buckets || [];
+      const maxC = Math.max(...items.map(b => b.count), 1);
+      items.forEach((b, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:130px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = b.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:16px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((b.count / maxC) * 100) + '%;background:' + palette[i % palette.length] + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:80px;';
+        meta.textContent = b.count + ' · ' + b.pct + '٪';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      oldest.replaceChildren();
+      const items2 = r.oldest || [];
+      if (!items2.length) return;
+      const head = document.createElement('div');
+      head.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-top:8px;margin-bottom:4px;';
+      head.textContent = 'أقدم ١٠ طلبات';
+      oldest.appendChild(head);
+      items2.forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;padding:6px 10px;background:var(--paper);border-radius:8px;';
+        const left = document.createElement('div');
+        const n = document.createElement('div'); n.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; n.textContent = u.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);'; sub.textContent = 'أُرسل ' + new Date(u.submittedAt).toLocaleDateString('ar-SA');
+        left.append(n, sub);
+        const r2 = document.createElement('div');
+        r2.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + (u.hoursSince > 168 ? '#c54a3a' : (u.hoursSince > 72 ? '#d97706' : '#b08840')) + ';';
+        r2.textContent = u.hoursSince + ' س';
+        row.append(left, r2);
+        oldest.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadTtfi() {
     const kpis = document.getElementById('ttfiKpis');
     const list = document.getElementById('ttfiList');
@@ -7027,7 +7088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

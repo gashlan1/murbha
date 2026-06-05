@@ -1478,6 +1478,13 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Payout schedule -->
+<div class="card-section" id="payoutCard" style="display:none;">
+  <h2 class="section-h">📆 جدول الدفعات المتوقّع</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">جدول دفعات تقريبي مبني على مدّة الصفقة والعائد المعلَن. التواريخ تقديرية.</p>
+  <div id="payoutList" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
 <!-- Return projection calculator -->
 <div class="card-section" id="projCalcCard" style="display:none;">
   <h2 class="section-h">🧮 احسب عائدك المتوقّع</h2>
@@ -4202,6 +4209,47 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
+  function _initPayouts(p) {
+    const card = document.getElementById('payoutCard');
+    const list = document.getElementById('payoutList');
+    if (!card || !list) return;
+    const months = Number(p.durationMonths || 0);
+    if (months <= 0 || months > 96) { card.style.display = 'none'; return; }
+    const cadence = (p.payoutCadence || 'maturity').toString();
+    const closingAt = p.closingAt ? new Date(p.closingAt) : new Date();
+    const start = closingAt > new Date() ? closingAt : new Date();
+    const events = [];
+    if (cadence === 'monthly') {
+      for (let i = 1; i <= Math.min(months, 12); i++) {
+        const d = new Date(start); d.setMonth(d.getMonth() + i);
+        events.push({ label: '💰 ربح شهر ' + i, at: d, kind: 'profit' });
+      }
+      if (months > 12) events.push({ label: '✦ ... (إجمالي ' + months + ' دفعة)', at: null, kind: 'note' });
+    } else if (cadence === 'quarterly') {
+      for (let q = 1; q <= Math.ceil(months / 3); q++) {
+        const d = new Date(start); d.setMonth(d.getMonth() + q * 3);
+        events.push({ label: '💰 ربح الربع ' + q, at: d, kind: 'profit' });
+      }
+    } else {
+      const half = new Date(start); half.setMonth(half.getMonth() + Math.floor(months / 2));
+      events.push({ label: '📍 نقطة المنتصف', at: half, kind: 'milestone' });
+    }
+    const maturity = new Date(start); maturity.setMonth(maturity.getMonth() + months);
+    events.push({ label: '🏁 رأس المال + الربح النهائي', at: maturity, kind: 'final' });
+    list.replaceChildren();
+    events.forEach((e, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:10px 12px;background:' + (e.kind === 'final' ? 'linear-gradient(90deg,rgba(176,136,64,0.10),#fff)' : 'var(--paper)') + ';border-radius:10px;border-inline-start:3px solid ' + (e.kind === 'final' ? 'var(--gold)' : (e.kind === 'profit' ? 'var(--green)' : 'var(--green-dark)')) + ';';
+      const idx = document.createElement('div'); idx.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--muted);'; idx.textContent = '#' + (i + 1);
+      const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = e.label;
+      const dt = document.createElement('div'); dt.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:end;';
+      dt.textContent = e.at ? e.at.toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+      row.append(idx, lbl, dt);
+      list.appendChild(row);
+    });
+    card.style.display = '';
+  }
+
   function _initCalc(p) {
     const card = document.getElementById('projCalcCard');
     const amt = document.getElementById('calcAmt');
@@ -4401,7 +4449,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} };
 
   function _setMilestone(p) {
     const badge = document.getElementById('milestoneBadge');
