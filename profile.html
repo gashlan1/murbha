@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Milestones -->
+  <div class="settings-group" id="milestoneSec" style="display:none;">
+    <div class="settings-h">🎖 إنجازاتك</div>
+    <div style="padding:14px 18px;">
+      <div id="milestoneHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#fff;border-radius:14px;padding:20px;text-align:center;margin-bottom:14px;"></div>
+      <div id="milestoneGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Best month -->
   <div class="settings-group" id="bestMoSec" style="display:none;">
     <div class="settings-h">🏆 أفضل شهر استثماري</div>
@@ -3074,6 +3083,37 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Milestones
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/milestones');
+      if (!r.hasData) return;
+      const sec = document.getElementById('milestoneSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('milestoneHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 28px Cairo,sans-serif;color:#d4ac6e;'; big.textContent = r.earnedCount + ' / ' + r.totalCount;
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.92;margin-top:4px;'; sub.textContent = 'إنجاز مفتوح (' + r.pct + '٪)';
+      const barWrap = document.createElement('div'); barWrap.style.cssText = 'height:8px;background:rgba(255,255,255,0.18);border-radius:99px;overflow:hidden;margin-top:10px;';
+      const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + r.pct + '%;background:linear-gradient(90deg,#d4ac6e,#b08840);';
+      barWrap.appendChild(fill);
+      hero.append(big, sub, barWrap);
+      const grid = document.getElementById('milestoneGrid');
+      grid.replaceChildren();
+      r.milestones.forEach(m => {
+        const t = document.createElement('div');
+        const earned = m.earned;
+        t.style.cssText = 'background:' + (earned ? 'linear-gradient(135deg,#fbf6ea,#fff)' : 'var(--paper)') + ';border:1px solid ' + (earned ? '#d4ac6e' : 'rgba(13,22,18,0.1)') + ';border-radius:10px;padding:12px 8px;text-align:center;opacity:' + (earned ? '1' : '0.45') + ';';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:24px;line-height:1;'; ic.textContent = earned ? m.icon : '🔒';
+        const lb = document.createElement('div'); lb.style.cssText = 'font:800 10px Cairo,sans-serif;color:var(--green-dark);margin-top:6px;'; lb.textContent = m.label;
+        t.append(ic, lb);
+        t.title = m.desc + (earned ? ' — مفتوح' : ' — لم يُفتح بعد');
+        grid.appendChild(t);
       });
     } catch (e) {}
   })();
