@@ -1513,6 +1513,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Top funding days -->
+<div class="card-section" id="topDaysCard" style="display:none;">
+  <h2 class="section-h">🏆 أعلى ٥ أيام تمويلاً</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">الأيام التي شهدت أكبر دفعات استثمار في هذه الصفقة.</p>
+  <div id="topDaysList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <div id="topDaysSummary" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+</div>
+
 <!-- Entry times heatmap -->
 <div class="card-section" id="entryCard" style="display:none;">
   <h2 class="section-h">⏰ متى يستثمر الناس في هذه الصفقة؟</h2>
@@ -4343,6 +4351,51 @@
     recalc();
   }
 
+  async function _loadTopDays(slug) {
+    const card = document.getElementById('topDaysCard');
+    const list = document.getElementById('topDaysList');
+    const sum = document.getElementById('topDaysSummary');
+    if (!card || !list || !sum) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/top-days');
+      const days = r.days || [];
+      if (!days.length) { card.style.display = 'none'; return; }
+      list.replaceChildren();
+      const max = Math.max(...days.map(d => d.amount), 1);
+      const medals = ['🥇', '🥈', '🥉', '#4', '#5'];
+      days.forEach((d, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:40px 100px 1fr auto;gap:10px;align-items:center;padding:8px 10px;background:var(--paper);border-radius:8px;';
+        const mk = document.createElement('div'); mk.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--gold);'; mk.textContent = medals[i] || ('#' + (i + 1));
+        const dt = document.createElement('div'); dt.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; dt.textContent = new Date(d.day).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' });
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((d.amount / max) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:130px;';
+        meta.textContent = Number(d.amount).toLocaleString('ar-SA') + ' ر.س · ' + d.count;
+        row.append(mk, dt, bar, meta);
+        list.appendChild(row);
+      });
+      sum.replaceChildren();
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      const mk = (l, v) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      sum.append(
+        mk('أيام نشطة', fmt(r.totalDays)),
+        mk('متوسط يومي', fmt(r.avgDaily) + ' ر.س'),
+        mk('إجمالي', fmt(r.totalAmount) + ' ر.س'),
+      );
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadEntry(slug) {
     const card = document.getElementById('entryCard');
     const heat = document.getElementById('entryHeat');
@@ -4542,7 +4595,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setHealth(p) {
     const badge = document.getElementById('healthBadge');
