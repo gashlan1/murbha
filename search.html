@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>بحث — مُرابحة</title>
+<meta name="description" content="ابحث في مقالات المساعدة، الإعلانات، والفرص الاستثمارية على مُرابحة." />
+<meta property="og:title" content="بحث — مُرابحة" />
+<meta property="og:description" content="ابحث في كل محتوى منصة مُرابحة." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); --line-strong:rgba(13,22,18,0.20); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:24px 18px 80px; max-width:820px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 26px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; margin-bottom:18px; line-height:1.8; }
+  .search-box { background:#fff; border:1.5px solid var(--line-strong); border-radius:12px; padding:14px 18px; margin-bottom:18px; display:flex; align-items:center; gap:10px; }
+  .search-box input { flex:1; border:0; outline:0; font:600 16px Tajawal,sans-serif; color:var(--ink); background:transparent; }
+  .results { display:flex; flex-direction:column; gap:10px; }
+  .result { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 16px; text-decoration:none; color:var(--ink); display:block; transition:transform .15s; }
+  .result:hover { transform:translateY(-2px); border-color:var(--gold-light); }
+  .result .kind { display:inline-block; font:800 10px Cairo,sans-serif; padding:3px 8px; border-radius:999px; margin-bottom:6px; }
+  .result .kind.help { background:rgba(15,110,58,0.10); color:#0f6e3a; }
+  .result .kind.announcement { background:rgba(176,136,64,0.14); color:#7a5a10; }
+  .result .kind.project { background:rgba(10,77,54,0.10); color:#0a4d36; }
+  .result h3 { font:800 15px Cairo,sans-serif; color:var(--green-dark); margin-bottom:4px; }
+  .result .snippet { font-size:13px; color:var(--muted); line-height:1.7; }
+  .empty { text-align:center; padding:48px; color:var(--muted); font-size:14px; }
+  mark { background:#fff3cd; color:#7a5a10; padding:0 3px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / بحث</div>
+<h1>بحث في منصة مُرابحة</h1>
+<p class="lede">ابحث في مقالات المساعدة، الإعلانات، والفرص الاستثمارية المتاحة في مكان واحد.</p>
+
+<div class="search-box">
+  <span style="color:var(--muted);font-size:18px;">⌕</span>
+  <input id="q" type="search" placeholder="اكتب كلمة للبحث..." autocomplete="off" autofocus />
+</div>
+
+<div id="kindFilters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+  <button class="kf active" data-k="all" type="button">الكل</button>
+  <button class="kf" data-k="help" type="button">📘 مساعدة</button>
+  <button class="kf" data-k="announcement" type="button">📢 إعلانات</button>
+  <button class="kf" data-k="project" type="button">💼 فرص</button>
+</div>
+<style>
+  .kf { padding:6px 14px; background:#fff; border:1px solid var(--line); border-radius:999px; font:800 11px Cairo,sans-serif; color:var(--ink); cursor:pointer; }
+  .kf.active { background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+</style>
+
+<div id="results" class="results"></div>
+
+<script>
+const results = document.getElementById('results');
+const q = document.getElementById('q');
+const LABEL = { help: 'مساعدة', announcement: 'إعلان', project: 'فرصة' };
+
+let debounceT;
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const highlight = (text, term) => {
+  if (!term) return text;
+  const re = new RegExp('(' + escapeRe(term) + ')', 'gi');
+  const out = document.createDocumentFragment();
+  let i = 0;
+  const matches = [...text.matchAll(re)];
+  if (!matches.length) { out.appendChild(document.createTextNode(text)); return out; }
+  for (const m of matches) {
+    if (m.index > i) out.appendChild(document.createTextNode(text.slice(i, m.index)));
+    const mark = document.createElement('mark');
+    mark.textContent = m[0];
+    out.appendChild(mark);
+    i = m.index + m[0].length;
+  }
+  if (i < text.length) out.appendChild(document.createTextNode(text.slice(i)));
+  return out;
+};
+
+let _activeKind = 'all';
+async function run() {
+  const term = q.value.trim();
+  results.textContent = '';
+  if (!term || term.length < 2) {
+    const e = document.createElement('div'); e.className = 'empty';
+    e.textContent = 'ابدأ بكتابة حرفين أو أكثر للبحث.';
+    results.appendChild(e); return;
+  }
+  try {
+    const r = await fetch('/app/public/search?q=' + encodeURIComponent(term));
+    const d = await r.json();
+    const items = (d.results || []).filter(it => _activeKind === 'all' || it.kind === _activeKind);
+    // Show total count + per-kind breakdown
+    const total = (d.results || []).length;
+    if (total > 0) {
+      const summary = document.createElement('div');
+      summary.style.cssText = 'padding:10px 14px;background:#fbf8ee;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;font:600 12px Tajawal,sans-serif;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;';
+      const left = document.createElement('span');
+      const strong = document.createElement('b'); strong.style.cssText='color:var(--green-dark,#062b1e);'; strong.textContent = total.toLocaleString('ar-SA');
+      left.append(strong, document.createTextNode(' نتيجة لـ "' + term + '"'));
+      const right = document.createElement('span');
+      const byKind = {};
+      (d.results || []).forEach(r => { byKind[r.kind] = (byKind[r.kind] || 0) + 1; });
+      right.textContent = Object.entries(byKind).map(([k, c]) => (LABEL[k] || k) + ': ' + c).join(' · ');
+      summary.append(left, right);
+      results.appendChild(summary);
+    }
+    if (!items.length) {
+      const e = document.createElement('div'); e.className = 'empty';
+      e.textContent = 'لا توجد نتائج لـ "' + term + '". جرّب كلمة أخرى أو تصفّح ' ;
+      const a = document.createElement('a'); a.href = '/help.html'; a.textContent = 'مركز المساعدة';
+      a.style.cssText = 'color:var(--gold);font-weight:700;text-decoration:none;';
+      e.appendChild(a);
+      results.appendChild(e); return;
+    }
+    items.forEach(item => {
+      const a = document.createElement('a'); a.className = 'result'; a.href = item.url;
+      const kind = document.createElement('span'); kind.className = 'kind ' + item.kind; kind.textContent = LABEL[item.kind] || item.kind;
+      const h = document.createElement('h3'); h.appendChild(highlight(item.title || '', term));
+      const sn = document.createElement('div'); sn.className = 'snippet';
+      sn.appendChild(highlight(item.snippet || '', term));
+      a.append(kind, h, sn);
+      results.appendChild(a);
+    });
+  } catch (e) {
+    const x = document.createElement('div'); x.className = 'empty';
+    x.textContent = 'تعذّر تنفيذ البحث. حاول لاحقاً.';
+    results.appendChild(x);
+  }
+}
+
+document.querySelectorAll('.kf').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.kf').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _activeKind = btn.dataset.k;
+    run();
+  });
+});
+
+q.addEventListener('input', () => { clearTimeout(debounceT); debounceT = setTimeout(run, 200); });
+
+const initial = new URLSearchParams(location.search).get('q');
+if (initial) { q.value = initial; run(); } else run();
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>الشهادة الضريبية السنوية — مُرابحة</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:0; margin:0; }
+  .toolbar { padding:14px 18px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; max-width:920px; margin:0 auto; }
+  .toolbar a { color:var(--green-dark); text-decoration:none; font:800 14px Cairo,sans-serif; }
+  .toolbar select { padding:7px 10px; border:1px solid var(--line); border-radius:8px; font:700 13px Tajawal,sans-serif; cursor:pointer; }
+  .toolbar button { margin-inline-start:auto; background:var(--green-dark); color:#fff; border:0; border-radius:999px; padding:8px 18px; font:800 12px Cairo,sans-serif; cursor:pointer; }
+  main { max-width:920px; margin:24px auto; padding:0 18px 80px; }
+  .cert { background:#fff; border:1.5px solid var(--gold); border-radius:18px; padding:32px; box-shadow:0 4px 24px rgba(13,22,18,0.05); position:relative; }
+  .cert::before { content:''; position:absolute; inset:8px; border:1px dashed rgba(176,136,64,0.4); border-radius:14px; pointer-events:none; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:18px; border-bottom:2px solid var(--gold); margin-bottom:24px; gap:18px; flex-wrap:wrap; }
+  .brand { font:900 22px Cairo,sans-serif; color:var(--green-dark); }
+  .brand small { display:block; font:500 12px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .cert-no { text-align:end; font-family:'SF Mono',Menlo,monospace; direction:ltr; font-size:12px; color:var(--muted); }
+  .cert-no b { display:block; color:var(--green-dark); font-size:14px; margin-top:2px; }
+  h1 { font:900 26px Cairo,sans-serif; color:var(--green-dark); text-align:center; margin-bottom:6px; }
+  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; padding:18px; background:#fbf8ee; border-radius:12px; margin-bottom:22px; }
+  @media (max-width:560px) { .kv-grid { grid-template-columns:1fr; } }
+  .kv { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0; }
+  .kv .k { color:var(--muted); }
+  .kv .v { font-weight:800; color:var(--green-dark); }
+  .totals { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:22px; }
+  @media (max-width:560px) { .totals { grid-template-columns:1fr 1fr; } }
+  .total { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center; }
+  .total .v { font:900 18px Cairo,sans-serif; color:var(--green-dark); }
+  .total .l { font:600 11px Tajawal,sans-serif; color:var(--muted); margin-top:3px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:22px; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:start; }
+  th { background:#fbf8ee; font:800 11px Cairo,sans-serif; color:var(--green-dark); }
+  td.r { text-align:end; font-weight:700; }
+  .footer { font-size:11px; color:var(--muted); line-height:1.7; border-top:1px solid var(--line); padding-top:14px; margin-top:14px; }
+  .sig { display:flex; justify-content:space-between; margin-top:32px; gap:20px; }
+  .sig div { flex:1; text-align:center; font-size:11px; color:var(--muted); padding-top:36px; border-top:1px solid var(--ink); }
+
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    .toolbar, footer, nav, header { display:none !important; }
+    body { background:#fff !important; padding:0 !important; }
+    .cert { box-shadow:none; border:1px solid var(--gold); }
+    main { padding:0 !important; margin:0 !important; max-width:100% !important; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <a href="/profile.html">‹ حسابي</a>
+  <span style="color:var(--muted);font-size:13px;margin-inline-start:8px;">السنة</span>
+  <select id="yearSel"></select>
+  <button id="printBtn" type="button">🖨 طباعة / PDF</button>
+</div>
+
+<main>
+  <div class="cert" id="cert">
+    <div style="text-align:center;padding:40px;color:var(--muted);">جارٍ التحميل…</div>
+  </div>
+</main>
+
+<script src="/app.js"></script>
+<script>
+(async () => {
+  try {
+    await App.requireAuth('login.html?next=/tax-certificate.html');
+  } catch (e) { return; }
+
+  const sel = document.getElementById('yearSel');
+  const curYear = new Date().getFullYear();
+  const qsYear = parseInt(new URLSearchParams(location.search).get('year') || '', 10);
+  for (let y = curYear; y >= curYear - 5; y--) {
+    const o = document.createElement('option'); o.value = y; o.textContent = y;
+    if (y === (qsYear || curYear)) o.selected = true;
+    sel.appendChild(o);
+  }
+
+  async function load() {
+    const cert = document.getElementById('cert');
+    cert.textContent = '';
+    const wait = document.createElement('div'); wait.style.cssText='text-align:center;padding:40px;color:var(--muted);';
+    wait.textContent = 'جارٍ التحميل…'; cert.appendChild(wait);
+    let d;
+    try { d = await App.api('GET', '/app/me/tax-statement?year=' + sel.value); }
+    catch (e) { wait.textContent = 'تعذّر التحميل.'; return; }
+    cert.textContent = '';
+
+    const head = document.createElement('div'); head.className = 'head';
+    const brand = document.createElement('div'); brand.className = 'brand'; brand.textContent = 'منصة مُرابحة';
+    const tag = document.createElement('small'); tag.textContent = 'منصة الشراكة الاستثمارية الشرعية'; brand.appendChild(tag);
+    const cn = document.createElement('div'); cn.className = 'cert-no';
+    cn.appendChild(document.createTextNode('رقم الشهادة'));
+    const cb = document.createElement('b'); cb.textContent = d.certificateNumber; cn.appendChild(cb);
+    const issued = document.createElement('div'); issued.style.marginTop='4px'; issued.textContent = 'صدرت: ' + new Date(d.issuedAt).toLocaleDateString('ar-SA');
+    cn.appendChild(issued);
+    head.append(brand, cn);
+    cert.appendChild(head);
+
+    const h1 = document.createElement('h1'); h1.textContent = 'الشهادة الضريبية السنوية ' + d.year; cert.appendChild(h1);
+    const sub = document.createElement('div'); sub.className = 'sub'; sub.textContent = 'بيان موحّد لاستثماراتك وأرباحك خلال السنة الضريبية';
+    cert.appendChild(sub);
+
+    const grid = document.createElement('div'); grid.className = 'kv-grid';
+    [['اسم المستثمر', d.holder.name || '—'], ['رقم الهوية', d.holder.nationalId || '—'], ['البريد الإلكتروني', d.holder.email || '—'], ['السنة الضريبية', d.year]].forEach(([k, v]) => {
+      const row = document.createElement('div'); row.className = 'kv';
+      const a = document.createElement('span'); a.className='k'; a.textContent = k;
+      const b = document.createElement('span'); b.className='v'; b.textContent = v;
+      row.append(a, b); grid.appendChild(row);
+    });
+    cert.appendChild(grid);
+
+    const fmt = (n) => Number(n || 0).toLocaleString('ar-SA') + ' ر.س';
+    const totals = document.createElement('div'); totals.className = 'totals';
+    [['عدد الاستثمارات', d.summary.investmentsCount], ['إجمالي رأس المال', fmt(d.summary.totalInvested)], ['إجمالي الأرباح', fmt(d.summary.totalProfit)], ['صافي المكسب', fmt(d.summary.netGain)]].forEach(([l, v]) => {
+      const t = document.createElement('div'); t.className = 'total';
+      const vv = document.createElement('div'); vv.className = 'v'; vv.textContent = v;
+      const ll = document.createElement('div'); ll.className = 'l'; ll.textContent = l;
+      t.append(vv, ll); totals.appendChild(t);
+    });
+    cert.appendChild(totals);
+
+    if (d.investments.length) {
+      const titleI = document.createElement('div'); titleI.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;';
+      titleI.textContent = 'تفاصيل الاستثمارات';
+      cert.appendChild(titleI);
+      const tbl = document.createElement('table');
+      const thead = document.createElement('thead'); const trh = document.createElement('tr');
+      ['تاريخ', 'المشروع', 'القطاع', 'رأس المال', 'العائد المتوقّع'].forEach(h => { const th = document.createElement('th'); th.textContent = h; trh.appendChild(th); });
+      thead.appendChild(trh); tbl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      d.investments.forEach(i => {
+        const tr = document.createElement('tr');
+        [new Date(i.createdAt).toLocaleDateString('ar-SA'), i.projectName, i.projectCategory || '—'].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+        const tdAmt = document.createElement('td'); tdAmt.className = 'r'; tdAmt.textContent = fmt(i.amount); tr.appendChild(tdAmt);
+        const tdRet = document.createElement('td'); tdRet.className = 'r'; tdRet.textContent = fmt(i.expectedReturn); tr.appendChild(tdRet);
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      cert.appendChild(tbl);
+    }
+
+    if (d.profits.length) {
+      const titleP = document.createElement('div'); titleP.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;';
+      titleP.textContent = 'سجل الأرباح والتوزيعات';
+      cert.appendChild(titleP);
+      const tbl = document.createElement('table');
+      const thead = document.createElement('thead'); const trh = document.createElement('tr');
+      ['تاريخ', 'الوصف', 'المبلغ'].forEach(h => { const th = document.createElement('th'); th.textContent = h; trh.appendChild(th); });
+      thead.appendChild(trh); tbl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      d.profits.forEach(p => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td'); td1.textContent = new Date(p.createdAt).toLocaleDateString('ar-SA'); tr.appendChild(td1);
+        const td2 = document.createElement('td'); td2.textContent = p.description || '—'; tr.appendChild(td2);
+        const td3 = document.createElement('td'); td3.className = 'r'; td3.textContent = fmt(p.amount); tr.appendChild(td3);
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      cert.appendChild(tbl);
+    }
+
+    const sig = document.createElement('div'); sig.className = 'sig';
+    const s1 = document.createElement('div'); s1.textContent = 'توقيع منصة مُرابحة';
+    const s2 = document.createElement('div'); s2.textContent = 'ختم اعتماد إلكتروني';
+    sig.append(s1, s2);
+    cert.appendChild(sig);
+
+    const ft = document.createElement('div'); ft.className = 'footer'; ft.textContent = d.notes;
+    cert.appendChild(ft);
+  }
+
+  sel.addEventListener('change', load);
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  load();
+})();
+</script>
+</body>
+</html>
