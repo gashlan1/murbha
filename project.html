@@ -1439,6 +1439,12 @@
     </a>
   </div>
 </div>
+
+<!-- SIMILAR PROJECTS -->
+<div class="card-section" id="similarProjectsSection" style="display:none;">
+  <h2 class="section-h">فرص مشابهة</h2>
+  <div id="similarProjectsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+</div>
 </main>
 
 <script>
@@ -1677,6 +1683,46 @@
     } catch (e) {}
   }
 
+  async function _loadSimilarProjects(p) {
+    const sec = document.getElementById('similarProjectsSection');
+    const grid = document.getElementById('similarProjectsGrid');
+    if (!sec || !grid) return;
+    try {
+      const r = await fetch('/app/projects');
+      if (!r.ok) return;
+      const { projects = [] } = await r.json();
+      const peers = projects
+        .filter(x => x.id !== p.id && x.status === 'open' && (x.category === p.category || x.city === p.city))
+        .slice(0, 3);
+      if (!peers.length) return;
+      sec.style.display = '';
+      grid.replaceChildren();
+      peers.forEach(peer => {
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(peer.slug || peer.id);
+        a.style.cssText = 'display:block;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:inherit;transition:transform .15s;';
+        a.onmouseenter = () => a.style.transform = 'translateY(-2px)';
+        a.onmouseleave = () => a.style.transform = 'translateY(0)';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:24px;flex-shrink:0;';
+        ic.textContent = peer.image || '📦';
+        const right = document.createElement('div'); right.style.flex = '1';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);line-height:1.4;'; nm.textContent = peer.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; sub.textContent = (peer.category || '') + ' · ' + (peer.city || '');
+        right.append(nm, sub);
+        head.append(ic, right);
+        const meta = document.createElement('div');
+        meta.style.cssText = 'display:flex;justify-content:space-between;font:700 11px Tajawal,sans-serif;color:var(--muted);';
+        const rate = document.createElement('span'); rate.textContent = 'العائد ' + ((peer.profitRate || 0) * 100).toFixed(1) + '٪';
+        const term = document.createElement('span'); term.textContent = (peer.termMonths || '—') + ' شهر';
+        meta.append(rate, term);
+        a.append(head, meta);
+        grid.appendChild(a);
+      });
+    } catch (e) {}
+  }
+
   async function _loadTopInvestors(p) {
     const wrap = document.getElementById('topInvestorsList');
     if (!wrap) return;
@@ -1872,6 +1918,9 @@
 
     // Top investors
     _loadTopInvestors(p);
+
+    // Similar projects
+    _loadSimilarProjects(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');

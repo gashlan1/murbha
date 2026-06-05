@@ -778,6 +778,21 @@
     tick();
   };
 
+  // ─── Keyboard shortcut: '/' focuses the first search input ────
+  const _installSlashShortcut = () => {
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== '/') return;
+      // Don't hijack when the user is typing into a field
+      const tag = (e.target?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable) return;
+      const search = document.querySelector('input[type="search"]');
+      if (!search) return;
+      e.preventDefault();
+      search.focus();
+      search.select?.();
+    });
+  };
+
   // ─── Scroll to top button ──────────────────────────────────────
   const _installScrollTopBtn = () => {
     if (document.getElementById('toTopBtn')) return;
@@ -1113,6 +1128,7 @@
     _maybeRunTour();
     _installScrollTopBtn();
     _installScrollProgress();
+    _installSlashShortcut();
   });
 
   window.App = {

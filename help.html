@@ -779,6 +779,20 @@
       printBtn.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.15);color:var(--green-dark);font:800 12px Cairo,sans-serif;border-radius:999px;padding:7px 14px;cursor:pointer;margin-inline-start:8px;';
       printBtn.textContent = '🖨 طباعة';
       printBtn.onclick = () => window.print();
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.15);color:var(--green-dark);font:800 12px Cairo,sans-serif;border-radius:999px;padding:7px 14px;cursor:pointer;margin-inline-start:8px;';
+      copyBtn.textContent = '🔗 نسخ الرابط';
+      copyBtn.onclick = async () => {
+        const url = location.origin + '/help.html?article=' + encodeURIComponent(article.slug || article.id);
+        try {
+          await navigator.clipboard.writeText(url);
+          copyBtn.textContent = '✓ نُسخ';
+          setTimeout(() => { copyBtn.textContent = '🔗 نسخ الرابط'; }, 1800);
+        } catch (e) { history.replaceState({}, '', url); }
+      };
+      // Also reflect the deep link in the address bar
+      history.replaceState({}, '', '/help.html?article=' + encodeURIComponent(article.slug || article.id));
       const card = document.createElement('div'); card.className = 'help-art-detail';
       const h = document.createElement('h3'); h.textContent = article.title;
       const m = document.createElement('div'); m.className = 'meta';
@@ -860,7 +874,7 @@
       } catch (e) {}
 
       card.append(h, m, body, voteBar, related);
-      list.append(back, printBtn, card);
+      list.append(back, copyBtn, printBtn, card);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       const x = document.createElement('div'); x.className = 'help-empty'; x.textContent = 'تعذّر تحميل المقال.';
@@ -917,7 +931,8 @@
   });
   if (search) search.addEventListener('focus', _renderAutocomplete);
 
-  loadList();
+  const deepArticle = new URLSearchParams(location.search).get('article');
+  if (deepArticle) loadDetail(deepArticle); else loadList();
 })();
 </script>
 

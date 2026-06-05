@@ -68,17 +68,44 @@ const root = document.getElementById('root');
 const qs = new URLSearchParams(location.search);
 const want = qs.get('issue');
 
+let _allIssues = [];
+let _yearFilter = 'all';
+
 async function loadList() {
   root.replaceChildren();
   try {
     const r = await fetch('/app/public/newsletter-issues');
     const d = await r.json();
-    if (!d.issues.length) {
+    _allIssues = d.issues || [];
+    if (!_allIssues.length) {
       const e = document.createElement('div'); e.className = 'empty';
       e.textContent = 'لم يصدر أي عدد بعد. اشترك أعلاه ليصلك الأول.';
       root.appendChild(e); return;
     }
-    d.issues.forEach(issue => {
+    // Year filter chips (only render if more than one year is represented)
+    const years = [...new Set(_allIssues.map(i => new Date(i.publishedAt).getFullYear()))].sort((a, b) => b - a);
+    if (years.length > 1) {
+      const bar = document.createElement('div');
+      bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;';
+      const mkChip = (label, value) => {
+        const b = document.createElement('button'); b.type = 'button';
+        const active = _yearFilter === value;
+        b.style.cssText = 'padding:6px 14px;background:' + (active ? '#062b1e' : '#fff') + ';color:' + (active ? '#fff' : '#0d1612') + ';border:1px solid ' + (active ? '#062b1e' : 'var(--line)') + ';border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        b.textContent = label;
+        b.onclick = () => { _yearFilter = value; loadList(); };
+        return b;
+      };
+      bar.appendChild(mkChip('الكل (' + _allIssues.length + ')', 'all'));
+      years.forEach(y => {
+        const count = _allIssues.filter(i => new Date(i.publishedAt).getFullYear() === y).length;
+        bar.appendChild(mkChip(y + ' (' + count + ')', String(y)));
+      });
+      root.appendChild(bar);
+    }
+    const filtered = _yearFilter === 'all'
+      ? _allIssues
+      : _allIssues.filter(i => String(new Date(i.publishedAt).getFullYear()) === _yearFilter);
+    filtered.forEach(issue => {
       const a = document.createElement('a');
       a.className = 'issue';
       a.href = '?issue=' + encodeURIComponent(issue.slug);
