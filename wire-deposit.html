@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>إيداع عبر حوالة بنكية — مُرابحة</title>
+<meta name="description" content="تعليمات الإيداع عبر التحويل البنكي مع رمز مرجعي خاص بحسابك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); --line-strong:rgba(13,22,18,0.20); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:24px 18px 80px; max-width:680px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 24px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:14px; }
+  .kv { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); gap:10px; }
+  .kv:last-child { border-bottom:0; }
+  .kv .k { color:var(--muted); font:600 13px Tajawal,sans-serif; }
+  .kv .v { color:var(--green-dark); font:800 14px Cairo,sans-serif; text-align:end; }
+  .kv .v.mono { font-family:'SF Mono',Menlo,monospace; direction:ltr; }
+  .ref-card { background:linear-gradient(135deg,#fff8e6,#fff); border:2px dashed var(--gold); border-radius:14px; padding:20px; margin-bottom:18px; text-align:center; }
+  .ref-card .label { font:800 11px Cairo,sans-serif; color:#7a5a10; margin-bottom:6px; letter-spacing:2px; }
+  .ref-card .ref { font:900 26px 'SF Mono',Menlo,monospace; color:var(--green-dark); direction:ltr; letter-spacing:3px; margin-bottom:8px; }
+  .ref-card .hint { font-size:12px; color:var(--muted); }
+  .copy-btn { background:transparent; border:1px solid var(--gold); color:var(--gold); padding:5px 14px; border-radius:999px; font:800 11px Cairo,sans-serif; cursor:pointer; margin-top:8px; }
+  .copy-btn:hover { background:var(--gold); color:#fff; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:560px) { .form-grid { grid-template-columns:1fr; } }
+  .form-grid label { display:flex; flex-direction:column; gap:4px; font:700 11px Cairo,sans-serif; color:var(--muted); }
+  .form-grid input { padding:11px 14px; border:1.5px solid var(--line-strong); border-radius:10px; font:600 14px Tajawal,sans-serif; background:#fff; }
+  .submit { width:100%; margin-top:14px; padding:13px; background:var(--green-dark); color:#fff; border:0; border-radius:10px; font:800 14px Cairo,sans-serif; cursor:pointer; }
+  .submit:hover { background:var(--green); }
+  .submit:disabled { opacity:0.6; cursor:default; }
+  #status { margin-top:12px; font-size:13px; min-height:18px; }
+  .note { font-size:11px; color:var(--muted); line-height:1.7; padding:10px 14px; background:rgba(176,136,64,0.08); border-radius:8px; margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/portfolio.html">المحفظة</a> / إيداع عبر حوالة</div>
+<h1>إيداع عبر حوالة بنكية</h1>
+<p class="lede">للإيداع عبر التحويل البنكي، استخدم البيانات أدناه وأدخل الرمز المرجعي في حقل "الوصف" بحيث ندخل المبلغ على حسابك تلقائياً.</p>
+
+<div id="refCard" class="ref-card">
+  <div class="label">رمزك المرجعي</div>
+  <div class="ref" id="refCode">—</div>
+  <div class="hint">انسخه وأدخله في حقل وصف التحويل</div>
+  <button id="copyRefBtn" class="copy-btn" type="button">نسخ الرمز</button>
+</div>
+
+<div class="card" id="instructionsCard">
+  <div id="instructionsBody">
+    <div class="kv"><span class="k">جارٍ التحميل…</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;">أرسلت الحوالة؟ أبلغنا</div>
+  <form id="claimForm" class="form-grid">
+    <label>المبلغ (ر.س)
+      <input id="amount" type="number" min="1000" step="100" required placeholder="مثال: 5000" />
+    </label>
+    <label>اسم المُرسِل في الحوالة
+      <input id="senderName" type="text" required maxlength="120" placeholder="الاسم في الحساب البنكي" />
+    </label>
+    <label style="grid-column:1/-1;">تاريخ الإرسال
+      <input id="sentAt" type="date" />
+    </label>
+    <button class="submit" type="submit" id="submitBtn" style="grid-column:1/-1;">أبلغ عن الحوالة</button>
+  </form>
+  <div id="status"></div>
+</div>
+
+<div class="note">⏱ يُحدَّث رصيدك تلقائياً عند وصول الحوالة (عادةً خلال يوم عمل واحد). إذا تأخّر الإيداع أكثر من ٤٨ ساعة، راسل support@murbha.sa مع رقم العملية البنكي.</div>
+
+<script src="/app.js"></script>
+<script>
+(async () => {
+  try {
+    await App.requireAuth('login.html?next=/wire-deposit.html');
+    const r = await App.api('GET', '/app/me/wire-reference');
+    document.getElementById('refCode').textContent = r.reference;
+    const body = document.getElementById('instructionsBody');
+    body.textContent = '';
+    const fields = [
+      ['اسم البنك', r.instructions.bankName],
+      ['Bank', r.instructions.bankNameEn, true],
+      ['اسم الحساب', r.instructions.accountName],
+      ['Account holder', r.instructions.accountNameEn, true],
+      ['IBAN', r.instructions.iban, true],
+      ['SWIFT/BIC', r.instructions.bic, true],
+      ['الحد الأدنى للحوالة', r.instructions.minAmount.toLocaleString('ar-SA') + ' ر.س'],
+    ];
+    fields.forEach(([k, v, mono]) => {
+      const row = document.createElement('div'); row.className = 'kv';
+      const ke = document.createElement('span'); ke.className = 'k'; ke.textContent = k;
+      const ve = document.createElement('span'); ve.className = 'v' + (mono ? ' mono' : ''); ve.textContent = v;
+      row.append(ke, ve); body.appendChild(row);
+    });
+    const noteRow = document.createElement('div');
+    noteRow.style.cssText = 'padding:10px 0;font-size:12px;color:#6b7268;line-height:1.6;border-top:1px solid var(--line);margin-top:6px;';
+    noteRow.textContent = r.instructions.notes;
+    body.appendChild(noteRow);
+  } catch (e) {
+    document.getElementById('refCode').textContent = '—';
+  }
+  document.getElementById('copyRefBtn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(document.getElementById('refCode').textContent); App.toast && App.toast('✓ تم نسخ الرمز', 'success'); } catch (e) {}
+  });
+  document.getElementById('claimForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('status');
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…';
+    status.textContent = '';
+    try {
+      await App.api('POST', '/app/me/wire-claim', {
+        amount: Number(document.getElementById('amount').value),
+        senderName: document.getElementById('senderName').value.trim(),
+        sentAt: document.getElementById('sentAt').value,
+      });
+      status.textContent = '✓ تم تسجيل البلاغ. ستظهر العملية كـ "بانتظار" في محفظتك.';
+      status.style.color = '#0f6e3a';
+      e.target.reset();
+    } catch (err) {
+      status.textContent = err.message || 'تعذّر التسجيل';
+      status.style.color = '#c54a3a';
+    } finally { btn.disabled = false; btn.textContent = 'أبلغ عن الحوالة'; }
+  });
+})();
+</script>
+</body>
+</html>

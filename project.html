@@ -80,6 +80,12 @@
     overflow: hidden;
     margin-bottom: 0;
     background: linear-gradient(135deg, #1a4d6e 0%, #0a2538 100%);
+    background-size: cover;
+    background-position: center;
+  }
+  .hero-banner.has-photo::before { display: none; }
+  .hero-banner.has-photo::after {
+    background: linear-gradient(180deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.75) 100%);
   }
   .hero-banner::before {
     content:'';
@@ -139,6 +145,59 @@
     margin: 14px 18px;
     padding: 18px;
     border: 0.5px solid var(--line);
+  }
+
+  /* Share row */
+  .share-card {
+    background: #fff;
+    border-radius: 18px;
+    margin: 14px 18px;
+    padding: 14px 16px;
+    border: 0.5px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .share-card .share-label {
+    flex: 1;
+    font: 700 13px 'Cairo','Tajawal',sans-serif;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .share-card .share-label small { font: 500 11px 'Tajawal',sans-serif; color: var(--muted); }
+  .share-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .share-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--green-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .12s, background .2s, color .2s, border-color .2s;
+    padding: 0;
+  }
+  .share-btn:hover { transform: translateY(-1px); background: #fff; }
+  .share-btn:active { transform: scale(.95); }
+  .share-btn.whatsapp:hover { background: #25D366; color: #fff; border-color: #25D366; }
+  .share-btn.twitter:hover { background: #0d1612; color: #fff; border-color: #0d1612; }
+  .share-btn.telegram:hover { background: #229ED9; color: #fff; border-color: #229ED9; }
+  .share-btn.copy:hover { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .share-btn.native:hover { background: var(--green); color: #fff; border-color: var(--green); }
+  .share-btn svg { width: 18px; height: 18px; }
+  .share-btn.copied { background: var(--green); color: #fff; border-color: var(--green); }
+  @media (max-width: 380px) {
+    .share-card { flex-direction: column; align-items: stretch; gap: 12px; }
+    .share-row { justify-content: center; }
   }
 
   /* Funding progress */
@@ -592,7 +651,11 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    transform: translateY(0);
+    transition: transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s;
   }
+  .sticky-cta.hidden { transform: translateY(110%); }
+  .sticky-cta.scrolled { box-shadow: 0 -8px 28px rgba(0,0,0,0.10); }
   .cta-info {
     flex: 1;
     min-width: 0;
@@ -893,6 +956,44 @@
     <span><b>٨٤٧</b> مستثمر</span>
     <span>متبقّي <b>١٢ يوماً</b></span>
   </div>
+  <div id="fundingHistory" style="margin-top:14px;padding-top:14px;border-top:1px dashed rgba(13,22,18,0.08);display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font:700 11px Cairo,sans-serif;color:var(--muted);">تطوّر التمويل</span>
+      <span id="fundingHistoryFirstLast" style="font:600 10px 'SF Mono',Menlo,monospace;color:var(--muted);direction:ltr;"></span>
+    </div>
+    <svg id="fundingChart" width="100%" height="60" viewBox="0 0 300 60" preserveAspectRatio="none" style="display:block;"></svg>
+  </div>
+</div>
+
+<!-- SHARE -->
+<div class="share-card" id="shareCard">
+  <div class="share-label">
+    <span>شارك الفرصة <span id="shareCountBadge" style="display:none;margin-inline-start:6px;background:rgba(176,136,64,0.18);color:#7a5a10;padding:2px 8px;border-radius:999px;font:800 10px Cairo,sans-serif;vertical-align:middle;">0 مشاركة</span></span>
+    <small id="shareCountLabel">انشرها مع شبكتك</small>
+  </div>
+  <div class="share-row" id="shareRow" role="group" aria-label="مشاركة الفرصة">
+    <button class="share-btn native" id="shareNativeBtn" type="button" aria-label="مشاركة" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    </button>
+    <button class="share-btn whatsapp" id="shareWhatsappBtn" type="button" aria-label="مشاركة عبر واتساب">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981 .161.062z"/></svg>
+    </button>
+    <button class="share-btn twitter" id="shareTwitterBtn" type="button" aria-label="مشاركة عبر X">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </button>
+    <button class="share-btn telegram" id="shareTelegramBtn" type="button" aria-label="مشاركة عبر تيليجرام">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.053 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/></svg>
+    </button>
+    <button class="share-btn copy" id="shareCopyBtn" type="button" aria-label="نسخ الرابط">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+    <button class="share-btn follow" id="followBtn" type="button" aria-label="متابعة" title="متابعة المشروع" style="display:none;">
+      <svg id="followIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </button>
+    <button class="share-btn fav" id="favBtn" type="button" aria-label="حفظ" title="حفظ" style="display:none;">
+      <svg id="favIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </button>
+  </div>
 </div>
 
 <!-- KEY STATS -->
@@ -1031,6 +1132,37 @@
   </div>
 </div>
 
+<!-- STATUS TIMELINE -->
+<div class="card-section">
+  <h2 class="section-h">مراحل المشروع</h2>
+  <div id="statusTimeline" style="display:flex;flex-direction:column;gap:0;padding:8px 4px;"></div>
+</div>
+
+<style>
+  #statusTimeline { position: relative; }
+  .tl-step { display: flex; gap: 14px; align-items: flex-start; padding: 4px 0 14px; position: relative; }
+  .tl-step:not(:last-child)::before {
+    content: ''; position: absolute;
+    inset-inline-start: 11px; top: 30px; bottom: -2px; width: 2px;
+    background: rgba(13,22,18,0.08);
+  }
+  .tl-step.done:not(:last-child)::before { background: var(--green); }
+  .tl-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #fff; border: 2px solid rgba(13,22,18,0.15);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font: 900 12px Cairo,sans-serif; color: var(--muted);
+    margin-top: 4px;
+  }
+  .tl-step.done .tl-dot { background: var(--green); border-color: var(--green); color: #fff; }
+  .tl-step.current .tl-dot { background: var(--gold); border-color: var(--gold); color: #fff; box-shadow: 0 0 0 4px rgba(176,136,64,0.18); }
+  .tl-body { flex: 1; min-width: 0; }
+  .tl-title { font: 800 14px Cairo,sans-serif; color: var(--ink); margin-bottom: 2px; }
+  .tl-step.current .tl-title { color: var(--green-dark); }
+  .tl-sub { font: 500 12px Tajawal,sans-serif; color: var(--muted); line-height: 1.7; }
+  .tl-step.done .tl-title { color: var(--green); }
+</style>
+
 <!-- CALCULATOR -->
 <div class="card-section">
   <h2 class="section-h">احسب عوائدك</h2>
@@ -1061,6 +1193,13 @@
         <span>المبلغ النهائي عند الاستحقاق</span>
         <b id="calcFinal">٣١,٩٠٠ ر.س</b>
       </div>
+    </div>
+    <div style="margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font:800 12px Cairo,sans-serif;color:var(--green-dark);">جدول التوزيعات الربعية</span>
+        <span style="font:500 11px Tajawal,sans-serif;color:var(--muted);">تقديري</span>
+      </div>
+      <div id="payoutSchedule" style="display:flex;flex-direction:column;gap:6px;font:600 12px Tajawal,sans-serif;color:var(--ink);"></div>
     </div>
   </div>
 </div>
@@ -1141,6 +1280,7 @@
 <div class="card-section">
   <h2 class="section-h">المستثمرون</h2>
   <p style="font-size:13px;color:var(--muted);">٨٤٧ مستثمر سعودي شارك في هذه الفرصة</p>
+  <div id="topInvestorsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
   <div class="investors-grid">
     <div class="inv-avatar">ع</div>
     <div class="inv-avatar">م</div>
@@ -1161,9 +1301,23 @@
   </div>
 </div>
 
+<!-- Project ratings (only renders when there are ratings) -->
+<div class="card-section" id="ratingsSection" style="display:none;">
+  <h2 class="section-h">تقييم المستثمرين</h2>
+  <div id="ratingsSummary" style="display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;"></div>
+  <div id="ratingsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  <div id="rateBox" style="display:none;margin-top:14px;padding:14px;background:#fbf8ee;border:1px dashed var(--gold);border-radius:12px;">
+    <div style="font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">قيّم هذه الفرصة</div>
+    <div id="starPicker" style="display:flex;gap:4px;margin-bottom:8px;direction:ltr;justify-content:start;"></div>
+    <textarea id="rateComment" rows="2" maxlength="1000" placeholder="ملاحظة اختيارية…" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:600 13px Tajawal,sans-serif;background:#fff;margin-bottom:6px;direction:rtl;"></textarea>
+    <button type="button" id="rateSubmit" style="background:var(--green-dark);color:#fff;border:0;border-radius:8px;padding:7px 18px;font:800 12px Cairo,sans-serif;cursor:pointer;">إرسال التقييم</button>
+  </div>
+</div>
+
 <!-- Q&A -->
 <div class="card-section">
   <h2 class="section-h">أسئلة شائعة</h2>
+  <div id="adminFaqList"></div>
   <div class="qa-item">
     <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">متى أحصل على أول دفعة من الأرباح؟</div>
     <div class="qa-a">بعد إقفال الجولة بنجاح وتوقيع كل المستثمرين، تبدأ مدة العقد رسمياً، وتُوزّع أول دفعة بعد ٩٠ يوماً (الربع الأول).</div>
@@ -1184,6 +1338,29 @@
     <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">ماذا لو لم تكتمل الجولة؟</div>
     <div class="qa-a">إذا لم نصل للمستهدف خلال ٤٥ يوماً، تُعاد كامل المبالغ للمستثمرين خلال ٣ أيام عمل دون أي رسوم.</div>
   </div>
+</div>
+
+<!-- Documents -->
+<div class="card-section">
+  <h2 class="section-h">المستندات</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">وثائق الجدوى، الفتوى الشرعية، عقد المرابحة، ووثائق الإفصاح. متاحة للمستثمرين المسجّلين.</p>
+  <div id="projectDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<!-- Community Q&A -->
+<div class="card-section">
+  <h2 class="section-h">اسأل وأجب</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px;">اطّلع على الأسئلة التي طرحها المستثمرون، أو اطرح سؤالك بنفسك ليتولّى فريق المنصّة الإجابة عليه.</p>
+  <div id="communityQList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+  <form id="askQForm" style="display:none;flex-direction:column;gap:8px;">
+    <label for="askQInput" style="font:700 12px Cairo,sans-serif;color:var(--ink);">سؤالك:</label>
+    <textarea id="askQInput" rows="3" maxlength="800" required placeholder="اطرح سؤالك حول هذه الفرصة..." style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:12px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+    <div id="askQError" style="display:none;color:var(--red);font:700 12px Tajawal,sans-serif;text-align:center;"></div>
+    <button type="submit" class="btn btn-primary" style="margin-top:4px;">إرسال السؤال</button>
+  </form>
+  <p id="askQLoginHint" style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">
+    <a href="login.html?next=/project.html" style="color:var(--green);font-weight:800;text-decoration:none;">سجّل الدخول</a> لطرح سؤال.
+  </p>
 </div>
 
 <!-- STICKY CTA -->
@@ -1262,6 +1439,12 @@
     </a>
   </div>
 </div>
+
+<!-- SIMILAR PROJECTS -->
+<div class="card-section" id="similarProjectsSection" style="display:none;">
+  <h2 class="section-h">فرص مشابهة</h2>
+  <div id="similarProjectsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+</div>
 </main>
 
 <script>
@@ -1278,6 +1461,32 @@
   }
   const slider = document.getElementById('calcSlider');
   const amtIn = document.getElementById('calcAmt');
+  // Sticky CTA scroll trigger (mobile-first): hide until past hero, then slide in
+  (() => {
+    const cta = document.querySelector('.sticky-cta');
+    if (!cta) return;
+    // Find the hero element (first big visual block)
+    const hero = document.querySelector('.header-cover, .project-hero, .stats-grid');
+    let threshold = 320;
+    if (hero) {
+      const r = hero.getBoundingClientRect();
+      threshold = (window.scrollY || 0) + r.bottom - 40;
+    }
+    cta.classList.add('hidden');
+    const onScroll = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      cta.classList.toggle('hidden', y < threshold);
+      cta.classList.toggle('scrolled', y >= threshold);
+    };
+    onScroll();
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { onScroll(); ticking = false; });
+    }, { passive: true });
+  })();
+
   function recalc(amt) {
     const yearly = amt * 0.092;
     const total = yearly * 3;
@@ -1287,6 +1496,41 @@
     document.getElementById('calcYearly').textContent = toArabic(yearly) + ' ر.س';
     document.getElementById('calcTotal').textContent = toArabic(total) + ' ر.س';
     document.getElementById('calcFinal').textContent = toArabic(final) + ' ر.س';
+    // Quarterly payout schedule (3 years = 12 quarters)
+    const sched = document.getElementById('payoutSchedule');
+    if (sched) {
+      sched.textContent = '';
+      const perQ = yearly / 4;
+      const today = new Date();
+      for (let q = 1; q <= 12; q++) {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() + q * 3);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(13,22,18,0.06);';
+        const left = document.createElement('span');
+        left.textContent = 'الربع ' + toArabic(q) + ' · ' + d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'short' });
+        const right = document.createElement('b');
+        right.style.cssText = 'color:var(--green-dark);';
+        right.textContent = '+' + toArabic(perQ) + ' ر.س';
+        row.appendChild(left); row.appendChild(right);
+        sched.appendChild(row);
+        if (q >= 6 && q < 12) row.style.display = 'none'; // collapse middle for brevity
+      }
+      // Toggle "show all"
+      if (!sched.dataset.toggleAdded) {
+        sched.dataset.toggleAdded = '1';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'عرض الجدول كاملاً ↓';
+        btn.style.cssText = 'margin-top:6px;background:transparent;border:0;color:var(--gold);font:800 11px Cairo,sans-serif;cursor:pointer;padding:4px;';
+        btn.onclick = () => {
+          const hidden = sched.querySelectorAll('div[style*="display:none"], div[style*="display: none"]');
+          if (hidden.length) { hidden.forEach(d => d.style.display = ''); btn.textContent = 'إخفاء المتوسط ↑'; }
+          else { Array.from(sched.querySelectorAll('div')).forEach((d, i) => { if (i >= 5 && i < 11) d.style.display = 'none'; }); btn.textContent = 'عرض الجدول كاملاً ↓'; }
+        };
+        sched.parentElement.appendChild(btn);
+      }
+    }
   }
   slider.addEventListener('input', e => recalc(+e.target.value));
 
@@ -1354,10 +1598,329 @@
     }
   }
 
+  async function _loadRatings(p) {
+    const sec = document.getElementById('ratingsSection');
+    if (!sec) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/ratings');
+      if (!r.ok) return;
+      const d = await r.json();
+      const me = await App.me().catch(() => null);
+      // Show the rate box if user has a completed investment in this project
+      let canRate = false;
+      if (me) {
+        try {
+          const port = await App.api('GET', '/app/portfolio');
+          canRate = (port.investments || []).some(i => i.projectId === p.id && i.status === 'completed');
+        } catch (e) {}
+      }
+      if (!d.count && !canRate) return;
+      sec.style.display = '';
+
+      const summary = document.getElementById('ratingsSummary');
+      summary.replaceChildren();
+      const big = document.createElement('div');
+      big.style.cssText = 'font:900 36px Cairo,sans-serif;color:var(--gold);text-align:center;min-width:80px;';
+      big.textContent = d.count ? d.average.toFixed(1).replace('.', '٫') : '—';
+      const right = document.createElement('div'); right.style.flex = '1';
+      const stars = document.createElement('div'); stars.style.cssText = 'font:900 18px Cairo,sans-serif;color:#d4ac6e;letter-spacing:2px;direction:ltr;';
+      const full = Math.round(d.average);
+      stars.textContent = '★'.repeat(full) + '☆'.repeat(5 - full);
+      const cnt = document.createElement('div'); cnt.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+      cnt.textContent = (d.count || 0) + ' تقييم من المستثمرين بعد اكتمال صفقاتهم';
+      right.append(stars, cnt);
+      summary.append(big, right);
+
+      const list = document.getElementById('ratingsList');
+      list.replaceChildren();
+      (d.reviews || []).forEach(rev => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;justify-content:space-between;font:700 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:4px;';
+        const who = document.createElement('span'); who.textContent = rev.display;
+        const st = document.createElement('span');
+        st.style.cssText = 'color:#d4ac6e;letter-spacing:1px;direction:ltr;';
+        const f = Math.round(rev.stars);
+        st.textContent = '★'.repeat(f) + '☆'.repeat(5 - f);
+        head.append(who, st);
+        const body = document.createElement('div'); body.style.cssText = 'font-size:13px;color:var(--ink);line-height:1.7;';
+        body.textContent = rev.comment;
+        row.append(head, body);
+        list.appendChild(row);
+      });
+
+      if (canRate) {
+        const box = document.getElementById('rateBox'); box.style.display = '';
+        const pick = document.getElementById('starPicker');
+        let chosen = 0;
+        pick.replaceChildren();
+        for (let i = 1; i <= 5; i++) {
+          const b = document.createElement('button');
+          b.type='button'; b.textContent = '☆';
+          b.style.cssText = 'background:transparent;border:0;font:900 28px Cairo,sans-serif;color:#ccc;cursor:pointer;padding:0 2px;';
+          b.onclick = () => {
+            chosen = i;
+            pick.querySelectorAll('button').forEach((x, idx) => {
+              x.textContent = idx < chosen ? '★' : '☆';
+              x.style.color = idx < chosen ? '#d4ac6e' : '#ccc';
+            });
+          };
+          pick.appendChild(b);
+        }
+        document.getElementById('rateSubmit').onclick = async () => {
+          if (!chosen) { App.toast && App.toast('اختر عدد النجوم', 'warn'); return; }
+          try {
+            await App.api('POST', '/app/projects/' + encodeURIComponent(p.slug || p.id) + '/rate', {
+              stars: chosen,
+              comment: document.getElementById('rateComment').value.trim(),
+            });
+            App.toast && App.toast('✓ شكراً لتقييمك', 'success');
+            _loadRatings(p);
+          } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        };
+      }
+    } catch (e) {}
+  }
+
+  async function _loadSimilarProjects(p) {
+    const sec = document.getElementById('similarProjectsSection');
+    const grid = document.getElementById('similarProjectsGrid');
+    if (!sec || !grid) return;
+    try {
+      const r = await fetch('/app/projects');
+      if (!r.ok) return;
+      const { projects = [] } = await r.json();
+      const peers = projects
+        .filter(x => x.id !== p.id && x.status === 'open' && (x.category === p.category || x.city === p.city))
+        .slice(0, 3);
+      if (!peers.length) return;
+      sec.style.display = '';
+      grid.replaceChildren();
+      peers.forEach(peer => {
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(peer.slug || peer.id);
+        a.style.cssText = 'display:block;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;color:inherit;transition:transform .15s;';
+        a.onmouseenter = () => a.style.transform = 'translateY(-2px)';
+        a.onmouseleave = () => a.style.transform = 'translateY(0)';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:24px;flex-shrink:0;';
+        ic.textContent = peer.image || '📦';
+        const right = document.createElement('div'); right.style.flex = '1';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);line-height:1.4;'; nm.textContent = peer.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; sub.textContent = (peer.category || '') + ' · ' + (peer.city || '');
+        right.append(nm, sub);
+        head.append(ic, right);
+        const meta = document.createElement('div');
+        meta.style.cssText = 'display:flex;justify-content:space-between;font:700 11px Tajawal,sans-serif;color:var(--muted);';
+        const rate = document.createElement('span'); rate.textContent = 'العائد ' + ((peer.profitRate || 0) * 100).toFixed(1) + '٪';
+        const term = document.createElement('span'); term.textContent = (peer.termMonths || '—') + ' شهر';
+        meta.append(rate, term);
+        a.append(head, meta);
+        grid.appendChild(a);
+      });
+    } catch (e) {}
+  }
+
+  async function _loadTopInvestors(p) {
+    const wrap = document.getElementById('topInvestorsList');
+    if (!wrap) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/top-investors');
+      if (!r.ok) return;
+      const d = await r.json();
+      wrap.replaceChildren();
+      if (!d.topInvestors.length) return;
+      const medals = ['🥇', '🥈', '🥉'];
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      d.topInvestors.slice(0, 3).forEach((row, i) => {
+        const r = document.createElement('div');
+        r.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fbf8ee;border:1px solid var(--line);border-radius:10px;';
+        const left = document.createElement('div');
+        left.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        const m = document.createElement('span'); m.style.fontSize='18px'; m.textContent = medals[i] || '';
+        const nm = document.createElement('span'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = row.display;
+        left.append(m, nm);
+        const amt = document.createElement('span');
+        amt.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--gold);';
+        amt.textContent = fmt(row.amount) + ' ر.س';
+        r.append(left, amt);
+        wrap.appendChild(r);
+      });
+    } catch (e) {}
+  }
+
+  async function _loadFundingHistory(p) {
+    const wrap = document.getElementById('fundingHistory');
+    const svg = document.getElementById('fundingChart');
+    if (!wrap || !svg) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/funding-history');
+      if (!r.ok) return;
+      const d = await r.json();
+      const pts = d.points || [];
+      if (pts.length < 2) return;
+      const W = 300, H = 60, padTop = 4;
+      const maxR = Math.max(d.goal || 0, ...pts.map(x => x.raised));
+      const firstT = new Date(pts[0].day).getTime();
+      const lastT = new Date(pts[pts.length - 1].day).getTime();
+      const span = Math.max(1, lastT - firstT);
+      const xy = pts.map(pt => {
+        const x = ((new Date(pt.day).getTime() - firstT) / span) * (W - 4) + 2;
+        const y = H - padTop - ((pt.raised / Math.max(1, maxR)) * (H - padTop - 2));
+        return [x, y];
+      });
+      svg.replaceChildren();
+      const svgNS = 'http://www.w3.org/2000/svg';
+      // Filled area path
+      const area = document.createElementNS(svgNS, 'path');
+      const dArea = 'M' + xy[0][0].toFixed(1) + ',' + H + ' L' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + ' L' + xy[xy.length-1][0].toFixed(1) + ',' + H + ' Z';
+      area.setAttribute('d', dArea);
+      area.setAttribute('fill', 'rgba(15,110,58,0.12)');
+      svg.appendChild(area);
+      // Line stroke
+      const line = document.createElementNS(svgNS, 'path');
+      line.setAttribute('d', 'M' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L'));
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#0a4d36');
+      line.setAttribute('stroke-width', '1.8');
+      line.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(line);
+      // Goal line (dashed) if defined
+      if (d.goal) {
+        const goalY = H - padTop - ((d.goal / Math.max(1, maxR)) * (H - padTop - 2));
+        const dash = document.createElementNS(svgNS, 'line');
+        dash.setAttribute('x1', '0'); dash.setAttribute('x2', String(W));
+        dash.setAttribute('y1', goalY.toFixed(1)); dash.setAttribute('y2', goalY.toFixed(1));
+        dash.setAttribute('stroke', '#b08840');
+        dash.setAttribute('stroke-dasharray', '3 3');
+        dash.setAttribute('stroke-width', '1');
+        svg.appendChild(dash);
+      }
+      const flLabel = document.getElementById('fundingHistoryFirstLast');
+      if (flLabel) flLabel.textContent = pts[0].day + ' → ' + pts[pts.length - 1].day;
+      wrap.style.display = '';
+    } catch (e) {}
+  }
+
+  async function _loadAdminFaq(p) {
+    const list = document.getElementById('adminFaqList');
+    if (!list) return;
+    list.replaceChildren();
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/faq');
+      if (!r.ok) return;
+      const d = await r.json();
+      (d.faq || []).forEach(item => {
+        const wrap = document.createElement('div');
+        wrap.className = 'qa-item';
+        const q = document.createElement('div');
+        q.className = 'qa-q';
+        q.textContent = item.question;
+        q.onclick = () => wrap.classList.toggle('open');
+        const a = document.createElement('div');
+        a.className = 'qa-a';
+        a.textContent = item.answer;
+        wrap.append(q, a);
+        list.appendChild(wrap);
+      });
+    } catch (e) {}
+  }
+
+  function _renderTimeline(p) {
+    const root = document.getElementById('statusTimeline');
+    if (!root) return;
+    const fmtD = (d) => d ? new Date(d).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+    const fundedPct = p.fundedPct || 0;
+    const status = p.status || 'open';
+    const steps = [
+      {
+        title: 'مرحلة جمع التمويل',
+        sub: fundedPct >= 100 ? 'مكتمل · ' + fmtD(p.fullyFundedAt || p.contractAt) : `جارٍ — ${fundedPct}% مكتمل من المستهدف`,
+        done: fundedPct >= 100,
+        current: fundedPct < 100 && status === 'open',
+      },
+      {
+        title: 'توقيع عقد المرابحة',
+        sub: p.contractAt ? 'مكتمل · ' + fmtD(p.contractAt) :
+             (fundedPct >= 100 ? 'قيد التحضير من فريق الشريعة' : 'يبدأ بعد اكتمال التمويل'),
+        done: !!p.contractAt,
+        current: fundedPct >= 100 && !p.contractAt,
+      },
+      {
+        title: 'تنفيذ الصفقة وشراء الأصل',
+        sub: p.executionStartAt ? 'بدأ · ' + fmtD(p.executionStartAt) :
+             (p.contractAt ? 'قيد التحضير' : 'تنبدأ بعد التوقيع'),
+        done: !!p.executionEndAt,
+        current: !!p.contractAt && !p.executionEndAt,
+      },
+      {
+        title: 'التوزيعات الربعية',
+        sub: status === 'completed' ? 'انتهت جميع التوزيعات' :
+             (p.firstDistributionAt ? 'جارية · أول توزيع ' + fmtD(p.firstDistributionAt) : 'تبدأ بعد تنفيذ الصفقة'),
+        done: status === 'completed',
+        current: !!p.executionEndAt && status !== 'completed',
+      },
+      {
+        title: 'اكتمال المشروع واسترداد رأس المال',
+        sub: status === 'completed' ? 'مكتمل · ' + fmtD(p.completedAt) :
+             (p.expectedCompletionAt ? 'متوقّع ' + fmtD(p.expectedCompletionAt) : '—'),
+        done: status === 'completed',
+        current: false,
+      },
+    ];
+    root.textContent = '';
+    steps.forEach((s, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tl-step' + (s.done ? ' done' : '') + (s.current ? ' current' : '');
+      const dot = document.createElement('div');
+      dot.className = 'tl-dot';
+      dot.textContent = s.done ? '✓' : (idx + 1);
+      const body = document.createElement('div'); body.className = 'tl-body';
+      const t = document.createElement('div'); t.className = 'tl-title'; t.textContent = s.title;
+      const sub = document.createElement('div'); sub.className = 'tl-sub'; sub.textContent = s.sub;
+      body.append(t, sub);
+      wrap.append(dot, body);
+      root.appendChild(wrap);
+    });
+  }
+
   function _renderProject(p) {
     document.title = p.name + ' — مُرابحة';
     // hide demo banner now that we have real data
     document.querySelectorAll('[role="note"][aria-label="تنبيه: نموذج توضيحي"]').forEach(el => el.style.display = 'none');
+
+    // If admin uploaded a cover image, swap the gradient for it.
+    if (p.imagePath) {
+      const banner = document.querySelector('.hero-banner');
+      if (banner) {
+        banner.classList.add('has-photo');
+        const url = '/app/public/project-image/' + encodeURIComponent(p.slug || p.id);
+        banner.style.backgroundImage = "url('" + url + "')";
+        // Make sure the OG image points to the photo too for shares.
+        document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(m => m.setAttribute('content', location.origin + url));
+      }
+    }
+
+    // Status timeline
+    _renderTimeline(p);
+
+    // Project-specific FAQ from admin
+    _loadAdminFaq(p);
+
+    // Ratings
+    _loadRatings(p);
+
+    // Funding history chart
+    _loadFundingHistory(p);
+
+    // Top investors
+    _loadTopInvestors(p);
+
+    // Similar projects
+    _loadSimilarProjects(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');
@@ -1385,6 +1948,14 @@
         tagsContainer.innerHTML += '<span class="hero-tag">⬢ عقاري</span>';
       }
       tagsContainer.innerHTML += '<span class="hero-tag shariah">☪ شرعي</span>';
+      if (p.sponsorVerified || p.sponsor?.verified) {
+        const verified = document.createElement('span');
+        verified.className = 'hero-tag';
+        verified.title = 'الراعي تحقّقت منه إدارة مُرابحة وفق سياسة التحقّق المنشورة.';
+        verified.style.cssText = 'background:rgba(15,159,94,0.18);color:#0f9f5e;border:1px solid rgba(15,159,94,0.35);font-weight:800;display:inline-flex;align-items:center;gap:4px;cursor:help;';
+        verified.textContent = '✓ راعٍ موثَّق';
+        tagsContainer.appendChild(verified);
+      }
     }
 
     // dynamic notice banner
@@ -1686,6 +2257,295 @@
     document.querySelectorAll('.timeline-tab-content').forEach(c => c.style.display = 'none');
     document.getElementById(tabId).style.display = tabId === 'amortization-table' ? 'block' : '';
   };
+
+  // ── Social sharing ──────────────────────────────────────────────
+  function _setMeta(selector, attr, value) {
+    const el = document.querySelector(selector);
+    if (el) el.setAttribute(attr, value);
+  }
+  function _updateShareMeta(p) {
+    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const rate = ((p.profitRate || 0) * 100).toFixed(1);
+    const term = p.termMonths || 12;
+    const description = p.summary
+      || `فرصة استثمار شرعية على منصة مُرابحة: عائد متوقع ${rate}٪ سنوياً لمدة ${term} شهراً. عقد مرابحة موثّق.`;
+    document.title = p.name + ' — مُرابحة';
+    _setMeta('meta[name="description"]', 'content', description);
+    _setMeta('link[rel="canonical"]', 'href', url);
+    _setMeta('meta[property="og:title"]', 'content', p.name + ' — مُرابحة');
+    _setMeta('meta[property="og:description"]', 'content', description);
+    _setMeta('meta[property="og:url"]', 'content', url);
+    _setMeta('meta[name="twitter:title"]', 'content', p.name + ' — مُرابحة');
+    _setMeta('meta[name="twitter:description"]', 'content', description);
+  }
+  function _bindShare(p) {
+    if (!p) return;
+    _updateShareMeta(p);
+    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const rate = ((p.profitRate || 0) * 100).toFixed(1);
+    const shareText = `${p.name} — فرصة استثمار شرعية على منصة مُرابحة 🌟\nالعائد المتوقع: ${rate}٪ سنوياً\n${url}`;
+    const term = p.termMonths || 12;
+    const minT = p.minTicket ? (Number(p.minTicket).toLocaleString('ar-SA') + ' ر.س.') : '٥٠٠ ر.س.';
+    const waMsg = `🌙 *${p.name}*\n*فرصة استثمار شرعية* على منصة مُرابحة\n\n` +
+                  `💰 *العائد:* ${rate}٪ سنوياً\n` +
+                  `⏱ *المدة:* ${term} شهر\n` +
+                  `🪙 *الحد الأدنى:* ${minT}\n` +
+                  `✅ مُعتمَدة من الهيئة الشرعية\n\n` +
+                  `اطّلع على التفاصيل وسجّل الآن:\n${url}`;
+    const shareCard = document.getElementById('shareCard');
+    if (!shareCard) return;
+
+    const wa = document.getElementById('shareWhatsappBtn');
+    const tw = document.getElementById('shareTwitterBtn');
+    const tg = document.getElementById('shareTelegramBtn');
+    const cp = document.getElementById('shareCopyBtn');
+    const nv = document.getElementById('shareNativeBtn');
+
+    if (wa) wa.onclick = () => { window.open('https://wa.me/?text=' + encodeURIComponent(waMsg), '_blank', 'noopener'); _trackShare('whatsapp'); };
+    if (tw) tw.onclick = () => { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText), '_blank', 'noopener'); _trackShare('twitter'); };
+    if (tg) tg.onclick = () => { window.open('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(`${p.name} — فرصة استثمار شرعية على منصة مُرابحة\nالعائد المتوقع: ${rate}٪ سنوياً`), '_blank', 'noopener'); _trackShare('telegram'); };
+    if (cp) cp.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        cp.classList.add('copied');
+        App.toast && App.toast('تم نسخ الرابط', 'success');
+        setTimeout(() => cp.classList.remove('copied'), 1500);
+        _trackShare('copy_link');
+      } catch (e) { App.toast && App.toast('تعذّر نسخ الرابط', 'error'); }
+    };
+    if (nv && typeof navigator.share === 'function') {
+      nv.style.display = 'inline-flex';
+      nv.onclick = async () => {
+        try {
+          await navigator.share({ title: p.name + ' — مُرابحة', text: shareText, url });
+          _trackShare('native');
+        } catch (e) { /* user cancelled */ }
+      };
+    }
+
+    if (typeof p.shareCount === 'number' && p.shareCount > 0) {
+      const lbl = document.getElementById('shareCountLabel');
+      if (lbl) lbl.textContent = `${p.shareCount} مشاركة حتى الآن`;
+      const badge = document.getElementById('shareCountBadge');
+      if (badge) {
+        badge.style.display = 'inline-block';
+        badge.textContent = '★ ' + p.shareCount + ' مشاركة';
+      }
+    }
+
+    // Favorite (auth users only)
+    const favBtn = document.getElementById('favBtn');
+    const me = App.me && App.me();
+    if (favBtn && me && me.id) {
+      favBtn.style.display = 'inline-flex';
+      const setSaved = (saved) => {
+        favBtn.title = saved ? 'محفوظ — اضغط لإزالته' : 'حفظ';
+        favBtn.setAttribute('aria-label', favBtn.title);
+        favBtn.style.background = saved ? '#fff3cd' : '';
+        favBtn.style.borderColor = saved ? '#d4ac6e' : '';
+        favBtn.style.color = saved ? '#b08840' : '';
+        const ic = document.getElementById('favIcon');
+        if (ic) ic.setAttribute('fill', saved ? '#d4ac6e' : 'none');
+      };
+      fetch('/app/me/favorites', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : { ids: [] })
+        .then(d => setSaved((d.ids || []).includes(p.id)))
+        .catch(() => {});
+      favBtn.onclick = async () => {
+        try {
+          const r = await App.csrfFetch('/app/me/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: p.id })
+          });
+          const d = await r.json();
+          if (r.ok) { setSaved(!!d.saved); App.toast && App.toast(d.saved ? 'تمت إضافة الفرصة إلى المحفوظات' : 'تم الحذف من المحفوظات', 'success'); }
+        } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+      };
+    }
+
+    // Follow (auth users only)
+    const followBtn = document.getElementById('followBtn');
+    if (followBtn && me && me.id) {
+      followBtn.style.display = 'inline-flex';
+      const setFollowed = (on) => {
+        followBtn.title = on ? 'تتابع — اضغط لإلغاء المتابعة' : 'متابعة المشروع';
+        followBtn.setAttribute('aria-label', followBtn.title);
+        followBtn.style.background = on ? '#eaf3ee' : '';
+        followBtn.style.borderColor = on ? '#0a4d36' : '';
+        followBtn.style.color = on ? '#0a4d36' : '';
+      };
+      fetch('/app/me/follows', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : { ids: [] })
+        .then(d => setFollowed((d.ids || []).includes(p.id)))
+        .catch(() => {});
+      followBtn.onclick = async () => {
+        try {
+          const r = await App.csrfFetch('/app/me/follows/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: p.id })
+          });
+          const d = await r.json();
+          if (r.ok) { setFollowed(!!d.following); App.toast && App.toast(d.following ? 'ستصلك تحديثات هذا المشروع' : 'لن تصلك تحديثات هذا المشروع', 'success'); }
+        } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+      };
+    }
+  }
+  function _trackShare(channel) {
+    const id = (_currentProject && (_currentProject.slug || _currentProject.id)) || App.qs('id');
+    if (!id) return;
+    fetch('/app/projects/' + encodeURIComponent(id) + '/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel }),
+    }).catch(() => {});
+  }
+
+  // ── Project documents ─────────────────────────────────────────
+  async function _loadDocs(projectIdOrSlug) {
+    const list = document.getElementById('projectDocsList');
+    if (!list) return;
+    list.replaceChildren();
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/documents');
+      const me = await App.me();
+      if (!r.documents.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
+        e.textContent = 'لا توجد مستندات متاحة بعد.';
+        list.appendChild(e); return;
+      }
+      r.documents.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const icon = document.createElement('div');
+        icon.style.cssText = 'width:36px;height:36px;background:var(--paper);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gold);font:800 12px Cairo,sans-serif;flex-shrink:0;';
+        icon.textContent = 'PDF';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = d.title;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        meta.textContent = (d.size / 1024).toFixed(1) + ' KB';
+        info.append(t, meta);
+        row.append(icon, info);
+        if (me) {
+          const link = document.createElement('a');
+          link.href = '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/documents/' + d.id;
+          link.target = '_blank'; link.rel = 'noopener';
+          link.style.cssText = 'background:var(--green);color:#fff;padding:8px 14px;border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;';
+          link.textContent = '⬇ تحميل';
+          row.appendChild(link);
+        } else {
+          const hint = document.createElement('a');
+          hint.href = 'login.html?next=/project.html';
+          hint.style.cssText = 'color:var(--muted);font:600 12px Tajawal,sans-serif;text-decoration:none;';
+          hint.textContent = 'سجّل الدخول للتحميل';
+          row.appendChild(hint);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
+  // ── Community Q&A ─────────────────────────────────────────────
+  async function _loadQuestions(projectIdOrSlug) {
+    const list = document.getElementById('communityQList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/questions');
+      list.replaceChildren();
+      if (!r.questions.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
+        e.textContent = 'لا توجد أسئلة بعد. كن أوّل من يسأل!';
+        list.appendChild(e);
+        return;
+      }
+      r.questions.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);';
+        const qt = document.createElement('div');
+        qt.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+        qt.textContent = '❓ ' + q.question;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        meta.textContent = (q.askerName || 'مستثمر') + ' · ' + new Date(q.createdAt).toLocaleDateString('ar-SA');
+        row.append(qt, meta);
+        if (q.answer) {
+          const ans = document.createElement('div');
+          ans.style.cssText = 'background:#fff;padding:12px;border-radius:10px;border-inline-start:3px solid var(--green);font-size:13px;color:var(--ink);line-height:1.7;';
+          const lbl = document.createElement('div');
+          lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green);margin-bottom:4px;';
+          lbl.textContent = '✓ إجابة فريق المنصّة';
+          const body = document.createElement('div');
+          body.textContent = q.answer;
+          ans.append(lbl, body);
+          row.appendChild(ans);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      const x = document.createElement('div');
+      x.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+      x.textContent = 'تعذّر تحميل الأسئلة.';
+      list.appendChild(x);
+    }
+  }
+  async function _initQa(p) {
+    const id = p.slug || p.id;
+    await _loadQuestions(id);
+    const me = await App.me();
+    const form = document.getElementById('askQForm');
+    const hint = document.getElementById('askQLoginHint');
+    if (me) { form.style.display = 'flex'; hint.style.display = 'none'; }
+    else    { form.style.display = 'none'; hint.style.display = 'block'; }
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = '1';
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = document.getElementById('askQInput');
+        const err = document.getElementById('askQError');
+        const text = input.value.trim();
+        if (text.length < 5) { err.textContent = 'يرجى كتابة سؤال أوضح.'; err.style.display='block'; return; }
+        err.style.display = 'none';
+        try {
+          await App.api('POST', '/app/projects/' + encodeURIComponent(id) + '/questions', { question: text });
+          App.toast('تم إرسال سؤالك. سنرد خلال ٢٤-٤٨ ساعة.', 'success');
+          input.value = '';
+        } catch (e2) {
+          err.textContent = e2.message || 'تعذّر الإرسال.'; err.style.display = 'block';
+        }
+      });
+    }
+  }
+
+  // Bind sharing once the project is loaded
+  const _origRender = _renderProject;
+  function _emitProductSchema(p) {
+    // Replace any prior FinancialProduct JSON-LD we injected so re-render
+    // doesn't pile up.
+    document.querySelectorAll('script[data-mrb-product]').forEach(n => n.remove());
+    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "FinancialProduct",
+      "name": p.name,
+      "description": p.summary || ('فرصة استثمار شرعية. عائد متوقع ' + ((p.profitRate || 0) * 100).toFixed(1) + '٪ سنوياً لمدة ' + (p.termMonths || 12) + ' شهراً.'),
+      "url": url,
+      "category": p.category || 'مرابحة',
+      "provider": { "@type": "FinancialService", "name": "منصة مُرابحة", "@id": "https://murbha.sa/#organization" },
+      "feesAndCommissionsSpecification": "بدون رسوم على المستثمر",
+      "interestRate": { "@type": "QuantitativeValue", "value": ((p.profitRate || 0) * 100).toFixed(2), "unitText": "PERCENT_PER_YEAR" },
+      "termsOfService": p.shariaApproval || 'اعتماد الهيئة الشرعية المستقلة'
+    };
+    const s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.dataset.mrbProduct = '1';
+    s.textContent = JSON.stringify(data);
+    document.head.appendChild(s);
+  }
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} };
 
   // kick off
   _loadProject();
