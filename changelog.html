@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>سجلّ التحديثات — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e;
+    --gold: #b08840; --gold-light: #d4ac6e;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); padding: 24px 18px 80px; max-width: 760px; margin: 0 auto; }
+  .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .crumbs a { color: var(--green-dark); text-decoration: none; font-weight: 700; }
+  h1 { font: 900 26px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 6px; }
+  .lede { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.8; }
+  .timeline { position: relative; padding-inline-start: 22px; }
+  .timeline::before { content: ''; position: absolute; inset-inline-start: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--gold-light); border-radius: 1px; }
+  .entry { position: relative; margin-bottom: 22px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .entry::before { content: ''; position: absolute; inset-inline-start: -22px; top: 22px; width: 14px; height: 14px; background: var(--green-dark); border: 3px solid var(--paper); border-radius: 50%; }
+  .entry .date { font: 800 12px 'SF Mono',Menlo,monospace; color: var(--gold); direction: ltr; margin-bottom: 6px; }
+  .entry h3 { font: 800 16px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 6px; }
+  .entry p { font-size: 14px; color: var(--ink); line-height: 1.8; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font: 800 10px Cairo,sans-serif; margin-inline-end: 6px; }
+  .pill.feat { background: rgba(15,110,58,0.12); color: #0f6e3a; }
+  .pill.fix { background: rgba(176,136,64,0.16); color: #7a5a10; }
+  .pill.sec { background: rgba(181,73,53,0.12); color: #b54935; }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / سجلّ التحديثات</div>
+<h1>سجلّ التحديثات</h1>
+<p class="lede">كل تحديث جديد على المنصة — من الميزات الكبيرة إلى الإصلاحات الصغيرة. مرتَّب من الأحدث إلى الأقدم.</p>
+
+<div id="timeline" class="timeline">
+  <div class="empty">جارٍ التحميل…</div>
+</div>
+
+<script>
+(async () => {
+  const tl = document.getElementById('timeline');
+  const seed = [
+    { date: '2026-06-04', kind: 'feat', title: 'الوضع الداكن، المحفوظات، رموز احتياط 2FA', body: 'إضافات على تفضيلات المستخدم: تبديل الوضع الداكن، حفظ الفرص (★)، توليد ٨ رموز احتياط للمصادقة الثنائية، صفحة مقارنة الفرص، وحزمة الإعلام.' },
+    { date: '2026-05-28', kind: 'feat', title: 'الإشعارات الفورية وأسئلة المشاريع', body: 'دعم Server-Sent Events لتحديثات مباشرة، وإطلاق ميزة الأسئلة والأجوبة داخل صفحة كل مشروع.' },
+    { date: '2026-05-20', kind: 'feat', title: 'الامتثال PDPL + تصنيف المستثمرين', body: 'تصدير/حذف البيانات الشخصية، توقيع الشروط، وتطبيق سقوف المستثمر الفرد وفق ضوابط ساما (٥٠ ألف للصفقة، ٢٠٠ ألف سنوياً).' },
+    { date: '2026-05-12', kind: 'sec', title: 'حماية أعمق: CSRF + إعادة تعيين كلمة المرور + TOTP للإدارة', body: 'ملف تعريف ارتباط مزدوج CSRF، تدفّق إعادة تعيين كلمة المرور بمعدّل محدود، وتفعيل المصادقة الثنائية للمسؤولين.' },
+    { date: '2026-05-01', kind: 'feat', title: 'طرق الدفع + رفع وثائق KYC', body: 'بطاقات وهمية + مزوّد HyperPay، رفع وثائق الهوية بفحص magic-byte، وتخزين Postgres اختياري.' },
+    { date: '2026-04-20', kind: 'feat', title: 'الإطلاق التجريبي', body: 'تفعيل الإعلام الفعلي عبر Resend، تكامل واجهات المسؤول، والصفحات القانونية الأساسية.' },
+  ];
+
+  let admin = [];
+  try {
+    const r = await fetch('/app/announcements', { credentials: 'same-origin' });
+    if (r.ok) {
+      const d = await r.json();
+      admin = (d.announcements || d.items || []).map(a => ({
+        date: (a.createdAt || a.publishAt || '').slice(0, 10),
+        kind: 'feat',
+        title: a.title || 'إعلان',
+        body: a.body || a.bodyEn || '',
+      })).filter(a => a.date && a.title);
+    }
+  } catch (e) {}
+
+  const all = [...admin, ...seed].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  tl.textContent = '';
+  if (!all.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty'; empty.textContent = 'لا توجد تحديثات بعد.';
+    tl.appendChild(empty); return;
+  }
+
+  const labelFor = (k) => k === 'sec' ? 'أمن' : (k === 'fix' ? 'إصلاح' : 'ميزة');
+  all.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'entry';
+    const d = document.createElement('div'); d.className = 'date'; d.textContent = e.date;
+    const h = document.createElement('h3');
+    const pill = document.createElement('span');
+    pill.className = 'pill ' + (e.kind || 'feat');
+    pill.textContent = labelFor(e.kind);
+    h.appendChild(pill);
+    h.appendChild(document.createTextNode(e.title));
+    const p = document.createElement('p'); p.textContent = e.body;
+    div.appendChild(d); div.appendChild(h); div.appendChild(p);
+    tl.appendChild(div);
+  });
+})();
+</script>
+</body>
+</html>

@@ -2511,6 +2511,51 @@
 
 </main>
 
+<!-- NEWSLETTER -->
+<section style="padding:36px 22px;background:#062b1e;color:#fbf6ea;text-align:center;">
+  <div style="max-width:480px;margin:0 auto;">
+    <div style="font:900 18px Cairo,sans-serif;color:#d4ac6e;margin-bottom:6px;" data-en="Stay informed">ابقَ على اطّلاع</div>
+    <p style="font-size:14px;line-height:1.7;color:rgba(251,246,234,0.7);margin-bottom:16px;" data-en="One monthly recap: new opportunities, completed deals, and platform updates. No spam.">ملخّص شهري واحد: فرص جديدة، صفقات مكتملة، تحديثات المنصة. بدون إزعاج.</p>
+    <form id="nlForm" style="display:flex;gap:6px;background:#fff;border-radius:999px;padding:5px;align-items:center;">
+      <input id="nlEmail" type="email" required placeholder="بريدك الإلكتروني" style="flex:1;padding:10px 16px;border:0;background:transparent;font:600 14px Tajawal,sans-serif;color:#0d1612;direction:ltr;text-align:start;outline:none;" />
+      <button type="submit" style="padding:10px 22px;background:#0a4d36;color:#fff;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;" data-en="Subscribe">اشترك</button>
+    </form>
+    <div id="nlMsg" style="margin-top:10px;font-size:12px;color:#d4ac6e;min-height:18px;"></div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const form = document.getElementById('nlForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('nlEmail').value.trim();
+    const msg = document.getElementById('nlMsg');
+    msg.textContent = '';
+    if (!email) { msg.textContent = 'الرجاء إدخال البريد'; return; }
+    try {
+      const r = await fetch('/app/newsletter/subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'hessa_footer' }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        msg.textContent = d.already ? 'مشترك بالفعل — شكراً' : '✓ تم الاشتراك — تحقّق من بريدك';
+        msg.style.color = '#e8d3a8';
+        document.getElementById('nlEmail').value = '';
+      } else {
+        msg.textContent = d.error === 'invalid_email' ? 'البريد غير صحيح' : 'تعذّر الاشتراك';
+        msg.style.color = '#fca5a5';
+      }
+    } catch (err) {
+      msg.textContent = 'تعذّر الاتصال — حاول لاحقاً';
+      msg.style.color = '#fca5a5';
+    }
+  });
+})();
+</script>
+
 <!-- FOOTER -->
 <footer>
   <div class="logo">
