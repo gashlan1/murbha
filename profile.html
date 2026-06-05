@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Next payouts -->
+  <div class="settings-group" id="nextPaySec" style="display:none;">
+    <div class="settings-h">💸 توزيعاتك القادمة</div>
+    <div style="padding:14px 18px;">
+      <div id="nextPayHero" style="background:linear-gradient(135deg,#0f6e3a,#0a4d36);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="nextPayList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Milestones -->
   <div class="settings-group" id="milestoneSec" style="display:none;">
     <div class="settings-h">🎖 إنجازاتك</div>
@@ -3083,6 +3092,42 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Next payouts
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/next-payouts');
+      if (!r.hasData) return;
+      const sec = document.getElementById('nextPaySec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('nextPayHero');
+      hero.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '💰';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 28px Cairo,sans-serif;color:#d4ac6e;margin:8px 0 4px;';
+      big.textContent = fmt(r.next30DaysTotal) + ' ر.س';
+      const desc = document.createElement('div'); desc.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.92;';
+      desc.textContent = 'متوقّع خلال ٣٠ يوماً (' + r.next30DaysCount + ' دفعة)';
+      hero.append(ic, big, desc);
+      const list = document.getElementById('nextPayList');
+      list.replaceChildren();
+      r.upcoming.forEach(p => {
+        const row = document.createElement('a');
+        row.href = '/project?slug=' + encodeURIComponent(p.slug);
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-decoration:none;color:inherit;';
+        const left = document.createElement('div');
+        const name = document.createElement('div'); name.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; name.textContent = p.projectName;
+        const days = document.createElement('div'); days.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+        days.textContent = p.daysRemaining === 0 ? 'اليوم' : ('خلال ' + p.daysRemaining + ' يوماً');
+        left.append(name, days);
+        const right = document.createElement('div'); right.style.cssText = 'font:900 13px Cairo,sans-serif;color:#0f6e3a;text-align:end;';
+        right.textContent = '+' + fmt(p.amount) + ' ر.س';
+        row.append(left, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();

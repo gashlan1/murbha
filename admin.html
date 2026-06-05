@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- TIME TO FIRST INVESTMENT -->
+  <div class="admin-card" id="ttfiHistCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏱ توزيع الوقت حتّى أوّل استثمار</span>
+      <span class="card-h-sub" id="ttfiHistBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="ttfiHistChart" style="display:flex;align-items:flex-end;gap:6px;height:140px;margin-bottom:8px;"></div>
+      <div id="ttfiHistLegend" style="display:flex;justify-content:space-between;font:600 10px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- RETENTION COHORT -->
   <div class="admin-card" id="retCohCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3556,6 +3568,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadTtfiHist() {
+    const chart = document.getElementById('ttfiHistChart');
+    const legend = document.getElementById('ttfiHistLegend');
+    const badge = document.getElementById('ttfiHistBadge');
+    if (!chart) return;
+    try {
+      const r = await App.api('GET', '/app/admin/ttfi-histogram');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = 'متوسّط: ' + r.avgDays + ' يوم';
+      chart.replaceChildren();
+      legend.replaceChildren();
+      const max = Math.max(1, ...r.buckets.map(b => b.count));
+      r.buckets.forEach(b => {
+        const col = document.createElement('div'); col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;';
+        const bar = document.createElement('div');
+        const color = b === r.medianBucket ? '#0f6e3a' : '#b08840';
+        bar.style.cssText = 'width:100%;height:' + Math.max(4, (b.count / max) * 100) + '%;background:' + color + ';border-radius:4px 4px 0 0;';
+        bar.title = b.label + ' — ' + b.count + ' مستخدم';
+        const v = document.createElement('div'); v.style.cssText = 'font:800 10px Cairo,sans-serif;color:' + color + ';'; v.textContent = b.count;
+        col.append(bar, v);
+        chart.appendChild(col);
+        const lb = document.createElement('div'); lb.style.cssText = 'flex:1;text-align:center;'; lb.textContent = b.label;
+        legend.appendChild(lb);
+      });
+    } catch (e) {}
+  }
+
   async function loadRetCoh() {
     const kpis = document.getElementById('retCohKpis');
     const funnel = document.getElementById('retCohFunnel');
@@ -9408,7 +9447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
