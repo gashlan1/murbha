@@ -2634,7 +2634,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
   if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
 
-  // ── Project clone (bulk action on any cached project) ─────────
+  // ── Project clone + archive (bulk actions) ─────────
   async function cloneProject(projectId) {
     if (!confirm('نسخ المشروع كمسوّدة جديدة؟')) return;
     try {
@@ -2643,25 +2643,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadProjectsForDocs();
     } catch (e) { alert(e.message || 'فشل النسخ'); }
   }
-  // Expose globally so any project list elsewhere can call it.
+  async function archiveProject(projectId, archive) {
+    if (!confirm(archive ? 'أرشفة هذا المشروع وإخفاؤه من القائمة العامة؟' : 'إعادة نشر هذا المشروع؟')) return;
+    try {
+      await App.api('POST', '/app/admin/projects/' + encodeURIComponent(projectId) + '/archive', { archive });
+      App.toast && App.toast(archive ? '✓ تمت الأرشفة' : '✓ تمت إعادة النشر', 'success');
+      loadProjectsForDocs();
+    } catch (e) { alert(e.message || 'فشل'); }
+  }
   window.cloneProject = cloneProject;
+  window.archiveProject = archiveProject;
 
-  // Add a "نسخ" button next to the project selector for the currently-selected one.
   document.addEventListener('change', (e) => {
     if (e.target?.id !== 'pdProject') return;
-    let cloneBtn = document.getElementById('cloneSelectedProjectBtn');
+    document.getElementById('cloneSelectedProjectBtn')?.remove();
+    document.getElementById('archiveSelectedProjectBtn')?.remove();
     const slug = e.target.value;
-    if (!slug) { if (cloneBtn) cloneBtn.remove(); return; }
+    if (!slug) return;
     const project = _projectCache.find(p => (p.slug || p.id) === slug);
-    if (!cloneBtn) {
-      cloneBtn = document.createElement('button');
-      cloneBtn.id = 'cloneSelectedProjectBtn';
-      cloneBtn.type = 'button';
-      cloneBtn.style.cssText = 'margin-inline-start:8px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
-      cloneBtn.textContent = '📋 نسخ المشروع';
-      e.target.after(cloneBtn);
-    }
-    cloneBtn.onclick = () => project && cloneProject(project.id);
+    if (!project) return;
+    const cloneBtn = document.createElement('button');
+    cloneBtn.id = 'cloneSelectedProjectBtn';
+    cloneBtn.type = 'button';
+    cloneBtn.style.cssText = 'margin-inline-start:8px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    cloneBtn.textContent = '📋 نسخ';
+    cloneBtn.onclick = () => cloneProject(project.id);
+    const archBtn = document.createElement('button');
+    archBtn.id = 'archiveSelectedProjectBtn';
+    archBtn.type = 'button';
+    const isArchived = project.archived;
+    archBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border:1px solid ' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    archBtn.textContent = isArchived ? '↺ إعادة النشر' : '📦 أرشفة';
+    archBtn.onclick = () => archiveProject(project.id, !isArchived);
+    e.target.after(cloneBtn, archBtn);
   });
 
   // ── Project documents ─────────────────────────────────────────

@@ -1930,6 +1930,70 @@
   }
 </style>
 
+<!-- LIVE PLATFORM STATS -->
+<section style="background:#fbf6ea;padding:32px 22px;border-top:1px solid rgba(13,22,18,0.06);">
+  <div style="max-width:1080px;margin:0 auto;text-align:center;">
+    <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;margin-bottom:14px;" data-en="ON MURBHA — RIGHT NOW">على مُرابحة — الآن</span>
+    <div id="liveStatsGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px;">
+      <div class="lstat"><div class="v" id="lst-investors">0</div><div class="l" data-en="investors">مستثمر</div></div>
+      <div class="lstat"><div class="v" id="lst-deals">0</div><div class="l" data-en="completed deals">صفقة منفّذة</div></div>
+      <div class="lstat"><div class="v" id="lst-projects">0</div><div class="l" data-en="open projects">فرصة مفتوحة</div></div>
+      <div class="lstat"><div class="v" id="lst-capital">0</div><div class="l" data-en="SAR deployed">ر.س مُوظَّفة</div></div>
+    </div>
+  </div>
+</section>
+<style>
+  .lstat { background:#fff; border:1px solid rgba(13,22,18,0.08); border-radius:14px; padding:18px 12px; }
+  .lstat .v { font:900 28px Cairo,sans-serif; color:#062b1e; font-variant-numeric:tabular-nums; }
+  .lstat .l { font:700 11px Cairo,sans-serif; color:#6b7268; margin-top:4px; }
+  @media (max-width:720px) { #liveStatsGrid { grid-template-columns:1fr 1fr !important; gap:8px; } .lstat .v { font-size:22px; } }
+</style>
+<script>
+(() => {
+  const animate = (el, to, duration) => {
+    const start = Date.now();
+    const from = 0;
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const step = () => {
+      const p = Math.min(1, (Date.now() - start) / duration);
+      const v = Math.round(from + (to - from) * ease(p));
+      el.textContent = v.toLocaleString('ar-SA');
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const fmtBig = (n) => {
+    if (n >= 1_000_000) return (Math.round(n / 100_000) / 10).toLocaleString('ar-SA') + 'M';
+    if (n >= 1_000) return Math.round(n / 1000).toLocaleString('ar-SA') + 'K';
+    return n.toLocaleString('ar-SA');
+  };
+  const load = async () => {
+    try {
+      const r = await fetch('/app/public/platform-stats');
+      if (!r.ok) return;
+      const d = await r.json();
+      const grid = document.getElementById('liveStatsGrid');
+      if (!grid) return;
+      // Only animate on first paint; on revisits just snap to value.
+      const first = !grid.dataset.populated;
+      grid.dataset.populated = '1';
+      if (first) {
+        animate(document.getElementById('lst-investors'), d.investors || 0, 1200);
+        animate(document.getElementById('lst-deals'), d.deals || 0, 1200);
+        animate(document.getElementById('lst-projects'), d.openProjects || 0, 900);
+      } else {
+        document.getElementById('lst-investors').textContent = (d.investors || 0).toLocaleString('ar-SA');
+        document.getElementById('lst-deals').textContent = (d.deals || 0).toLocaleString('ar-SA');
+        document.getElementById('lst-projects').textContent = (d.openProjects || 0).toLocaleString('ar-SA');
+      }
+      document.getElementById('lst-capital').textContent = fmtBig(d.totalCapital || 0);
+    } catch (e) {}
+  };
+  load();
+  setInterval(load, 60000); // refresh every minute
+})();
+</script>
+
 <!-- LIVE DEAL TICKER -->
 <section style="background:#062b1e;color:#fbf6ea;padding:14px 0;overflow:hidden;border-top:1px solid rgba(212,172,110,0.18);border-bottom:1px solid rgba(212,172,110,0.18);">
   <div style="display:flex;align-items:center;gap:18px;padding:0 22px;">
