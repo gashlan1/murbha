@@ -1514,6 +1514,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Contract signing speed -->
+<div class="card-section" id="signSpeedCard" style="display:none;">
+  <h2 class="section-h">✍️ سرعة توقيع العقود</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">كم يستغرق المستثمرون لتوقيع عقد المرابحة بعد إنشائه؟</p>
+  <div id="signSpeedKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+  <div id="signSpeedList" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
 <!-- Investor types -->
 <div class="card-section" id="invTypesCard" style="display:none;">
   <h2 class="section-h">👥 أنواع المستثمرين</h2>
@@ -4359,6 +4367,51 @@
     recalc();
   }
 
+  async function _loadSignSpeed(slug) {
+    const card = document.getElementById('signSpeedCard');
+    const kpis = document.getElementById('signSpeedKpis');
+    const list = document.getElementById('signSpeedList');
+    if (!card || !kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/signing-speed');
+      if (!r.signedCount || r.signedCount < 3) { card.style.display = 'none'; return; }
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('وسيط الوقت', r.medianMinutes + ' دق', '#0f6e3a'),
+        mk('متوسط الوقت', r.avgMinutes + ' دق', '#b08840'),
+        mk('< ٥ دقائق', r.under5minPct + '٪', '#0a4d36'),
+        mk('عقود مُوقَّعة', r.signedCount, '#062b1e'),
+      );
+      list.replaceChildren();
+      const items = r.buckets || [];
+      const max = Math.max(...items.map(b => b.count), 1);
+      const palette = ['#0f6e3a', '#0a4d36', '#b08840', '#d97706', '#c54a3a'];
+      items.forEach((b, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = b.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((b.count / max) * 100) + '%;background:' + palette[i % palette.length] + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:70px;';
+        meta.textContent = b.count + ' · ' + b.pct + '٪';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadInvTypes(slug) {
     const card = document.getElementById('invTypesCard');
     const list = document.getElementById('invTypesList');
@@ -4633,7 +4686,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setMomentum(slug) {
     const badge = document.getElementById('momentumBadge');
