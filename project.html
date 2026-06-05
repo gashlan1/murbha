@@ -645,7 +645,11 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    transform: translateY(0);
+    transition: transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s;
   }
+  .sticky-cta.hidden { transform: translateY(110%); }
+  .sticky-cta.scrolled { box-shadow: 0 -8px 28px rgba(0,0,0,0.10); }
   .cta-info {
     flex: 1;
     min-width: 0;
@@ -1389,6 +1393,32 @@
   }
   const slider = document.getElementById('calcSlider');
   const amtIn = document.getElementById('calcAmt');
+  // Sticky CTA scroll trigger (mobile-first): hide until past hero, then slide in
+  (() => {
+    const cta = document.querySelector('.sticky-cta');
+    if (!cta) return;
+    // Find the hero element (first big visual block)
+    const hero = document.querySelector('.header-cover, .project-hero, .stats-grid');
+    let threshold = 320;
+    if (hero) {
+      const r = hero.getBoundingClientRect();
+      threshold = (window.scrollY || 0) + r.bottom - 40;
+    }
+    cta.classList.add('hidden');
+    const onScroll = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      cta.classList.toggle('hidden', y < threshold);
+      cta.classList.toggle('scrolled', y >= threshold);
+    };
+    onScroll();
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { onScroll(); ticking = false; });
+    }, { passive: true });
+  })();
+
   function recalc(amt) {
     const yearly = amt * 0.092;
     const total = yearly * 3;

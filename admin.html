@@ -721,6 +721,7 @@
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <button id="bulkApproveBtn" disabled style="padding:8px 14px;border:0;border-radius:8px;background:#0f6e3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✓ موافقة على المحدد</button>
         <button id="bulkRejectBtn"  disabled style="padding:8px 14px;border:0;border-radius:8px;background:#c54a3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✗ رفض المحدد</button>
+        <button id="exportUsersCsvBtn" type="button" style="padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:var(--green-dark);font:800 12px Cairo,sans-serif;cursor:pointer;">⬇ تصدير CSV</button>
         <label style="display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--muted);margin-inline-start:auto;cursor:pointer;">
           <input type="checkbox" id="userSelectAll" style="accent-color:var(--green);" /> تحديد الكل
         </label>
@@ -1078,6 +1079,12 @@
     <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
       <div>
         <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">سجل الإجراءات الإدارية</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <input id="auditQ" type="search" placeholder="بحث (إجراء/هدف/منفّذ)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input id="auditAction" type="text" placeholder="action (مثال: admin.user.suspend)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px 'SF Mono',Menlo,monospace;direction:ltr;" />
+          <input id="auditFrom" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input id="auditTo" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
         <div id="auditList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
           <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
         </div>
@@ -1635,8 +1642,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const auditList = document.getElementById('auditList');
     const loginList = document.getElementById('loginList');
     try {
+      const auditParams = new URLSearchParams({ limit: '50' });
+      const q = document.getElementById('auditQ')?.value.trim();
+      const action = document.getElementById('auditAction')?.value.trim();
+      const from = document.getElementById('auditFrom')?.value;
+      const to = document.getElementById('auditTo')?.value;
+      if (q) auditParams.set('q', q);
+      if (action) auditParams.set('action', action);
+      if (from) auditParams.set('from', from);
+      if (to) auditParams.set('to', to);
       const [{ entries }, { attempts }] = await Promise.all([
-        App.api('GET', '/app/admin/audit-log?limit=50'),
+        App.api('GET', '/app/admin/audit-log?' + auditParams.toString()),
         App.api('GET', '/app/admin/login-attempts?limit=50'),
       ]);
       auditList.replaceChildren();
@@ -1653,6 +1669,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         row.append(t, sub);
         auditList.appendChild(row);
       });
+      // Live filter listeners (idempotent attach)
+      if (!loadAudit._listenersAttached) {
+        loadAudit._listenersAttached = true;
+        let t;
+        const fire = () => { clearTimeout(t); t = setTimeout(loadAudit, 250); };
+        ['auditQ','auditAction','auditFrom','auditTo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', fire);
+        });
+      }
       loginList.replaceChildren();
       if (!attempts.length) { loginList.appendChild(_emptyNode('لا توجد محاولات')); }
       else attempts.forEach(a => {
@@ -1881,6 +1907,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   userStatus.addEventListener('change', loadUsers);
   userKyc.addEventListener('change', loadUsers);
+
+  document.getElementById('exportUsersCsvBtn')?.addEventListener('click', () => {
+    const params = new URLSearchParams();
+    if (userSearch.value.trim()) params.set('q', userSearch.value.trim());
+    if (userStatus.value) params.set('status', userStatus.value);
+    if (userKyc.value)    params.set('kyc', userKyc.value);
+    location.href = '/app/admin/users.csv' + (params.toString() ? '?' + params.toString() : '');
+  });
   selAll.addEventListener('change', () => {
     usersList.querySelectorAll('input[type=checkbox]').forEach(cb => {
       if (cb.disabled) return;
