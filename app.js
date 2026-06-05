@@ -16,13 +16,147 @@
 (function () {
   'use strict';
 
+  // ─── CSRF helper ────────────────────────────────────────────────
+  const _readCookie = (name) => {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  // One-time bootstrap: ensure the CSRF cookie is set before any state-changing call.
+  let _csrfReady = null;
+  const _ensureCsrf = async () => {
+    if (_readCookie('mrb_csrf')) return;
+    if (!_csrfReady) {
+      _csrfReady = fetch('/healthz', { credentials: 'same-origin' }).catch(() => {});
+    }
+    await _csrfReady;
+  };
+
+  // ─── Platform settings auto-populate ────────────────────────────
+  // Any element with data-setting="path" gets its textContent replaced
+  // with the live value from /app/settings. Path is dot-delimited:
+  //   data-setting="support.hotline"  → settings.support.hotline
+  //   data-setting="social.twitter"   → settings.social.twitter
+  // Tel/mailto hrefs containing the same path get their href rewritten too.
+  let _settingsCache = null;
+  const _fetchSettings = async () => {
+    if (_settingsCache) return _settingsCache;
+    try {
+      const r = await fetch('/app/settings', { credentials: 'same-origin' });
+      if (r.ok) _settingsCache = await r.json();
+    } catch (e) {}
+    return _settingsCache;
+  };
+  const _readPath = (obj, path) => path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+  const _applySettings = (settings) => {
+    if (!settings) return;
+    document.querySelectorAll('[data-setting]').forEach(el => {
+      const v = _readPath(settings, el.dataset.setting);
+      if (v !== undefined && v !== null && v !== '') {
+        el.textContent = v;
+        // If the element is inside an <a href="tel:..."> or mailto, update the href too
+        const link = el.closest('a[href^="tel:"], a[href^="mailto:"]');
+        if (link) {
+          const prefix = link.href.startsWith('tel:') ? 'tel:' : 'mailto:';
+          link.href = prefix + v;
+        }
+      }
+    });
+  };
+  if (typeof document !== 'undefined') {
+    const _run = async () => _applySettings(await _fetchSettings());
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _run);
+    else _run();
+  }
+
+  // ─── A11y: focus trap helper for modals + sheets ────────────────
+  // Usage:
+  //   const release = App.trapFocus(modalEl);
+  //   // ...later when closing:
+  //   release();
+  // Captures Tab + Shift+Tab inside the root, restores prior focus and
+  // unbinds on release. Also closes on Esc when an onClose is given.
+  const trapFocus = (root, { onClose } = {}) => {
+    const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const prev = document.activeElement;
+    document.body.classList.add('modal-open');
+    const focusables = () => Array.from(root.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+    const first = focusables()[0];
+    if (first) first.focus({ preventScroll: true });
+    const onKey = (e) => {
+      if (e.key === 'Escape' && onClose) { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const list = focusables(); if (!list.length) return;
+      const f = list[0], l = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); }
+      else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.classList.remove('modal-open');
+      if (prev && typeof prev.focus === 'function') prev.focus({ preventScroll: true });
+    };
+  };
+
+  // ─── Tiny safe Markdown renderer ────────────────────────────────
+  // Supports: # / ## / ### headings, **bold**, *italic*, `code`,
+  // [text](url) links (http/https only), unordered/ordered lists,
+  // and paragraph breaks. Everything passes through escapeHtml first so
+  // user input can't inject markup; the regex pass then replaces only
+  // the safe markdown sentinels. Output is a string of safe HTML.
+  const renderMarkdown = (src) => {
+    if (!src) return '';
+    let s = escapeHtml(String(src));
+    s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/((?:^- .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+      return '<ul>' + items + '</ul>';
+    });
+    s = s.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^\d+\. /, '') + '</li>').join('');
+      return '<ol>' + items + '</ol>';
+    });
+    s = s.split(/\n{2,}/).map(p => /^<(?:h\d|ul|ol|pre|blockquote)/.test(p.trim()) ? p : '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+    return s;
+  };
+
+  // ─── Cookie consent banner (loaded once) ────────────────────────
+  if (typeof document !== 'undefined') {
+    const s = document.createElement('script');
+    s.src = '/cookie-consent.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  // ─── Service worker registration (PWA) ──────────────────────────
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        // PWA is enhancement-only; log but never block.
+        console.warn('[pwa] sw register failed:', err.message);
+      });
+    });
+  }
+
   // ─── Tiny fetch wrapper ─────────────────────────────────────────
   const api = async (method, path, body) => {
+    const mutating = method !== 'GET' && method !== 'HEAD';
+    if (mutating) await _ensureCsrf();
     const opts = {
       method,
       credentials: 'same-origin',
       headers: { 'Accept': 'application/json' },
     };
+    if (mutating) {
+      const tok = _readCookie('mrb_csrf');
+      if (tok) opts.headers['X-CSRF-Token'] = tok;
+    }
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
@@ -454,7 +588,8 @@
     api, me, meSync, requireAuth, logout,
     toast,
     fmt: { sar, arNum, date, dateTime, relTime },
-    storage, on, qs, escapeHtml,
+    storage, on, qs, escapeHtml, renderMarkdown,
+    trapFocus,
     refreshHeader: _wireHeaderAuth,
   };
 })();
