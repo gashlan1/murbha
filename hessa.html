@@ -3457,7 +3457,14 @@
     t.textContent = a.title;
     const body = document.createElement('span');
     body.style.cssText = 'opacity:0.9;';
-    body.textContent = a.body;
+    // Use App.mdInline when available — falls back to plain text otherwise.
+    if (window.App && typeof App.mdInline === 'function') {
+      App.mdInline(a.body || '', body);
+      // links inside the banner should be light-on-dark
+      body.querySelectorAll('a').forEach(el => { el.style.color = '#fff'; el.style.textDecoration = 'underline'; });
+    } else {
+      body.textContent = a.body || '';
+    }
     bar.append(dot, t, body);
     if (a.cta && a.ctaUrl) {
       const cta = document.createElement('a');

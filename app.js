@@ -836,6 +836,25 @@
       }
       document.body.appendChild(banner);
       document.body.style.paddingTop = (banner.offsetHeight + (parseInt(document.body.style.paddingTop || 0) || 0)) + 'px';
+
+      // Live countdown when ETA is present
+      if (d.eta) {
+        const etaTs = new Date(d.eta).getTime();
+        const cd = document.createElement('span');
+        cd.id = 'maintCountdown';
+        cd.style.cssText = 'margin-inline-start:10px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;font:800 11px "SF Mono",Menlo,monospace;direction:ltr;';
+        banner.appendChild(cd);
+        const tick = () => {
+          const ms = etaTs - Date.now();
+          if (ms <= 0) { cd.textContent = 'حان وقت العودة'; return; }
+          const h = Math.floor(ms / 3600000);
+          const m = Math.floor((ms % 3600000) / 60000);
+          const s = Math.floor((ms % 60000) / 1000);
+          cd.textContent = (h > 0 ? h + 'س ' : '') + (m < 10 ? '0' + m : m) + 'د ' + (s < 10 ? '0' + s : s) + 'ث';
+        };
+        tick();
+        setInterval(tick, 1000);
+      }
     } catch (e) {}
   };
 
@@ -859,6 +878,23 @@
     getTheme, setTheme,
     getConsent: _getConsent, setConsent: _setConsent,
     startTour, resetTour: () => { try { localStorage.removeItem(TOUR_KEY); } catch {} },
+    mdInline: (text, parent) => {
+      // Safe inline markdown to DOM nodes. Skips innerHTML entirely.
+      const rx = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+      let last = 0;
+      for (const m of String(text).matchAll(rx)) {
+        if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+        let el;
+        if (m[1]) { el = document.createElement('strong'); el.textContent = m[2]; }
+        else if (m[3]) { el = document.createElement('em'); el.textContent = m[4]; }
+        else if (m[5]) { el = document.createElement('code'); el.textContent = m[6]; }
+        else if (m[7] && m[8]) { el = document.createElement('a'); el.href = m[8]; el.target = '_blank'; el.rel = 'noopener'; el.textContent = m[7]; }
+        if (el) parent.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+      return parent;
+    },
     trapFocus,
     refreshHeader: _wireHeaderAuth,
   };

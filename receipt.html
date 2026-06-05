@@ -64,6 +64,7 @@ main { max-width: 700px; margin: 24px auto; padding: 0 18px; }
   <a href="portfolio.html" class="back" aria-label="رجوع">←</a>
   <div class="title" id="toolbarTitle">إيصال استثمار</div>
   <button id="rcptLangBtn" type="button" style="background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;padding:6px 12px;font:800 11px Cairo,sans-serif;color:#0d1612;cursor:pointer;margin-inline-end:8px;">EN</button>
+  <button id="rcptEmailBtn" type="button" style="background:#fff;border:1px solid rgba(13,22,18,0.15);border-radius:999px;padding:6px 12px;font:800 11px Cairo,sans-serif;color:#0d1612;cursor:pointer;margin-inline-end:8px;">📧 إرسال إلى بريدي</button>
   <button class="print-btn" onclick="window.print()" id="printBtn">🖨 طباعة / حفظ PDF</button>
 </div>
 
@@ -220,6 +221,22 @@ async function renderReceipt() {
 document.getElementById('rcptLangBtn').addEventListener('click', () => {
   setLang(isEN() ? 'ar' : 'en');
   renderReceipt();
+});
+
+document.getElementById('rcptEmailBtn').addEventListener('click', async () => {
+  const id = new URLSearchParams(location.search).get('inv') || '';
+  if (!id) return;
+  const btn = document.getElementById('rcptEmailBtn');
+  btn.disabled = true; const original = btn.textContent;
+  btn.textContent = 'جارٍ الإرسال…';
+  try {
+    const r = await App.api('POST', '/app/me/receipt/email', { investmentId: id });
+    btn.textContent = '✓ أُرسل إلى ' + (r.to || 'بريدك');
+    setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 3500);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = original;
+    App.toast && App.toast(e.message || 'فشل الإرسال', 'error');
+  }
 });
 
 renderReceipt();

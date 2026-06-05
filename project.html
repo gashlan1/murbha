@@ -1116,6 +1116,37 @@
   </div>
 </div>
 
+<!-- STATUS TIMELINE -->
+<div class="card-section">
+  <h2 class="section-h">مراحل المشروع</h2>
+  <div id="statusTimeline" style="display:flex;flex-direction:column;gap:0;padding:8px 4px;"></div>
+</div>
+
+<style>
+  #statusTimeline { position: relative; }
+  .tl-step { display: flex; gap: 14px; align-items: flex-start; padding: 4px 0 14px; position: relative; }
+  .tl-step:not(:last-child)::before {
+    content: ''; position: absolute;
+    inset-inline-start: 11px; top: 30px; bottom: -2px; width: 2px;
+    background: rgba(13,22,18,0.08);
+  }
+  .tl-step.done:not(:last-child)::before { background: var(--green); }
+  .tl-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #fff; border: 2px solid rgba(13,22,18,0.15);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font: 900 12px Cairo,sans-serif; color: var(--muted);
+    margin-top: 4px;
+  }
+  .tl-step.done .tl-dot { background: var(--green); border-color: var(--green); color: #fff; }
+  .tl-step.current .tl-dot { background: var(--gold); border-color: var(--gold); color: #fff; box-shadow: 0 0 0 4px rgba(176,136,64,0.18); }
+  .tl-body { flex: 1; min-width: 0; }
+  .tl-title { font: 800 14px Cairo,sans-serif; color: var(--ink); margin-bottom: 2px; }
+  .tl-step.current .tl-title { color: var(--green-dark); }
+  .tl-sub { font: 500 12px Tajawal,sans-serif; color: var(--muted); line-height: 1.7; }
+  .tl-step.done .tl-title { color: var(--green); }
+</style>
+
 <!-- CALCULATOR -->
 <div class="card-section">
   <h2 class="section-h">احسب عوائدك</h2>
@@ -1530,10 +1561,71 @@
     }
   }
 
+  function _renderTimeline(p) {
+    const root = document.getElementById('statusTimeline');
+    if (!root) return;
+    const fmtD = (d) => d ? new Date(d).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+    const fundedPct = p.fundedPct || 0;
+    const status = p.status || 'open';
+    const steps = [
+      {
+        title: 'مرحلة جمع التمويل',
+        sub: fundedPct >= 100 ? 'مكتمل · ' + fmtD(p.fullyFundedAt || p.contractAt) : `جارٍ — ${fundedPct}% مكتمل من المستهدف`,
+        done: fundedPct >= 100,
+        current: fundedPct < 100 && status === 'open',
+      },
+      {
+        title: 'توقيع عقد المرابحة',
+        sub: p.contractAt ? 'مكتمل · ' + fmtD(p.contractAt) :
+             (fundedPct >= 100 ? 'قيد التحضير من فريق الشريعة' : 'يبدأ بعد اكتمال التمويل'),
+        done: !!p.contractAt,
+        current: fundedPct >= 100 && !p.contractAt,
+      },
+      {
+        title: 'تنفيذ الصفقة وشراء الأصل',
+        sub: p.executionStartAt ? 'بدأ · ' + fmtD(p.executionStartAt) :
+             (p.contractAt ? 'قيد التحضير' : 'تنبدأ بعد التوقيع'),
+        done: !!p.executionEndAt,
+        current: !!p.contractAt && !p.executionEndAt,
+      },
+      {
+        title: 'التوزيعات الربعية',
+        sub: status === 'completed' ? 'انتهت جميع التوزيعات' :
+             (p.firstDistributionAt ? 'جارية · أول توزيع ' + fmtD(p.firstDistributionAt) : 'تبدأ بعد تنفيذ الصفقة'),
+        done: status === 'completed',
+        current: !!p.executionEndAt && status !== 'completed',
+      },
+      {
+        title: 'اكتمال المشروع واسترداد رأس المال',
+        sub: status === 'completed' ? 'مكتمل · ' + fmtD(p.completedAt) :
+             (p.expectedCompletionAt ? 'متوقّع ' + fmtD(p.expectedCompletionAt) : '—'),
+        done: status === 'completed',
+        current: false,
+      },
+    ];
+    root.textContent = '';
+    steps.forEach((s, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tl-step' + (s.done ? ' done' : '') + (s.current ? ' current' : '');
+      const dot = document.createElement('div');
+      dot.className = 'tl-dot';
+      dot.textContent = s.done ? '✓' : (idx + 1);
+      const body = document.createElement('div'); body.className = 'tl-body';
+      const t = document.createElement('div'); t.className = 'tl-title'; t.textContent = s.title;
+      const sub = document.createElement('div'); sub.className = 'tl-sub'; sub.textContent = s.sub;
+      body.append(t, sub);
+      wrap.append(dot, body);
+      root.appendChild(wrap);
+    });
+  }
+
   function _renderProject(p) {
     document.title = p.name + ' — مُرابحة';
     // hide demo banner now that we have real data
     document.querySelectorAll('[role="note"][aria-label="تنبيه: نموذج توضيحي"]').forEach(el => el.style.display = 'none');
+
+    // Status timeline
+    _renderTimeline(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');
