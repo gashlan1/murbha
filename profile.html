@@ -859,6 +859,31 @@
     </div>
   </div>
 
+  <!-- Investment streak -->
+  <div class="settings-group" id="streakSec" style="display:none;">
+    <div class="settings-h">🔥 سلسلة استثمارك</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:14px;text-align:center;">
+        <div>
+          <div id="strkCur" style="font:900 28px Cairo,sans-serif;color:var(--gold);">—</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">السلسلة الحالية (شهر)</div>
+        </div>
+        <div style="width:1px;height:48px;background:var(--line);"></div>
+        <div>
+          <div id="strkLong" style="font:900 28px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">الأطول (شهر)</div>
+        </div>
+        <div style="width:1px;height:48px;background:var(--line);"></div>
+        <div>
+          <div id="strkTotal" style="font:900 28px Cairo,sans-serif;color:#0f6e3a;">—</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">إجمالي أشهر نشطة</div>
+        </div>
+      </div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">آخر ١٢ شهراً</div>
+      <div id="strkMonths" style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px;"></div>
+    </div>
+  </div>
+
   <!-- SAMA cap usage -->
   <div class="settings-group" id="capSec">
     <div class="settings-h">🏛 الحدّ السنوي (ساما)</div>
@@ -2571,6 +2596,35 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investment streak
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/investment-streak');
+      if (!r.totalMonths) return;
+      const sec = document.getElementById('streakSec');
+      if (!sec) return;
+      sec.style.display = '';
+      document.getElementById('strkCur').textContent = (r.current || 0) + ' 🔥';
+      document.getElementById('strkLong').textContent = r.longest || 0;
+      document.getElementById('strkTotal').textContent = r.totalMonths || 0;
+      const grid = document.getElementById('strkMonths');
+      grid.replaceChildren();
+      (r.months || []).forEach(m => {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'aspect-ratio:1;background:' + (m.active ? 'linear-gradient(135deg,#0a4d36,#062b1e)' : 'var(--paper)') + ';border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;';
+        const ic = document.createElement('div');
+        ic.style.cssText = 'font-size:14px;';
+        ic.textContent = m.active ? '🔥' : '·';
+        const lb = document.createElement('div');
+        lb.style.cssText = 'font:700 8px Cairo,sans-serif;color:' + (m.active ? '#d4ac6e' : 'var(--muted)') + ';margin-top:2px;';
+        lb.textContent = m.label;
+        cell.append(ic, lb);
+        cell.title = m.key + (m.active ? ' — استثمرت' : ' — لم تستثمر');
+        grid.appendChild(cell);
       });
     } catch (e) {}
   })();
