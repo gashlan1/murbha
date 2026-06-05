@@ -848,6 +848,24 @@
     </div>
   </div>
 
+  <!-- 12-month activity calendar -->
+  <div class="settings-group" id="activityCalSec" style="display:none;">
+    <div class="settings-h">📅 نشاطك آخر ١٢ شهراً</div>
+    <div style="padding:14px 18px;">
+      <div id="activityCalGrid" style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;"></div>
+      <div style="display:flex;justify-content:space-between;font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:6px;">
+        <span>أقدم</span>
+        <span style="display:flex;gap:3px;align-items:center;">
+          <span style="display:inline-block;width:10px;height:10px;background:#fbf6ea;border:1px solid var(--line);border-radius:2px;"></span>
+          <span style="display:inline-block;width:10px;height:10px;background:#d4ac6e;border-radius:2px;"></span>
+          <span style="display:inline-block;width:10px;height:10px;background:#b08840;border-radius:2px;"></span>
+          <span style="display:inline-block;width:10px;height:10px;background:#0a4d36;border-radius:2px;"></span>
+        </span>
+        <span>الآن</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Counters row -->
   <div class="settings-group" id="countersRow" style="display:none;">
     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
@@ -1988,6 +2006,51 @@
       document.getElementById('cntFollows').textContent = fmt((follows.ids || []).length);
       document.getElementById('cntFavs').textContent = fmt((favs.ids || []).length);
       document.getElementById('cntDevices').textContent = fmt((sess.devices || []).length);
+      sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // 12-month activity calendar
+  (async () => {
+    try {
+      const sec = document.getElementById('activityCalSec');
+      const grid = document.getElementById('activityCalGrid');
+      if (!sec || !grid) return;
+      const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [], deposits: [] }));
+      const events = [
+        ...(port.investments || []).filter(i => i.status !== 'canceled').map(i => i.createdAt),
+        ...(port.deposits || []).map(d => d.createdAt),
+      ].filter(Boolean);
+      if (events.length < 1) return;
+      const now = new Date();
+      const months = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push({ key: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), label: d.toLocaleString('ar-SA', { month: 'short' }), count: 0 });
+      }
+      const idx = Object.fromEntries(months.map((m, i) => [m.key, i]));
+      events.forEach(t => {
+        const d = new Date(t);
+        const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        if (k in idx) months[idx[k]].count++;
+      });
+      const max = Math.max(...months.map(m => m.count), 1);
+      grid.replaceChildren();
+      months.forEach(m => {
+        const cell = document.createElement('div');
+        const intensity = m.count / max;
+        const bg = m.count === 0 ? '#fbf6ea' : (intensity > 0.66 ? '#0a4d36' : intensity > 0.33 ? '#b08840' : '#d4ac6e');
+        cell.style.cssText = 'padding:8px 4px;background:' + bg + ';border-radius:6px;text-align:center;border:1px solid var(--line);';
+        cell.title = m.label + ' · ' + m.count + ' حركة';
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'font:800 10px Cairo,sans-serif;color:' + (m.count > 0 ? '#fff' : 'var(--muted)') + ';';
+        lbl.textContent = m.label;
+        const cnt = document.createElement('div');
+        cnt.style.cssText = 'font:700 10px Tajawal,sans-serif;color:' + (m.count > 0 ? '#fff' : 'var(--muted)') + ';margin-top:2px;';
+        cnt.textContent = m.count;
+        cell.append(lbl, cnt);
+        grid.appendChild(cell);
+      });
       sec.style.display = '';
     } catch (e) {}
   })();

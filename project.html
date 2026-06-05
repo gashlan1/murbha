@@ -1466,6 +1466,12 @@
   </div>
 </div>
 
+<!-- Planned Milestones -->
+<div class="card-section" id="plannedMilestonesCard" style="display:none;">
+  <h2 class="section-h">🎯 المراحل المخطّطة للمشروع</h2>
+  <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
 <!-- Project Updates Feed -->
 <div class="card-section" id="updatesCard" style="display:none;">
   <h2 class="section-h">📣 آخر التحديثات</h2>
@@ -2824,6 +2830,38 @@
       ping();
       const iv = setInterval(ping, 30000);
       window.addEventListener('pagehide', () => clearInterval(iv), { once: true });
+    })();
+
+    // Planned milestones (uses p.milestones if present)
+    (() => {
+      const milestones = Array.isArray(p.milestones) ? p.milestones : null;
+      if (!milestones || milestones.length === 0) return;
+      const card = document.getElementById('plannedMilestonesCard');
+      const list = document.getElementById('plannedMilestonesList');
+      if (!card || !list) return;
+      card.style.display = '';
+      list.replaceChildren();
+      milestones.forEach((m, i) => {
+        const row = document.createElement('div');
+        const passed = m.expectedAt && new Date(m.expectedAt).getTime() < Date.now();
+        row.style.cssText = 'display:flex;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;align-items:flex-start;';
+        const dot = document.createElement('div');
+        dot.style.cssText = 'width:28px;height:28px;border-radius:50%;background:' + (m.completed ? '#0f6e3a' : (passed ? '#c54a3a' : '#b08840')) + ';color:#fff;display:flex;align-items:center;justify-content:center;font:900 13px Cairo,sans-serif;flex-shrink:0;';
+        dot.textContent = m.completed ? '✓' : (passed ? '!' : (i + 1));
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#062b1e;';
+        t.textContent = m.title || ('مرحلة ' + (i + 1));
+        const d = document.createElement('div'); d.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+        d.textContent = (m.expectedAt ? new Date(m.expectedAt).toLocaleDateString('ar-SA') : '—') + (m.completed ? ' · ✓ مكتمل' : (passed ? ' · ⚠ متأخّر' : ' · 🟡 مخطّط'));
+        info.append(t, d);
+        if (m.desc) {
+          const sub = document.createElement('div'); sub.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;';
+          sub.textContent = m.desc;
+          info.appendChild(sub);
+        }
+        row.append(dot, info);
+        list.appendChild(row);
+      });
     })();
 
     // Project updates feed

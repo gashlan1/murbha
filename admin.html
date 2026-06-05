@@ -691,6 +691,20 @@
     </div>
   </div>
 
+  <!-- ANNOUNCEMENTS ANALYTICS -->
+  <div class="admin-card" id="annAnalyticsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 تحليلات الإعلانات</span>
+      <span class="card-h-sub" id="annAnalyticsBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="annAnalyticsTop" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;"></div>
+      <div id="annAnalyticsList" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- BALANCE SUMMARY -->
   <div class="admin-card" id="balSummaryCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2696,6 +2710,56 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadAnnAnalytics() {
+    const top = document.getElementById('annAnalyticsTop');
+    const list = document.getElementById('annAnalyticsList');
+    const badge = document.getElementById('annAnalyticsBadge');
+    if (!top || !list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/announcements-analytics');
+      const s = r.summary || {};
+      if (badge) badge.textContent = (s.live || 0) + ' نشط من ' + (s.total || 0);
+      top.replaceChildren();
+      const tiles = [
+        { v: (s.total || 0).toLocaleString('ar-SA'), l: 'إجمالي الإعلانات', c: '#0a4d36' },
+        { v: (s.totalImpressions || 0).toLocaleString('ar-SA'), l: 'إجمالي المشاهدات', c: '#b08840' },
+        { v: (s.totalClicks || 0).toLocaleString('ar-SA'), l: 'نقرات CTA', c: '#0f6e3a' },
+        { v: (s.avgCtr || 0) + '٪', l: 'متوسط CTR', c: '#062b1e' },
+      ];
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;border-top:3px solid ' + t.c + ';';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+        v.textContent = t.v;
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+        l.textContent = t.l;
+        tile.append(v, l);
+        top.appendChild(tile);
+      });
+      list.replaceChildren();
+      const items = r.announcements || [];
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد إعلانات بعد')); return; }
+      items.forEach(a => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;';
+        const info = document.createElement('div');
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = a.title;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = (a.isLive ? '🟢 نشط' : '⚫ متوقّف') + ' · ' + (a.createdAt ? new Date(a.createdAt).toLocaleDateString('ar-SA') : '—') + ' · level: ' + a.level;
+        info.append(nm, sub);
+        const imp = document.createElement('div'); imp.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:center;min-width:50px;'; imp.textContent = '👁 ' + a.impressions;
+        const ctr = document.createElement('div'); ctr.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--gold);text-align:center;min-width:50px;'; ctr.textContent = '🎯 ' + a.ctr + '٪';
+        const drop = document.createElement('div'); drop.style.cssText = 'font:800 12px Cairo,sans-serif;color:#c54a3a;text-align:center;min-width:50px;'; drop.textContent = '✗ ' + a.dismissRate + '٪';
+        row.append(info, imp, ctr, drop);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadBalSummary() {
     const top = document.getElementById('balSummaryTop');
     const dist = document.getElementById('balSummaryDist');
@@ -5968,7 +6032,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
