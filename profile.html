@@ -1366,7 +1366,7 @@
   <!-- Theme -->
   <div class="settings-group">
     <div class="settings-h">المظهر</div>
-    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div>
         <div style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;">🌙 الوضع الداكن</div>
         <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);">يفضّله البعض في الإضاءة المنخفضة</div>
@@ -1376,6 +1376,11 @@
         <span id="darkModeSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
         <span id="darkModeKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
       </label>
+    </div>
+    <div style="padding:0 18px 14px;display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" data-theme="light" class="themeBtn" style="flex:1;min-width:90px;padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">☀ فاتح</button>
+      <button type="button" data-theme="dark" class="themeBtn" style="flex:1;min-width:90px;padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">🌙 داكن</button>
+      <button type="button" data-theme="auto" class="themeBtn" style="flex:1;min-width:90px;padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">🖥 تلقائي</button>
     </div>
   </div>
 
@@ -2585,7 +2590,39 @@
     sync();
     cb.addEventListener('change', () => {
       App.setTheme(cb.checked ? 'dark' : 'light');
+      try { localStorage.removeItem('mrb_theme_auto'); } catch {}
       sync();
+      syncButtons('light', 'dark');
+    });
+
+    // 3-way theme selector
+    const buttons = document.querySelectorAll('.themeBtn');
+    const syncButtons = () => {
+      let cur;
+      try { cur = localStorage.getItem('mrb_theme_auto') === '1' ? 'auto' : App.getTheme(); }
+      catch { cur = App.getTheme(); }
+      buttons.forEach(b => {
+        const on = b.dataset.theme === cur;
+        b.style.background = on ? 'var(--green-dark)' : '#fff';
+        b.style.color = on ? '#d4ac6e' : 'var(--green-dark)';
+        b.style.borderColor = on ? 'var(--green-dark)' : 'var(--line)';
+      });
+    };
+    syncButtons();
+    buttons.forEach(b => {
+      b.addEventListener('click', () => {
+        const t = b.dataset.theme;
+        if (t === 'auto') {
+          const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+          App.setTheme(prefersDark ? 'dark' : 'light');
+          try { localStorage.setItem('mrb_theme_auto', '1'); } catch {}
+        } else {
+          App.setTheme(t);
+          try { localStorage.removeItem('mrb_theme_auto'); } catch {}
+        }
+        sync();
+        syncButtons();
+      });
     });
   })();
 
