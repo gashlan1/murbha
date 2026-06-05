@@ -72,17 +72,64 @@
   main {
     max-width: 1200px;
     margin: 24px auto;
-    padding: 0 20px 48px;
+    padding: 0 16px 48px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   @media (min-width: 992px) {
     main {
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      padding: 0 20px 48px;
     }
     .full-width {
       grid-column: 1 / -1;
+    }
+  }
+
+  /* Sticky section nav (desktop) */
+  .admin-toc {
+    position: sticky;
+    top: 70px;
+    background: rgba(251,246,234,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    z-index: 40;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 14px rgba(13,22,18,0.04);
+  }
+  .admin-toc a {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    text-decoration: none;
+    font: 800 12px 'Cairo', sans-serif;
+    color: var(--green-dark);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .admin-toc a:hover { background: var(--green); color: #fff; border-color: var(--green); }
+  .admin-toc a.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+  html { scroll-behavior: smooth; }
+  .admin-card { scroll-margin-top: 130px; }
+  /* Mobile: collapse any inline 2-column card-body grids to 1 column */
+  @media (max-width: 767px) {
+    .admin-card .card-body[style*="grid-template-columns"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-card form[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    #lpPhases > div > div[style*="auto-fit"] {
+      grid-template-columns: minmax(0, 1fr) !important;
     }
   }
 
@@ -306,35 +353,43 @@
   /* Quick statistics overview */
   .stats-bar {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
     margin-bottom: 8px;
   }
   @media (min-width: 768px) {
     .stats-bar {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
     }
   }
   .stat-box {
     background: #fff;
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 14px 16px;
     border: 0.5px solid var(--line);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    min-width: 0;
   }
   .stat-icon {
-    width: 44px; height: 44px;
+    width: 40px; height: 40px;
     border-radius: 12px;
     background: rgba(10,77,54,0.08);
     color: var(--green);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
+    flex-shrink: 0;
   }
-  .stat-info { display: flex; flex-direction: column; }
-  .stat-lbl { font-size: 11px; color: var(--muted); }
-  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 18px; color: var(--green-dark); }
+  .stat-info { display: flex; flex-direction: column; min-width: 0; }
+  .stat-lbl { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-val { font-family: 'Cairo'; font-weight: 900; font-size: 16px; color: var(--green-dark); overflow-wrap: anywhere; }
+  @media (min-width: 768px) {
+    .stat-box { padding: 16px 20px; gap: 14px; }
+    .stat-icon { width: 44px; height: 44px; font-size: 20px; }
+    .stat-val { font-size: 18px; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/site.css" />
 <script src="app.js"></script>
@@ -356,6 +411,24 @@
 </header>
 
 <main id="main">
+  <nav class="admin-toc full-width" aria-label="انتقال سريع">
+    <a href="#usersCard">👥 المستثمرون</a>
+    <a href="#projectDocsCard">📎 المستندات</a>
+    <a href="#bulkMsgCard">📨 رسائل</a>
+    <a href="#qualificationsCard">⭐ التأهيل</a>
+    <a href="#qaCard">❓ الأسئلة</a>
+    <a href="#helpCmsCard">📚 المساعدة</a>
+    <a href="#webhooksCard">🔗 Webhooks</a>
+    <a href="#pushBroadcastCard">🔔 Push</a>
+    <a href="#healthCard">💚 صحة النظام</a>
+    <a href="/admin-reports.html" target="_blank">📊 تقرير PDF</a>
+    <a href="#investmentsCard">💰 الاستثمارات</a>
+    <a href="#launchPlanCard">🚀 خطة الإطلاق</a>
+    <a href="#announcementsCard">📢 الإعلانات</a>
+    <a href="#settingsCard">🔗 الإعدادات</a>
+    <a href="#twofaCard">🛡 2FA</a>
+    <a href="#auditCard">🔐 الأمان</a>
+  </nav>
   <!-- Stats Bar -->
   <div class="stats-bar full-width">
     <div class="stat-box">
@@ -479,9 +552,32 @@
               <input type="number" id="prj-max-investors" value="500" min="1" />
             </div>
 
-            <div class="form-group span-2 checkbox-group">
-              <input type="checkbox" id="prj-extendable" />
-              <label for="prj-extendable">تفعيل إمكانية طلب تمديد فترة الاستثمار من المستثمرين (تمديد ٦ أشهر إضافية)</label>
+            <div class="form-group">
+              <label for="prj-status">الحالة *</label>
+              <select id="prj-status">
+                <option value="open">مفتوحة للاستثمار</option>
+                <option value="funded">مُموَّلة بالكامل</option>
+                <option value="active">نشطة</option>
+                <option value="completed">مكتملة</option>
+                <option value="cancelled">ملغاة</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>إعدادات إضافية</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;gap:8px;align-items:center;font:600 12px Tajawal,sans-serif;cursor:pointer;">
+                  <input type="checkbox" id="prj-extendable" style="accent-color:var(--green);" />
+                  تفعيل طلب تمديد ٦ أشهر إضافية
+                </label>
+                <label style="display:flex;gap:8px;align-items:center;font:600 12px Tajawal,sans-serif;cursor:pointer;">
+                  <input type="checkbox" id="prj-invite-only" style="accent-color:var(--green);" />
+                  دعوة خاصة فقط
+                </label>
+                <label style="display:flex;gap:8px;align-items:center;font:600 12px Tajawal,sans-serif;cursor:pointer;color:var(--red);">
+                  <input type="checkbox" id="prj-paused" style="accent-color:var(--red);" />
+                  ⏸ إيقاف مؤقت (إخفاء من العامة)
+                </label>
+              </div>
             </div>
 
             <div class="form-group span-2">
@@ -554,6 +650,666 @@
       </div>
     </div>
   </div>
+
+  <!-- PROJECT DOCUMENTS -->
+  <div class="admin-card" id="projectDocsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📎 مستندات المشاريع</span>
+      <span class="card-h-sub" id="pdCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="pdForm" style="display:flex;flex-direction:column;gap:10px;">
+          <select id="pdProject" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;"><option value="">— اختر المشروع —</option></select>
+          <input id="pdTitle" type="text" maxlength="200" placeholder="عنوان المستند (مثل: عقد المرابحة)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <input id="pdFile" type="file" accept="application/pdf,image/jpeg,image/png" required style="padding:8px;border:1.5px dashed var(--line-strong);border-radius:10px;font-family:inherit;font-size:13px;" />
+          <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">⬆ رفع المستند</button>
+        </form>
+      </div>
+      <div>
+        <div id="pdList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK MESSAGE -->
+  <div class="admin-card" id="bulkMsgCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📨 رسائل جماعية</span>
+      <span class="card-h-sub" id="blastCountBadge"></span>
+    </div>
+    <div class="card-body">
+      <form id="blastForm" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <select id="blastAudience" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="all">كل المستخدمين (لديهم بريد)</option>
+          <option value="approved">المعتمدون فقط</option>
+          <option value="pending">بانتظار الموافقة</option>
+          <option value="qualified">المؤهلون (qualified)</option>
+        </select>
+        <input id="blastSubject" type="text" maxlength="200" placeholder="موضوع الرسالة" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <textarea id="blastBody" rows="5" maxlength="10000" placeholder="نص الرسالة..." required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        <button type="button" id="blastPreviewBtn" style="padding:11px;background:var(--paper);color:var(--green-dark);border:1px solid var(--line);border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">👁 معاينة العدد</button>
+        <button type="submit" style="padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">📤 إرسال للجميع</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- USERS — search + bulk actions -->
+  <div class="admin-card" id="usersCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>👥 المستثمرون</span>
+      <span class="card-h-sub" id="usersCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:14px;">
+        <input id="userSearchInput" type="text" placeholder="بحث بالاسم أو البريد أو الجوال أو رقم الهوية" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <select id="userStatusFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل الحالات</option>
+          <option value="pending">قيد المراجعة</option>
+          <option value="approved">معتمد</option>
+          <option value="rejected">مرفوض</option>
+        </select>
+        <select id="userKycFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل خطوات KYC</option>
+          <option value="pending">لم يبدأ</option>
+          <option value="email_verified">تحقق بريد</option>
+          <option value="mobile_verified">تحقق جوال</option>
+          <option value="id_verified">تحقق هوية</option>
+          <option value="verified">مكتمل</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button id="bulkApproveBtn" disabled style="padding:8px 14px;border:0;border-radius:8px;background:#0f6e3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✓ موافقة على المحدد</button>
+        <button id="bulkRejectBtn"  disabled style="padding:8px 14px;border:0;border-radius:8px;background:#c54a3a;color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;opacity:0.5;">✗ رفض المحدد</button>
+        <button id="exportUsersCsvBtn" type="button" style="padding:8px 14px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:var(--green-dark);font:800 12px Cairo,sans-serif;cursor:pointer;">⬇ تصدير CSV</button>
+        <label style="display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--muted);margin-inline-start:auto;cursor:pointer;">
+          <input type="checkbox" id="userSelectAll" style="accent-color:var(--green);" /> تحديد الكل
+        </label>
+      </div>
+      <div id="usersList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- HELP CENTER articles CMS -->
+  <div class="admin-card" id="helpCmsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📚 مركز المساعدة — المقالات</span>
+      <span class="card-h-sub" id="helpCmsBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="helpArticleForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="hcTitle" type="text" placeholder="عنوان المقال" maxlength="200" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="hcSummary" rows="2" placeholder="ملخص قصير (اختياري)" maxlength="400" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <textarea id="hcBody" rows="6" placeholder="نص المقال..." maxlength="50000" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <select id="hcCat" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+            <option value="getting_started">البدء</option>
+            <option value="investing">الاستثمار</option>
+            <option value="kyc">التحقق من الهوية</option>
+            <option value="payments">المدفوعات</option>
+            <option value="security">الأمان</option>
+            <option value="shariah">الشرعية</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--ink);"><input id="hcPublish" type="checkbox" checked style="accent-color:var(--green);" /> نشر فوراً</label>
+          <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">➕ إضافة مقال</button>
+        </form>
+      </div>
+      <div>
+        <div id="helpArticlesAdmin" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECT Q&A inbox -->
+  <div class="admin-card" id="qaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>❓ صندوق الأسئلة</span>
+      <span class="card-h-sub" id="qaBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="qaList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- WEBHOOKS management -->
+  <div class="admin-card" id="webhooksCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔗 Webhooks</span>
+      <span class="card-h-sub" id="webhooksBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <form id="webhookForm" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+        <input id="whUrl" type="url" placeholder="https://example.com/webhook" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;text-align:start;" />
+        <input id="whDesc" type="text" placeholder="وصف اختياري" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <button type="submit" style="padding:11px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">+ إضافة</button>
+        <div id="whEventsBox" style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </form>
+      <div id="webhooksList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- QUALIFICATIONS — pending review -->
+  <div class="admin-card" id="qualificationsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⭐ طلبات التأهيل كمستثمر مؤهل</span>
+      <span class="card-h-sub" id="qualCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="qualList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- PUSH BROADCAST -->
+  <div class="admin-card" id="pushBroadcastCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔔 إرسال إشعار جماعي (Push)</span>
+      <span class="card-h-sub" id="pushSubsBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <form id="pushForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <input id="pushTitle" type="text" placeholder="عنوان الإشعار" maxlength="200" required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <textarea id="pushBody" rows="3" placeholder="نص الإشعار" maxlength="500" required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        <input id="pushUrl" type="text" placeholder="رابط (اختياري) — مثال: /projects.html" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <button type="submit" id="pushSubmit" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">📣 إرسال الآن</button>
+      </form>
+      <div id="pushHint" style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.6;"></div>
+    </div>
+  </div>
+
+  <!-- SYSTEM HEALTH -->
+  <div class="admin-card" id="healthCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💚 صحة النظام</span>
+      <span class="card-h-sub" id="healthSummary">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div id="healthGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;"></div>
+    </div>
+  </div>
+
+  <!-- INVESTMENTS — filterable list + CSV export -->
+  <div class="admin-card" id="investmentsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💰 الاستثمارات</span>
+      <span class="card-h-sub" id="invStats">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:10px;margin-bottom:14px;">
+        <input id="invSearchInput" type="text" placeholder="بحث بالمستثمر أو المشروع" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <select id="invStatusFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="">كل الحالات</option>
+          <option value="pending_signature">بانتظار التوقيع</option>
+          <option value="active">نشط</option>
+          <option value="completed">مكتمل</option>
+          <option value="cancelled">ملغى</option>
+        </select>
+        <a id="invExportBtn" href="/app/admin/investments.csv" download style="padding:11px 16px;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;text-decoration:none;align-self:center;">⬇ تصدير CSV</a>
+      </div>
+      <div id="invList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- LAUNCH PLAN -->
+  <div class="admin-card" id="launchPlanCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚀 خطة الإطلاق</span>
+      <span class="card-h-sub" id="lpStatusBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="flex:1;background:var(--paper);border-radius:999px;height:12px;overflow:hidden;border:1px solid var(--line);">
+          <div id="lpProgressBar" style="height:100%;background:linear-gradient(90deg, var(--green), var(--green-dark));width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="lpProgressLabel" style="font:800 14px Cairo,sans-serif;color:var(--green-dark);min-width:50px;text-align:end;">٠٪</div>
+      </div>
+      <div id="lpPhases" style="display:flex;flex-direction:column;gap:18px;"></div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div class="admin-card" id="announcementsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📢 الإعلانات</span>
+      <span class="card-h-sub" id="ann-count-badge">٠ نشطة</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="annForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="annTitle" type="text" placeholder="عنوان الإعلان (مثال: إطلاق فرصة استثمارية جديدة)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="annBody" placeholder="نص الإعلان..." rows="4" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <select id="annAudience" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+              <option value="all">كل الزوار</option>
+              <option value="investors">المستثمرون المعتمدون</option>
+              <option value="kyc_pending">حسابات قيد التحقق</option>
+              <option value="admins">المسؤولون فقط</option>
+            </select>
+            <select id="annLevel" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+              <option value="info">معلومة</option>
+              <option value="success">إيجابي</option>
+              <option value="warning">تحذير</option>
+              <option value="urgent">عاجل</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input id="annCta" type="text" placeholder="نص الزر (اختياري)" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            <input id="annCtaUrl" type="text" placeholder="رابط الزر" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <label style="font:600 11px Cairo,sans-serif;color:var(--muted);">
+              ينشر في
+              <input id="annPublishAt" type="datetime-local" style="margin-top:4px;width:100%;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            </label>
+            <label style="font:600 11px Cairo,sans-serif;color:var(--muted);">
+              ينتهي في
+              <input id="annExpiresAt" type="datetime-local" style="margin-top:4px;width:100%;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+            </label>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-primary" id="annSubmit" style="flex:1;padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإعلان</button>
+            <button type="button" id="annPreviewBtn" style="padding:12px 18px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--green-dark);font:800 13px Cairo,sans-serif;cursor:pointer;">👁 معاينة</button>
+          </div>
+          <button type="button" id="annCancelEdit" style="display:none;padding:10px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
+        </form>
+        <div id="annPreviewBox" style="display:none;margin-top:14px;border:1px dashed var(--line-strong);border-radius:12px;padding:14px;background:#fdfcf6;">
+          <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-bottom:8px;letter-spacing:1px;">معاينة الإعلان كما سيظهر للزوّار</div>
+          <div id="annPreviewBar"></div>
+        </div>
+      </div>
+      <div>
+        <div id="annList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">لا توجد إعلانات</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOCIAL + SUPPORT SETTINGS -->
+  <div class="admin-card" id="settingsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔗 روابط التواصل والدعم</span>
+      <span class="card-h-sub">تظهر في تذييل الصفحة الرئيسية</span>
+    </div>
+    <div class="card-body">
+      <form id="settingsForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">X (تويتر)
+          <input id="setTwitter" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">LinkedIn
+          <input id="setLinkedin" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">WhatsApp
+          <input id="setWhatsapp" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">Instagram
+          <input id="setInstagram" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">YouTube
+          <input id="setYoutube" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">الرقم الموحد
+          <input id="setHotline" type="text" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">بريد الدعم
+          <input id="setSupportEmail" type="email" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
+        </label>
+        <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;align-self:end;">حفظ الإعدادات</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FAILED TRANSACTIONS -->
+  <div class="admin-card" id="failedTxnCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⚠ معاملات فاشلة</span>
+      <span class="card-h-sub" id="failedTxnBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          آخر
+          <input id="failedTxnDays" type="number" min="1" max="90" value="14" style="width:70px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font:700 12px Tajawal,sans-serif;direction:ltr;text-align:start;" />
+          يوم
+        </label>
+        <div id="failedTxnReasons" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+      <div id="failedTxnList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK INBOX -->
+  <div class="admin-card" id="feedbackCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💬 ملاحظات المستخدمين</span>
+      <span class="card-h-sub" id="fbBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;background:#fbf8ee;border:1px solid rgba(176,136,64,0.18);border-radius:12px;padding:14px;text-align:center;">
+          <div id="fbNps" style="font:900 28px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;">صافي مؤشر الترشيح (NPS)</div>
+        </div>
+        <div style="flex:1;min-width:200px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+          <div id="fbTotal" style="font:900 22px Cairo,sans-serif;color:var(--green-dark);">0</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;">إجمالي الملاحظات</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font:700 12px Cairo,sans-serif;color:var(--muted);align-self:center;cursor:pointer;">
+          <input id="fbOnlyOpen" type="checkbox" /> غير المُعالَجة فقط
+        </label>
+      </div>
+      <div id="fbList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- NEWSLETTER ISSUES -->
+  <div class="admin-card" id="newsletterCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📰 إصدارات النشرة الشهرية</span>
+      <span class="card-h-sub" id="nlBadge">—</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="nlForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="nlTitle" type="text" placeholder="عنوان الإصدار (مثال: نشرة يوليو ٢٠٢٦)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <input id="nlSummary" type="text" placeholder="ملخّص قصير يظهر في قائمة الأرشيف" maxlength="500" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="nlBody" rows="10" placeholder="نص الإصدار (يدعم Markdown بسيط: **عريض** *مائل* [نص](رابط))" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;"></textarea>
+          <label class="checkbox-group">
+            <input type="checkbox" id="nlPublish" checked />
+            <label for="nlPublish">نشر فوراً (سيظهر في الأرشيف العام)</label>
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" id="nlSubmit" style="flex:1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإصدار</button>
+            <button type="button" id="nlTestSendBtn" style="display:none;padding:12px 18px;border:1px solid var(--gold);border-radius:10px;background:#fff;color:#7a5a10;font:700 12px Cairo,sans-serif;cursor:pointer;">📧 اختبار</button>
+            <button type="button" id="nlCancelEdit" style="display:none;padding:12px 18px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
+          </div>
+        </form>
+      </div>
+      <div>
+        <div id="nlList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
+          <div style="text-align:center;color:var(--muted);padding:18px;font-size:13px;">جاري التحميل…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KYC REMINDER -->
+  <div class="admin-card" id="kycReminderCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📨 تذكير KYC غير المكتمل</span>
+      <span class="card-h-sub">يرسل تذكيراً لمن لم يكملوا التحقق</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          مرّت على التسجيل (أيام)
+          <input id="kycRemindDays" type="number" min="1" max="60" value="7" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;text-align:start;" />
+        </label>
+        <button id="kycRemindBtn" type="button" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">إرسال التذكير</button>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">يستبعد من تلقّوا تذكيراً خلال آخر ٥ أيام لتجنّب الإزعاج. يُسجَّل في سجل التدقيق.</p>
+      <div id="kycRemindResult" style="margin-top:10px;font-size:13px;color:#0f6e3a;"></div>
+    </div>
+  </div>
+
+  <!-- SEGMENT BROADCAST -->
+  <div class="admin-card" id="segNotifyCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 إشعار جماعي لشريحة</span>
+      <span class="card-h-sub">يصل كإشعار داخل المنصة (وليس بريداً)</span>
+    </div>
+    <div class="card-body">
+      <form id="segNotifyForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          الشريحة
+          <select id="segChoice" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+            <option value="all">كل المستخدمين</option>
+            <option value="approved">المعتمدون</option>
+            <option value="pending">قيد التحقق</option>
+            <option value="kyc-pending">KYC غير مكتمل</option>
+            <option value="investors">من لديهم استثمار</option>
+          </select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          العنوان
+          <input id="segTitle" type="text" maxlength="120" placeholder="مثال: تحديث في سياسة السحب" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          النص
+          <textarea id="segBody" rows="3" maxlength="1000" placeholder="نص الإشعار..." required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          رابط CTA (اختياري)
+          <input id="segCtaUrl" type="text" placeholder="https://murbha.sa/projects.html?x=1" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;" />
+        </label>
+        <button type="submit" id="segSendBtn" style="grid-column:1/-1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إرسال للشريحة</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCHEDULED JOBS -->
+  <div class="admin-card" id="jobsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏱ المهام المجدولة</span>
+      <span class="card-h-sub" id="jobsBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="jobsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">عرض للقراءة فقط لمهام المنصة المجدولة. إذا تأخّر تنفيذ مهمة عن وقتها المتوقّع بأكثر من ٥٠٪، يظهر مؤشر "متأخّر".</p>
+    </div>
+  </div>
+
+  <!-- FEATURE FLAGS -->
+  <div class="admin-card" id="flagsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚩 الأعلام (Feature flags)</span>
+      <span class="card-h-sub" id="flagsCount">—</span>
+    </div>
+    <div class="card-body">
+      <div id="flagsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;">
+        <input id="newFlagKey" placeholder="مفتاح جديد (a-z_0-9)" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font:600 13px 'SF Mono',Menlo,monospace;direction:ltr;text-align:start;" />
+        <select id="newFlagValue" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font:600 13px Tajawal,sans-serif;background:#fff;">
+          <option value="true">مفعّل</option>
+          <option value="false">معطّل</option>
+        </select>
+        <button id="addFlagBtn" type="button" style="padding:10px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 13px Cairo,sans-serif;cursor:pointer;">إضافة / تحديث</button>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">تظهر الأعلام على <code style="background:#fbf8ee;padding:2px 6px;border-radius:4px;direction:ltr;display:inline-block;">/app/public/flags</code> للقراءة العامة. استخدمها لتفعيل/تعطيل ميزات بشكل تدريجي.</p>
+    </div>
+  </div>
+
+  <!-- WELCOME EMAIL TEMPLATE -->
+  <div class="admin-card" id="welcomeEmailCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>✉ بريد الترحيب للمستخدمين الجدد</span>
+      <span class="card-h-sub">استخدم <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;">{name}</code> لإدراج الاسم</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          عنوان الرسالة
+          <input id="welcomeSubject" type="text" maxlength="120" placeholder="مرحباً {name} في منصة مُرابحة" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نص الرسالة (اتركه فارغاً لاستخدام النص الافتراضي)
+          <textarea id="welcomeBody" rows="8" maxlength="3000" placeholder="مثال: مرحباً {name},&#10;شكراً لانضمامك إلى مُرابحة..." style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;"></textarea>
+        </label>
+        <button id="welcomeSave" type="button" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;align-self:flex-start;">حفظ القالب</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMO BAR -->
+  <div class="admin-card" id="promoCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 شريط ترويجي علوي</span>
+      <span class="card-h-sub" id="promoStatusBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:14px;background:#fbf8ee;border:1px solid var(--line);border-radius:12px;">
+        <label style="position:relative;display:inline-block;width:54px;height:30px;flex-shrink:0;">
+          <input type="checkbox" id="promoToggle" style="opacity:0;width:0;height:0;" />
+          <span id="promoSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+          <span id="promoKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+        </label>
+        <div>
+          <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">عرض الشريط لكل الزوّار</div>
+          <div style="font:500 12px Tajawal,sans-serif;color:var(--muted);">يظهر فوق رأس كل صفحة. تفعيله بعد تعطيل يفرض ظهوره حتى للذين سبق وأغلقوه.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          النص
+          <input id="promoText" type="text" maxlength="200" placeholder="مثال: عرض إطلاق محدود — استثمر اليوم بـ ٥٠٠ ر.س" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          ينتهي في (اختياري)
+          <input id="promoExpires" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نص الزر (اختياري)
+          <input id="promoCta" type="text" maxlength="60" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          رابط الزر
+          <input id="promoCtaUrl" type="text" maxlength="200" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;text-align:start;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          لون الخلفية
+          <input id="promoBgColor" type="color" value="#062b1e" style="padding:6px;border:1.5px solid var(--line-strong);border-radius:10px;height:42px;cursor:pointer;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          لون النص
+          <input id="promoFgColor" type="color" value="#fbf6ea" style="padding:6px;border:1.5px solid var(--line-strong);border-radius:10px;height:42px;cursor:pointer;" />
+        </label>
+      </div>
+      <button id="promoSave" type="button" style="margin-top:14px;padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ الشريط</button>
+    </div>
+  </div>
+
+  <!-- MAINTENANCE MODE -->
+  <div class="admin-card" id="maintenanceCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛠 وضع الصيانة</span>
+      <span class="card-h-sub" id="maintStatusBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:14px;background:#fbf8ee;border:1px solid var(--line);border-radius:12px;">
+        <label style="position:relative;display:inline-block;width:54px;height:30px;flex-shrink:0;">
+          <input type="checkbox" id="maintToggle" style="opacity:0;width:0;height:0;" />
+          <span id="maintSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+          <span id="maintKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+        </label>
+        <div>
+          <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">تفعيل صفحة الصيانة العامة</div>
+          <div style="font:500 12px Tajawal,sans-serif;color:var(--muted);">حين يكون مفعّلاً، يرى الزوار إشعاراً علوياً بنص الرسالة. الإدارة تستمر في الوصول.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نص الرسالة
+          <input id="maintMsg" type="text" placeholder="نعمل على ترقية النظام، سنعود خلال ساعة" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          الوقت المتوقّع للعودة (اختياري)
+          <input id="maintEta" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding-top:12px;border-top:1px dashed var(--line);">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          بدء صيانة مجدولة
+          <input id="maintScheduledStart" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نهاية صيانة مجدولة
+          <input id="maintScheduledEnd" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+      </div>
+      <p style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.7;">المفتاح أعلاه يفعّل الصيانة فوراً. النافذة المجدولة تُفعّل الصيانة تلقائياً ضمن الفترة المحدّدة فقط.</p>
+      <button id="maintSave" type="button" style="margin-top:14px;padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ إعدادات الصيانة</button>
+    </div>
+  </div>
+
+  <!-- ADMIN 2FA enrollment -->
+  <div class="admin-card" id="twofaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛡 المصادقة الثنائية (2FA)</span>
+      <span class="card-h-sub" id="twofaStatus">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div id="twofaDisabled" style="display:none;">
+        <p style="font-size:14px;color:var(--ink);line-height:1.7;margin-bottom:14px;">احمِ حساب الإدارة بطلب رمز ٦ أرقام من تطبيق المصادقة (Google Authenticator أو Authy) عند كل تسجيل دخول.</p>
+        <button id="twofaInitBtn" style="padding:12px 18px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">بدء التفعيل</button>
+        <div id="twofaSetup" style="margin-top:18px;display:none;">
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px;">أضف الرمز السري التالي يدوياً في تطبيق المصادقة:</p>
+          <code id="twofaSecret" style="display:block;background:var(--paper);padding:14px 16px;border-radius:10px;border:1.5px solid var(--gold-soft);font:800 16px 'SF Mono',Menlo,monospace;letter-spacing:1.5px;text-align:center;direction:ltr;user-select:all;"></code>
+          <p style="font-size:11px;color:var(--muted);margin-top:8px;">أو افتح هذا الرابط على جهاز فيه تطبيق المصادقة:</p>
+          <code id="twofaUri" style="display:block;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--line);font:500 11px 'SF Mono',Menlo,monospace;word-break:break-all;direction:ltr;user-select:all;color:var(--muted);"></code>
+          <div style="margin-top:14px;">
+            <input id="twofaEnableCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="أدخل الرمز من التطبيق" style="width:100%;padding:12px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 16px 'SF Mono',Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;" />
+            <button id="twofaEnableBtn" style="margin-top:10px;width:100%;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">تأكيد التفعيل</button>
+          </div>
+        </div>
+      </div>
+      <div id="twofaEnabled" style="display:none;">
+        <div style="background:rgba(15,110,58,0.08);border:1px solid rgba(15,110,58,0.20);padding:14px 16px;border-radius:12px;margin-bottom:14px;">
+          <div style="font:800 14px Cairo,sans-serif;color:#0f6e3a;margin-bottom:4px;">✓ المصادقة الثنائية مفعّلة</div>
+          <div id="twofaEnabledAt" style="font-size:12px;color:var(--muted);"></div>
+        </div>
+        <div style="background:#fff8e6;border:1px solid #f0d28a;padding:12px 14px;border-radius:10px;margin-bottom:14px;">
+          <div style="font:800 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:6px;">رموز الاحتياط</div>
+          <div style="font-size:12px;color:#7a5a10;line-height:1.7;margin-bottom:10px;">إذا فقدت تطبيق المصادقة، استخدم أحد هذه الرموز لتسجيل الدخول. كل رمز يعمل لمرة واحدة فقط.</div>
+          <button id="genBackupCodesBtn" style="width:100%;padding:10px;border:0;border-radius:8px;background:#b08840;color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">توليد ٨ رموز جديدة</button>
+          <div id="backupCodesArea" style="display:none;margin-top:12px;background:#fff;border:1px dashed #b08840;border-radius:10px;padding:12px;">
+            <div id="backupCodesList" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:700 13px 'SF Mono',Menlo,monospace;text-align:center;direction:ltr;"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;">احفظها في مكان آمن — لن نعرضها مرة أخرى.</div>
+            <button id="copyBackupCodesBtn" type="button" style="margin-top:8px;width:100%;padding:8px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;font:700 12px Cairo,sans-serif;cursor:pointer;">نسخ الكل</button>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">للإلغاء، أدخل الرمز الحالي من تطبيق المصادقة:</p>
+        <input id="twofaDisableCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="رمز التحقق" style="width:100%;padding:12px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 16px 'SF Mono',Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;margin-bottom:10px;" />
+        <button id="twofaDisableBtn" style="width:100%;padding:12px;border:0;border-radius:10px;background:#c54a3a;color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إلغاء التفعيل</button>
+      </div>
+      <div>
+        <h4 style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">لماذا 2FA؟</h4>
+        <ul style="font-size:13px;line-height:1.9;color:var(--muted);padding-inline-start:20px;">
+          <li>يحمي من سرقة كلمة المرور</li>
+          <li>يطلب إثباتاً ثانياً من جهازك في كل دخول</li>
+          <li>إلزامي للمسؤولين في معظم منصات FinTech</li>
+          <li>متوافق مع Google Authenticator وAuthy و1Password</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECURITY: audit log + login attempts -->
+  <div class="admin-card" id="auditCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔐 الأمان والمراجعة</span>
+      <span class="card-h-sub">سجل الإجراءات وحماية تسجيل الدخول</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">سجل الإجراءات الإدارية</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <input id="auditQ" type="search" placeholder="بحث (إجراء/هدف/منفّذ)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input id="auditAction" type="text" placeholder="action (مثال: admin.user.suspend)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px 'SF Mono',Menlo,monospace;direction:ltr;" />
+          <input id="auditFrom" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input id="auditTo" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <button id="auditExportBtn" type="button" style="margin-bottom:8px;padding:6px 12px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">⬇ تصدير CSV</button>
+        <div id="auditList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
+        </div>
+      </div>
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;">محاولات تسجيل الدخول (آخر ٥٠)</div>
+        <div id="loginList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -589,6 +1345,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const prjMinInvestors = document.getElementById('prj-min-investors');
   const prjMaxInvestors = document.getElementById('prj-max-investors');
   const prjExtendable = document.getElementById('prj-extendable');
+  const prjInviteOnly = document.getElementById('prj-invite-only');
+  const prjPaused = document.getElementById('prj-paused');
+  const prjStatus = document.getElementById('prj-status');
   const prjSummary = document.getElementById('prj-summary');
   const prjDesc = document.getElementById('prj-desc');
   const btnResetForm = document.getElementById('btn-reset-form');
@@ -750,6 +1509,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     prjMinInvestors.value = p.minInvestors || 1;
     prjMaxInvestors.value = p.maxInvestors || 500;
     prjExtendable.checked = !!p.extendable;
+    prjInviteOnly.checked = !!p.inviteOnly;
+    prjPaused.checked = !!p.paused;
+    prjStatus.value = p.status || 'open';
     prjSummary.value = p.summary || '';
     prjDesc.value = p.description || '';
 
@@ -782,6 +1544,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       maxInvestors: Number(prjMaxInvestors.value),
       termMonths: Number(prjTerm.value),
       extendable: prjExtendable.checked,
+      inviteOnly: prjInviteOnly.checked,
+      paused: prjPaused.checked,
+      status: prjStatus.value || 'open',
       summary: prjSummary.value.trim(),
       description: prjDesc.value.trim()
     };
@@ -848,9 +1613,2369 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // ── Helper: safe empty-state node ─────────────────────────────
+  function _emptyNode(text, color) {
+    const d = document.createElement('div');
+    d.className = 'empty-state';
+    d.style.cssText = 'text-align:center;color:' + (color || 'var(--muted)') + ';padding:32px;';
+    d.textContent = text;
+    return d;
+  }
+
+  // ── Announcements ──────────────────────────────────────────────
+  const annTitle = document.getElementById('annTitle');
+  const annBody = document.getElementById('annBody');
+  const annAudience = document.getElementById('annAudience');
+  const annLevel = document.getElementById('annLevel');
+  const annCta = document.getElementById('annCta');
+  const annCtaUrl = document.getElementById('annCtaUrl');
+  const annPublishAt = document.getElementById('annPublishAt');
+  const annExpiresAt = document.getElementById('annExpiresAt');
+  const annList = document.getElementById('annList');
+  const annCount = document.getElementById('ann-count-badge');
+  const annSubmit = document.getElementById('annSubmit');
+  const annCancelEdit = document.getElementById('annCancelEdit');
+  let _editingAnnId = null;
+
+  const _resetAnnForm = () => {
+    [annTitle, annBody, annCta, annCtaUrl, annExpiresAt, annPublishAt].forEach(el => { if (el) el.value = ''; });
+    annAudience.value = 'all'; annLevel.value = 'info';
+    _editingAnnId = null;
+    annSubmit.textContent = 'نشر الإعلان';
+    annCancelEdit.style.display = 'none';
+  };
+  annCancelEdit.onclick = _resetAnnForm;
+
+  const LEVEL_COLORS = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
+  const AUDIENCE_AR = { all: 'الجميع', investors: 'المستثمرون', kyc_pending: 'قيد التحقق', admins: 'المسؤولون' };
+
+  async function loadAnnouncements() {
+    try {
+      const { announcements } = await App.api('GET', '/app/admin/announcements');
+      const active = announcements.filter(a => !a.deletedAt && (!a.expiresAt || new Date(a.expiresAt) > new Date()));
+      annCount.textContent = App.fmt.arNum(active.length) + ' نشطة';
+      annList.replaceChildren();
+      if (!announcements.length) { annList.appendChild(_emptyNode('لا توجد إعلانات')); return; }
+      announcements.forEach(a => {
+        const row = document.createElement('div');
+        const expired = a.deletedAt || (a.expiresAt && new Date(a.expiresAt) < new Date());
+        row.style.cssText = 'padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:' + (expired ? '#f5f1e3' : '#fff') + ';opacity:' + (expired ? '0.6' : '1') + ';';
+        const title = document.createElement('div');
+        title.style.cssText = 'font:800 14px Cairo,sans-serif;color:' + (LEVEL_COLORS[a.level]||'#0d1612') + ';margin-bottom:6px;display:flex;align-items:center;gap:8px;';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (LEVEL_COLORS[a.level]||'#0d1612');
+        title.appendChild(dot);
+        const t = document.createElement('span');
+        t.textContent = a.title;
+        title.appendChild(t);
+        const body = document.createElement('div');
+        body.style.cssText = 'font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:6px;';
+        body.textContent = a.body;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;';
+        const aud = document.createElement('span');
+        aud.textContent = '👥 ' + (AUDIENCE_AR[a.audience] || a.audience);
+        meta.appendChild(aud);
+        if (a.publishAt && new Date(a.publishAt) > new Date()) {
+          const sched = document.createElement('span');
+          sched.style.color = '#b08840';
+          sched.textContent = '📅 مجدول: ' + new Date(a.publishAt).toLocaleString('ar-SA');
+          meta.appendChild(sched);
+        }
+        if (a.expiresAt) {
+          const ex = document.createElement('span');
+          ex.textContent = '⏰ ينتهي: ' + new Date(a.expiresAt).toLocaleDateString('ar-SA');
+          meta.appendChild(ex);
+        }
+        if (a.pinned) {
+          const pin = document.createElement('span');
+          pin.style.cssText = 'font:800 11px Cairo,sans-serif;color:#7a5a10;background:rgba(176,136,64,0.16);padding:2px 8px;border-radius:999px;';
+          pin.textContent = '📌 مثبّت';
+          meta.appendChild(pin);
+        }
+        if (!expired) {
+          const pinBtn = document.createElement('button');
+          pinBtn.type = 'button';
+          pinBtn.style.cssText = 'background:none;border:0;color:#b08840;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          pinBtn.textContent = a.pinned ? 'إلغاء التثبيت' : '📌 تثبيت';
+          pinBtn.onclick = async () => {
+            try { await App.api('PATCH', '/app/admin/announcements/' + a.id, { pinned: !a.pinned }); loadAnnouncements(); }
+            catch (e) { alert(e.message || 'فشل'); }
+          };
+          meta.appendChild(pinBtn);
+
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.style.cssText = 'background:none;border:0;color:#0a4d36;font:700 11px Tajawal,sans-serif;cursor:pointer;';
+          editBtn.textContent = '✏ تعديل';
+          editBtn.onclick = () => {
+            _editingAnnId = a.id;
+            annTitle.value = a.title || '';
+            annBody.value = a.body || '';
+            annAudience.value = a.audience || 'all';
+            annLevel.value = a.level || 'info';
+            annCta.value = a.cta || '';
+            annCtaUrl.value = a.ctaUrl || '';
+            const toLocal = (iso) => iso ? new Date(iso).toISOString().slice(0, 16) : '';
+            annPublishAt.value = toLocal(a.publishAt);
+            annExpiresAt.value = toLocal(a.expiresAt);
+            annSubmit.textContent = 'حفظ التعديل';
+            annCancelEdit.style.display = '';
+            annTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          };
+          meta.appendChild(editBtn);
+
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:none;border:0;color:#c54a3a;font:700 11px Tajawal,sans-serif;cursor:pointer;';
+          del.textContent = '🗑 حذف';
+          del.onclick = async () => {
+            if (!confirm('حذف هذا الإعلان؟')) return;
+            try { await App.api('DELETE', '/app/admin/announcements/' + a.id); loadAnnouncements(); }
+            catch (e) { alert(e.message || 'فشل الحذف'); }
+          };
+          meta.appendChild(del);
+        }
+        row.append(title, body, meta);
+        annList.appendChild(row);
+      });
+    } catch (e) {
+      annList.replaceChildren(_emptyNode('تعذّر تحميل الإعلانات', '#c54a3a'));
+    }
+  }
+
+  // Announcement preview
+  document.getElementById('annPreviewBtn')?.addEventListener('click', () => {
+    const box = document.getElementById('annPreviewBox');
+    const bar = document.getElementById('annPreviewBar');
+    const title = annTitle.value.trim();
+    const bodyTxt = annBody.value.trim();
+    const level = annLevel.value;
+    if (!title && !bodyTxt) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    bar.replaceChildren();
+    const COLORS = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'background:' + (COLORS[level] || '#0a4d36') + ';color:#fbf6ea;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font:600 13px Tajawal,sans-serif;border-radius:8px;';
+    const dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4ac6e;flex-shrink:0;';
+    const t = document.createElement('strong');
+    t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#fff;';
+    t.textContent = title || '— عنوان —';
+    const body = document.createElement('span');
+    body.style.cssText = 'opacity:0.9;';
+    if (window.App && typeof App.mdInline === 'function') {
+      App.mdInline(bodyTxt || '— النص —', body);
+      body.querySelectorAll('a').forEach(el => { el.style.color = '#fff'; el.style.textDecoration = 'underline'; });
+    } else { body.textContent = bodyTxt || '— النص —'; }
+    wrap.append(dot, t, body);
+    if (annCta.value.trim() && annCtaUrl.value.trim()) {
+      const cta = document.createElement('a');
+      cta.href = annCtaUrl.value.trim();
+      cta.target = '_blank'; cta.rel = 'noopener';
+      cta.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;padding:6px 14px;border-radius:999px;text-decoration:none;font:800 12px Cairo,sans-serif;margin-inline-start:auto;';
+      cta.textContent = annCta.value.trim();
+      wrap.appendChild(cta);
+    }
+    bar.appendChild(wrap);
+  });
+
+  document.getElementById('annForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: annTitle.value.trim(),
+      body: annBody.value.trim(),
+      audience: annAudience.value,
+      level: annLevel.value,
+      cta: annCta.value.trim(),
+      ctaUrl: annCtaUrl.value.trim(),
+      publishAt: annPublishAt.value ? new Date(annPublishAt.value).toISOString() : null,
+      expiresAt: annExpiresAt.value ? new Date(annExpiresAt.value).toISOString() : null,
+    };
+    try {
+      if (_editingAnnId) {
+        await App.api('PATCH', '/app/admin/announcements/' + _editingAnnId, payload);
+      } else {
+        await App.api('POST', '/app/admin/announcements', payload);
+      }
+      _resetAnnForm();
+      loadAnnouncements();
+    } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── Scheduled jobs ─────────────────────────────────────────────
+  async function loadJobs() {
+    const list = document.getElementById('jobsList');
+    const badge = document.getElementById('jobsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/jobs');
+      const jobs = r.jobs || [];
+      const overdue = jobs.filter(j => j.overdue).length;
+      badge.textContent = overdue ? overdue + ' متأخّرة' : jobs.length + ' مهمة';
+      badge.style.background = overdue ? 'rgba(197,74,58,0.20)' : 'rgba(255,255,255,0.15)';
+      list.replaceChildren();
+      jobs.forEach(j => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;flex-wrap:wrap;gap:8px;';
+        const left = document.createElement('div');
+        left.style.cssText = 'flex:1;min-width:200px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:2px;';
+        t.textContent = j.title;
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        const lastRun = j.lastRunAt ? new Date(j.lastRunAt).toLocaleString('ar-SA') : '— لم تُسجَّل';
+        sub.textContent = j.cadence + ' · آخر تنفيذ: ' + lastRun;
+        left.append(t, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        if (j.overdue) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(197,74,58,0.12);color:#c54a3a;';
+          pill.textContent = 'متأخّر';
+          right.appendChild(pill);
+        } else if (j.lastRunAt) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(15,110,58,0.12);color:#0f6e3a;';
+          pill.textContent = j.lastResult === 'error' ? 'خطأ' : '✓ يعمل';
+          right.appendChild(pill);
+        } else {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(13,22,18,0.06);color:var(--muted);';
+          pill.textContent = 'لم تُسجَّل بعد';
+          right.appendChild(pill);
+        }
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  // ── Feature flags ─────────────────────────────────────────────
+  async function loadFlags() {
+    const list = document.getElementById('flagsList');
+    const count = document.getElementById('flagsCount');
+    try {
+      const r = await fetch('/app/public/flags', { credentials: 'same-origin' });
+      const d = await r.json();
+      const flags = d.flags || {};
+      const entries = Object.entries(flags);
+      count.textContent = entries.length ? entries.length + ' علم' : 'لا توجد أعلام';
+      list.replaceChildren();
+      if (!entries.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);font-size:13px;padding:14px;background:#fbf8ee;border-radius:8px;';
+        e.textContent = 'لم يتم إنشاء أعلام بعد.';
+        list.appendChild(e); return;
+      }
+      entries.forEach(([k, v]) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;';
+        const left = document.createElement('div');
+        const name = document.createElement('code');
+        name.style.cssText = 'font:800 13px "SF Mono",Menlo,monospace;color:var(--green-dark);direction:ltr;';
+        name.textContent = k;
+        left.appendChild(name);
+        const right = document.createElement('div');
+        right.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const pill = document.createElement('span');
+        pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:' + (v ? 'rgba(15,110,58,0.12)' : 'rgba(13,22,18,0.06)') + ';color:' + (v ? '#0f6e3a' : 'var(--muted)') + ';';
+        pill.textContent = v ? 'مفعّل' : 'معطّل';
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.textContent = v ? 'تعطيل' : 'تفعيل';
+        toggle.style.cssText = 'background:transparent;border:1px solid var(--line-strong);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;color:var(--green-dark);cursor:pointer;';
+        toggle.onclick = async () => {
+          try { await App.api('PATCH', '/app/admin/flags', { [k]: !v }); await loadFlags(); }
+          catch (e) { alert(e.message || 'فشل'); }
+        };
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.textContent = '🗑';
+        del.style.cssText = 'background:transparent;border:1px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;color:#c54a3a;font-size:11px;';
+        del.onclick = async () => {
+          if (!confirm('حذف العلم "' + k + '"؟')) return;
+          try { await App.api('PATCH', '/app/admin/flags', { [k]: null }); await loadFlags(); }
+          catch (e) { alert(e.message || 'فشل'); }
+        };
+        right.append(pill, toggle, del);
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      count.textContent = 'تعذّر التحميل';
+    }
+  }
+  document.getElementById('addFlagBtn')?.addEventListener('click', async () => {
+    const k = document.getElementById('newFlagKey').value.trim();
+    if (!k) return;
+    const v = document.getElementById('newFlagValue').value === 'true';
+    try {
+      await App.api('PATCH', '/app/admin/flags', { [k]: v });
+      document.getElementById('newFlagKey').value = '';
+      await loadFlags();
+    } catch (e) { alert(e.message || 'فشل'); }
+  });
+
+  // ── Failed transactions inspector ─────────────────────────────
+  async function loadFailedTxns() {
+    const list = document.getElementById('failedTxnList');
+    const badge = document.getElementById('failedTxnBadge');
+    const reasons = document.getElementById('failedTxnReasons');
+    if (!list) return;
+    const days = parseInt(document.getElementById('failedTxnDays').value || '14', 10);
+    try {
+      const r = await App.api('GET', '/app/admin/failed-transactions?days=' + days);
+      const items = r.transactions || [];
+      badge.textContent = items.length ? items.length + ' فاشلة في آخر ' + r.days + ' يوم' : '✓ لا شيء';
+      reasons.replaceChildren();
+      Object.entries(r.byReason || {}).forEach(([reason, count]) => {
+        const pill = document.createElement('span');
+        pill.style.cssText = 'background:rgba(197,74,58,0.10);color:#c54a3a;font:800 11px Cairo,sans-serif;padding:4px 10px;border-radius:999px;';
+        pill.textContent = (reason === 'unknown' ? 'غير معروف' : reason) + ' · ' + count;
+        reasons.appendChild(pill);
+      });
+      list.replaceChildren();
+      if (!items.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#f0f5f0;border-radius:10px;';
+        e.textContent = 'لا توجد معاملات فاشلة خلال هذه الفترة. 👌';
+        list.appendChild(e); return;
+      }
+      items.forEach(t => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fff;border:1px solid rgba(197,74,58,0.20);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;';
+        const left = document.createElement('div'); left.style.cssText = 'flex:1;min-width:200px;';
+        const t1 = document.createElement('div');
+        t1.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:3px;';
+        t1.textContent = (t.kind || 'transaction') + ' · ' + Number(t.amount || 0).toLocaleString('ar-SA') + ' ر.س';
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        const who = t.userName || t.userEmail || (t.userId || '').slice(-8);
+        sub.textContent = who + ' · ' + new Date(t.createdAt).toLocaleString('ar-SA') + ' · ' + (t.methodLabel || '—');
+        left.append(t1, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:4px;';
+        const pill = document.createElement('span');
+        pill.style.cssText = 'background:rgba(197,74,58,0.12);color:#c54a3a;font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;';
+        pill.textContent = t.failureReason || 'فاشلة';
+        right.appendChild(pill);
+        if (t.userId) {
+          const inspect = document.createElement('button');
+          inspect.type = 'button';
+          inspect.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:6px;padding:3px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          inspect.textContent = '👤 عرض المستخدم';
+          inspect.onclick = () => {
+            const u = (_projectCache?.length ? null : null);
+            const userObj = { id: t.userId, name: t.userName || '—', email: t.userEmail };
+            openUserPortfolio(userObj);
+          };
+          right.appendChild(inspect);
+        }
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
+
+  // ── Feedback inbox ────────────────────────────────────────────
+  async function loadFeedback() {
+    const list = document.getElementById('fbList');
+    const badge = document.getElementById('fbBadge');
+    if (!list) return;
+    try {
+      const params = new URLSearchParams({ limit: '100' });
+      if (document.getElementById('fbOnlyOpen')?.checked) params.set('open', '1');
+      const r = await App.api('GET', '/app/admin/feedback?' + params.toString());
+      const items = r.feedback || [];
+      const openCount = items.filter(i => !i.resolvedAt).length;
+      badge.textContent = openCount + ' غير مُعالَجة من ' + items.length;
+      document.getElementById('fbNps').textContent = r.nps == null ? '—' : (r.nps > 0 ? '+' + r.nps : r.nps);
+      document.getElementById('fbTotal').textContent = (r.total || 0).toLocaleString('ar-SA');
+      list.replaceChildren();
+      if (!items.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
+        e.textContent = 'لا توجد ملاحظات حتى الآن.';
+        list.appendChild(e); return;
+      }
+      const CAT_AR = { general: 'عام', onboarding: 'التسجيل', projects: 'الفرص', payments: 'المدفوعات', performance: 'الأداء', content: 'المحتوى' };
+      items.forEach(fb => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:' + (fb.resolvedAt ? '#fbf8ee' : '#fff') + ';opacity:' + (fb.resolvedAt ? '0.7' : '1') + ';';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;';
+        const scorePill = document.createElement('span');
+        const color = fb.score >= 9 ? '#0f6e3a' : fb.score >= 7 ? '#b08840' : '#c54a3a';
+        scorePill.style.cssText = 'font:900 13px Cairo,sans-serif;padding:4px 10px;border-radius:8px;background:' + color + ';color:#fff;flex-shrink:0;';
+        scorePill.textContent = fb.score;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'flex:1;font:600 12px Tajawal,sans-serif;color:var(--muted);';
+        const who = fb.name || fb.email || (fb.userId ? 'مستخدم' : 'مجهول');
+        meta.textContent = (CAT_AR[fb.category] || fb.category) + ' · ' + who + ' · ' + new Date(fb.createdAt).toLocaleString('ar-SA');
+        head.append(scorePill, meta);
+        row.appendChild(head);
+        if (fb.comment) {
+          const body = document.createElement('div');
+          body.style.cssText = 'font-size:13px;color:var(--ink);line-height:1.7;padding-inline-start:42px;';
+          body.textContent = fb.comment;
+          row.appendChild(body);
+        }
+        if (!fb.resolvedAt) {
+          const acts = document.createElement('div');
+          acts.style.cssText = 'display:flex;gap:6px;margin-top:8px;padding-inline-start:42px;';
+          const done = document.createElement('button');
+          done.type = 'button';
+          done.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:5px 14px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          done.textContent = '✓ معالَجة';
+          done.onclick = async () => {
+            try {
+              await App.api('POST', '/app/admin/feedback/' + encodeURIComponent(fb.id) + '/resolve');
+              loadFeedback();
+            } catch (e) { alert(e.message || 'فشل'); }
+          };
+          if (fb.email) {
+            const reply = document.createElement('a');
+            reply.href = 'mailto:' + fb.email + '?subject=' + encodeURIComponent('ردّاً على ملاحظتك على مُرابحة');
+            reply.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);padding:5px 14px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;text-decoration:none;';
+            reply.textContent = '📧 ردّ';
+            acts.appendChild(reply);
+          }
+          acts.appendChild(done);
+          row.appendChild(acts);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  document.getElementById('fbOnlyOpen')?.addEventListener('change', loadFeedback);
+
+  // ── Newsletter issues ────────────────────────────────────────
+  let _editingNlId = null;
+  async function loadNewsletter() {
+    const list = document.getElementById('nlList');
+    const badge = document.getElementById('nlBadge');
+    if (!list) return;
+    try {
+      const r = await fetch('/app/public/newsletter-issues');
+      const d = await r.json();
+      const issues = d.issues || [];
+      // Also pull unpublished by hitting backend with admin auth — falls back to public list otherwise
+      // For drafts, we just leave them in the create form area.
+      badge.textContent = (issues.length || 0) + ' إصدار';
+      list.replaceChildren();
+      if (!issues.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
+        e.textContent = 'لم يُنشَر إصدار بعد. ابدأ بالنموذج جنباً.';
+        list.appendChild(e);
+        return;
+      }
+      issues.forEach(issue => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = issue.title;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
+        meta.textContent = new Date(issue.publishedAt).toLocaleDateString('ar-SA') + ' · ' + (issue.summary || '').slice(0, 80);
+        const acts = document.createElement('div');
+        acts.style.cssText = 'display:flex;gap:6px;';
+        const view = document.createElement('a');
+        view.href = '/newsletter-archive.html?issue=' + encodeURIComponent(issue.slug);
+        view.target = '_blank';
+        view.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);padding:5px 12px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;text-decoration:none;';
+        view.textContent = '👁 عرض';
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:5px 12px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        edit.textContent = '✏ تعديل';
+        edit.onclick = async () => {
+          try {
+            const det = await fetch('/app/public/newsletter-issues/' + encodeURIComponent(issue.slug));
+            const dd = await det.json();
+            _editingNlId = dd.issue.id;
+            document.getElementById('nlTitle').value = dd.issue.title || '';
+            document.getElementById('nlSummary').value = dd.issue.summary || '';
+            document.getElementById('nlBody').value = dd.issue.body || '';
+            document.getElementById('nlPublish').checked = !!dd.issue.publishedAt;
+            document.getElementById('nlSubmit').textContent = 'حفظ التعديل';
+            document.getElementById('nlCancelEdit').style.display = '';
+            document.getElementById('nlTestSendBtn').style.display = '';
+            document.getElementById('nlTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch (e) {}
+        };
+        acts.append(view, edit);
+        row.append(t, meta, acts);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  const _resetNlForm = () => {
+    document.getElementById('nlForm').reset();
+    document.getElementById('nlPublish').checked = true;
+    _editingNlId = null;
+    document.getElementById('nlSubmit').textContent = 'نشر الإصدار';
+    document.getElementById('nlCancelEdit').style.display = 'none';
+    document.getElementById('nlTestSendBtn').style.display = 'none';
+  };
+  document.getElementById('nlCancelEdit')?.addEventListener('click', _resetNlForm);
+  document.getElementById('nlTestSendBtn')?.addEventListener('click', async () => {
+    if (!_editingNlId) return;
+    const to = prompt('أرسل اختباراً إلى أي بريد؟', 'admin@murbha.sa');
+    if (!to) return;
+    try {
+      const r = await App.api('POST', '/app/admin/newsletter-issues/' + _editingNlId + '/test-send', { to });
+      App.toast && App.toast('✓ أُرسل إلى ' + r.to, 'success');
+    } catch (e) { App.toast && App.toast(e.message || 'فشل الإرسال', 'error'); }
+  });
+
+  document.getElementById('nlForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById('nlTitle').value.trim(),
+      summary: document.getElementById('nlSummary').value.trim(),
+      body: document.getElementById('nlBody').value.trim(),
+    };
+    const publish = document.getElementById('nlPublish').checked;
+    try {
+      if (_editingNlId) {
+        payload.publishedAt = publish ? new Date().toISOString() : null;
+        await App.api('PATCH', '/app/admin/newsletter-issues/' + _editingNlId, payload);
+      } else {
+        payload.publish = publish;
+        await App.api('POST', '/app/admin/newsletter-issues', payload);
+      }
+      App.toast && App.toast('✓ تم الحفظ', 'success');
+      _resetNlForm();
+      loadNewsletter();
+    } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── KYC reminder ─────────────────────────────────────────────
+  document.getElementById('kycRemindBtn')?.addEventListener('click', async () => {
+    const minDays = parseInt(document.getElementById('kycRemindDays').value || '7', 10);
+    if (!confirm('سيتم إرسال تذكير لكل المستخدمين الذين مرّ على تسجيلهم ' + minDays + ' يوم ولم يكملوا KYC؟')) return;
+    const result = document.getElementById('kycRemindResult');
+    result.textContent = '';
+    const btn = document.getElementById('kycRemindBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/admin/notify-kyc-incomplete', { minDays });
+      result.textContent = '✓ أُرسل إلى ' + r.sent + ' من أصل ' + r.eligible + ' مؤهَّل (الباقي مُذكَّر سلفاً)';
+    } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
+    finally { btn.disabled = false; btn.textContent = 'إرسال التذكير'; }
+  });
+
+  // ── Segment notify ───────────────────────────────────────────
+  const SEG_LABEL = { all: 'كل المستخدمين', approved: 'المعتمدون', pending: 'قيد التحقق', 'kyc-pending': 'KYC غير مكتمل', investors: 'من لديهم استثمار' };
+  document.getElementById('segNotifyForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const segment = document.getElementById('segChoice').value;
+    const title   = document.getElementById('segTitle').value.trim();
+    const bodyTxt = document.getElementById('segBody').value.trim();
+    const ctaUrl  = document.getElementById('segCtaUrl').value.trim();
+    if (!title || !bodyTxt) return;
+    if (!confirm('إرسال هذا الإشعار إلى شريحة "' + (SEG_LABEL[segment] || segment) + '"؟')) return;
+    const btn = document.getElementById('segSendBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/admin/notify-segment', { segment, title, body: bodyTxt, ctaUrl: ctaUrl || undefined });
+      App.toast && App.toast('✓ أُرسل إلى ' + (r.count || 0) + ' مستخدماً', 'success');
+      document.getElementById('segTitle').value = '';
+      document.getElementById('segBody').value = '';
+      document.getElementById('segCtaUrl').value = '';
+    } catch (err) { alert(err.message || 'فشل الإرسال'); }
+    finally { btn.disabled = false; btn.textContent = 'إرسال للشريحة'; }
+  });
+
+  // ── Settings ───────────────────────────────────────────────────
+  async function loadSettings() {
+    try {
+      const s = await App.api('GET', '/app/settings');
+      document.getElementById('setTwitter').value   = s.social?.twitter   || '';
+      document.getElementById('setLinkedin').value  = s.social?.linkedin  || '';
+      document.getElementById('setWhatsapp').value  = s.social?.whatsapp  || '';
+      document.getElementById('setInstagram').value = s.social?.instagram || '';
+      document.getElementById('setYoutube').value   = s.social?.youtube   || '';
+      document.getElementById('setHotline').value   = s.support?.hotline  || '';
+      document.getElementById('setSupportEmail').value = s.support?.email || '';
+      // Maintenance mode
+      const m = s.maintenance || {};
+      const cb = document.getElementById('maintToggle');
+      const sl = document.getElementById('maintSlider');
+      const kb = document.getElementById('maintKnob');
+      const badge = document.getElementById('maintStatusBadge');
+      const syncMaint = () => {
+        const on = !!cb.checked;
+        sl.style.background = on ? '#c54a3a' : 'var(--line-strong)';
+        kb.style.transform = on ? 'translateX(-24px)' : 'translateX(0)';
+        if (badge) {
+          badge.textContent = on ? '🛠 مفعّل الآن' : 'مغلق';
+          badge.style.background = on ? 'rgba(197,74,58,0.20)' : 'rgba(255,255,255,0.15)';
+        }
+      };
+      cb.checked = !!m.active;
+      document.getElementById('maintMsg').value = m.message || '';
+      document.getElementById('maintEta').value = m.eta ? new Date(m.eta).toISOString().slice(0, 16) : '';
+      document.getElementById('maintScheduledStart').value = m.scheduledStart ? new Date(m.scheduledStart).toISOString().slice(0, 16) : '';
+      document.getElementById('maintScheduledEnd').value = m.scheduledEnd ? new Date(m.scheduledEnd).toISOString().slice(0, 16) : '';
+      // Welcome email template
+      const we = s.welcomeEmail || {};
+      document.getElementById('welcomeSubject').value = we.subject || '';
+      document.getElementById('welcomeBody').value = we.body || '';
+      // Promo bar
+      const p = s.promo || {};
+      const pcb = document.getElementById('promoToggle');
+      const psl = document.getElementById('promoSlider');
+      const pkb = document.getElementById('promoKnob');
+      const pbadge = document.getElementById('promoStatusBadge');
+      const syncPromo = () => {
+        const on = pcb.checked;
+        psl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+        pkb.style.transform = on ? 'translateX(-24px)' : 'translateX(0)';
+        if (pbadge) { pbadge.textContent = on ? '🟢 مفعّل' : 'مغلق'; pbadge.style.background = on ? 'rgba(15,110,58,0.20)' : 'rgba(255,255,255,0.15)'; }
+      };
+      pcb.checked = !!p.active;
+      document.getElementById('promoText').value = p.text || '';
+      document.getElementById('promoCta').value = p.cta || '';
+      document.getElementById('promoCtaUrl').value = p.ctaUrl || '';
+      document.getElementById('promoBgColor').value = p.bgColor || '#062b1e';
+      document.getElementById('promoFgColor').value = p.fgColor || '#fbf6ea';
+      document.getElementById('promoExpires').value = p.expiresAt ? new Date(p.expiresAt).toISOString().slice(0, 16) : '';
+      pcb.onchange = syncPromo;
+      syncPromo();
+      cb.onchange = syncMaint;
+      syncMaint();
+    } catch (e) {}
+  }
+
+  document.getElementById('welcomeSave')?.addEventListener('click', async () => {
+    const payload = { welcomeEmail: {
+      subject: document.getElementById('welcomeSubject').value.trim(),
+      body: document.getElementById('welcomeBody').value,
+    }};
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      App.toast && App.toast('✓ تم حفظ قالب الترحيب', 'success');
+      loadSettings();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
+
+  document.getElementById('promoSave')?.addEventListener('click', async () => {
+    const exp = document.getElementById('promoExpires').value;
+    const payload = { promo: {
+      active: document.getElementById('promoToggle').checked,
+      text: document.getElementById('promoText').value.trim(),
+      cta: document.getElementById('promoCta').value.trim() || null,
+      ctaUrl: document.getElementById('promoCtaUrl').value.trim() || null,
+      bgColor: document.getElementById('promoBgColor').value,
+      fgColor: document.getElementById('promoFgColor').value,
+      expiresAt: exp ? new Date(exp).toISOString() : null,
+    }};
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      App.toast && App.toast('✓ تم حفظ الشريط', 'success');
+      loadSettings();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
+
+  document.getElementById('maintSave')?.addEventListener('click', async () => {
+    const eta = document.getElementById('maintEta').value;
+    const start = document.getElementById('maintScheduledStart').value;
+    const end = document.getElementById('maintScheduledEnd').value;
+    if (start && end && new Date(end) <= new Date(start)) { alert('نهاية النافذة يجب أن تكون بعد بدايتها'); return; }
+    const payload = { maintenance: {
+      active: document.getElementById('maintToggle').checked,
+      message: document.getElementById('maintMsg').value.trim() || null,
+      eta: eta ? new Date(eta).toISOString() : null,
+      scheduledStart: start ? new Date(start).toISOString() : null,
+      scheduledEnd: end ? new Date(end).toISOString() : null,
+    }};
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      App.toast && App.toast('تم حفظ إعدادات الصيانة', 'success');
+      loadSettings();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
+  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      social: {
+        twitter: document.getElementById('setTwitter').value.trim(),
+        linkedin: document.getElementById('setLinkedin').value.trim(),
+        whatsapp: document.getElementById('setWhatsapp').value.trim(),
+        instagram: document.getElementById('setInstagram').value.trim(),
+        youtube: document.getElementById('setYoutube').value.trim(),
+      },
+      support: {
+        hotline: document.getElementById('setHotline').value.trim(),
+        email: document.getElementById('setSupportEmail').value.trim(),
+      },
+    };
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      e.target.querySelector('button[type="submit"]').textContent = '✓ تم الحفظ';
+      setTimeout(() => { e.target.querySelector('button[type="submit"]').textContent = 'حفظ الإعدادات'; }, 1500);
+    } catch (e2) { alert(e2.message || 'فشل الحفظ'); }
+  });
+
+  // ── Security: audit + login attempts ───────────────────────────
+  const ACTION_AR = {
+    'user.approve': 'وافق على مستخدم',
+    'user.reject': 'رفض مستخدم',
+    'announcement.create': 'أنشأ إعلاناً',
+    'announcement.update': 'حدّث إعلاناً',
+    'announcement.delete': 'حذف إعلاناً',
+    'settings.update': 'حدّث الإعدادات',
+  };
+  async function loadAudit() {
+    const auditList = document.getElementById('auditList');
+    const loginList = document.getElementById('loginList');
+    try {
+      const auditParams = new URLSearchParams({ limit: '50' });
+      const q = document.getElementById('auditQ')?.value.trim();
+      const action = document.getElementById('auditAction')?.value.trim();
+      const from = document.getElementById('auditFrom')?.value;
+      const to = document.getElementById('auditTo')?.value;
+      if (q) auditParams.set('q', q);
+      if (action) auditParams.set('action', action);
+      if (from) auditParams.set('from', from);
+      if (to) auditParams.set('to', to);
+      const [{ entries }, { attempts }] = await Promise.all([
+        App.api('GET', '/app/admin/audit-log?' + auditParams.toString()),
+        App.api('GET', '/app/admin/login-attempts?limit=50'),
+      ]);
+      auditList.replaceChildren();
+      if (!entries.length) { auditList.appendChild(_emptyNode('لا توجد إجراءات بعد')); }
+      else entries.forEach(e => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = (e.actorName || '—') + ' · ' + (ACTION_AR[e.action] || e.action);
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(e.createdAt).toLocaleString('ar-SA') + (e.ip ? ' · ' + e.ip : '');
+        row.append(t, sub);
+        auditList.appendChild(row);
+      });
+      // Live filter listeners (idempotent attach)
+      if (!loadAudit._listenersAttached) {
+        loadAudit._listenersAttached = true;
+        let t;
+        const fire = () => { clearTimeout(t); t = setTimeout(loadAudit, 250); };
+        ['auditQ','auditAction','auditFrom','auditTo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', fire);
+        });
+        const exp = document.getElementById('auditExportBtn');
+        if (exp) exp.addEventListener('click', () => {
+          const params = new URLSearchParams();
+          const q = document.getElementById('auditQ')?.value.trim();
+          const a = document.getElementById('auditAction')?.value.trim();
+          const f = document.getElementById('auditFrom')?.value;
+          const tt = document.getElementById('auditTo')?.value;
+          if (q) params.set('q', q);
+          if (a) params.set('action', a);
+          if (f) params.set('from', f);
+          if (tt) params.set('to', tt);
+          location.href = '/app/admin/audit-log.csv' + (params.toString() ? '?' + params.toString() : '');
+        });
+      }
+      loginList.replaceChildren();
+      if (!attempts.length) { loginList.appendChild(_emptyNode('لا توجد محاولات')); }
+      else attempts.forEach(a => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:' + (a.success ? 'rgba(15,110,58,0.06)' : 'rgba(197,74,58,0.06)') + ';font-size:13px;';
+        const t = document.createElement('div');
+        t.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + (a.success ? '#0f6e3a' : '#c54a3a') + ';margin-bottom:4px;';
+        t.textContent = (a.success ? '✓ ' : '✗ ') + a.identifier;
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(a.createdAt).toLocaleString('ar-SA') + ' · ' + (a.ip || '—') + (a.reason ? ' · ' + a.reason : '');
+        row.append(t, sub);
+        loginList.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
+  // ── 2FA enrollment ─────────────────────────────────────────────
+  const twofaStatus = document.getElementById('twofaStatus');
+  const twofaDisabled = document.getElementById('twofaDisabled');
+  const twofaEnabled = document.getElementById('twofaEnabled');
+  const twofaSetup = document.getElementById('twofaSetup');
+  const twofaSecret = document.getElementById('twofaSecret');
+  const twofaUri = document.getElementById('twofaUri');
+  const twofaEnableCode = document.getElementById('twofaEnableCode');
+
+  async function refreshTwofa() {
+    try {
+      const me = await App.api('GET', '/app/auth/me');
+      if (me.user && me.user.totpEnrolled) {
+        twofaStatus.textContent = 'مفعّلة ✓';
+        twofaDisabled.style.display = 'none';
+        twofaEnabled.style.display = 'block';
+        const at = me.user.totpEnrolledAt ? new Date(me.user.totpEnrolledAt).toLocaleDateString('ar-SA') : '—';
+        document.getElementById('twofaEnabledAt').textContent = 'تم التفعيل في ' + at;
+      } else {
+        twofaStatus.textContent = 'غير مفعّلة';
+        twofaDisabled.style.display = 'block';
+        twofaEnabled.style.display = 'none';
+        twofaSetup.style.display = 'none';
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById('twofaInitBtn').addEventListener('click', async () => {
+    try {
+      const r = await App.api('POST', '/app/admin/2fa/init', {});
+      twofaSecret.textContent = r.secret;
+      twofaUri.textContent = r.uri;
+      twofaSetup.style.display = 'block';
+      twofaEnableCode.focus();
+    } catch (e) { alert(e.message || 'تعذّر البدء'); }
+  });
+
+  document.getElementById('twofaEnableBtn').addEventListener('click', async () => {
+    const code = twofaEnableCode.value.trim();
+    if (code.length !== 6) { alert('أدخل الرمز المكوّن من 6 أرقام'); return; }
+    try {
+      await App.api('POST', '/app/admin/2fa/enable', { code });
+      alert('تم تفعيل المصادقة الثنائية. في كل تسجيل دخول، سيُطلب منك إدخال رمز جديد.');
+      twofaEnableCode.value = '';
+      refreshTwofa();
+    } catch (e) { alert(e.message || 'فشل التفعيل. تأكد من الرمز.'); }
+  });
+
+  document.getElementById('genBackupCodesBtn').addEventListener('click', async () => {
+    if (!confirm('سيتم إبطال أي رموز سابقة. متابعة؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/2fa/backup-codes/generate', {});
+      const list = document.getElementById('backupCodesList');
+      list.textContent = '';
+      (r.codes || []).forEach(c => {
+        const el = document.createElement('div');
+        el.style.cssText = 'padding:8px;background:#f7f0e0;border-radius:6px;letter-spacing:2px;';
+        el.textContent = c;
+        list.appendChild(el);
+      });
+      document.getElementById('backupCodesArea').style.display = '';
+      window._backupCodes = r.codes || [];
+    } catch (e) { alert(e.message || 'فشل التوليد'); }
+  });
+
+  document.getElementById('copyBackupCodesBtn').addEventListener('click', async () => {
+    const codes = window._backupCodes || [];
+    if (!codes.length) return;
+    try { await navigator.clipboard.writeText(codes.join('\n')); App.toast && App.toast('تم نسخ الرموز', 'success'); }
+    catch (e) { alert('تعذّر النسخ'); }
+  });
+
+  document.getElementById('twofaDisableBtn').addEventListener('click', async () => {
+    const code = document.getElementById('twofaDisableCode').value.trim();
+    if (code.length !== 6) { alert('أدخل الرمز المكوّن من 6 أرقام'); return; }
+    if (!confirm('تأكيد إلغاء المصادقة الثنائية؟ هذا يقلل من أمان حسابك.')) return;
+    try {
+      await App.api('POST', '/app/admin/2fa/disable', { code });
+      alert('تم إلغاء التفعيل.');
+      document.getElementById('twofaDisableCode').value = '';
+      refreshTwofa();
+    } catch (e) { alert(e.message || 'فشل الإلغاء. تأكد من الرمز.'); }
+  });
+
+  // ── Users (search + bulk) ──────────────────────────────────────
+  const userSearch = document.getElementById('userSearchInput');
+  const userStatus = document.getElementById('userStatusFilter');
+  const userKyc    = document.getElementById('userKycFilter');
+  const usersList  = document.getElementById('usersList');
+  const usersBadge = document.getElementById('usersCountBadge');
+  const selAll     = document.getElementById('userSelectAll');
+  const bulkApprove = document.getElementById('bulkApproveBtn');
+  const bulkReject  = document.getElementById('bulkRejectBtn');
+  const selectedIds = new Set();
+
+  const STATUS_AR = { pending: 'قيد المراجعة', approved: 'معتمد', rejected: 'مرفوض' };
+  const KYC_AR = { pending: 'لم يبدأ', email_verified: 'تحقق بريد', mobile_verified: 'تحقق جوال', id_verified: 'تحقق هوية', verified: 'مكتمل' };
+
+  function statusOf(u) {
+    if (u.role === 'admin') return 'admin';
+    if (u.rejected) return 'rejected';
+    if (u.approved) return 'approved';
+    return 'pending';
+  }
+  function refreshBulkBtns() {
+    const n = selectedIds.size;
+    const dis = n === 0;
+    bulkApprove.disabled = dis; bulkReject.disabled = dis;
+    bulkApprove.style.opacity = bulkReject.style.opacity = dis ? '0.5' : '1';
+    bulkApprove.textContent = `✓ موافقة على المحدد (${App.fmt.arNum(n)})`;
+    bulkReject.textContent  = `✗ رفض المحدد (${App.fmt.arNum(n)})`;
+  }
+
+  async function loadUsers() {
+    const params = new URLSearchParams();
+    if (userSearch.value.trim()) params.set('q', userSearch.value.trim());
+    if (userStatus.value) params.set('status', userStatus.value);
+    if (userKyc.value)    params.set('kyc', userKyc.value);
+    params.set('limit', '100');
+    try {
+      const r = await App.api('GET', '/app/admin/users?' + params.toString());
+      usersBadge.textContent = App.fmt.arNum(r.total) + ' نتيجة';
+      usersList.replaceChildren();
+      if (!r.users.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد نتائج.';
+        usersList.appendChild(e);
+        return;
+      }
+      r.users.forEach(u => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.style.cssText = 'accent-color:var(--green);width:16px;height:16px;';
+        cb.checked = selectedIds.has(u.id);
+        cb.disabled = (u.role === 'admin');
+        cb.onchange = () => {
+          if (cb.checked) selectedIds.add(u.id); else selectedIds.delete(u.id);
+          refreshBulkBtns();
+        };
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const top = document.createElement('div');
+        top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        top.textContent = u.name + (u.role === 'admin' ? ' · 🛡 مسؤول' : '');
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        sub.textContent = (u.email || u.phone || '—') + ' · ' + (u.nationalId || 'no ID');
+        info.append(top, sub);
+        const tags = document.createElement('div');
+        tags.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;';
+        if (u.kycDocs && (u.kycDocs.id_front || u.kycDocs.selfie)) {
+          const viewBtn = document.createElement('button');
+          viewBtn.type = 'button';
+          viewBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--gold-soft);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          viewBtn.textContent = '🪪 عرض KYC';
+          viewBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openKycViewer(u); };
+          tags.appendChild(viewBtn);
+        }
+        const actBtn = document.createElement('button');
+        actBtn.type = 'button';
+        actBtn.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        actBtn.textContent = '📜 النشاط';
+        actBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openUserActivity(u); };
+        tags.appendChild(actBtn);
+        const pfBtn = document.createElement('button');
+        pfBtn.type = 'button';
+        pfBtn.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        pfBtn.textContent = '💼 المحفظة';
+        pfBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openUserPortfolio(u); };
+        tags.appendChild(pfBtn);
+        const stChip = document.createElement('span');
+        const st = statusOf(u);
+        const stColors = { pending: '#b08840', approved: '#0f6e3a', rejected: '#c54a3a', admin: '#0a4d36' };
+        stChip.style.cssText = `font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(13,22,18,0.06);color:${stColors[st]};`;
+        stChip.textContent = st === 'admin' ? 'مسؤول' : (STATUS_AR[st] || st);
+        tags.appendChild(stChip);
+        if (u.suspendedAt) {
+          const sus = document.createElement('span');
+          sus.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(197,74,58,0.15);color:#c54a3a;';
+          sus.textContent = '⛔ مُعلَّق';
+          tags.appendChild(sus);
+        }
+        if (u.kycStatus && u.kycStatus !== 'verified') {
+          const kycChip = document.createElement('span');
+          kycChip.style.cssText = 'font:600 10px Tajawal,sans-serif;padding:3px 8px;border-radius:999px;background:var(--paper);color:var(--muted);';
+          kycChip.textContent = KYC_AR[u.kycStatus] || u.kycStatus;
+          tags.appendChild(kycChip);
+        }
+        if ((u.investorClass || 'retail') === 'qualified') {
+          const klassChip = document.createElement('span');
+          klassChip.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(176,136,64,0.12);color:#855f1b;';
+          klassChip.textContent = '⭐ مؤهل';
+          tags.appendChild(klassChip);
+        }
+        row.append(cb, info, tags);
+        usersList.appendChild(row);
+      });
+      refreshBulkBtns();
+    } catch (e) {
+      usersBadge.textContent = 'تعذّر التحميل';
+    }
+  }
+
+  let _searchT;
+  userSearch.addEventListener('input', () => {
+    clearTimeout(_searchT); _searchT = setTimeout(loadUsers, 250);
+  });
+  userStatus.addEventListener('change', loadUsers);
+  userKyc.addEventListener('change', loadUsers);
+
+  document.getElementById('exportUsersCsvBtn')?.addEventListener('click', () => {
+    const params = new URLSearchParams();
+    if (userSearch.value.trim()) params.set('q', userSearch.value.trim());
+    if (userStatus.value) params.set('status', userStatus.value);
+    if (userKyc.value)    params.set('kyc', userKyc.value);
+    location.href = '/app/admin/users.csv' + (params.toString() ? '?' + params.toString() : '');
+  });
+  selAll.addEventListener('change', () => {
+    usersList.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if (cb.disabled) return;
+      cb.checked = selAll.checked;
+      cb.dispatchEvent(new Event('change'));
+    });
+  });
+
+  bulkApprove.addEventListener('click', async () => {
+    if (!selectedIds.size) return;
+    if (!confirm(`الموافقة على ${selectedIds.size} حساب؟`)) return;
+    bulkApprove.disabled = true;
+    try {
+      const r = await App.api('POST', '/app/admin/users/bulk-approve', { userIds: [...selectedIds] });
+      alert(`تمت الموافقة على ${r.count} حساب.`);
+      selectedIds.clear(); loadUsers();
+    } catch (e) { alert(e.message || 'فشل التنفيذ'); }
+  });
+  bulkReject.addEventListener('click', async () => {
+    if (!selectedIds.size) return;
+    const reason = prompt('سبب الرفض (اختياري):', '');
+    if (reason === null) return;
+    if (!confirm(`رفض ${selectedIds.size} حساب؟`)) return;
+    bulkReject.disabled = true;
+    try {
+      const r = await App.api('POST', '/app/admin/users/bulk-reject', { userIds: [...selectedIds], reason });
+      alert(`تم رفض ${r.count} حساب.`);
+      selectedIds.clear(); loadUsers();
+    } catch (e) { alert(e.message || 'فشل التنفيذ'); }
+  });
+
+  // ── Per-user activity modal ────────────────────────────────────
+  const ACT_ICONS = { registered: '🎉', approved: '✓', rejected: '✗', security: '🛡', deletion: '🗑', investment: '💎', signing: '✍', deposit: '↓', withdraw: '↑', audit: '📋', login_success: '🔑', login_fail: '⚠', invest_confirm: '✓' };
+  const ACT_COLORS = { registered: '#b08840', approved: '#0f6e3a', rejected: '#c54a3a', security: '#062b1e', deletion: '#c54a3a', investment: '#0a4d36', signing: '#062b1e', deposit: '#0f6e3a', withdraw: '#b08840', audit: '#6b7268', login_success: '#0f6e3a', login_fail: '#c54a3a', invest_confirm: '#0f6e3a' };
+  function openUserActivity(u) {
+    let modal = document.getElementById('userActivityModal');
+    let release = null;
+    const closeModal = () => { if (release) { release(); release = null; } modal?.remove(); };
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'userActivityModal';
+      modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-label', 'نشاط المستخدم');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,12,8,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+      document.body.appendChild(modal);
+    }
+    modal.replaceChildren();
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:20px;max-width:680px;width:92%;max-height:90vh;overflow-y:auto;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,0.3);direction:rtl;';
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:start;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;';
+    const info = document.createElement('div'); info.style.cssText='flex:1;min-width:0;';
+    const t = document.createElement('h2'); t.style.cssText='font:800 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;'; t.textContent = '📜 نشاط ' + u.name;
+    const s = document.createElement('div'); s.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;'; s.textContent = u.email || u.phone || u.id;
+    info.append(t, s);
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText='background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;'; closeBtn.setAttribute('aria-label','إغلاق');
+    closeBtn.textContent='✕'; closeBtn.onclick = closeModal;
+    header.append(info, closeBtn);
+    card.appendChild(header);
+
+    const list = document.createElement('div'); list.style.cssText='display:flex;flex-direction:column;gap:8px;';
+    const loading = document.createElement('div'); loading.style.cssText='text-align:center;color:var(--muted);padding:18px;'; loading.textContent='جاري التحميل...';
+    list.appendChild(loading);
+    card.appendChild(list);
+    modal.appendChild(card);
+    if (App.trapFocus) release = App.trapFocus(modal, { onClose: closeModal });
+
+    App.api('GET', '/app/admin/users/' + encodeURIComponent(u.id) + '/activity').then(r => {
+      list.replaceChildren();
+      if (!r.events.length) {
+        const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;'; e.textContent='لا يوجد نشاط بعد.';
+        list.appendChild(e); return;
+      }
+      r.events.forEach(ev => {
+        const row = document.createElement('div');
+        row.style.cssText='display:flex;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const ic = document.createElement('div');
+        ic.style.cssText='width:34px;height:34px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;color:' + (ACT_COLORS[ev.kind] || '#6b7268') + ';flex-shrink:0;font-size:14px;';
+        ic.textContent = ACT_ICONS[ev.kind] || '•';
+        const m = document.createElement('div'); m.style.cssText='flex:1;min-width:0;';
+        const tt = document.createElement('div'); tt.style.cssText='font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;'; tt.textContent = ev.title;
+        const mt = document.createElement('div'); mt.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);'; mt.textContent = new Date(ev.at).toLocaleString('ar-SA') + (ev.meta ? ' · ' + ev.meta : '');
+        m.append(tt, mt);
+        row.append(ic, m);
+        list.appendChild(row);
+      });
+    }).catch(() => {
+      list.replaceChildren();
+      const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;'; e.textContent='تعذّر التحميل.';
+      list.appendChild(e);
+    });
+  }
+
+  // ── User portfolio (read-only) ────────────────────────────────
+  function openUserPortfolio(u) {
+    let modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;';
+    const close = () => modal.remove();
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+    const h = document.createElement('div');
+    h.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;';
+    const title = document.createElement('div');
+    title.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+    title.textContent = '💼 محفظة ' + (u.name || u.email || u.id);
+    const x = document.createElement('button');
+    x.textContent = '✕'; x.type = 'button';
+    x.style.cssText = 'background:transparent;border:0;font-size:18px;cursor:pointer;color:var(--muted);';
+    x.onclick = close;
+    h.append(title, x);
+    card.appendChild(h);
+
+    const loading = document.createElement('div');
+    loading.style.cssText = 'text-align:center;padding:40px;color:var(--muted);';
+    loading.textContent = 'جارٍ التحميل…';
+    card.appendChild(loading);
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    App.api('GET', '/app/admin/users/' + encodeURIComponent(u.id) + '/portfolio').then(d => {
+      loading.remove();
+      const summary = document.createElement('div');
+      summary.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;';
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA') + ' ر.س';
+      [
+        ['إجمالي الاستثمار', fmt(d.summary.totalInvested)],
+        ['إجمالي العوائد', fmt(d.summary.totalReturned)],
+        ['عدد الاستثمارات', d.summary.investmentCount],
+        ['عدد العقود', d.summary.contractCount],
+      ].forEach(([l, v]) => {
+        const t = document.createElement('div');
+        t.style.cssText = 'background:#fbf8ee;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText='font:900 16px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText='font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        t.append(vv, ll); summary.appendChild(t);
+      });
+      card.appendChild(summary);
+
+      // Admin note (editable)
+      const noteWrap = document.createElement('div');
+      noteWrap.style.cssText = 'margin-bottom:10px;background:#fff8e6;border:1px dashed #b08840;border-radius:10px;padding:10px 12px;';
+      const noteH = document.createElement('div');
+      noteH.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+      const noteLbl = document.createElement('div');
+      noteLbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:#7a5a10;';
+      noteLbl.textContent = '🗒 ملاحظة إدارية (خاصة)';
+      const noteSaved = document.createElement('span');
+      noteSaved.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);';
+      if (d.user.adminNoteAt) noteSaved.textContent = 'آخر تحديث: ' + new Date(d.user.adminNoteAt).toLocaleString('ar-SA');
+      noteH.append(noteLbl, noteSaved);
+      const noteTa = document.createElement('textarea');
+      noteTa.rows = 3;
+      noteTa.placeholder = 'تلميح: تستطيع تدوين سياق المكالمة، مخاوف KYC، أو أي معلومة لا تظهر للمستخدم.';
+      noteTa.value = d.user.adminNote || '';
+      noteTa.style.cssText = 'width:100%;padding:8px 10px;border:1px solid #d4ac6e;border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;resize:vertical;direction:rtl;';
+      const noteBtn = document.createElement('button');
+      noteBtn.type = 'button';
+      noteBtn.textContent = 'حفظ الملاحظة';
+      noteBtn.style.cssText = 'margin-top:6px;background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:6px 16px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      noteBtn.onclick = async () => {
+        try {
+          await App.api('PUT', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/note', { note: noteTa.value });
+          noteSaved.textContent = '✓ مُحفَظ ' + new Date().toLocaleTimeString('ar-SA');
+        } catch (e) { alert(e.message || 'فشل الحفظ'); }
+      };
+      noteWrap.append(noteH, noteTa, noteBtn);
+      card.appendChild(noteWrap);
+
+      // Suspension control
+      const susWrap = document.createElement('div');
+      susWrap.style.cssText = 'margin-bottom:10px;background:#fdecea;border:1px solid #f1b9b1;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;';
+      const susInfo = document.createElement('div');
+      susInfo.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#7a2218;line-height:1.6;flex:1;min-width:200px;';
+      if (d.user.suspendedAt) {
+        susInfo.textContent = '⛔ مُعلَّق منذ ' + new Date(d.user.suspendedAt).toLocaleString('ar-SA') + (d.user.suspendReason ? ' — السبب: ' + d.user.suspendReason : '');
+      } else {
+        susInfo.textContent = 'الحساب نشط. التعليق يبطل الجلسات فوراً ويمنع تسجيل الدخول.';
+      }
+      const susBtn = document.createElement('button');
+      susBtn.type = 'button';
+      if (d.user.suspendedAt) {
+        susBtn.textContent = 'إلغاء التعليق';
+        susBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        susBtn.onclick = async () => {
+          if (!confirm('إلغاء تعليق هذا الحساب؟')) return;
+          try {
+            await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/unsuspend');
+            App.toast && App.toast('تم إلغاء التعليق', 'success');
+            modal.remove(); loadUsers();
+          } catch (e) { alert(e.message || 'فشل العمل'); }
+        };
+      } else {
+        susBtn.textContent = '⛔ تعليق الحساب';
+        susBtn.style.cssText = 'background:#c54a3a;color:#fff;border:0;border-radius:8px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        susBtn.onclick = async () => {
+          const reason = prompt('سبب التعليق (يظهر في سجل التدقيق):', '');
+          if (reason === null) return;
+          if (!confirm('تأكيد تعليق هذا الحساب؟ سيتم إنهاء جلساته الحالية.')) return;
+          try {
+            await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/suspend', { reason });
+            App.toast && App.toast('✓ تم تعليق الحساب', 'success');
+            modal.remove(); loadUsers();
+          } catch (e) { alert(e.message || 'فشل العمل'); }
+        };
+      }
+      susWrap.append(susInfo, susBtn);
+      card.appendChild(susWrap);
+
+      // Issue refund
+      const refWrap = document.createElement('div');
+      refWrap.style.cssText = 'margin-bottom:10px;background:#eef6ee;border:1px dashed #0a4d36;border-radius:10px;padding:10px 12px;';
+      const refH = document.createElement('div');
+      refH.style.cssText = 'font:800 12px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;';
+      refH.textContent = '💸 إصدار استرداد';
+      const refRow = document.createElement('div');
+      refRow.style.cssText = 'display:grid;grid-template-columns:1fr 2fr auto;gap:6px;';
+      const refAmt = document.createElement('input');
+      refAmt.type = 'number'; refAmt.min = 1; refAmt.step = 1; refAmt.placeholder = 'المبلغ ر.س';
+      refAmt.style.cssText = 'padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:700 12px Cairo,sans-serif;background:#fff;direction:ltr;';
+      const refReason = document.createElement('input');
+      refReason.type = 'text'; refReason.placeholder = 'السبب (يظهر للمستخدم)'; refReason.maxLength = 500;
+      refReason.style.cssText = 'padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 12px Tajawal,sans-serif;background:#fff;direction:rtl;';
+      const refBtn = document.createElement('button');
+      refBtn.type = 'button';
+      refBtn.textContent = 'إصدار';
+      refBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:6px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      refBtn.onclick = async () => {
+        const amt = Number(refAmt.value);
+        const reason = refReason.value.trim();
+        if (!(amt > 0) || !reason) { alert('أدخل مبلغاً وسبباً'); return; }
+        if (!confirm('إضافة ' + amt.toLocaleString('ar-SA') + ' ر.س إلى رصيد المستخدم؟')) return;
+        refBtn.disabled = true; refBtn.textContent = '…';
+        try {
+          await App.api('POST', '/app/admin/refund', { userId: d.user.id, amount: amt, reason });
+          App.toast && App.toast('✓ تم إصدار الاسترداد', 'success');
+          modal.remove(); loadUsers();
+        } catch (e) {
+          refBtn.disabled = false; refBtn.textContent = 'إصدار';
+          alert(e.message || 'فشل');
+        }
+      };
+      refRow.append(refAmt, refReason, refBtn);
+      refWrap.append(refH, refRow);
+      card.appendChild(refWrap);
+
+      // Send notification composer
+      const notifWrap = document.createElement('div');
+      notifWrap.style.cssText = 'margin-bottom:10px;background:#eaf3ee;border:1px dashed #0a4d36;border-radius:10px;padding:10px 12px;';
+      const notifH = document.createElement('div');
+      notifH.style.cssText = 'font:800 12px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;';
+      notifH.textContent = '📨 إرسال إشعار للمستخدم';
+      const notifTitle = document.createElement('input');
+      notifTitle.type = 'text'; notifTitle.placeholder = 'العنوان (مثال: تذكير KYC)';
+      notifTitle.maxLength = 120;
+      notifTitle.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:700 12px Cairo,sans-serif;background:#fff;margin-bottom:5px;';
+      const notifBody = document.createElement('textarea');
+      notifBody.rows = 2; notifBody.placeholder = 'نص الإشعار…'; notifBody.maxLength = 1000;
+      notifBody.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 12px Tajawal,sans-serif;background:#fff;resize:vertical;margin-bottom:5px;direction:rtl;';
+      const notifCta = document.createElement('input');
+      notifCta.type = 'text'; notifCta.placeholder = 'رابط زر CTA (اختياري)';
+      notifCta.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 11px Tajawal,sans-serif;background:#fff;direction:ltr;text-align:start;margin-bottom:6px;';
+      const notifBtn = document.createElement('button');
+      notifBtn.type = 'button';
+      notifBtn.textContent = 'إرسال';
+      notifBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:7px 16px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      notifBtn.onclick = async () => {
+        const t = notifTitle.value.trim(), b = notifBody.value.trim();
+        if (!t || !b) { alert('يجب إدخال عنوان ونص'); return; }
+        notifBtn.disabled = true; notifBtn.textContent = 'جارٍ الإرسال…';
+        try {
+          await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/notify', {
+            title: t, body: b, ctaUrl: notifCta.value.trim() || undefined,
+          });
+          notifTitle.value = ''; notifBody.value = ''; notifCta.value = '';
+          notifBtn.textContent = '✓ أُرسل';
+          setTimeout(() => { notifBtn.textContent = 'إرسال'; notifBtn.disabled = false; }, 1500);
+        } catch (e) {
+          notifBtn.disabled = false; notifBtn.textContent = 'إرسال';
+          alert(e.message || 'فشل الإرسال');
+        }
+      };
+      notifWrap.append(notifH, notifTitle, notifBody, notifCta, notifBtn);
+      card.appendChild(notifWrap);
+
+      const section = (label) => {
+        const s = document.createElement('div');
+        const sh = document.createElement('div');
+        sh.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin:14px 0 8px;';
+        sh.textContent = label;
+        s.appendChild(sh);
+        return s;
+      };
+      const list = (rows, fmtRow) => {
+        const ul = document.createElement('div');
+        ul.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+        if (!rows.length) {
+          const e = document.createElement('div'); e.style.cssText='color:var(--muted);font-size:12px;padding:8px;text-align:center;';
+          e.textContent = '— لا يوجد —';
+          ul.appendChild(e);
+        } else {
+          rows.forEach(r => {
+            const item = document.createElement('div');
+            item.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;font-size:12px;';
+            const a = document.createElement('span'); a.textContent = fmtRow(r).left;
+            const b = document.createElement('span'); b.style.fontWeight = '700'; b.textContent = fmtRow(r).right;
+            item.append(a, b); ul.appendChild(item);
+          });
+        }
+        return ul;
+      };
+
+      const invSec = section('الاستثمارات (' + d.investments.length + ')');
+      invSec.appendChild(list(d.investments.slice(0, 10), i => ({
+        left: i.projectName + ' · ' + (i.createdAt || '').slice(0, 10),
+        right: fmt(i.amount),
+      })));
+      card.appendChild(invSec);
+
+      const txnSec = section('آخر المعاملات (' + d.transactions.length + ')');
+      txnSec.appendChild(list(d.transactions.slice(0, 10), t => ({
+        left: (t.kind || '—') + ' · ' + (t.createdAt || '').slice(0, 10),
+        right: (Number(t.amount) > 0 ? '+' : '') + fmt(t.amount),
+      })));
+      card.appendChild(txnSec);
+
+      const loginSec = section('آخر تسجيلات الدخول');
+      loginSec.appendChild(list(d.recentLogins.slice(0, 6), l => ({
+        left: (l.createdAt || '').slice(0, 16).replace('T', ' ') + ' · ' + (l.ip || ''),
+        right: l.success ? '✓' : '✗ ' + (l.reason || ''),
+      })));
+      card.appendChild(loginSec);
+
+      const note = document.createElement('div');
+      note.style.cssText = 'margin-top:14px;padding:10px;background:#fbf8ee;border:1px dashed var(--gold-light);border-radius:8px;font-size:11px;color:var(--muted);text-align:center;';
+      note.textContent = 'عرض للقراءة فقط. كل وصول مُسجَّل في سجل التدقيق.';
+      card.appendChild(note);
+    }).catch(() => {
+      loading.textContent = 'تعذّر التحميل.';
+    });
+  }
+
+  // ── KYC viewer ─────────────────────────────────────────────────
+  function openKycViewer(u) {
+    let modal = document.getElementById('kycViewerModal');
+    let release = null;
+    const closeModal = () => { if (release) { release(); release = null; } modal?.remove(); };
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'kycViewerModal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-label', 'مراجعة وثائق KYC');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,12,8,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+      document.body.appendChild(modal);
+    }
+    modal.replaceChildren();
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:20px;max-width:720px;width:92%;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.3);direction:rtl;';
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:start;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px;';
+    const headerInfo = document.createElement('div'); headerInfo.style.cssText = 'flex:1;min-width:0;';
+    const t = document.createElement('h2'); t.style.cssText = 'font:800 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;'; t.textContent = u.name;
+    const s = document.createElement('div'); s.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;';
+    s.textContent = (u.email || u.phone || '') + ' · ID ' + (u.nationalId || '—');
+    headerInfo.append(t, s);
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;';
+    closeBtn.setAttribute('aria-label', 'إغلاق');
+    closeBtn.textContent = '✕'; closeBtn.onclick = closeModal;
+    header.append(headerInfo, closeBtn);
+    card.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:18px;';
+    const KIND_AR = { id_front: 'صورة الهوية الأمامية', id_back: 'صورة الهوية الخلفية', selfie: 'صورة شخصية', address_proof: 'إثبات العنوان' };
+    Object.entries(u.kycDocs || {}).forEach(([kind, doc]) => {
+      const tile = document.createElement('div');
+      tile.style.cssText = 'border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper);';
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);background:#fff;';
+      lbl.textContent = KIND_AR[kind] || kind;
+      tile.appendChild(lbl);
+      const url = '/app/auth/kyc/file/' + encodeURIComponent(kind) + '?userId=' + encodeURIComponent(u.id);
+      if ((doc.mime || '').startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = url; img.style.cssText = 'display:block;width:100%;max-height:240px;object-fit:contain;background:#f5f1e3;';
+        img.alt = KIND_AR[kind] || kind;
+        tile.appendChild(img);
+      } else {
+        const link = document.createElement('a');
+        link.href = url; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = 'فتح المستند (' + (doc.mime || 'file') + ')';
+        link.style.cssText = 'display:block;padding:24px;text-align:center;color:var(--green-dark);font:800 13px Cairo,sans-serif;text-decoration:none;background:#fff;';
+        tile.appendChild(link);
+      }
+      const meta = document.createElement('div');
+      meta.style.cssText = 'padding:8px 12px;font:500 11px Tajawal,sans-serif;color:var(--muted);background:#fff;';
+      meta.textContent = `${(doc.size/1024).toFixed(1)} KB · ${new Date(doc.uploadedAt).toLocaleString('ar-SA')}`;
+      tile.appendChild(meta);
+      grid.appendChild(tile);
+    });
+    if (!Object.keys(u.kycDocs || {}).length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;color:var(--muted);padding:24px;';
+      empty.textContent = 'لا توجد مستندات مرفوعة بعد.';
+      grid.appendChild(empty);
+    }
+    card.appendChild(grid);
+
+    // Quick approve/reject from inside the viewer
+    if (u.role !== 'admin' && !u.rejected) {
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:8px;border-top:1px solid var(--line);padding-top:14px;';
+      if (!u.approved) {
+        const approve = document.createElement('button');
+        approve.style.cssText = 'flex:1;padding:12px;background:#0f6e3a;color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+        approve.textContent = '✓ موافقة على الحساب';
+        approve.onclick = async () => {
+          if (!confirm('الموافقة على هذا الحساب؟')) return;
+          try {
+            await App.api('POST', '/app/admin/users/approve', { userId: u.id });
+            alert('تمت الموافقة.'); closeModal(); loadUsers();
+          } catch (e) { alert(e.message); }
+        };
+        actions.appendChild(approve);
+      }
+      const reject = document.createElement('button');
+      reject.style.cssText = 'flex:1;padding:12px;background:#c54a3a;color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      reject.textContent = '✗ رفض الحساب';
+      reject.onclick = async () => {
+        const reason = prompt('سبب الرفض (اختياري):', '');
+        if (reason === null) return;
+        try {
+          await App.api('POST', '/app/admin/users/reject', { userId: u.id, reason });
+          alert('تم الرفض.'); closeModal(); loadUsers();
+        } catch (e) { alert(e.message); }
+      };
+      actions.appendChild(reject);
+      card.appendChild(actions);
+    }
+
+    modal.appendChild(card);
+    if (App.trapFocus) release = App.trapFocus(modal, { onClose: closeModal });
+  }
+
+  // ── Launch plan ────────────────────────────────────────────────
+  const PHASE_LABEL = {
+    P0: { title: 'قبل الإطلاق — لا يمكن الإطلاق بدونها', color: '#c54a3a' },
+    P1: { title: 'أسبوع الإطلاق — أساسيات', color: '#b08840' },
+    P2: { title: 'الـ 90 يوماً الأولى — تحسينات', color: '#0a4d36' },
+  };
+
+  // ── Investments list ───────────────────────────────────────────
+  const invSearch = document.getElementById('invSearchInput');
+  const invStatusF = document.getElementById('invStatusFilter');
+  const invList = document.getElementById('invList');
+  const invStats = document.getElementById('invStats');
+  const INV_STATUS_AR = {
+    pending_signature: { ar: 'بانتظار التوقيع', color: '#b08840' },
+    active: { ar: 'نشط', color: '#0f6e3a' },
+    completed: { ar: 'مكتمل', color: '#1e3a8a' },
+    cancelled: { ar: 'ملغى', color: '#c54a3a' },
+  };
+  async function loadInvestments() {
+    if (!invList) return;
+    const params = new URLSearchParams();
+    if (invSearch?.value.trim()) params.set('q', invSearch.value.trim());
+    if (invStatusF?.value) params.set('status', invStatusF.value);
+    params.set('limit', '100');
+    try {
+      const r = await App.api('GET', '/app/admin/investments?' + params.toString());
+      invStats.textContent = `${App.fmt.arNum(r.total)} استثمار · إجمالي ${r.sum.toLocaleString('ar-SA')} ر.س`;
+      invList.replaceChildren();
+      if (!r.investments.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد نتائج.';
+        invList.appendChild(e); return;
+      }
+      r.investments.forEach(i => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const top = document.createElement('div');
+        top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        top.textContent = (i.userName || '—') + ' → ' + (i.projectName || '—');
+        const sub = document.createElement('div');
+        sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = new Date(i.createdAt).toLocaleString('ar-SA') + ' · ' + (i.userEmail || i.userPhone || '—');
+        info.append(top, sub);
+        row.appendChild(info);
+        const meta = document.createElement('div'); meta.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;';
+        const amt = document.createElement('div');
+        amt.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);';
+        amt.textContent = (i.amount || 0).toLocaleString('ar-SA') + ' ر.س';
+        meta.appendChild(amt);
+        const st = INV_STATUS_AR[i.status] || { ar: i.status, color: '#6b7268' };
+        const chip = document.createElement('span');
+        chip.style.cssText = `font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:999px;background:rgba(13,22,18,0.06);color:${st.color};`;
+        chip.textContent = st.ar;
+        meta.appendChild(chip);
+        row.appendChild(meta);
+        invList.appendChild(row);
+      });
+    } catch (e) { invStats.textContent = 'تعذّر التحميل'; }
+  }
+  if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
+  if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
+
+  // ── Project clone + archive (bulk actions) ─────────
+  async function cloneProject(projectId) {
+    if (!confirm('نسخ المشروع كمسوّدة جديدة؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/projects/' + encodeURIComponent(projectId) + '/clone');
+      App.toast && App.toast('✓ تم النسخ: ' + (r.project?.name || ''), 'success');
+      loadProjectsForDocs();
+    } catch (e) { alert(e.message || 'فشل النسخ'); }
+  }
+  async function archiveProject(projectId, archive) {
+    if (!confirm(archive ? 'أرشفة هذا المشروع وإخفاؤه من القائمة العامة؟' : 'إعادة نشر هذا المشروع؟')) return;
+    try {
+      await App.api('POST', '/app/admin/projects/' + encodeURIComponent(projectId) + '/archive', { archive });
+      App.toast && App.toast(archive ? '✓ تمت الأرشفة' : '✓ تمت إعادة النشر', 'success');
+      loadProjectsForDocs();
+    } catch (e) { alert(e.message || 'فشل'); }
+  }
+  window.cloneProject = cloneProject;
+  window.archiveProject = archiveProject;
+
+  document.addEventListener('change', (e) => {
+    if (e.target?.id !== 'pdProject') return;
+    document.getElementById('cloneSelectedProjectBtn')?.remove();
+    document.getElementById('archiveSelectedProjectBtn')?.remove();
+    const slug = e.target.value;
+    if (!slug) return;
+    const project = _projectCache.find(p => (p.slug || p.id) === slug);
+    if (!project) return;
+    const cloneBtn = document.createElement('button');
+    cloneBtn.id = 'cloneSelectedProjectBtn';
+    cloneBtn.type = 'button';
+    cloneBtn.style.cssText = 'margin-inline-start:8px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    cloneBtn.textContent = '📋 نسخ';
+    cloneBtn.onclick = () => cloneProject(project.id);
+    const archBtn = document.createElement('button');
+    archBtn.id = 'archiveSelectedProjectBtn';
+    archBtn.type = 'button';
+    const isArchived = project.archived;
+    archBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border:1px solid ' + (isArchived ? '#0a4d36' : '#c54a3a') + ';border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    archBtn.textContent = isArchived ? '↺ إعادة النشر' : '📦 أرشفة';
+    archBtn.onclick = () => archiveProject(project.id, !isArchived);
+
+    const imgBtn = document.createElement('label');
+    imgBtn.id = 'projectImageBtn';
+    imgBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:#b08840;border:1px solid #b08840;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;display:inline-block;';
+    imgBtn.textContent = '🖼 صورة';
+    const imgInput = document.createElement('input');
+    imgInput.type = 'file';
+    imgInput.accept = 'image/jpeg,image/png,image/webp';
+    imgInput.style.display = 'none';
+    imgBtn.appendChild(imgInput);
+    imgInput.addEventListener('change', async () => {
+      const f = imgInput.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { App.toast && App.toast('الحجم الأقصى 5MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const data = String(reader.result || '');
+        const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+        const orig = imgBtn.textContent; imgBtn.textContent = '⏳ رفع…';
+        try {
+          await App.api('POST', '/app/admin/projects/' + encodeURIComponent(project.id) + '/image', { data: b64 });
+          imgBtn.textContent = '✓ مرفوعة'; imgBtn.style.color = '#0a4d36'; imgBtn.style.borderColor = '#0a4d36';
+          setTimeout(() => { imgBtn.textContent = orig; imgBtn.style.color = '#b08840'; imgBtn.style.borderColor = '#b08840'; }, 2400);
+        } catch (e) { imgBtn.textContent = orig; alert(e.message || 'فشل الرفع'); }
+      };
+      reader.readAsDataURL(f);
+    });
+    const faqBtn = document.createElement('button');
+    faqBtn.id = 'projectFaqBtn';
+    faqBtn.type = 'button';
+    faqBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    faqBtn.textContent = '❓ FAQ';
+    faqBtn.onclick = () => openProjectFaqEditor(project);
+    const sponsorBtn = document.createElement('button');
+    sponsorBtn.id = 'projectSponsorBtn';
+    sponsorBtn.type = 'button';
+    const isVerified = project.sponsorVerified || project.sponsor?.verified;
+    sponsorBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:' + (isVerified ? '#0f9f5e' : 'var(--muted)') + ';border:1px solid ' + (isVerified ? '#0f9f5e' : 'var(--line)') + ';border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    sponsorBtn.textContent = isVerified ? '✓ راعٍ موثَّق' : '○ تحقّق راعٍ';
+    sponsorBtn.onclick = async () => {
+      const next = !isVerified;
+      if (!confirm(next ? 'وضع علامة الراعي الموثَّق على هذا المشروع؟' : 'إزالة علامة التحقّق؟')) return;
+      try {
+        await App.api('PATCH', '/app/admin/projects/' + encodeURIComponent(project.id), { sponsorVerified: next });
+        App.toast && App.toast(next ? '✓ تم التحقّق' : 'تمت الإزالة', 'success');
+        loadProjectsForDocs();
+      } catch (e) { alert(e.message || 'فشل'); }
+    };
+    e.target.after(cloneBtn, archBtn, imgBtn, faqBtn, sponsorBtn);
+  });
+
+  async function openProjectFaqEditor(project) {
+    if (document.getElementById('projectFaqModal')) return;
+    let items = [];
+    try { const r = await fetch('/app/projects/' + encodeURIComponent(project.slug || project.id) + '/faq'); const d = await r.json(); items = d.faq || []; } catch (e) {}
+    const modal = document.createElement('div');
+    modal.id = 'projectFaqModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;';
+    const close = () => modal.remove();
+    modal.onclick = (e) => { if (e.target === modal) close(); };
+
+    const h = document.createElement('div');
+    h.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;';
+    const title = document.createElement('div');
+    title.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+    title.textContent = '❓ FAQ — ' + project.name;
+    const x = document.createElement('button');
+    x.type='button'; x.textContent='✕';
+    x.style.cssText='background:transparent;border:0;font-size:18px;cursor:pointer;color:var(--muted);';
+    x.onclick = close;
+    h.append(title, x);
+    card.appendChild(h);
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:10px;margin-bottom:14px;';
+    card.appendChild(list);
+
+    const render = () => {
+      list.replaceChildren();
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fbf8ee;border:1px solid var(--line);border-radius:10px;padding:10px 12px;';
+        const q = document.createElement('input');
+        q.type='text'; q.maxLength=300; q.value = item.question;
+        q.placeholder = 'السؤال…';
+        q.style.cssText = 'width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:700 13px Cairo,sans-serif;background:#fff;margin-bottom:6px;';
+        q.oninput = () => { items[idx].question = q.value; };
+        const a = document.createElement('textarea');
+        a.rows = 3; a.maxLength = 2000; a.value = item.answer;
+        a.placeholder = 'الإجابة…';
+        a.style.cssText = 'width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:600 13px Tajawal,sans-serif;background:#fff;resize:vertical;';
+        a.oninput = () => { items[idx].answer = a.value; };
+        const del = document.createElement('button');
+        del.type='button'; del.textContent='🗑 حذف';
+        del.style.cssText='margin-top:6px;background:transparent;border:0;color:#c54a3a;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.onclick = () => { items.splice(idx, 1); render(); };
+        row.append(q, a, del);
+        list.appendChild(row);
+      });
+    };
+    render();
+
+    const addBtn = document.createElement('button');
+    addBtn.type='button'; addBtn.textContent='+ إضافة سؤال';
+    addBtn.style.cssText='background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;padding:8px 14px;font:800 12px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;';
+    addBtn.onclick = () => { items.push({ question: '', answer: '' }); render(); };
+    card.appendChild(addBtn);
+
+    const saveRow = document.createElement('div');
+    saveRow.style.cssText='display:flex;gap:8px;';
+    const cancel = document.createElement('button');
+    cancel.type='button'; cancel.textContent='إغلاق';
+    cancel.style.cssText='flex:1;padding:11px;background:transparent;border:1px solid var(--line);border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+    cancel.onclick = close;
+    const save = document.createElement('button');
+    save.type='button'; save.textContent='حفظ';
+    save.style.cssText='flex:2;padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+    save.onclick = async () => {
+      try {
+        await App.api('PUT', '/app/admin/projects/' + encodeURIComponent(project.id) + '/faq', { faq: items });
+        App.toast && App.toast('✓ حُفظت', 'success');
+        close();
+      } catch (e) { alert(e.message || 'فشل الحفظ'); }
+    };
+    saveRow.append(cancel, save);
+    card.appendChild(saveRow);
+
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+  }
+
+  // ── Project documents ─────────────────────────────────────────
+  let _projectCache = [];
+  async function loadProjectsForDocs() {
+    try {
+      const r = await App.api('GET', '/app/projects');
+      _projectCache = r.projects || [];
+      const sel = document.getElementById('pdProject');
+      if (sel && sel.children.length <= 1) {
+        _projectCache.forEach(p => {
+          const o = document.createElement('option');
+          o.value = p.slug || p.id; o.textContent = p.name;
+          sel.appendChild(o);
+        });
+      }
+    } catch (e) {}
+  }
+  async function loadProjectDocs() {
+    await loadProjectsForDocs();
+    const list = document.getElementById('pdList');
+    const badge = document.getElementById('pdCountBadge');
+    if (!list) return;
+    list.replaceChildren();
+    const slug = document.getElementById('pdProject').value;
+    if (!slug) {
+      badge.textContent = 'اختر مشروعاً';
+      const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;font-size:13px;'; e.textContent='اختر مشروعاً لعرض مستنداته.';
+      list.appendChild(e); return;
+    }
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/documents');
+      badge.textContent = App.fmt.arNum(r.documents.length) + ' مستند';
+      if (!r.documents.length) {
+        const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;font-size:13px;'; e.textContent='لا توجد مستندات.';
+        list.appendChild(e); return;
+      }
+      r.documents.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const ic = document.createElement('div');
+        ic.style.cssText='width:34px;height:34px;background:var(--paper);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gold);font:800 10px Cairo,sans-serif;flex-shrink:0;';
+        ic.textContent = (d.mime || '').startsWith('image/') ? 'IMG' : 'PDF';
+        const info = document.createElement('div'); info.style.cssText='flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText='font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = d.title;
+        const m = document.createElement('div'); m.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);'; m.textContent = (d.size/1024).toFixed(1) + ' KB · ' + new Date(d.uploadedAt).toLocaleDateString('ar-SA');
+        info.append(t, m);
+        row.append(ic, info);
+        const del = document.createElement('button'); del.type='button';
+        del.style.cssText='background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.textContent = 'حذف';
+        del.onclick = async () => { if (!confirm('حذف المستند؟')) return; try { await App.api('DELETE', '/app/admin/project-documents/' + d.id); loadProjectDocs(); } catch (e) { alert(e.message); } };
+        row.appendChild(del);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  document.getElementById('pdProject')?.addEventListener('change', loadProjectDocs);
+  document.getElementById('pdForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const slug = document.getElementById('pdProject').value;
+    const title = document.getElementById('pdTitle').value.trim();
+    const file = document.getElementById('pdFile').files[0];
+    if (!slug || !title || !file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('الحجم الأقصى 5 ميجا.'); return; }
+    const fr = new FileReader();
+    fr.onload = async () => {
+      const data = String(fr.result || '');
+      const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+      try {
+        await App.api('POST', '/app/admin/projects/' + encodeURIComponent(slug) + '/documents', { title, data: b64 });
+        document.getElementById('pdTitle').value = '';
+        document.getElementById('pdFile').value = '';
+        loadProjectDocs();
+      } catch (e) { alert(e.message); }
+    };
+    fr.readAsDataURL(file);
+  });
+
+  // ── Bulk message (email blast) ────────────────────────────────
+  document.getElementById('blastPreviewBtn')?.addEventListener('click', async () => {
+    const audience = document.getElementById('blastAudience').value;
+    try {
+      const r = await App.api('POST', '/app/admin/blast/preview', { audience });
+      document.getElementById('blastCountBadge').textContent = App.fmt.arNum(r.count) + ' مستلم';
+    } catch (e) { alert(e.message); }
+  });
+  document.getElementById('blastForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      audience: document.getElementById('blastAudience').value,
+      subject: document.getElementById('blastSubject').value.trim(),
+      body: document.getElementById('blastBody').value.trim(),
+    };
+    if (!confirm('سيتم إرسال البريد لمجموعة كبيرة من المستخدمين. متأكد؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/blast/send', payload);
+      alert('تم الإرسال إلى ' + r.sent + ' من أصل ' + r.total + ' مستخدم.');
+      document.getElementById('blastForm').reset();
+      document.getElementById('blastCountBadge').textContent = '';
+    } catch (e) { alert(e.message); }
+  });
+
+  // ── Help articles CMS ─────────────────────────────────────────
+  const HELP_CAT_AR = { getting_started: 'البدء', investing: 'الاستثمار', kyc: 'التحقق', payments: 'المدفوعات', security: 'الأمان', shariah: 'الشرعية' };
+  let _editingHelpId = null;
+  const hcSubmit = document.querySelector('#helpArticleForm button[type=submit]');
+  let hcCancel = document.getElementById('hcCancelEdit');
+  if (!hcCancel && hcSubmit) {
+    hcCancel = document.createElement('button');
+    hcCancel.id = 'hcCancelEdit'; hcCancel.type = 'button';
+    hcCancel.textContent = 'إلغاء التعديل';
+    hcCancel.style.cssText = 'display:none;margin-inline-start:8px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;';
+    hcCancel.onclick = () => {
+      _editingHelpId = null;
+      document.getElementById('helpArticleForm').reset();
+      document.getElementById('hcPublish').checked = true;
+      if (hcSubmit) hcSubmit.textContent = 'نشر المقال';
+      hcCancel.style.display = 'none';
+    };
+    hcSubmit.after(hcCancel);
+  }
+  async function loadHelpCms() {
+    const list = document.getElementById('helpArticlesAdmin');
+    const badge = document.getElementById('helpCmsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/help/articles');
+      badge.textContent = App.fmt.arNum(r.articles.length) + ' مقال';
+      list.replaceChildren();
+      if (!r.articles.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+        e.textContent = 'لا توجد مقالات بعد.';
+        list.appendChild(e); return;
+      }
+      r.articles.forEach(a => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:' + (a.publishedAt ? '#fff' : '#f5f1e3') + ';';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = (a.publishedAt ? '' : '📝 مسودة · ') + a.title;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
+        meta.textContent = (HELP_CAT_AR[a.category] || a.category) + ' · ' + new Date(a.createdAt).toLocaleDateString('ar-SA');
+        const acts = document.createElement('div'); acts.style.cssText = 'display:flex;gap:6px;';
+        const edit = document.createElement('button'); edit.type='button';
+        edit.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        edit.textContent = '✏ تعديل';
+        edit.onclick = () => {
+          _editingHelpId = a.id;
+          document.getElementById('hcTitle').value = a.title || '';
+          document.getElementById('hcSummary').value = a.summary || '';
+          document.getElementById('hcBody').value = a.body || '';
+          document.getElementById('hcCat').value = a.category || 'getting_started';
+          document.getElementById('hcPublish').checked = !!a.publishedAt;
+          if (hcSubmit) hcSubmit.textContent = 'حفظ التعديل';
+          if (hcCancel) hcCancel.style.display = '';
+          document.getElementById('hcTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+        const tog = document.createElement('button'); tog.type='button';
+        tog.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        tog.textContent = a.publishedAt ? 'إلغاء النشر' : 'نشر';
+        tog.onclick = async () => {
+          try { await App.api('PATCH', '/app/admin/help/articles/' + a.id, { publishedAt: a.publishedAt ? null : new Date().toISOString() }); loadHelpCms(); }
+          catch (e) { alert(e.message); }
+        };
+        const del = document.createElement('button'); del.type='button';
+        del.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.textContent = 'حذف';
+        del.onclick = async () => { if (!confirm('حذف المقال؟')) return; try { await App.api('DELETE', '/app/admin/help/articles/' + a.id); loadHelpCms(); } catch (e) { alert(e.message); } };
+        acts.append(edit, tog, del);
+        row.append(t, meta, acts);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  const helpForm = document.getElementById('helpArticleForm');
+  if (helpForm) helpForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById('hcTitle').value.trim(),
+      summary: document.getElementById('hcSummary').value.trim(),
+      body: document.getElementById('hcBody').value.trim(),
+      category: document.getElementById('hcCat').value,
+    };
+    const publish = document.getElementById('hcPublish').checked;
+    try {
+      if (_editingHelpId) {
+        payload.publishedAt = publish ? new Date().toISOString() : null;
+        await App.api('PATCH', '/app/admin/help/articles/' + _editingHelpId, payload);
+        _editingHelpId = null;
+        if (hcSubmit) hcSubmit.textContent = 'نشر المقال';
+        if (hcCancel) hcCancel.style.display = 'none';
+      } else {
+        payload.publish = publish;
+        await App.api('POST', '/app/admin/help/articles', payload);
+      }
+      helpForm.reset();
+      document.getElementById('hcPublish').checked = true;
+      loadHelpCms();
+    } catch (e2) { alert(e2.message); }
+  });
+
+  // ── Project Q&A inbox ──────────────────────────────────────────
+  async function loadQAInbox() {
+    const list = document.getElementById('qaList');
+    const badge = document.getElementById('qaBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/questions');
+      const pending = r.questions.filter(q => !q.answer).length;
+      badge.textContent = App.fmt.arNum(pending) + ' بانتظار رد';
+      list.replaceChildren();
+      if (!r.questions.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد أسئلة بعد.';
+        list.appendChild(e); return;
+      }
+      r.questions.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:14px;border:1.5px solid var(--line);border-radius:12px;background:' + (q.answer ? 'rgba(15,110,58,0.04)' : '#fff') + ';';
+        const top = document.createElement('div'); top.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        top.textContent = '❓ ' + q.question;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        meta.textContent = (q.askerName || '—') + ' · ' + (q.projectName || '—') + ' · ' + new Date(q.createdAt).toLocaleString('ar-SA');
+        row.append(top, meta);
+        if (q.answer) {
+          const ans = document.createElement('div');
+          ans.style.cssText = 'background:#fff;padding:10px 12px;border-inline-start:3px solid #0f6e3a;border-radius:8px;font-size:13px;color:var(--ink);line-height:1.6;';
+          ans.textContent = '✓ ' + q.answer;
+          row.appendChild(ans);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.rows = 3; ta.maxLength = 2000; ta.placeholder = 'اكتب الإجابة...';
+          ta.style.cssText = 'width:100%;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;margin-bottom:8px;';
+          const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:8px;';
+          const send = document.createElement('button'); send.type='button';
+          send.style.cssText = 'flex:1;padding:10px;background:var(--green);color:#fff;border:0;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+          send.textContent = '✓ نشر الإجابة';
+          send.onclick = async () => {
+            const ans = ta.value.trim();
+            if (ans.length < 2) { alert('اكتب إجابة'); return; }
+            send.disabled = true;
+            try { await App.api('POST', '/app/admin/questions/' + q.id + '/answer', { answer: ans, publish: true }); loadQAInbox(); }
+            catch (e) { alert(e.message); send.disabled = false; }
+          };
+          actions.append(send);
+          row.append(ta, actions);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  // ── Webhooks management ───────────────────────────────────────
+  function openWebhookTester(w) {
+    if (document.getElementById('whTesterModal')) return;
+    const m = document.createElement('div');
+    m.id = 'whTesterModal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const c = document.createElement('div');
+    c.style.cssText = 'background:#fff;border-radius:14px;padding:22px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;';
+    const h = document.createElement('div');
+    h.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;';
+    h.textContent = '🪝 اختبار ويب-هوك';
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:14px;direction:ltr;text-align:start;word-break:break-all;';
+    sub.textContent = w.url;
+    c.append(h, sub);
+
+    const lblEvt = document.createElement('label'); lblEvt.style.cssText='display:block;font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;';
+    lblEvt.textContent = 'الحدث';
+    const evt = document.createElement('select');
+    evt.style.cssText='width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:600 13px monospace,sans-serif;background:#fff;margin-bottom:12px;direction:ltr;text-align:start;';
+    (w.events || ['user.registered']).forEach(e => {
+      const o = document.createElement('option'); o.value = e; o.textContent = e; evt.appendChild(o);
+    });
+    c.append(lblEvt, evt);
+
+    const lblPl = document.createElement('label'); lblPl.style.cssText='display:block;font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;';
+    lblPl.textContent = 'محتوى JSON (اختياري)';
+    const pl = document.createElement('textarea');
+    pl.rows = 8;
+    pl.placeholder = '{\n  "userId": "usr_demo",\n  "amount": 5000\n}';
+    pl.style.cssText='width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:500 12px "SF Mono",Menlo,monospace;direction:ltr;text-align:start;margin-bottom:14px;resize:vertical;';
+    c.append(lblPl, pl);
+
+    const result = document.createElement('div');
+    result.style.cssText='font-size:12px;color:var(--muted);min-height:16px;margin-bottom:8px;';
+    c.appendChild(result);
+
+    const row = document.createElement('div'); row.style.cssText='display:flex;gap:8px;';
+    const close = document.createElement('button');
+    close.type='button'; close.textContent='إغلاق';
+    close.style.cssText='flex:1;padding:11px;background:transparent;border:1px solid var(--line);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+    close.onclick = () => m.remove();
+    const fire = document.createElement('button');
+    fire.type='button'; fire.textContent='📤 إطلاق';
+    fire.style.cssText='flex:2;padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    fire.onclick = async () => {
+      fire.disabled = true; fire.textContent = 'جارٍ الإطلاق…';
+      try {
+        const r = await App.api('POST', '/app/admin/webhooks/' + w.id + '/test', {
+          event: evt.value,
+          payload: pl.value.trim() || undefined,
+        });
+        result.textContent = '✓ أُطلق الحدث ' + r.event + ' بنجاح. تحقّق من سجل التسليم لاحقاً.';
+        result.style.color = '#0f6e3a';
+      } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
+      finally { fire.disabled = false; fire.textContent = '📤 إطلاق'; }
+    };
+    row.append(close, fire);
+    c.appendChild(row);
+    m.appendChild(c);
+    m.onclick = (e) => { if (e.target === m) m.remove(); };
+    document.body.appendChild(m);
+  }
+
+  async function loadWebhooks() {
+    const list = document.getElementById('webhooksList');
+    const badge = document.getElementById('webhooksBadge');
+    const eventsBox = document.getElementById('whEventsBox');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/webhooks');
+      badge.textContent = App.fmt.arNum(r.webhooks.length) + ' مسجّل';
+      // Populate event checkboxes once
+      if (!eventsBox.dataset.populated) {
+        eventsBox.dataset.populated = '1';
+        r.allowedEvents.forEach(ev => {
+          const lbl = document.createElement('label');
+          lbl.style.cssText = 'display:flex;align-items:center;gap:6px;background:var(--paper);padding:6px 10px;border-radius:8px;font:600 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.value = ev; cb.style.cssText = 'accent-color:var(--green);';
+          const s = document.createElement('span'); s.textContent = ev;
+          lbl.append(cb, s); eventsBox.appendChild(lbl);
+        });
+      }
+      list.replaceChildren();
+      if (!r.webhooks.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+        e.textContent = 'لا توجد ويب-هوكس مسجّلة.';
+        list.appendChild(e); return;
+      }
+      r.webhooks.forEach(w => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const top = document.createElement('div'); top.style.cssText = 'display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;';
+        const u = document.createElement('div'); u.style.cssText = 'font:800 12px monospace,sans-serif;color:var(--green-dark);direction:ltr;text-align:start;word-break:break-all;flex:1;';
+        u.textContent = w.url;
+        const act = document.createElement('div'); act.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+        const testBtn = document.createElement('button'); testBtn.type='button';
+        testBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        testBtn.textContent = 'اختبار';
+        testBtn.onclick = () => openWebhookTester(w);
+        const delBtn = document.createElement('button'); delBtn.type='button';
+        delBtn.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        delBtn.textContent = 'حذف';
+        delBtn.onclick = async () => { if (!confirm('حذف هذا الويب-هوك؟')) return; try { await App.api('DELETE', '/app/admin/webhooks/' + w.id); loadWebhooks(); } catch (e) { alert(e.message); } };
+        act.append(testBtn, delBtn);
+        top.append(u, act);
+        const events = document.createElement('div'); events.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        events.textContent = w.events.join(' · ');
+        row.append(top, events);
+        if (w.lastDeliveredAt) {
+          const meta = document.createElement('div');
+          const ok = w.lastStatus && w.lastStatus >= 200 && w.lastStatus < 300;
+          meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:' + (ok ? '#0f6e3a' : '#c54a3a') + ';margin-top:4px;';
+          meta.textContent = (ok ? '✓ ' : '✗ ') + 'آخر تسليم: ' + new Date(w.lastDeliveredAt).toLocaleString('ar-SA') + (w.lastStatus ? ' · HTTP ' + w.lastStatus : '');
+          row.appendChild(meta);
+        }
+        const showLogBtn = document.createElement('button'); showLogBtn.type='button';
+        showLogBtn.style.cssText = 'margin-top:6px;background:none;border:0;color:var(--green-dark);font:700 11px Tajawal,sans-serif;cursor:pointer;text-decoration:underline;padding:0;';
+        showLogBtn.textContent = 'تفاصيل التسليم';
+        showLogBtn.onclick = async () => {
+          try {
+            const r = await App.api('GET', '/app/admin/webhooks/' + w.id + '/deliveries');
+            const lines = [
+              'آخر تسليم: ' + (r.lastDeliveredAt ? new Date(r.lastDeliveredAt).toLocaleString('ar-SA') : '—'),
+              'حالة HTTP: ' + (r.lastStatus || '—'),
+              r.lastDeliveryError ? 'الخطأ: ' + r.lastDeliveryError : 'بدون أخطاء',
+              'الأحداث المشترك بها: ' + (r.webhook.events || []).join(', '),
+            ];
+            alert(lines.join('\n'));
+          } catch (e) { alert(e.message); }
+        };
+        row.appendChild(showLogBtn);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  const whForm = document.getElementById('webhookForm');
+  if (whForm) whForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = document.getElementById('whUrl').value.trim();
+    const description = document.getElementById('whDesc').value.trim();
+    const events = Array.from(document.querySelectorAll('#whEventsBox input:checked')).map(c => c.value);
+    if (!events.length) { alert('اختر حدثاً واحداً على الأقل'); return; }
+    try {
+      const r = await App.api('POST', '/app/admin/webhooks', { url, description, events });
+      alert('تم إنشاء الويب-هوك. السر (يُعرض مرة واحدة):\n\n' + r.webhook.secret);
+      whForm.reset();
+      document.querySelectorAll('#whEventsBox input').forEach(c => c.checked = false);
+      loadWebhooks();
+    } catch (e2) { alert(e2.message); }
+  });
+
+  // ── Qualifications review ──────────────────────────────────────
+  async function loadQualifications() {
+    const list = document.getElementById('qualList');
+    const badge = document.getElementById('qualCountBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/qualifications');
+      badge.textContent = App.fmt.arNum(r.qualifications.length) + ' طلب';
+      list.replaceChildren();
+      if (!r.qualifications.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+        e.textContent = 'لا توجد طلبات تأهيل معلقة.';
+        list.appendChild(e); return;
+      }
+      r.qualifications.forEach(q => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:14px;padding:14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;align-items:start;flex-wrap:wrap;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:260px;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--ink);margin-bottom:6px;';
+        t.textContent = q.name + (q.request.autoEligible ? ' ⭐' : '');
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;margin-bottom:8px;';
+        sub.textContent = q.email || q.phone || '—';
+        const fields = document.createElement('div'); fields.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;font:600 12px Tajawal,sans-serif;';
+        const f = (k, v) => {
+          const d = document.createElement('div');
+          d.style.cssText = 'background:var(--paper);padding:8px 10px;border-radius:8px;';
+          const a = document.createElement('div'); a.style.cssText = 'color:var(--muted);font-size:10px;'; a.textContent = k;
+          const b = document.createElement('div'); b.style.cssText = 'color:var(--ink);font-weight:800;'; b.textContent = v;
+          d.append(a, b); return d;
+        };
+        fields.append(
+          f('صافي الثروة', (q.request.netWorth || 0).toLocaleString('ar-SA') + ' ر.س'),
+          f('الدخل السنوي', (q.request.annualIncome || 0).toLocaleString('ar-SA') + ' ر.س'),
+          f('المسمى', q.request.employmentTitle || '—'),
+        );
+        if (q.request.experience) {
+          const exp = document.createElement('div');
+          exp.style.cssText = 'grid-column:1/-1;background:var(--paper);padding:8px 10px;border-radius:8px;font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.6;';
+          exp.textContent = '🎯 ' + q.request.experience;
+          fields.appendChild(exp);
+        }
+        info.append(t, sub, fields);
+        row.appendChild(info);
+
+        const actions = document.createElement('div'); actions.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+        const okBtn = document.createElement('button');
+        okBtn.style.cssText = 'padding:10px 16px;background:#0f6e3a;color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;white-space:nowrap;';
+        okBtn.textContent = '✓ موافقة';
+        okBtn.onclick = async () => {
+          if (!confirm('الموافقة على تأهيل ' + q.name + '؟')) return;
+          try { await App.api('POST', '/app/admin/qualifications/' + q.userId + '/approve', {}); loadQualifications(); }
+          catch (e) { alert(e.message); }
+        };
+        const noBtn = document.createElement('button');
+        noBtn.style.cssText = 'padding:10px 16px;background:#c54a3a;color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;white-space:nowrap;';
+        noBtn.textContent = '✗ رفض';
+        noBtn.onclick = async () => {
+          if (!confirm('رفض طلب ' + q.name + '؟')) return;
+          try { await App.api('POST', '/app/admin/qualifications/' + q.userId + '/reject', {}); loadQualifications(); }
+          catch (e) { alert(e.message); }
+        };
+        actions.append(okBtn, noBtn);
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+
+  // ── Push broadcast ─────────────────────────────────────────────
+  async function loadPushHealth() {
+    const badge = document.getElementById('pushSubsBadge');
+    const hint = document.getElementById('pushHint');
+    if (!badge) return;
+    try {
+      const h = await App.api('GET', '/app/admin/health');
+      badge.textContent = App.fmt.arNum(h.counts.pushSubs) + ' مشترك';
+      if (hint) hint.textContent = h.providers.push === 'configured'
+        ? 'مزود VAPID مفعّل. سيتم إرسال إشعار حقيقي.'
+        : '⚠️ مفاتيح VAPID غير مهيّأة. الرسائل تُسجَّل فقط دون إرسال فعلي.';
+    } catch (e) { badge.textContent = '—'; }
+  }
+  const pushFormEl = document.getElementById('pushForm');
+  if (pushFormEl) pushFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('pushTitle').value.trim();
+    const body  = document.getElementById('pushBody').value.trim();
+    const url   = document.getElementById('pushUrl').value.trim();
+    const btn = document.getElementById('pushSubmit');
+    btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+    try {
+      const r = await App.api('POST', '/app/admin/push/broadcast', { title, body, url });
+      alert('تم الإرسال إلى ' + r.sent + ' من ' + r.total + ' مشترك.');
+      [document.getElementById('pushTitle'), document.getElementById('pushBody'), document.getElementById('pushUrl')].forEach(x => x.value = '');
+    } catch (e2) { alert(e2.message); }
+    finally { btn.disabled = false; btn.textContent = '📣 إرسال الآن'; }
+  });
+
+  // ── System health ──────────────────────────────────────────────
+  function _fmtBytes(b) {
+    if (b == null) return '—';
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1024*1024*1024) return (b/1024/1024).toFixed(2) + ' MB';
+    return (b/1024/1024/1024).toFixed(2) + ' GB';
+  }
+  function _fmtUptime(s) {
+    if (s < 60) return s + 'ث';
+    if (s < 3600) return Math.floor(s/60) + 'د ' + (s%60) + 'ث';
+    if (s < 86400) return Math.floor(s/3600) + 'س ' + Math.floor((s%3600)/60) + 'د';
+    return Math.floor(s/86400) + 'ي ' + Math.floor((s%86400)/3600) + 'س';
+  }
+  async function loadHealth() {
+    const grid = document.getElementById('healthGrid');
+    const summary = document.getElementById('healthSummary');
+    if (!grid) return;
+    try {
+      const h = await App.api('GET', '/app/admin/health');
+      summary.textContent = 'مرفوع منذ ' + _fmtUptime(h.uptimeSec) + ' · Node ' + h.nodeVersion;
+      grid.replaceChildren();
+      const tile = (label, value, sub) => {
+        const t = document.createElement('div');
+        t.style.cssText = 'padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:4px;'; l.textContent = label;
+        const v = document.createElement('div'); v.style.cssText = 'font:800 16px Cairo,sans-serif;color:var(--green-dark);'; v.textContent = value;
+        t.append(l, v);
+        if (sub) { const s = document.createElement('div'); s.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; s.textContent = sub; t.appendChild(s); }
+        return t;
+      };
+      grid.append(
+        tile('قاعدة البيانات', h.dbBackend.toUpperCase(), h.dbSizeBytes != null ? 'حجم: ' + _fmtBytes(h.dbSizeBytes) : ''),
+        tile('المستخدمون', App.fmt.arNum(h.counts.users), 'مشاريع: ' + App.fmt.arNum(h.counts.projects)),
+        tile('الاستثمارات', App.fmt.arNum(h.counts.investments), 'عقود: ' + App.fmt.arNum(h.counts.contracts)),
+        tile('طرق الدفع المحفوظة', App.fmt.arNum(h.counts.paymentMethods), 'اشتراكات Push: ' + App.fmt.arNum(h.counts.pushSubs)),
+        tile('Resend', h.providers.mail, ''),
+        tile('SMS', h.providers.sms, ''),
+        tile('Payments', h.providers.payments, ''),
+        tile('Sanctions', h.providers.sanctions, ''),
+        tile('Push (VAPID)', h.providers.push, ''),
+        tile('السجل المُدقَّق', App.fmt.arNum(h.counts.auditLog), 'سجلات التوقيع: ' + App.fmt.arNum(h.counts.signingRecords)),
+      );
+    } catch (e) {
+      summary.textContent = 'تعذّر التحميل';
+    }
+  }
+
+  async function loadLaunchPlan() {
+    const phases = document.getElementById('lpPhases');
+    const bar = document.getElementById('lpProgressBar');
+    const lbl = document.getElementById('lpProgressLabel');
+    const badge = document.getElementById('lpStatusBadge');
+    try {
+      const r = await App.api('GET', '/app/admin/launch-plan');
+      bar.style.width = r.pct + '%';
+      lbl.textContent = App.fmt.arNum(r.pct) + '٪';
+      badge.textContent = App.fmt.arNum(r.done) + ' / ' + App.fmt.arNum(r.total) + ' مكتمل';
+      phases.replaceChildren();
+      const groups = { P0: [], P1: [], P2: [] };
+      r.items.forEach(it => { (groups[it.phase] || (groups[it.phase] = [])).push(it); });
+      for (const phaseKey of ['P0', 'P1', 'P2']) {
+        const meta = PHASE_LABEL[phaseKey];
+        if (!meta || !groups[phaseKey].length) continue;
+        const wrap = document.createElement('div');
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + meta.color + ';margin-bottom:8px;display:flex;align-items:center;gap:8px;';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:50%;background:' + meta.color + ';';
+        head.appendChild(dot);
+        const ht = document.createElement('span');
+        ht.textContent = phaseKey + ' — ' + meta.title;
+        head.appendChild(ht);
+        const dn = groups[phaseKey].filter(x => x.done).length;
+        const cn = document.createElement('span');
+        cn.style.cssText = 'margin-inline-start:auto;font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        cn.textContent = App.fmt.arNum(dn) + ' / ' + App.fmt.arNum(groups[phaseKey].length);
+        head.appendChild(cn);
+        wrap.appendChild(head);
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px;';
+        groups[phaseKey].forEach(it => {
+          const row = document.createElement('label');
+          row.style.cssText = 'display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:' + (it.done ? 'rgba(15,110,58,0.06)' : '#fff') + ';cursor:pointer;transition:background .2s;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!it.done;
+          cb.style.cssText = 'width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--green);';
+          cb.onchange = async () => {
+            cb.disabled = true;
+            try {
+              await App.api('PATCH', '/app/admin/launch-plan/' + encodeURIComponent(it.id), { done: cb.checked });
+              loadLaunchPlan();
+            } catch (e) { cb.checked = !cb.checked; alert(e.message || 'فشل التحديث'); cb.disabled = false; }
+          };
+          const txt = document.createElement('div');
+          txt.style.cssText = 'flex:1;';
+          const t = document.createElement('div');
+          t.style.cssText = 'font:800 13px Cairo,sans-serif;color:' + (it.done ? 'var(--muted)' : 'var(--ink)') + ';margin-bottom:4px;text-decoration:' + (it.done ? 'line-through' : 'none') + ';';
+          t.textContent = it.title;
+          const d = document.createElement('div');
+          d.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.6;';
+          d.textContent = it.desc;
+          txt.append(t, d);
+          row.append(cb, txt);
+          list.appendChild(row);
+        });
+        wrap.appendChild(list);
+        phases.appendChild(wrap);
+      }
+    } catch (e) {
+      badge.textContent = 'تعذّر التحميل';
+    }
+  }
+
   // Initialize
   await loadDashboardData();
   updateCalculatorOutputs();
+  // Scroll-spy: highlight the TOC link nearest the top of the viewport.
+  const tocLinks = Array.from(document.querySelectorAll('.admin-toc a'));
+  const targetIds = tocLinks.map(a => a.getAttribute('href').slice(1));
+  const targets   = targetIds.map(id => document.getElementById(id)).filter(Boolean);
+  if (targets.length && 'IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-130px 0px -55% 0px', threshold: 0 });
+    targets.forEach(t => obs.observe(t));
+  }
+
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns()]);
+
+  // Live updates via SSE. Admins receive every event; refresh impacted cards.
+  if (typeof EventSource !== 'undefined') {
+    try {
+      const es = new EventSource('/app/events');
+      const debounce = (fn, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+      const refreshUsers = debounce(loadUsers, 500);
+      const refreshQuals = debounce(loadQualifications, 500);
+      const refreshInvs  = debounce(loadInvestments, 500);
+      const refreshAudit = debounce(loadAudit, 500);
+      const refreshHealth = debounce(loadHealth, 500);
+      const refreshQA    = debounce(loadQAInbox, 500);
+      es.addEventListener('notification', (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          const kind = payload?.data?.kind || '';
+          if (['welcome', 'account_rejected'].includes(kind)) refreshUsers();
+          if (kind === 'qualification_approved' || kind === 'qualification_rejected') { refreshQuals(); refreshUsers(); }
+          if (kind === 'invest' || kind === 'deposit' || kind === 'withdraw') { refreshInvs(); refreshHealth(); }
+          if (kind === 'new_question') refreshQA();
+          if (kind === 'sanctions_hit') refreshUsers();
+          refreshAudit();
+        } catch {}
+      });
+      es.addEventListener('error', () => {});
+      window.addEventListener('pagehide', () => es.close());
+    } catch (e) {}
+  }
 });
 </script>
 </body>
