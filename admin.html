@@ -415,6 +415,7 @@
     <a href="#usersCard">👥 المستثمرون</a>
     <a href="#qualificationsCard">⭐ التأهيل</a>
     <a href="#qaCard">❓ الأسئلة</a>
+    <a href="#helpCmsCard">📚 المساعدة</a>
     <a href="#webhooksCard">🔗 Webhooks</a>
     <a href="#pushBroadcastCard">🔔 Push</a>
     <a href="#healthCard">💚 صحة النظام</a>
@@ -656,6 +657,36 @@
         </label>
       </div>
       <div id="usersList" style="display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- HELP CENTER articles CMS -->
+  <div class="admin-card" id="helpCmsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📚 مركز المساعدة — المقالات</span>
+      <span class="card-h-sub" id="helpCmsBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="helpArticleForm" style="display:flex;flex-direction:column;gap:10px;">
+          <input id="hcTitle" type="text" placeholder="عنوان المقال" maxlength="200" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <textarea id="hcSummary" rows="2" placeholder="ملخص قصير (اختياري)" maxlength="400" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <textarea id="hcBody" rows="6" placeholder="نص المقال..." maxlength="50000" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+          <select id="hcCat" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+            <option value="getting_started">البدء</option>
+            <option value="investing">الاستثمار</option>
+            <option value="kyc">التحقق من الهوية</option>
+            <option value="payments">المدفوعات</option>
+            <option value="security">الأمان</option>
+            <option value="shariah">الشرعية</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--ink);"><input id="hcPublish" type="checkbox" checked style="accent-color:var(--green);" /> نشر فوراً</label>
+          <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">➕ إضافة مقال</button>
+        </form>
+      </div>
+      <div>
+        <div id="helpArticlesAdmin" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+      </div>
     </div>
   </div>
 
@@ -1742,6 +1773,64 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
   if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
 
+  // ── Help articles CMS ─────────────────────────────────────────
+  const HELP_CAT_AR = { getting_started: 'البدء', investing: 'الاستثمار', kyc: 'التحقق', payments: 'المدفوعات', security: 'الأمان', shariah: 'الشرعية' };
+  async function loadHelpCms() {
+    const list = document.getElementById('helpArticlesAdmin');
+    const badge = document.getElementById('helpCmsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/help/articles');
+      badge.textContent = App.fmt.arNum(r.articles.length) + ' مقال';
+      list.replaceChildren();
+      if (!r.articles.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;';
+        e.textContent = 'لا توجد مقالات بعد.';
+        list.appendChild(e); return;
+      }
+      r.articles.forEach(a => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:' + (a.publishedAt ? '#fff' : '#f5f1e3') + ';';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = (a.publishedAt ? '' : '📝 مسودة · ') + a.title;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
+        meta.textContent = (HELP_CAT_AR[a.category] || a.category) + ' · ' + new Date(a.createdAt).toLocaleDateString('ar-SA');
+        const acts = document.createElement('div'); acts.style.cssText = 'display:flex;gap:6px;';
+        const tog = document.createElement('button'); tog.type='button';
+        tog.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        tog.textContent = a.publishedAt ? 'إلغاء النشر' : 'نشر';
+        tog.onclick = async () => {
+          try { await App.api('PATCH', '/app/admin/help/articles/' + a.id, { publishedAt: a.publishedAt ? null : new Date().toISOString() }); loadHelpCms(); }
+          catch (e) { alert(e.message); }
+        };
+        const del = document.createElement('button'); del.type='button';
+        del.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.textContent = 'حذف';
+        del.onclick = async () => { if (!confirm('حذف المقال؟')) return; try { await App.api('DELETE', '/app/admin/help/articles/' + a.id); loadHelpCms(); } catch (e) { alert(e.message); } };
+        acts.append(tog, del);
+        row.append(t, meta, acts);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  const helpForm = document.getElementById('helpArticleForm');
+  if (helpForm) helpForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById('hcTitle').value.trim(),
+      summary: document.getElementById('hcSummary').value.trim(),
+      body: document.getElementById('hcBody').value.trim(),
+      category: document.getElementById('hcCat').value,
+      publish: document.getElementById('hcPublish').checked,
+    };
+    try {
+      await App.api('POST', '/app/admin/help/articles', payload);
+      helpForm.reset(); document.getElementById('hcPublish').checked = true;
+      loadHelpCms();
+    } catch (e2) { alert(e2.message); }
+  });
+
   // ── Project Q&A inbox ──────────────────────────────────────────
   async function loadQAInbox() {
     const list = document.getElementById('qaList');
@@ -2099,7 +2188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

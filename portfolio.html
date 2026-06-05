@@ -1165,11 +1165,51 @@
     submitBtn.textContent = 'جاري المعالجة...';
     errEl.style.display = 'none';
     try {
-      const path = _kind === 'deposit' ? '/app/portfolio/deposit' : '/app/portfolio/withdraw';
-      await App.api('POST', path, { amount: amt, methodId: _selectedId });
-      App.toast(_kind === 'deposit' ? 'تم الإيداع بنجاح.' : 'تم تقديم طلب السحب.', 'success');
-      close();
-      setTimeout(() => location.reload(), 500);
+      if (_kind === 'deposit') {
+        await App.api('POST', '/app/portfolio/deposit', { amount: amt, methodId: _selectedId });
+        App.toast('تم الإيداع بنجاح.', 'success');
+        close();
+        setTimeout(() => location.reload(), 500);
+        return;
+      }
+      // Withdraw: check whether 2-step confirmation is required
+      const init = await App.api('POST', '/app/portfolio/withdraw/init', { amount: amt, methodId: _selectedId });
+      if (!init.requiresConfirmation) {
+        await App.api('POST', '/app/portfolio/withdraw', { amount: amt, methodId: _selectedId });
+        App.toast('تم تقديم طلب السحب.', 'success');
+        close(); setTimeout(() => location.reload(), 500);
+        return;
+      }
+      // Show OTP step inline
+      methodsEl.replaceChildren();
+      amountEl.style.display = 'none';
+      hintEl.style.display = 'none';
+      const title2 = document.getElementById('cashTitle');
+      const sub2 = document.getElementById('cashSub');
+      title2.textContent = 'تأكيد عملية السحب';
+      sub2.textContent = 'لمبالغ السحب الكبيرة، نطلب رمز تحقق من بريدك الإلكتروني (صالح 10 دقائق).';
+      const otpInput = document.createElement('input');
+      otpInput.type = 'text'; otpInput.inputMode = 'numeric'; otpInput.maxLength = 6;
+      otpInput.autocomplete = 'one-time-code';
+      otpInput.placeholder = '000000';
+      otpInput.style.cssText = 'width:100%;padding:14px 16px;border:1.5px solid rgba(13,22,18,0.20);border-radius:12px;font:800 24px monospace;text-align:center;letter-spacing:14px;direction:ltr;background:#fbf6ea;';
+      methodsEl.appendChild(otpInput);
+      otpInput.focus();
+      submitBtn.disabled = false; submitBtn.textContent = 'تأكيد السحب';
+      submitBtn.onclick = async () => {
+        const code = otpInput.value.trim();
+        if (code.length !== 6) { errEl.textContent = 'يجب أن يتكوّن الرمز من 6 أرقام.'; errEl.style.display = 'block'; return; }
+        submitBtn.disabled = true; submitBtn.textContent = 'جاري التأكيد...';
+        try {
+          await App.api('POST', '/app/portfolio/withdraw/confirm', { confirmationId: init.confirmationId, code });
+          App.toast('تم تقديم طلب السحب.', 'success');
+          close(); setTimeout(() => location.reload(), 500);
+        } catch (e) {
+          errEl.textContent = e.message || 'رمز التحقق غير صحيح.';
+          errEl.style.display = 'block';
+          submitBtn.disabled = false; submitBtn.textContent = 'تأكيد السحب';
+        }
+      };
     } catch (e) {
       errEl.textContent = e.message || 'فشلت العملية.';
       errEl.style.display = 'block';
