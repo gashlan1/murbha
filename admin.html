@@ -735,6 +735,7 @@
           <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">📤 نشر التحديث</button>
           <button type="button" id="puNotifyCloseBtn" style="padding:10px;border:1px solid var(--gold);border-radius:10px;background:#fff;color:var(--gold);font:800 12px Cairo,sans-serif;cursor:pointer;">🔔 تنبيه المشتركين بقرب الإغلاق</button>
           <button type="button" id="puViewInvestorsBtn" style="padding:10px;border:1px solid var(--green-dark);border-radius:10px;background:#fff;color:var(--green-dark);font:800 12px Cairo,sans-serif;cursor:pointer;">👥 عرض المستثمرين في هذا المشروع</button>
+          <button type="button" id="puPauseBtn" style="padding:10px;border:1px solid #c54a3a;border-radius:10px;background:#fff;color:#c54a3a;font:800 12px Cairo,sans-serif;cursor:pointer;">⏸ إيقاف مؤقت / استئناف</button>
         </form>
       </div>
       <div>
@@ -2641,6 +2642,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       result.textContent = 'فشل: ' + (err.message || 'تعذّر الإرسال');
       result.style.color = '#c54a3a';
     }
+  });
+  document.getElementById('puPauseBtn')?.addEventListener('click', async () => {
+    const slug = document.getElementById('puProject').value;
+    if (!slug) { alert('اختر مشروعاً أولاً'); return; }
+    try {
+      const projects = await App.api('GET', '/app/projects').then(r => r.projects || []);
+      const proj = projects.find(p => (p.slug || p.id) === slug);
+      if (!proj) { alert('مشروع غير موجود'); return; }
+      const action = proj.paused ? 'resume' : 'pause';
+      const verb = proj.paused ? 'استئناف' : 'إيقاف مؤقت';
+      if (!confirm(verb + ' المشروع "' + proj.name + '"؟')) return;
+      await App.api('POST', '/app/admin/projects/' + encodeURIComponent(slug) + '/' + action);
+      App.toast && App.toast('تم ' + verb, 'success');
+    } catch (e) { alert(e.message || 'فشل'); }
   });
   document.getElementById('puViewInvestorsBtn')?.addEventListener('click', async () => {
     const slug = document.getElementById('puProject').value;
