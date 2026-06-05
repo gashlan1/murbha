@@ -16,13 +16,162 @@
 (function () {
   'use strict';
 
+  // ─── CSRF helper ────────────────────────────────────────────────
+  const _readCookie = (name) => {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  // One-time bootstrap: ensure the CSRF cookie is set before any state-changing call.
+  let _csrfReady = null;
+  const _ensureCsrf = async () => {
+    if (_readCookie('mrb_csrf')) return;
+    if (!_csrfReady) {
+      _csrfReady = fetch('/healthz', { credentials: 'same-origin' }).catch(() => {});
+    }
+    await _csrfReady;
+  };
+
+  // ─── Platform settings auto-populate ────────────────────────────
+  // Any element with data-setting="path" gets its textContent replaced
+  // with the live value from /app/settings. Path is dot-delimited:
+  //   data-setting="support.hotline"  → settings.support.hotline
+  //   data-setting="social.twitter"   → settings.social.twitter
+  // Tel/mailto hrefs containing the same path get their href rewritten too.
+  let _settingsCache = null;
+  const _fetchSettings = async () => {
+    if (_settingsCache) return _settingsCache;
+    try {
+      const r = await fetch('/app/settings', { credentials: 'same-origin' });
+      if (r.ok) _settingsCache = await r.json();
+    } catch (e) {}
+    return _settingsCache;
+  };
+  const _readPath = (obj, path) => path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+  const _applySettings = (settings) => {
+    if (!settings) return;
+    document.querySelectorAll('[data-setting]').forEach(el => {
+      const v = _readPath(settings, el.dataset.setting);
+      if (v !== undefined && v !== null && v !== '') {
+        el.textContent = v;
+        // If the element is inside an <a href="tel:..."> or mailto, update the href too
+        const link = el.closest('a[href^="tel:"], a[href^="mailto:"]');
+        if (link) {
+          const prefix = link.href.startsWith('tel:') ? 'tel:' : 'mailto:';
+          link.href = prefix + v;
+        }
+      }
+    });
+  };
+  if (typeof document !== 'undefined') {
+    const _run = async () => _applySettings(await _fetchSettings());
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _run);
+    else _run();
+  }
+
+  // ─── A11y: focus trap helper for modals + sheets ────────────────
+  // Usage:
+  //   const release = App.trapFocus(modalEl);
+  //   // ...later when closing:
+  //   release();
+  // Captures Tab + Shift+Tab inside the root, restores prior focus and
+  // unbinds on release. Also closes on Esc when an onClose is given.
+  const trapFocus = (root, { onClose } = {}) => {
+    const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const prev = document.activeElement;
+    document.body.classList.add('modal-open');
+    const focusables = () => Array.from(root.querySelectorAll(FOCUSABLE)).filter(el => el.offsetParent !== null);
+    const first = focusables()[0];
+    if (first) first.focus({ preventScroll: true });
+    const onKey = (e) => {
+      if (e.key === 'Escape' && onClose) { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const list = focusables(); if (!list.length) return;
+      const f = list[0], l = list[list.length - 1];
+      if (e.shiftKey && document.activeElement === f) { e.preventDefault(); l.focus(); }
+      else if (!e.shiftKey && document.activeElement === l) { e.preventDefault(); f.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.classList.remove('modal-open');
+      if (prev && typeof prev.focus === 'function') prev.focus({ preventScroll: true });
+    };
+  };
+
+  // ─── Theme (light / dark) ───────────────────────────────────────
+  const THEME_KEY = 'mrb_theme';
+  const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+  };
+  const getTheme = () => {
+    try { return localStorage.getItem(THEME_KEY) || 'light'; } catch { return 'light'; }
+  };
+  const setTheme = (theme) => {
+    try { localStorage.setItem(THEME_KEY, theme); } catch {}
+    applyTheme(theme);
+  };
+  // Apply early so first paint matches saved preference.
+  if (typeof document !== 'undefined') applyTheme(getTheme());
+
+  // ─── Tiny safe Markdown renderer ────────────────────────────────
+  // Supports: # / ## / ### headings, **bold**, *italic*, `code`,
+  // [text](url) links (http/https only), unordered/ordered lists,
+  // and paragraph breaks. Everything passes through escapeHtml first so
+  // user input can't inject markup; the regex pass then replaces only
+  // the safe markdown sentinels. Output is a string of safe HTML.
+  const renderMarkdown = (src) => {
+    if (!src) return '';
+    let s = escapeHtml(String(src));
+    s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/((?:^- .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+      return '<ul>' + items + '</ul>';
+    });
+    s = s.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^\d+\. /, '') + '</li>').join('');
+      return '<ol>' + items + '</ol>';
+    });
+    s = s.split(/\n{2,}/).map(p => /^<(?:h\d|ul|ol|pre|blockquote)/.test(p.trim()) ? p : '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+    return s;
+  };
+
+  // ─── Cookie consent banner (loaded once) ────────────────────────
+  if (typeof document !== 'undefined') {
+    const s = document.createElement('script');
+    s.src = '/cookie-consent.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  // ─── Service worker registration (PWA) ──────────────────────────
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => {
+        // PWA is enhancement-only; log but never block.
+        console.warn('[pwa] sw register failed:', err.message);
+      });
+    });
+  }
+
   // ─── Tiny fetch wrapper ─────────────────────────────────────────
   const api = async (method, path, body) => {
+    const mutating = method !== 'GET' && method !== 'HEAD';
+    if (mutating) await _ensureCsrf();
     const opts = {
       method,
       credentials: 'same-origin',
       headers: { 'Accept': 'application/json' },
     };
+    if (mutating) {
+      const tok = _readCookie('mrb_csrf');
+      if (tok) opts.headers['X-CSRF-Token'] = tok;
+    }
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
@@ -185,6 +334,88 @@
     document.querySelectorAll('[data-bind="user.initial"]').forEach(el => {
       if (user) el.textContent = (user.name || '?').trim().charAt(0);
     });
+    if (user) { _installNotifBell(); _installAvatarBadge(user); }
+    else { document.getElementById('mrbNotifBell')?.remove(); document.getElementById('mrbAvatar')?.remove(); }
+  };
+
+  // ─── Header avatar (initial or uploaded image) ───────────────
+  const _installAvatarBadge = (user) => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbAvatar')) return;
+    const header = document.querySelector('header .nav, header nav, header');
+    if (!header) return;
+    const a = document.createElement('a');
+    a.id = 'mrbAvatar';
+    a.href = '/profile.html';
+    a.setAttribute('aria-label', 'الحساب');
+    a.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;font:900 14px Cairo,sans-serif;text-decoration:none;overflow:hidden;margin-inline-end:4px;';
+    if (user.avatarPath) {
+      const img = new Image();
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      img.onload = () => { a.textContent = ''; a.appendChild(img); };
+      img.onerror = () => { a.textContent = (user.name || '?').trim().charAt(0); };
+      img.src = '/app/me/avatar?t=' + Date.now();
+    } else {
+      a.textContent = (user.name || '?').trim().charAt(0);
+    }
+    const bell = document.getElementById('mrbNotifBell');
+    if (bell) bell.before(a); else header.prepend(a);
+  };
+
+  // ─── Header notification bell (unread count) ─────────────────
+  const _installNotifBell = async () => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbNotifBell')) return;
+    // Pick the most likely header container; fall back to body for pages without one
+    const header = document.querySelector('header .nav, header nav, header') || document.body;
+    if (header === document.body) return; // skip on pages with no header chrome
+    const wrap = document.createElement('a');
+    wrap.id = 'mrbNotifBell';
+    wrap.href = '/notifications.html';
+    wrap.setAttribute('aria-label', 'الإشعارات');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(13,22,18,0.05);text-decoration:none;color:#0d1612;margin-inline-end:6px;';
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '18'); svg.setAttribute('height', '18');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    const path1 = document.createElementNS(svgNS, 'path');
+    path1.setAttribute('d', 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9');
+    const path2 = document.createElementNS(svgNS, 'path');
+    path2.setAttribute('d', 'M10.3 21a1.94 1.94 0 0 0 3.4 0');
+    svg.appendChild(path1); svg.appendChild(path2);
+    wrap.appendChild(svg);
+    const dot = document.createElement('span');
+    dot.id = 'mrbNotifCount';
+    dot.style.cssText = 'position:absolute;top:-2px;inset-inline-end:-2px;min-width:18px;height:18px;padding:0 5px;background:#c54a3a;color:#fff;border-radius:999px;font:900 10px Cairo,sans-serif;display:none;align-items:center;justify-content:center;border:2px solid #fbf6ea;';
+    wrap.appendChild(dot);
+    // Place before lang toggle if it exists, else at the start of the nav
+    const lang = header.querySelector('#langToggle');
+    if (lang) lang.before(wrap); else header.prepend(wrap);
+    const poll = async () => {
+      try {
+        const r = await fetch('/app/notifications', { credentials: 'same-origin' });
+        if (!r.ok) return;
+        const d = await r.json();
+        const unread = (d.notifications || []).filter(n => !n.read).length;
+        if (unread > 0) {
+          dot.style.display = 'flex';
+          dot.textContent = unread > 99 ? '99+' : String(unread);
+        } else {
+          dot.style.display = 'none';
+        }
+      } catch (e) {}
+    };
+    poll();
+    // refresh every 90s; SSE also triggers immediate updates via the event below
+    setInterval(poll, 90000);
+    if (typeof EventSource !== 'undefined') {
+      try {
+        const es = new EventSource('/app/events');
+        es.addEventListener('notification', () => poll());
+      } catch (e) {}
+    }
   };
 
   // ─── data-action="logout" wiring ───────────────────────────────
@@ -260,11 +491,33 @@
     const initial = saved === 'en' ? 'en' : 'ar';
     setLabels(initial);
     if (initial === 'en') applyLang('en');
+    // If we haven't decided yet locally, defer to server-side preference (if any)
+    if (!saved) {
+      (async () => {
+        try {
+          const u = await me();
+          if (u?.locale === 'en' && document.documentElement.lang !== 'en') {
+            try { localStorage.setItem(KEY, 'en'); } catch {}
+            setLabels('en'); applyLang('en');
+            if (window.MurbhaLang?.rerenderProjects) window.MurbhaLang.rerenderProjects();
+          }
+        } catch (e) {}
+      })();
+    }
 
     btn.addEventListener('click', () => {
       const current = document.documentElement.lang === 'en' ? 'en' : 'ar';
       const next = current === 'ar' ? 'en' : 'ar';
       try { localStorage.setItem(KEY, next); } catch { /* ignore */ }
+      // Best-effort sync to server so the choice survives across devices
+      try {
+        fetch('/app/me/locale', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ locale: next }),
+        }).catch(() => {});
+      } catch (e) {}
       setLabels(next);
       applyLang(next);
       
@@ -443,18 +696,451 @@
     });
   };
 
+  // ─── Cookie consent (PDPL-friendly) ───────────────────────────
+  const CONSENT_KEY = 'mrb_consent_v1';
+  const _getConsent = () => {
+    try { return JSON.parse(localStorage.getItem(CONSENT_KEY) || 'null'); } catch { return null; }
+  };
+  const _setConsent = (c) => {
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ ...c, at: Date.now() })); } catch {}
+  };
+  const _renderConsent = () => {
+    if (_getConsent()) return;
+    if (document.getElementById('consentBanner')) return;
+    const html = document.documentElement.lang === 'en' || document.documentElement.dataset.langOverride === 'en';
+    const banner = document.createElement('div');
+    banner.id = 'consentBanner';
+    banner.style.cssText = 'position:fixed;bottom:14px;inset-inline-start:14px;inset-inline-end:14px;max-width:560px;margin:0 auto;background:#0a4d36;color:#fbf6ea;border-radius:16px;padding:16px 18px;font-family:Tajawal,system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.25);z-index:9998;font-size:13px;line-height:1.7;';
+    const txt = document.createElement('div');
+    txt.textContent = html
+      ? 'We use essential cookies for the platform to work. Optional analytics help us improve. You can change this anytime.'
+      : 'نستخدم ملفات تعريف ارتباط أساسية ليعمل النظام، وأخرى اختيارية للتحليلات لتحسين تجربتك. يمكنك تغيير اختيارك في أي وقت.';
+    txt.style.marginBottom = '12px';
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+    const mkBtn = (label, primary, onclick) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.style.cssText = 'flex:1;min-width:110px;padding:10px 14px;border-radius:999px;border:0;font:800 12px Cairo,sans-serif;cursor:pointer;' +
+        (primary ? 'background:#d4ac6e;color:#062b1e;' : 'background:transparent;color:#fbf6ea;border:1px solid rgba(255,255,255,0.25);');
+      b.onclick = onclick;
+      return b;
+    };
+    const accept = mkBtn(html ? 'Accept all' : 'قبول الكل', true, () => {
+      _setConsent({ essential: true, analytics: true });
+      banner.remove();
+    });
+    const reject = mkBtn(html ? 'Essential only' : 'الأساسية فقط', false, () => {
+      _setConsent({ essential: true, analytics: false });
+      banner.remove();
+    });
+    const learn = document.createElement('a');
+    learn.href = '/cookies.html';
+    learn.textContent = html ? 'Learn more' : 'تفاصيل';
+    learn.style.cssText = 'color:#d4ac6e;text-decoration:underline;font:700 11px Tajawal,sans-serif;align-self:center;padding:0 6px;';
+    btns.append(accept, reject, learn);
+    banner.append(txt, btns);
+    document.body.appendChild(banner);
+  };
+
+  // ─── Reading-progress bar (long static pages) ────────────────
+  const _installScrollProgress = () => {
+    if (document.getElementById('mrbScrollProgress')) return;
+    // Skip on tabbed app pages where it competes with the header
+    if (location.pathname.includes('admin') ||
+        location.pathname.includes('portfolio') ||
+        location.pathname.includes('project.') ||
+        location.pathname.includes('hessa') ||
+        location.pathname.includes('login') ||
+        location.pathname.includes('signup') ||
+        location.pathname === '/') return;
+    // Only install when there's enough scroll height to matter
+    if ((document.documentElement.scrollHeight || 0) - window.innerHeight < 600) return;
+    const bar = document.createElement('div');
+    bar.id = 'mrbScrollProgress';
+    bar.style.cssText = 'position:fixed;top:0;inset-inline-start:0;height:3px;width:0;background:linear-gradient(90deg,#b08840,#d4ac6e);z-index:99999;transition:width .08s linear;pointer-events:none;';
+    document.body.appendChild(bar);
+    let ticking = false;
+    const tick = () => {
+      const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+      const max = (document.documentElement.scrollHeight || 0) - window.innerHeight;
+      const pct = max > 0 ? Math.min(100, Math.round((scrolled / max) * 100)) : 0;
+      bar.style.width = pct + '%';
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(tick);
+    }, { passive: true });
+    window.addEventListener('resize', tick, { passive: true });
+    tick();
+  };
+
+  // ─── Scroll to top button ──────────────────────────────────────
+  const _installScrollTopBtn = () => {
+    if (document.getElementById('toTopBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'toTopBtn';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'العودة إلى الأعلى');
+    btn.textContent = '↑';
+    btn.style.cssText = 'position:fixed;inset-block-end:calc(var(--tabbar-h,70px) + env(safe-area-inset-bottom,0px) + 70px);inset-inline-end:14px;z-index:8998;width:42px;height:42px;border-radius:50%;background:#062b1e;color:#fbf6ea;border:0;font:900 20px Cairo,sans-serif;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.25);opacity:0;transform:translateY(20px);transition:opacity .25s,transform .25s;pointer-events:none;';
+    btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.appendChild(btn);
+    let ticking = false;
+    const tick = () => {
+      const show = (window.scrollY || 0) > 600;
+      btn.style.opacity = show ? '0.95' : '0';
+      btn.style.transform = show ? 'translateY(0)' : 'translateY(20px)';
+      btn.style.pointerEvents = show ? 'auto' : 'none';
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(tick);
+    }, { passive: true });
+  };
+
+  // ─── PWA install prompt ────────────────────────────────────────
+  const PWA_DISMISS_KEY = 'mrb_pwa_dismissed_at';
+  let _deferredInstall = null;
+
+  const _isStandalone = () =>
+    window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  const _isiOSSafari = () => {
+    const ua = navigator.userAgent || '';
+    return /iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS/.test(ua);
+  };
+
+  const _renderInstallBanner = (mode) => {
+    if (document.getElementById('pwaInstall')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwaInstall';
+    banner.style.cssText = 'position:fixed;bottom:14px;inset-inline-end:14px;max-width:340px;background:#062b1e;color:#fbf6ea;border-radius:14px;padding:14px 16px;font-family:Tajawal,system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.25);z-index:9997;font-size:13px;line-height:1.6;';
+    const t = document.createElement('div');
+    t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#d4ac6e;margin-bottom:4px;';
+    t.textContent = '⬇ ثبّت تطبيق مُرابحة';
+    const p = document.createElement('div');
+    p.textContent = mode === 'ios'
+      ? 'لتثبيت التطبيق على iPhone: اضغط زر المشاركة ⤴ ثم اختر "إضافة إلى الشاشة الرئيسية".'
+      : 'استثمر بسرعة أكبر وتلقّى الإشعارات الفورية. التثبيت لا يأخذ ثانية.';
+    p.style.marginBottom = '10px';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;';
+    const dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.textContent = 'لاحقاً';
+    dismissBtn.style.cssText = 'flex:1;padding:9px 12px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:#fbf6ea;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    dismissBtn.onclick = () => {
+      try { localStorage.setItem(PWA_DISMISS_KEY, String(Date.now())); } catch {}
+      banner.remove();
+    };
+    row.appendChild(dismissBtn);
+    if (mode === 'native' && _deferredInstall) {
+      const installBtn = document.createElement('button');
+      installBtn.type = 'button';
+      installBtn.textContent = 'تثبيت الآن';
+      installBtn.style.cssText = 'flex:1;padding:9px 12px;background:#d4ac6e;color:#062b1e;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      installBtn.onclick = async () => {
+        try {
+          await _deferredInstall.prompt();
+          await _deferredInstall.userChoice;
+          _deferredInstall = null;
+          banner.remove();
+        } catch (e) { banner.remove(); }
+      };
+      row.appendChild(installBtn);
+    }
+    banner.append(t, p, row);
+    document.body.appendChild(banner);
+  };
+
+  const _maybeShowInstallPrompt = () => {
+    if (_isStandalone()) return;
+    let dismissedAt = 0;
+    try { dismissedAt = +localStorage.getItem(PWA_DISMISS_KEY) || 0; } catch {}
+    // Don't nag within 7 days of dismiss
+    if (dismissedAt && (Date.now() - dismissedAt) < 7 * 24 * 60 * 60 * 1000) return;
+    if (_deferredInstall) _renderInstallBanner('native');
+    else if (_isiOSSafari()) _renderInstallBanner('ios');
+  };
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredInstall = e;
+    // Delay so it doesn't appear instantly on cold load
+    setTimeout(_maybeShowInstallPrompt, 8000);
+  });
+
+  // ─── Onboarding tour (first-time users) ────────────────────────
+  const TOUR_KEY = 'mrb_tour_done_v1';
+  const _tourSeen = () => {
+    try { return localStorage.getItem(TOUR_KEY) === '1'; } catch { return true; }
+  };
+  const _markTourDone = () => {
+    try { localStorage.setItem(TOUR_KEY, '1'); } catch {}
+  };
+
+  const startTour = (steps) => {
+    if (!Array.isArray(steps) || !steps.length) return;
+    let i = 0;
+    const overlay = document.createElement('div');
+    overlay.id = 'tourOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.78);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:24px;font-family:Tajawal,system-ui,sans-serif;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:18px;padding:22px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);';
+    overlay.appendChild(card);
+
+    const renderStep = () => {
+      card.textContent = '';
+      const s = steps[i];
+      const dots = document.createElement('div');
+      dots.style.cssText = 'display:flex;gap:5px;justify-content:center;margin-bottom:14px;';
+      steps.forEach((_, idx) => {
+        const d = document.createElement('span');
+        d.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + (idx === i ? '#b08840' : 'rgba(13,22,18,0.15)') + ';';
+        dots.appendChild(d);
+      });
+      const h = document.createElement('div');
+      h.style.cssText = 'font:900 18px Cairo,sans-serif;color:#062b1e;margin-bottom:8px;';
+      h.textContent = s.title;
+      const p = document.createElement('div');
+      p.style.cssText = 'color:#3c4d44;font-size:14px;line-height:1.8;margin-bottom:18px;';
+      p.textContent = s.body;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;';
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = 'تخطّي';
+      skipBtn.type = 'button';
+      skipBtn.style.cssText = 'flex:1;padding:11px;background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;font:800 13px Cairo,sans-serif;color:#3c4d44;cursor:pointer;';
+      skipBtn.onclick = () => { _markTourDone(); overlay.remove(); };
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = i === steps.length - 1 ? 'تم — هيا نبدأ' : 'التالي';
+      nextBtn.type = 'button';
+      nextBtn.style.cssText = 'flex:2;padding:11px;background:#062b1e;color:#fbf6ea;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      nextBtn.onclick = () => {
+        if (i === steps.length - 1) {
+          _markTourDone();
+          overlay.remove();
+          if (s.cta && s.ctaHref) location.href = s.ctaHref;
+        } else {
+          i++; renderStep();
+        }
+      };
+      row.append(skipBtn, nextBtn);
+      card.append(dots, h, p, row);
+    };
+
+    renderStep();
+    document.body.appendChild(overlay);
+  };
+
+  const _maybeRunTour = async () => {
+    if (_tourSeen()) return;
+    if (location.pathname.includes('admin') || location.pathname.includes('cookies') ||
+        location.pathname.includes('auth') || location.pathname.includes('login') ||
+        location.pathname.includes('signup') || location.pathname.includes('kyc')) return;
+    // Only show to authenticated users so it doesn't startle visitors
+    try {
+      const r = await fetch('/app/me', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const data = await r.json();
+      if (!data?.user?.id) return;
+      // Skip if user has any investments already (returning user)
+      if (Array.isArray(data.investments) && data.investments.length) {
+        _markTourDone(); return;
+      }
+    } catch (e) { return; }
+
+    setTimeout(() => startTour([
+      {
+        title: 'أهلاً بك في مُرابحة 👋',
+        body: 'منصة استثمار شرعية كاملة من البحث عن الفرصة إلى التوقيع وتحصيل الأرباح. سنشرح لك أهم ٤ أماكن في أقل من دقيقة.',
+      },
+      {
+        title: 'تصفّح الفرص',
+        body: 'كل فرصة تعرض البائع، الأصل، الهامش، والمدة — كله مُعتمَد شرعياً. استخدم البحث أو الترتيب لتختار الأنسب.',
+        cta: true, ctaHref: '/projects.html',
+      },
+      {
+        title: 'احسب عوائدك',
+        body: 'داخل كل فرصة هناك حاسبة تُريك الأرباح المتوقعة وجدول التوزيعات الربعية حسب المبلغ.',
+      },
+      {
+        title: 'محفظتك = مكان كل شيء',
+        body: 'استثماراتك، عقودك، توزيعاتك، وتصدير .CSV و .ICS كلها في صفحة المحفظة. ابدأ الآن.',
+        cta: true, ctaHref: '/projects.html',
+      },
+    ]), 800);
+  };
+
+  // ─── Promo bar (admin-configured) ───────────────────────────
+  const _installPromoBar = async () => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbPromoBar')) return;
+    try {
+      const r = await fetch('/app/public/promo');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d.active || !d.text) return;
+      const dismissedV = (() => { try { return +localStorage.getItem('mrb_promo_dismissed_v') || 0; } catch { return 0; } })();
+      if (dismissedV >= (d.version || 1)) return;
+      const bar = document.createElement('a');
+      bar.id = 'mrbPromoBar';
+      bar.href = d.ctaUrl || '#';
+      bar.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;gap:12px;background:' + (d.bgColor || '#062b1e') + ';color:' + (d.fgColor || '#fbf6ea') + ';padding:9px 40px 9px 16px;text-align:center;font:700 12px Cairo,Tajawal,sans-serif;text-decoration:none;flex-wrap:wrap;';
+      const txt = document.createElement('span'); txt.textContent = d.text;
+      bar.appendChild(txt);
+      if (d.cta && d.ctaUrl) {
+        const cta = document.createElement('span');
+        cta.style.cssText = 'background:rgba(255,255,255,0.18);padding:3px 12px;border-radius:999px;font:800 11px Cairo,sans-serif;';
+        cta.textContent = d.cta + ' →';
+        bar.appendChild(cta);
+      }
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.setAttribute('aria-label', 'إغلاق الإعلان');
+      close.style.cssText = 'position:absolute;top:50%;inset-inline-end:8px;transform:translateY(-50%);background:transparent;border:0;color:inherit;font:900 14px Cairo,sans-serif;cursor:pointer;opacity:0.7;padding:0 4px;';
+      close.textContent = '✕';
+      close.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        try { localStorage.setItem('mrb_promo_dismissed_v', String(d.version || 1)); } catch {}
+        bar.remove();
+      };
+      bar.appendChild(close);
+      document.body.prepend(bar);
+    } catch (e) {}
+  };
+
+  // ─── Maintenance banner (poll once on load) ────────────────────
+  const _checkMaintenance = async () => {
+    try {
+      const r = await fetch('/app/public/maintenance', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const d = await r.json();
+      // Heads-up: scheduled window is ≤24h away but not yet active.
+      if (!d.active && d.scheduledStart) {
+        const startTs = new Date(d.scheduledStart).getTime();
+        const ms = startTs - Date.now();
+        const dismissed = (() => { try { return +localStorage.getItem('mrb_maint_heads_dismissed') || 0; } catch { return 0; } })();
+        if (ms > 0 && ms <= 24 * 60 * 60 * 1000 && dismissed < startTs - 24 * 60 * 60 * 1000 + 1) {
+          if (!document.getElementById('maintHeadsBanner')) {
+            const banner = document.createElement('div');
+            banner.id = 'maintHeadsBanner';
+            banner.style.cssText = 'position:fixed;top:0;inset-inline-start:0;inset-inline-end:0;z-index:9998;background:linear-gradient(90deg,#b08840,#d4ac6e);color:#062b1e;text-align:center;padding:10px 16px;font:700 13px Cairo,Tajawal,sans-serif;display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;';
+            const txt = document.createElement('span');
+            txt.textContent = '🛠 صيانة مجدولة قادمة';
+            const when = document.createElement('span');
+            when.style.cssText = 'opacity:0.85;font-weight:500;';
+            when.textContent = 'تبدأ ' + new Date(d.scheduledStart).toLocaleString('ar-SA');
+            const cd = document.createElement('span');
+            cd.style.cssText = 'background:rgba(255,255,255,0.45);padding:3px 12px;border-radius:999px;font:800 11px "SF Mono",Menlo,monospace;direction:ltr;color:#062b1e;';
+            banner.append(txt, when, cd);
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.setAttribute('aria-label', 'إغلاق');
+            close.style.cssText = 'background:transparent;border:0;color:#062b1e;font:900 14px Cairo,sans-serif;cursor:pointer;opacity:0.7;padding:0 4px;';
+            close.textContent = '✕';
+            close.onclick = () => {
+              try { localStorage.setItem('mrb_maint_heads_dismissed', String(startTs)); } catch {}
+              banner.remove();
+            };
+            banner.appendChild(close);
+            document.body.appendChild(banner);
+            const tick = () => {
+              const remain = startTs - Date.now();
+              if (remain <= 0) { cd.textContent = 'بدأت'; return; }
+              const h = Math.floor(remain / 3600000);
+              const m = Math.floor((remain % 3600000) / 60000);
+              cd.textContent = (h > 0 ? h + 'س ' : '') + m + 'د';
+            };
+            tick(); setInterval(tick, 60000);
+          }
+        }
+        return;
+      }
+      if (!d.active || document.getElementById('maintBanner')) return;
+      const banner = document.createElement('div');
+      banner.id = 'maintBanner';
+      banner.style.cssText = 'position:fixed;top:0;inset-inline-start:0;inset-inline-end:0;z-index:9999;background:linear-gradient(90deg,#c54a3a,#b08840);color:#fff;text-align:center;padding:10px 16px;font:700 13px Cairo,Tajawal,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+      const txt = document.createElement('span');
+      txt.textContent = '🛠 ' + (d.message || 'النظام تحت الصيانة حالياً.');
+      banner.appendChild(txt);
+      if (d.eta) {
+        const eta = document.createElement('small');
+        eta.style.cssText = 'margin-inline-start:10px;opacity:0.85;font-weight:500;';
+        eta.textContent = '· نعود حوالي ' + new Date(d.eta).toLocaleString('ar-SA');
+        banner.appendChild(eta);
+      }
+      document.body.appendChild(banner);
+      document.body.style.paddingTop = (banner.offsetHeight + (parseInt(document.body.style.paddingTop || 0) || 0)) + 'px';
+
+      // Live countdown when ETA is present
+      if (d.eta) {
+        const etaTs = new Date(d.eta).getTime();
+        const cd = document.createElement('span');
+        cd.id = 'maintCountdown';
+        cd.style.cssText = 'margin-inline-start:10px;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:999px;font:800 11px "SF Mono",Menlo,monospace;direction:ltr;';
+        banner.appendChild(cd);
+        const tick = () => {
+          const ms = etaTs - Date.now();
+          if (ms <= 0) { cd.textContent = 'حان وقت العودة'; return; }
+          const h = Math.floor(ms / 3600000);
+          const m = Math.floor((ms % 3600000) / 60000);
+          const s = Math.floor((ms % 60000) / 1000);
+          cd.textContent = (h > 0 ? h + 'س ' : '') + (m < 10 ? '0' + m : m) + 'د ' + (s < 10 ? '0' + s : s) + 'ث';
+        };
+        tick();
+        setInterval(tick, 1000);
+      }
+    } catch (e) {}
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     _wireActions();
     _wireHeaderAuth();
     _wireLangToggle();
     _injectSupportFab();
+    if (!location.pathname.includes('cookies.html')) _renderConsent();
+    if (!location.pathname.includes('admin')) { _checkMaintenance(); _installPromoBar(); }
+    // iOS Safari has no beforeinstallprompt; show its hint after delay.
+    if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
+    _maybeRunTour();
+    _installScrollTopBtn();
+    _installScrollProgress();
   });
 
   window.App = {
     api, me, meSync, requireAuth, logout,
     toast,
     fmt: { sar, arNum, date, dateTime, relTime },
-    storage, on, qs, escapeHtml,
+    storage, on, qs, escapeHtml, renderMarkdown,
+    getTheme, setTheme,
+    getConsent: _getConsent, setConsent: _setConsent,
+    startTour, resetTour: () => { try { localStorage.removeItem(TOUR_KEY); } catch {} },
+    mdInline: (text, parent) => {
+      // Safe inline markdown to DOM nodes. Skips innerHTML entirely.
+      const rx = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+      let last = 0;
+      for (const m of String(text).matchAll(rx)) {
+        if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+        let el;
+        if (m[1]) { el = document.createElement('strong'); el.textContent = m[2]; }
+        else if (m[3]) { el = document.createElement('em'); el.textContent = m[4]; }
+        else if (m[5]) { el = document.createElement('code'); el.textContent = m[6]; }
+        else if (m[7] && m[8]) { el = document.createElement('a'); el.href = m[8]; el.target = '_blank'; el.rel = 'noopener'; el.textContent = m[7]; }
+        if (el) parent.appendChild(el);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+      return parent;
+    },
+    trapFocus,
     refreshHeader: _wireHeaderAuth,
   };
 })();
