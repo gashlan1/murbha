@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- PROJECT ENGAGEMENT -->
+  <div class="admin-card" id="projViewsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📈 تفاعل المشاريع</span>
+      <span class="card-h-sub">المشاركة + الاستثمارات + المشاهدات المباشرة</span>
+    </div>
+    <div class="card-body">
+      <div id="projViewsList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- SUPPORT SLA -->
   <div class="admin-card" id="supportSlaCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2651,6 +2664,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadProjViews() {
+    const list = document.getElementById('projViewsList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/project-views');
+      const items = r.projects || [];
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد مشاريع نشطة')); return; }
+      items.forEach(p => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;';
+        const info = document.createElement('div');
+        const nm = document.createElement('a'); nm.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id); nm.target = '_blank';
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;';
+        nm.textContent = p.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = p.status + ' · ' + Number(p.raised).toLocaleString('ar-SA') + '/' + Number(p.goal).toLocaleString('ar-SA') + ' ر.س';
+        info.append(nm, document.createElement('br'), sub);
+        const shareT = document.createElement('div');
+        shareT.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--gold);text-align:center;min-width:60px;';
+        shareT.title = 'مشاركة';
+        shareT.textContent = '🔗 ' + p.shareCount;
+        const invT = document.createElement('div');
+        invT.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:center;min-width:60px;';
+        invT.title = 'استثمارات';
+        invT.textContent = '💎 ' + p.investments;
+        const liveT = document.createElement('div');
+        liveT.style.cssText = 'font:800 12px Cairo,sans-serif;color:#0f6e3a;text-align:center;min-width:60px;';
+        liveT.title = 'مشاهدون الآن';
+        liveT.textContent = '👁 ' + p.activeViewers;
+        row.append(info, shareT, invT, liveT);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadSupportSla() {
     const list = document.getElementById('supportSlaStats');
     const badge = document.getElementById('supportSlaBadge');
@@ -5771,7 +5823,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

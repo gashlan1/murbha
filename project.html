@@ -1488,6 +1488,11 @@
   </p>
 </div>
 
+<!-- REPORT ISSUE -->
+<div style="max-width:760px;margin:8px auto -8px;padding:0 22px;text-align:end;">
+  <button type="button" id="reportIssueBtn" style="background:transparent;border:0;color:#c54a3a;font:700 11px Cairo,sans-serif;cursor:pointer;text-decoration:underline;padding:4px;">🚩 الإبلاغ عن مشكلة في هذه الصفقة</button>
+</div>
+
 <!-- COUNTDOWN HUD -->
 <div class="card-section" id="countdownHud" style="padding:18px 22px;display:none;">
   <h2 class="section-h" style="margin-bottom:12px;">⏰ يُغلق التسجيل خلال</h2>
@@ -2676,6 +2681,59 @@
           wrap.appendChild(extra);
         }
       } catch (e) {}
+    })();
+
+    // Report-issue button → opens a categorized feedback form
+    (() => {
+      const btn = document.getElementById('reportIssueBtn');
+      if (!btn) return;
+      btn.onclick = () => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;';
+        const t = document.createElement('div'); t.style.cssText = 'font:900 16px Cairo,sans-serif;color:#c54a3a;margin-bottom:8px;';
+        t.textContent = '🚩 الإبلاغ عن مشكلة';
+        const s = document.createElement('div'); s.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#6b7268;margin-bottom:14px;line-height:1.7;';
+        s.textContent = 'بلاغك يصل فوراً لفريق الامتثال وفريق الأمن. الهوية مكتومة إن لم تُسجّل دخولك.';
+        const sel = document.createElement('select');
+        sel.style.cssText = 'width:100%;padding:11px 14px;border:1.5px solid rgba(13,22,18,0.10);border-radius:10px;font:700 13px Tajawal,sans-serif;color:#062b1e;margin-bottom:10px;';
+        ['اختر نوع المشكلة', 'احتيال محتمل', 'معلومات خاطئة في الوثائق', 'تعارض شرعي', 'انتحال شخصية بائع', 'سلوك غير لائق', 'مشكلة تقنية', 'أخرى'].forEach((o, i) => {
+          const op = document.createElement('option'); op.value = i ? o : ''; op.textContent = o; sel.appendChild(op);
+        });
+        const ta = document.createElement('textarea');
+        ta.placeholder = 'تفاصيل المشكلة...';
+        ta.style.cssText = 'width:100%;padding:11px 14px;border:1.5px solid rgba(13,22,18,0.10);border-radius:10px;font:500 13px Tajawal,sans-serif;color:#0d1612;min-height:100px;resize:vertical;margin-bottom:10px;';
+        const buttons = document.createElement('div');
+        buttons.style.cssText = 'display:flex;gap:8px;';
+        const close = document.createElement('button'); close.type='button'; close.textContent='إلغاء';
+        close.style.cssText = 'flex:1;background:#fff;color:#062b1e;border:1px solid rgba(13,22,18,0.10);border-radius:10px;padding:10px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+        close.onclick = () => overlay.remove();
+        const send = document.createElement('button'); send.type='button'; send.textContent='إرسال البلاغ';
+        send.style.cssText = 'flex:2;background:#c54a3a;color:#fff;border:0;border-radius:10px;padding:10px;font:900 13px Cairo,sans-serif;cursor:pointer;';
+        send.onclick = async () => {
+          if (!sel.value) { alert('اختر نوع المشكلة'); return; }
+          if (!ta.value.trim()) { alert('اكتب التفاصيل'); return; }
+          send.disabled = true; send.textContent = '…';
+          try {
+            await fetch('/app/feedback', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'project_report',
+                body: ta.value.trim(),
+                meta: { category: sel.value, projectSlug: p.slug || p.id, projectName: p.name },
+              }),
+            });
+            App.toast && App.toast('شكراً — تمّ تسجيل البلاغ', 'success');
+            overlay.remove();
+          } catch (e) { send.disabled = false; send.textContent = 'إرسال البلاغ'; App.toast && App.toast('فشل', 'error'); }
+        };
+        buttons.append(close, send);
+        card.append(t, s, sel, ta, buttons);
+        overlay.appendChild(card);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+      };
     })();
 
     // Live viewer count
