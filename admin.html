@@ -1162,6 +1162,26 @@
     </div>
   </div>
 
+  <!-- INVESTMENT STATUS DOUGHNUT -->
+  <div class="admin-card" id="investmentStatusCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🍩 الاستثمارات حسب الحالة</span>
+      <span class="card-h-sub" id="investmentStatusBadge">—</span>
+    </div>
+    <div class="card-body" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div style="position:relative;width:160px;height:160px;flex-shrink:0;">
+        <svg id="investmentDoughnut" width="160" height="160" viewBox="0 0 42 42" style="transform:rotate(-90deg);">
+          <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--paper-2)" stroke-width="4.5"></circle>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+          <div id="investmentDoughnutTotal" style="font:900 20px Cairo,sans-serif;color:var(--green-dark);">0</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);">إجمالي</div>
+        </div>
+      </div>
+      <div id="investmentStatusLegend" style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px;"></div>
+    </div>
+  </div>
+
   <!-- FAILED LOGIN CHART -->
   <div class="admin-card" id="failedLoginCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1793,10 +1813,29 @@ document.addEventListener('DOMContentLoaded', async () => {
           pin.textContent = '📌 مثبّت';
           meta.appendChild(pin);
         }
+        if (a.pausedAt) {
+          const pausedPill = document.createElement('span');
+          pausedPill.style.cssText = 'font:800 11px Cairo,sans-serif;color:#7a5a10;background:rgba(176,136,64,0.16);padding:2px 8px;border-radius:999px;';
+          pausedPill.textContent = '⏸ مؤقّت';
+          meta.appendChild(pausedPill);
+        }
         if (!expired) {
+          const pauseBtn = document.createElement('button');
+          pauseBtn.type = 'button';
+          const isPaused = !!a.pausedAt;
+          pauseBtn.style.cssText = 'background:none;border:0;color:' + (isPaused ? '#0a4d36' : '#b08840') + ';font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          pauseBtn.textContent = isPaused ? '▶ استئناف' : '⏸ إيقاف مؤقّت';
+          pauseBtn.onclick = async () => {
+            try {
+              await App.api('POST', '/app/admin/announcements/' + a.id + '/' + (isPaused ? 'resume' : 'pause'));
+              loadAnnouncements();
+            } catch (e) { alert(e.message || 'فشل'); }
+          };
+          meta.appendChild(pauseBtn);
+
           const pinBtn = document.createElement('button');
           pinBtn.type = 'button';
-          pinBtn.style.cssText = 'background:none;border:0;color:#b08840;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          pinBtn.style.cssText = 'background:none;border:0;color:#b08840;font:700 11px Tajawal,sans-serif;cursor:pointer;';
           pinBtn.textContent = a.pinned ? 'إلغاء التثبيت' : '📌 تثبيت';
           pinBtn.onclick = async () => {
             try { await App.api('PATCH', '/app/admin/announcements/' + a.id, { pinned: !a.pinned }); loadAnnouncements(); }
@@ -1908,6 +1947,56 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
+
+  // ── Investments status doughnut ──────────────────────────────
+  async function loadInvestmentStatus() {
+    const svg = document.getElementById('investmentDoughnut');
+    const badge = document.getElementById('investmentStatusBadge');
+    const legend = document.getElementById('investmentStatusLegend');
+    if (!svg) return;
+    try {
+      const r = await App.api('GET', '/app/admin/investment-status-breakdown');
+      badge.textContent = (r.total || 0) + ' صفقة · ' + Math.round(r.totalAmount).toLocaleString('ar-SA') + ' ر.س';
+      document.getElementById('investmentDoughnutTotal').textContent = (r.total || 0).toLocaleString('ar-SA');
+      // Remove dynamic arcs
+      svg.querySelectorAll('circle[data-status]').forEach(el => el.remove());
+      legend.replaceChildren();
+      const total = Object.values(r.counts || {}).reduce((a, b) => a + b, 0) || 1;
+      const STATUS = [
+        { k: 'active', label: 'نشطة', color: '#0a4d36' },
+        { k: 'pending_payment', label: 'بانتظار الدفع', color: '#b08840' },
+        { k: 'pending_signature', label: 'بانتظار التوقيع', color: '#d4ac6e' },
+        { k: 'completed', label: 'مكتملة', color: '#0f6e3a' },
+        { k: 'canceled', label: 'ملغاة', color: '#c54a3a' },
+        { k: 'other', label: 'أخرى', color: '#6b7268' },
+      ];
+      const svgNS = 'http://www.w3.org/2000/svg';
+      let offset = 0;
+      STATUS.forEach(s => {
+        const count = r.counts[s.k] || 0;
+        if (!count) return;
+        const pct = Math.round((count / total) * 100);
+        const seg = document.createElementNS(svgNS, 'circle');
+        seg.setAttribute('data-status', s.k);
+        seg.setAttribute('cx', '21'); seg.setAttribute('cy', '21'); seg.setAttribute('r', '15.91549430918954');
+        seg.setAttribute('fill', 'transparent');
+        seg.setAttribute('stroke', s.color);
+        seg.setAttribute('stroke-width', '4.5');
+        seg.setAttribute('stroke-dasharray', pct + ' ' + (100 - pct));
+        seg.setAttribute('stroke-dashoffset', String(-offset));
+        svg.appendChild(seg);
+        offset += pct;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--ink);';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'width:12px;height:12px;border-radius:3px;background:' + s.color + ';flex-shrink:0;';
+        const lbl = document.createElement('span'); lbl.style.flex = '1'; lbl.textContent = s.label;
+        const val = document.createElement('span'); val.style.cssText = 'font-weight:800;color:var(--green-dark);'; val.textContent = count + ' (' + pct + '٪)';
+        row.append(dot, lbl, val);
+        legend.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
 
   // ── Failed login chart ────────────────────────────────────────
   async function loadFailedLoginChart() {
@@ -4488,7 +4577,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
