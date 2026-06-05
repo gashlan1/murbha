@@ -2794,6 +2794,25 @@
       const stats = document.createElement('div');
       stats.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;font-size:13px;';
       stats.append(mkStat('دعوات', r.invitedCount), mkStat('مستثمرون نشطون', r.activatedCount));
+      // Copy-link row
+      const linkRow = document.createElement('div');
+      linkRow.style.cssText = 'display:flex;gap:6px;margin-bottom:14px;';
+      const linkInput = document.createElement('input');
+      linkInput.type = 'text';
+      linkInput.value = r.shareUrl || '';
+      linkInput.readOnly = true;
+      linkInput.style.cssText = 'flex:1;padding:9px 12px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#fff;border-radius:8px;font:600 12px monospace;direction:ltr;';
+      linkInput.onclick = () => linkInput.select();
+      const copyLinkBtn = document.createElement('button');
+      copyLinkBtn.type = 'button';
+      copyLinkBtn.textContent = '📋';
+      copyLinkBtn.title = 'نسخ الرابط';
+      copyLinkBtn.style.cssText = 'background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.20);border-radius:8px;padding:8px 14px;cursor:pointer;font:800 14px Cairo,sans-serif;';
+      copyLinkBtn.onclick = async () => {
+        try { await navigator.clipboard.writeText(r.shareUrl || ''); App.toast && App.toast('تم نسخ الرابط', 'success'); }
+        catch (e) { linkInput.select(); document.execCommand && document.execCommand('copy'); }
+      };
+      linkRow.append(linkInput, copyLinkBtn);
       const share = document.createElement('button'); share.type='button';
       share.style.cssText = 'width:100%;padding:12px;background:var(--gold);color:#fff;border:0;border-radius:10px;font:800 14px Cairo,sans-serif;cursor:pointer;';
       share.textContent = '📤 شارك رابط الدعوة';
@@ -2804,7 +2823,7 @@
           else { await navigator.clipboard.writeText(msg); App.toast('تم نسخ الرابط', 'success'); }
         } catch (e) {}
       };
-      wrap.append(tag, code, stats, share);
+      wrap.append(tag, code, stats, linkRow, share);
       box.appendChild(wrap);
     } catch (e) {
       box.replaceChildren();
