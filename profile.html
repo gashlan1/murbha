@@ -811,6 +811,20 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- 2FA quick card -->
+  <div class="settings-group" id="twofaQuickCard" style="display:none;">
+    <div class="settings-h">المصادقة الثنائية</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;">
+          <div id="twofaQuickStatus" style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:4px;">—</div>
+          <div id="twofaQuickSub" style="font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;">—</div>
+        </div>
+        <a href="#totpCard" id="twofaQuickCta" style="background:var(--green-dark);color:#d4ac6e;padding:9px 16px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;display:none;flex-shrink:0;">فعّل الآن ←</a>
+      </div>
+    </div>
+  </div>
+
   <!-- KYC progress quick card -->
   <div class="settings-group" id="kycQuickCard" style="display:none;">
     <div class="settings-h">حالة التحقّق (KYC)</div>
@@ -1861,6 +1875,37 @@
         row.append(k, v);
         list.appendChild(row);
       });
+    } catch (e) {}
+  })();
+
+  // 2FA quick status card
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const sec = document.getElementById('twofaQuickCard');
+      if (!sec) return;
+      sec.style.display = '';
+      const status = document.getElementById('twofaQuickStatus');
+      const sub = document.getElementById('twofaQuickSub');
+      const cta = document.getElementById('twofaQuickCta');
+      if (u.totpEnrolled) {
+        status.textContent = '🛡 TOTP مُفعّل';
+        status.style.color = '#0f6e3a';
+        sub.textContent = 'تطبيق المصادقة محمي. يمكنك إضافة رموز احتياطية إن لم تفعل بعد.';
+        cta.style.display = 'none';
+      } else if (u.sms2faEnabled) {
+        status.textContent = '📱 SMS مُفعّل';
+        status.style.color = '#0f6e3a';
+        sub.textContent = 'لمستوى حماية أعلى، فعّل TOTP أيضاً.';
+        cta.textContent = 'إضافة TOTP ←';
+        cta.style.display = 'inline-block';
+      } else {
+        status.textContent = '⚠ غير مُفعّل';
+        status.style.color = '#c54a3a';
+        sub.textContent = 'حسابك في خطر إن سُرقت كلمة السر. فعّل المصادقة الثنائية الآن (دقيقتان).';
+        cta.style.display = 'inline-block';
+      }
     } catch (e) {}
   })();
 

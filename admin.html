@@ -5033,6 +5033,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Populate event checkboxes once
       if (!eventsBox.dataset.populated) {
         eventsBox.dataset.populated = '1';
+        // Preset shortcuts
+        const presets = document.createElement('div');
+        presets.style.cssText = 'grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;';
+        const mkPreset = (label, matcher) => {
+          const b = document.createElement('button'); b.type='button';
+          b.style.cssText = 'padding:5px 12px;background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          b.textContent = label;
+          b.onclick = () => {
+            const all = eventsBox.querySelectorAll('input[type="checkbox"]');
+            all.forEach(cb => { cb.checked = matcher(cb.value); });
+          };
+          return b;
+        };
+        presets.append(
+          mkPreset('🎯 الكل', () => true),
+          mkPreset('🚫 لا شيء', () => false),
+          mkPreset('💰 المعاملات فقط', ev => /^(deposit|withdraw|invest|refund|payout)/.test(ev)),
+          mkPreset('👤 المستخدمون', ev => /^user\./.test(ev)),
+          mkPreset('🏢 المشاريع', ev => /^project\./.test(ev)),
+        );
+        eventsBox.appendChild(presets);
         r.allowedEvents.forEach(ev => {
           const lbl = document.createElement('label');
           lbl.style.cssText = 'display:flex;align-items:center;gap:6px;background:var(--paper);padding:6px 10px;border-radius:8px;font:600 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;';
