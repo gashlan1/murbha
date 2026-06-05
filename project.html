@@ -1456,8 +1456,12 @@
 
 <!-- Documents -->
 <div class="card-section">
-  <h2 class="section-h">المستندات</h2>
+  <h2 class="section-h">
+    المستندات
+    <span id="docsCountBadge" style="display:none;font:800 11px Cairo,sans-serif;color:var(--green);background:rgba(10,77,54,0.1);padding:3px 10px;border-radius:999px;vertical-align:middle;margin-inline-start:8px;"></span>
+  </h2>
   <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">وثائق الجدوى، الفتوى الشرعية، عقد المرابحة، ووثائق الإفصاح. متاحة للمستثمرين المسجّلين.</p>
+  <div id="docsTypeBreakdown" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
   <div id="projectDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
   <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <span style="font:600 11px Tajawal,sans-serif;color:#6b7268;">قبل الاستثمار:</span>
@@ -3976,6 +3980,26 @@
     try {
       const r = await App.api('GET', '/app/projects/' + encodeURIComponent(projectIdOrSlug) + '/documents');
       const me = await App.me();
+      const badge = document.getElementById('docsCountBadge');
+      if (badge && r.documents.length) {
+        badge.style.display = 'inline-block';
+        badge.textContent = r.documents.length + ' وثيقة';
+      }
+      const bd = document.getElementById('docsTypeBreakdown');
+      if (bd && r.documents.length) {
+        const sizes = r.documents.reduce((s, d) => s + (d.size || 0), 0);
+        bd.style.display = 'flex';
+        bd.replaceChildren();
+        const mkChip = (txt, bg, fg) => {
+          const c = document.createElement('span');
+          c.style.cssText = 'font:700 11px Tajawal,sans-serif;color:' + fg + ';background:' + bg + ';padding:5px 12px;border-radius:999px;';
+          c.textContent = txt;
+          return c;
+        };
+        bd.appendChild(mkChip('📄 ' + r.documents.length + ' وثيقة', 'rgba(10,77,54,0.10)', '#0a4d36'));
+        bd.appendChild(mkChip('💾 ' + (sizes / 1024).toFixed(0) + ' KB إجمالي', 'rgba(176,136,64,0.12)', '#b08840'));
+        bd.appendChild(mkChip('✅ تمّت مراجعتها', 'rgba(15,110,58,0.10)', '#0f6e3a'));
+      }
       if (!r.documents.length) {
         const e = document.createElement('div');
         e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;border:2px dashed var(--line);border-radius:12px;';
