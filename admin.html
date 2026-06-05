@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- SUPPORT SLA -->
+  <div class="admin-card" id="supportSlaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏱ SLA الدعم الفنّي</span>
+      <span class="card-h-sub" id="supportSlaBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="supportSlaStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;grid-column:1/-1;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ACTIVATION RATE -->
   <div class="admin-card" id="activationCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2638,6 +2651,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadSupportSla() {
+    const list = document.getElementById('supportSlaStats');
+    const badge = document.getElementById('supportSlaBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/support-sla?days=30');
+      if (badge) badge.textContent = 'آخر ٣٠ يوماً · هدف الاستجابة ' + r.slaTarget + ' ساعة';
+      const tiles = [
+        { v: (r.total || 0).toLocaleString('ar-SA'), l: 'إجمالي طلبات الدعم', c: '#0a4d36' },
+        { v: (r.open || 0).toLocaleString('ar-SA'), l: 'مفتوحة الآن', c: (r.open > 0 ? '#b08840' : '#0f6e3a') },
+        { v: (r.medianHours || 0) + 'س', l: 'وسيط زمن الرد', c: '#062b1e' },
+        { v: (r.p90Hours || 0) + 'س', l: 'P90 زمن الرد', c: '#5c2418' },
+        { v: (r.avgHours || 0) + 'س', l: 'متوسط زمن الرد', c: '#062b1e' },
+        { v: (r.slaPct || 0) + '٪', l: 'ضمن SLA (≤ ' + r.slaTarget + 'س)', c: (r.slaPct >= 90 ? '#0f6e3a' : (r.slaPct >= 70 ? '#b08840' : '#c54a3a')) },
+      ];
+      list.replaceChildren();
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;border-top:3px solid ' + t.c + ';';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        v.textContent = t.v;
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        l.textContent = t.l;
+        tile.append(v, l);
+        list.appendChild(tile);
+      });
+    } catch (e) {}
+  }
+
   async function loadActivation() {
     const list = document.getElementById('activationStats');
     const badge = document.getElementById('activationBadge');
@@ -5729,7 +5771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
