@@ -811,6 +811,22 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- KYC progress quick card -->
+  <div class="settings-group" id="kycQuickCard" style="display:none;">
+    <div class="settings-h">حالة التحقّق (KYC)</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span id="kycQuickLabel" style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">—</span>
+        <span id="kycQuickPct" style="font:900 18px Cairo,sans-serif;color:var(--gold);">٠٪</span>
+      </div>
+      <div style="height:8px;background:var(--paper-2);border-radius:6px;overflow:hidden;margin-bottom:10px;">
+        <div id="kycQuickFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green-dark),var(--gold));border-radius:6px;transition:width .6s ease;"></div>
+      </div>
+      <div id="kycQuickNext" style="font:600 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;line-height:1.7;"></div>
+      <a id="kycQuickCta" href="kyc.html" style="display:none;background:var(--green-dark);color:#d4ac6e;padding:10px 18px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;text-align:center;">أكمل التحقّق ←</a>
+    </div>
+  </div>
+
   <!-- Account stats card -->
   <div class="settings-group" id="accountStatsSection" style="display:none;">
     <div class="settings-h">ملخّص حسابي</div>
@@ -1785,6 +1801,47 @@
         row.append(k, v);
         list.appendChild(row);
       });
+    } catch (e) {}
+  })();
+
+  // KYC quick progress card
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const sec = document.getElementById('kycQuickCard');
+      if (!sec) return;
+      const steps = [
+        { k: 'email', label: 'تأكيد البريد', done: !!u.emailVerifiedAt },
+        { k: 'mobile', label: 'تأكيد الجوال', done: !!u.mobileVerifiedAt },
+        { k: 'identity', label: 'التحقّق من الهوية الوطنية', done: u.kycStatus === 'verified' || u.kycStatus === 'verified_qualified' },
+        { k: 'approval', label: 'اعتماد الإدارة', done: !!u.approved },
+      ];
+      const done = steps.filter(s => s.done).length;
+      const pct = Math.round((done / steps.length) * 100);
+      const next = steps.find(s => !s.done);
+      sec.style.display = '';
+      const lbl = document.getElementById('kycQuickLabel');
+      if (done === steps.length) {
+        lbl.textContent = '✓ مكتمل ومُعتمَد';
+        lbl.style.color = '#0f6e3a';
+      } else {
+        lbl.textContent = done + ' من ' + steps.length + ' مكتملة';
+      }
+      document.getElementById('kycQuickPct').textContent = pct.toLocaleString('ar-SA') + '٪';
+      document.getElementById('kycQuickFill').style.width = pct + '%';
+      const nextEl = document.getElementById('kycQuickNext');
+      const cta = document.getElementById('kycQuickCta');
+      if (next) {
+        nextEl.textContent = 'الخطوة التالية: ' + next.label;
+        if (next.k === 'email') cta.href = 'profile.html#email';
+        else if (next.k === 'mobile') cta.href = 'profile.html#phone';
+        else cta.href = 'kyc.html';
+        cta.style.display = 'inline-block';
+      } else {
+        nextEl.textContent = 'كل خطوات التحقّق مكتملة. يمكنك الاستثمار بحرّيّة.';
+        cta.style.display = 'none';
+      }
     } catch (e) {}
   })();
 
