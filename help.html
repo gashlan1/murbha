@@ -441,9 +441,28 @@
     <h2>كيف نساعدك اليوم؟</h2>
     <p>فريق الدعم متاح طوال أيام الأسبوع</p>
     <div class="search-box">
-      <input type="search" placeholder="ابحث في الأسئلة الشائعة..." />
+      <input type="search" id="helpSearchInput" placeholder="ابحث في مركز المساعدة..." />
     </div>
   </div>
+
+  <!-- Articles -->
+  <section style="padding:0 14px;margin:16px 0 24px;">
+    <div id="helpCatBar" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;"></div>
+    <div id="helpArticlesList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </section>
+  <style>
+    .help-cat { flex-shrink:0; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background:#fff; font:800 12px 'Cairo',sans-serif; color:var(--green-dark); cursor:pointer; white-space:nowrap; }
+    .help-cat.active { background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+    .help-art { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 16px; cursor:pointer; }
+    .help-art-title { font:800 14px 'Cairo',sans-serif; color:var(--green-dark); margin-bottom:4px; }
+    .help-art-summary { font:500 12px 'Tajawal',sans-serif; color:var(--muted); line-height:1.7; }
+    .help-art-detail { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:10px; }
+    .help-art-detail h3 { font:800 16px 'Cairo',sans-serif; color:var(--green-dark); margin-bottom:8px; }
+    .help-art-detail .meta { font:500 11px 'Tajawal',sans-serif; color:var(--muted); margin-bottom:14px; }
+    .help-art-detail .body { font:500 14px 'Tajawal',sans-serif; line-height:1.85; color:var(--ink); white-space:pre-wrap; }
+    .help-art-back { background:none; border:0; color:var(--green); font:800 12px 'Cairo',sans-serif; cursor:pointer; margin-bottom:10px; padding:0; }
+    .help-empty { background:#fff; border:2px dashed var(--line); border-radius:14px; padding:22px; text-align:center; color:var(--muted); font-size:13px; }
+  </style>
 
   <!-- Contact channels -->
   <div class="contact-grid">
@@ -461,7 +480,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       </div>
       <div class="cc-name">الهاتف المجاني</div>
-      <div class="cc-detail">9200-12345</div>
+      <div class="cc-detail"><span data-setting="support.hotline">9200-12345</span></div>
       <div class="cc-status"><span class="live-dot"></span> متاح الآن</div>
     </a>
 
@@ -470,7 +489,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
       </div>
       <div class="cc-name">البريد الإلكتروني</div>
-      <div class="cc-detail" style="font-size:10px;">support@murabaha.sa</div>
+      <div class="cc-detail" style="font-size:10px;"><span data-setting="support.email">support@murabaha.sa</span></div>
       <div class="cc-status">رد خلال ٢٤ ساعة</div>
     </a>
 
@@ -666,6 +685,134 @@
       });
     });
   }
+})();
+</script>
+
+<script>
+(function () {
+  const CAT_AR = {
+    getting_started: 'البدء',
+    investing: 'الاستثمار',
+    kyc: 'التحقق من الهوية',
+    payments: 'المدفوعات',
+    security: 'الأمان',
+    shariah: 'الشرعية',
+  };
+  const catBar = document.getElementById('helpCatBar');
+  const list = document.getElementById('helpArticlesList');
+  const search = document.getElementById('helpSearchInput');
+  let _activeCat = null;
+  let _q = '';
+  let _t;
+
+  async function loadList() {
+    list.replaceChildren();
+    try {
+      const params = new URLSearchParams();
+      if (_activeCat) params.set('category', _activeCat);
+      if (_q) params.set('q', _q);
+      const r = await fetch('/app/help/articles?' + params.toString());
+      const data = await r.json();
+      // Build cat bar once
+      if (catBar.children.length === 0) {
+        const all = document.createElement('button');
+        all.type = 'button'; all.className = 'help-cat active'; all.textContent = 'الكل';
+        all.onclick = () => { _activeCat = null; catBar.querySelectorAll('.help-cat').forEach(c=>c.classList.remove('active')); all.classList.add('active'); loadList(); };
+        catBar.appendChild(all);
+        (data.categories || []).forEach(c => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'help-cat'; b.textContent = CAT_AR[c] || c;
+          b.onclick = () => { _activeCat = c; catBar.querySelectorAll('.help-cat').forEach(x=>x.classList.remove('active')); b.classList.add('active'); loadList(); };
+          catBar.appendChild(b);
+        });
+      }
+      if (!data.articles.length) {
+        const e = document.createElement('div'); e.className = 'help-empty';
+        e.textContent = _q ? 'لا توجد نتائج لبحثك. جرّب مصطلحاً آخر.' : 'لا توجد مقالات في هذا التصنيف بعد. تواصل مع الدعم أدناه.';
+        list.appendChild(e); return;
+      }
+      data.articles.forEach(a => {
+        const row = document.createElement('div'); row.className = 'help-art';
+        const t = document.createElement('div'); t.className = 'help-art-title'; t.textContent = a.title;
+        const s = document.createElement('div'); s.className = 'help-art-summary'; s.textContent = a.summary || (CAT_AR[a.category] || a.category);
+        row.append(t, s);
+        row.onclick = () => loadDetail(a.id);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      const x = document.createElement('div'); x.className = 'help-empty'; x.textContent = 'تعذّر تحميل المقالات.';
+      list.appendChild(x);
+    }
+  }
+  async function loadDetail(id) {
+    list.replaceChildren();
+    try {
+      const r = await fetch('/app/help/articles/' + encodeURIComponent(id));
+      if (!r.ok) throw new Error('not found');
+      const { article } = await r.json();
+      const back = document.createElement('button'); back.type = 'button'; back.className = 'help-art-back';
+      back.textContent = '← العودة إلى المقالات';
+      back.onclick = loadList;
+      const card = document.createElement('div'); card.className = 'help-art-detail';
+      const h = document.createElement('h3'); h.textContent = article.title;
+      const m = document.createElement('div'); m.className = 'meta';
+      m.textContent = (CAT_AR[article.category] || article.category) + ' · ' + new Date(article.publishedAt || article.createdAt).toLocaleDateString('ar-SA');
+      const body = document.createElement('div'); body.className = 'body';
+      if (window.App && typeof App.renderMarkdown === 'function') {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString('<div>' + App.renderMarkdown(article.body) + '</div>', 'text/html');
+        Array.from(doc.body.firstChild.childNodes).forEach(n => body.appendChild(n.cloneNode(true)));
+      } else {
+        body.textContent = article.body;
+      }
+      // Voting bar
+      const voteBar = document.createElement('div');
+      voteBar.style.cssText = 'margin-top:24px;padding:16px;background:#fbf8ee;border-radius:12px;text-align:center;';
+      const voteLbl = document.createElement('div');
+      voteLbl.style.cssText = 'font:700 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:10px;';
+      voteLbl.textContent = 'هل كانت هذه المقالة مفيدة؟';
+      const voteRow = document.createElement('div');
+      voteRow.style.cssText = 'display:flex;gap:10px;justify-content:center;';
+      const VOTED_KEY = 'mrb_help_voted_' + article.id;
+      const alreadyVoted = (() => { try { return localStorage.getItem(VOTED_KEY); } catch { return null; } })();
+      const mkBtn = (kind, label, emoji) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const count = kind === 'up' ? (article.upvotes || 0) : (article.downvotes || 0);
+        b.style.cssText = 'min-width:90px;padding:9px 18px;background:' + (alreadyVoted === kind ? '#0a4d36' : '#fff') + ';color:' + (alreadyVoted === kind ? '#fff' : '#062b1e') + ';border:1px solid var(--green-dark,#062b1e);border-radius:999px;font:800 13px Cairo,sans-serif;cursor:' + (alreadyVoted ? 'default' : 'pointer') + ';display:inline-flex;align-items:center;gap:6px;justify-content:center;';
+        b.disabled = !!alreadyVoted;
+        b.textContent = emoji + ' ' + label + ' · ' + count;
+        b.onclick = async () => {
+          if (alreadyVoted) return;
+          try {
+            const r2 = await fetch('/app/help/articles/' + encodeURIComponent(article.id) + '/vote', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ vote: kind }),
+            });
+            if (!r2.ok) return;
+            const d2 = await r2.json();
+            try { localStorage.setItem(VOTED_KEY, kind); } catch {}
+            voteRow.replaceChildren(mkBtn('up', 'نعم', '👍'), mkBtn('down', 'لا', '👎'));
+            article.upvotes = d2.upvotes; article.downvotes = d2.downvotes;
+            voteLbl.textContent = '✓ شكراً لتقييمك';
+          } catch (e) {}
+        };
+        return b;
+      };
+      voteRow.append(mkBtn('up', 'نعم', '👍'), mkBtn('down', 'لا', '👎'));
+      voteBar.append(voteLbl, voteRow);
+      card.append(h, m, body, voteBar);
+      list.append(back, card);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      const x = document.createElement('div'); x.className = 'help-empty'; x.textContent = 'تعذّر تحميل المقال.';
+      list.appendChild(x);
+    }
+  }
+  if (search) search.addEventListener('input', () => { clearTimeout(_t); _t = setTimeout(() => { _q = search.value.trim(); loadList(); }, 250); });
+  loadList();
 })();
 </script>
 
