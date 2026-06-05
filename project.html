@@ -80,6 +80,12 @@
     overflow: hidden;
     margin-bottom: 0;
     background: linear-gradient(135deg, #1a4d6e 0%, #0a2538 100%);
+    background-size: cover;
+    background-position: center;
+  }
+  .hero-banner.has-photo::before { display: none; }
+  .hero-banner.has-photo::after {
+    background: linear-gradient(180deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.75) 100%);
   }
   .hero-banner::before {
     content:'';
@@ -1623,6 +1629,18 @@
     document.title = p.name + ' — مُرابحة';
     // hide demo banner now that we have real data
     document.querySelectorAll('[role="note"][aria-label="تنبيه: نموذج توضيحي"]').forEach(el => el.style.display = 'none');
+
+    // If admin uploaded a cover image, swap the gradient for it.
+    if (p.imagePath) {
+      const banner = document.querySelector('.hero-banner');
+      if (banner) {
+        banner.classList.add('has-photo');
+        const url = '/app/public/project-image/' + encodeURIComponent(p.slug || p.id);
+        banner.style.backgroundImage = "url('" + url + "')";
+        // Make sure the OG image points to the photo too for shares.
+        document.querySelectorAll('meta[property="og:image"], meta[name="twitter:image"]').forEach(m => m.setAttribute('content', location.origin + url));
+      }
+    }
 
     // Status timeline
     _renderTimeline(p);

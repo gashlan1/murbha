@@ -1083,6 +1083,17 @@
           <input id="maintEta" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
         </label>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding-top:12px;border-top:1px dashed var(--line);">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          بدء صيانة مجدولة
+          <input id="maintScheduledStart" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نهاية صيانة مجدولة
+          <input id="maintScheduledEnd" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+      </div>
+      <p style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.7;">المفتاح أعلاه يفعّل الصيانة فوراً. النافذة المجدولة تُفعّل الصيانة تلقائياً ضمن الفترة المحدّدة فقط.</p>
       <button id="maintSave" type="button" style="margin-top:14px;padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ إعدادات الصيانة</button>
     </div>
   </div>
@@ -1918,6 +1929,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       cb.checked = !!m.active;
       document.getElementById('maintMsg').value = m.message || '';
       document.getElementById('maintEta').value = m.eta ? new Date(m.eta).toISOString().slice(0, 16) : '';
+      document.getElementById('maintScheduledStart').value = m.scheduledStart ? new Date(m.scheduledStart).toISOString().slice(0, 16) : '';
+      document.getElementById('maintScheduledEnd').value = m.scheduledEnd ? new Date(m.scheduledEnd).toISOString().slice(0, 16) : '';
       cb.onchange = syncMaint;
       syncMaint();
     } catch (e) {}
@@ -1925,10 +1938,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('maintSave')?.addEventListener('click', async () => {
     const eta = document.getElementById('maintEta').value;
+    const start = document.getElementById('maintScheduledStart').value;
+    const end = document.getElementById('maintScheduledEnd').value;
+    if (start && end && new Date(end) <= new Date(start)) { alert('نهاية النافذة يجب أن تكون بعد بدايتها'); return; }
     const payload = { maintenance: {
       active: document.getElementById('maintToggle').checked,
       message: document.getElementById('maintMsg').value.trim() || null,
       eta: eta ? new Date(eta).toISOString() : null,
+      scheduledStart: start ? new Date(start).toISOString() : null,
+      scheduledEnd: end ? new Date(end).toISOString() : null,
     }};
     try {
       await App.api('PATCH', '/app/admin/settings', payload);
