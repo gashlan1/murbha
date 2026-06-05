@@ -1530,6 +1530,15 @@
   <div id="eligibilityCta" style="margin-top:14px;display:none;"></div>
 </div>
 
+<!-- DEAL LIFECYCLE -->
+<div class="card-section" id="lifecycleCard">
+  <h2 class="section-h" style="margin-bottom:14px;">🛣 دورة حياة الصفقة</h2>
+  <div style="position:relative;padding-inline-start:28px;">
+    <div style="position:absolute;inset-block:0;inset-inline-start:10px;width:2px;background:var(--gold);"></div>
+    <div id="lifeStages" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
 <!-- POST-INVESTMENT STEPS -->
 <div class="card-section" id="postInvestSteps" style="padding:18px 22px;">
   <h2 class="section-h" style="margin-bottom:14px;">📍 ماذا بعد الاستثمار؟</h2>
@@ -2509,6 +2518,35 @@
       if (sp.dealsCompleted) { dls.textContent = '🏆 ' + sp.dealsCompleted + ' صفقة سابقة'; dls.style.display = 'inline-block'; }
       const ot = document.getElementById('spStatTrack');
       if (sp.onTimePct != null) { ot.textContent = '✓ ' + sp.onTimePct + '٪ في الوقت'; ot.style.display = 'inline-block'; }
+    })();
+
+    // Deal lifecycle map (6 phases)
+    (() => {
+      const list = document.getElementById('lifeStages');
+      if (!list) return;
+      const status = (p.status || '').toLowerCase();
+      const phases = [
+        { key: 'review', label: 'الفحص والمراجعة', desc: 'فحص شامل + موافقة شرعية وقانونية', done: true },
+        { key: 'announce', label: 'الإعلان والوثائق', desc: 'إعلان الصفقة + مستندات قبل ٢٤ ساعة من فتح الاستثمار', done: true },
+        { key: 'funding', label: 'فترة الاستثمار', desc: 'فتح الاستثمار للمستثمرين حتى الإغلاق', done: status !== 'open' || (p.raised || 0) >= (p.goal || 1), active: status === 'open' },
+        { key: 'contract', label: 'توقيع العقود', desc: 'توقيع عقد المرابحة بين المنصة والمستثمرين بعد الإغلاق', done: !!p.contractAt, active: !p.contractAt && status !== 'open' },
+        { key: 'execute', label: 'تنفيذ المشروع', desc: 'تطوير أو تأجير أو إدارة الأصل + توزيع التوزيعات الربعية', done: !!p.completedAt, active: !!p.contractAt && !p.completedAt },
+        { key: 'mature', label: 'الاستحقاق والتصفية', desc: 'استرداد رأس المال + كل الأرباح + إغلاق نهائي', done: !!p.maturedAt, active: !!p.completedAt && !p.maturedAt },
+      ];
+      list.replaceChildren();
+      phases.forEach((ph) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'position:relative;padding:12px 16px;background:#fff;border:1px solid ' + (ph.active ? 'var(--gold)' : 'var(--line)') + ';border-radius:10px;';
+        const dot = document.createElement('div');
+        dot.style.cssText = 'position:absolute;inset-inline-start:-23px;top:16px;width:18px;height:18px;border-radius:50%;background:' + (ph.done ? '#0f6e3a' : ph.active ? '#b08840' : '#fbf6ea') + ';border:3px solid var(--paper);color:#fff;display:flex;align-items:center;justify-content:center;font:900 10px Cairo,sans-serif;';
+        dot.textContent = ph.done ? '✓' : ph.active ? '●' : '';
+        const t = document.createElement('div'); t.style.cssText = 'font:900 13px Cairo,sans-serif;color:' + (ph.done ? '#0f6e3a' : ph.active ? '#b08840' : '#062b1e') + ';margin-bottom:3px;';
+        t.textContent = ph.label + (ph.active ? ' · جارٍ الآن' : ph.done ? ' · مكتمل' : '');
+        const d = document.createElement('div'); d.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#6b7268;line-height:1.7;';
+        d.textContent = ph.desc;
+        row.append(dot, t, d);
+        list.appendChild(row);
+      });
     })();
 
     // Eligibility checklist (for authenticated users)
