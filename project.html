@@ -1478,6 +1478,26 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Return projection calculator -->
+<div class="card-section" id="projCalcCard" style="display:none;">
+  <h2 class="section-h">🧮 احسب عائدك المتوقّع</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">أدخل المبلغ الذي تنوي استثماره لرؤية تقدير العائد (تقديري، ليس وعداً).</p>
+  <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+    <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">المبلغ (ر.س)
+      <input id="calcAmt" type="number" min="1000" step="500" value="10000" style="padding:11px;border:1px solid var(--line);border-radius:8px;background:#fff;font:800 16px Cairo,sans-serif;color:var(--green-dark);text-align:end;" />
+    </label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button type="button" data-amt="1000" class="calcChip" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">١٬٠٠٠</button>
+      <button type="button" data-amt="5000" class="calcChip" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">٥٬٠٠٠</button>
+      <button type="button" data-amt="10000" class="calcChip" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">١٠٬٠٠٠</button>
+      <button type="button" data-amt="25000" class="calcChip" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">٢٥٬٠٠٠</button>
+      <button type="button" data-amt="50000" class="calcChip" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">٥٠٬٠٠٠</button>
+    </div>
+  </div>
+  <div id="calcOut" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;"></div>
+  <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
+</div>
+
 <!-- Investor growth -->
 <div class="card-section" id="growthCard" style="display:none;">
   <h2 class="section-h">📈 نموّ المستثمرين</h2>
@@ -4182,6 +4202,45 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
+  function _initCalc(p) {
+    const card = document.getElementById('projCalcCard');
+    const amt = document.getElementById('calcAmt');
+    const out = document.getElementById('calcOut');
+    if (!card || !amt || !out) return;
+    const rate = Number(p.expectedReturn || 0);
+    const months = Number(p.durationMonths || 0);
+    if (rate <= 0 || months <= 0) { card.style.display = 'none'; return; }
+    const fmt = n => Number(Math.round(n)).toLocaleString('ar-SA');
+    const recalc = () => {
+      const principal = Math.max(0, Number(amt.value || 0));
+      const annualProfit = principal * (rate / 100);
+      const periodProfit = annualProfit * (months / 12);
+      const total = principal + periodProfit;
+      const monthly = months > 0 ? periodProfit / months : 0;
+      out.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = fmt(v) + ' ر.س';
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      out.append(
+        mk('ربح متوقّع', periodProfit, '#0f6e3a'),
+        mk('متوسط شهري', monthly, '#b08840'),
+        mk('سنوياً', annualProfit, '#0a4d36'),
+        mk('الإجمالي', total, '#062b1e'),
+      );
+    };
+    amt.addEventListener('input', recalc);
+    document.querySelectorAll('.calcChip').forEach(b => {
+      b.addEventListener('click', () => { amt.value = b.dataset.amt; recalc(); });
+    });
+    card.style.display = '';
+    recalc();
+  }
+
   async function _loadGrowth(slug) {
     const card = document.getElementById('growthCard');
     const svg = document.getElementById('growthChart');
@@ -4342,7 +4401,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} };
 
   function _setMilestone(p) {
     const badge = document.getElementById('milestoneBadge');
