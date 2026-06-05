@@ -206,6 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const registerError = document.getElementById('registerError');
   const registerSubmitBtn = document.getElementById('registerSubmitBtn');
 
+  // Referral tracking — ?ref=CODE captured on landing; persisted across the
+  // signup flow via localStorage so it survives toast/redirect.
+  try {
+    const refCode = new URLSearchParams(location.search).get('ref');
+    if (refCode) {
+      localStorage.setItem('mrb_ref', refCode);
+      fetch('/app/me/referral/track', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode }),
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     registerError.style.display = 'none';
