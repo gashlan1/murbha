@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- INVESTOR CONCENTRATION -->
+  <div class="admin-card" id="concCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🎯 تركيز المستثمرين</span>
+      <span class="card-h-sub" id="concBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="concKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="concList" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- DORMANT INVESTORS -->
   <div class="admin-card" id="dormCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2970,6 +2982,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadConc() {
+    const kpis = document.getElementById('concKpis');
+    const list = document.getElementById('concList');
+    const badge = document.getElementById('concBadge');
+    if (!kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/investor-concentration');
+      if (badge) badge.textContent = 'Gini ' + (r.gini ?? '0') + ' · أعلى ١٠٪: ' + r.top10.pct + '٪';
+      kpis.replaceChildren();
+      const mkKpi = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mkKpi('أعلى مستثمر', r.top1.pct + '٪', '#c54a3a'),
+        mkKpi('أعلى ٥', r.top5.pct + '٪', '#d97706'),
+        mkKpi('أعلى ١٠', r.top10.pct + '٪', '#b08840'),
+        mkKpi('أعلى ٢٥', r.top25.pct + '٪', '#0a4d36'),
+        mkKpi('Gini', r.gini || 0, '#5c2418'),
+      );
+      list.replaceChildren();
+      const head = document.createElement('div');
+      head.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      head.textContent = 'أكبر ١٠ مستثمرين';
+      list.appendChild(head);
+      (r.top10List || []).forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:6px 10px;background:var(--paper);border-radius:8px;';
+        const rk = document.createElement('div'); rk.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--gold);'; rk.textContent = '#' + u.rank;
+        const name = document.createElement('div'); name.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--ink);'; name.textContent = u.name;
+        const amt = document.createElement('div'); amt.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);text-align:end;';
+        amt.textContent = Number(u.amount).toLocaleString('ar-SA') + ' ر.س · ' + u.pct + '٪';
+        row.append(rk, name, amt);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadDorm() {
     const kpis = document.getElementById('dormKpis');
     const top = document.getElementById('dormTop');
@@ -6916,7 +6970,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

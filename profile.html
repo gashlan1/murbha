@@ -1016,6 +1016,24 @@
       <button type="button" data-goal="wealth" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">💰 بناء ثروة</button>
       <button type="button" data-goal="income" class="goalChip" style="padding:8px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;">📊 دخل إضافي</button>
     </div>
+    <div style="padding:0 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px dashed var(--line);padding-top:14px;margin:0 18px;">
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">🎯 المبلغ المستهدف (ر.س)
+        <input id="goalAmt" type="number" min="0" max="100000000" placeholder="مثلاً ٢٠٠٠٠٠" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 13px Tajawal,sans-serif;color:var(--ink);" />
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">📅 خلال (سنوات)
+        <input id="goalYrs" type="number" min="1" max="50" placeholder="مثلاً ٥" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 13px Tajawal,sans-serif;color:var(--ink);" />
+      </label>
+    </div>
+    <div id="goalProgWrap" style="padding:0 18px 16px;display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font:700 11px Tajawal,sans-serif;color:var(--muted);">
+        <span id="goalLabel">—</span>
+        <span id="goalPctTxt" style="font:900 13px Cairo,sans-serif;color:var(--gold);">—</span>
+      </div>
+      <div style="height:10px;background:var(--paper);border-radius:99px;overflow:hidden;">
+        <div id="goalBar" style="height:100%;width:0%;background:linear-gradient(90deg,#0a4d36,#b08840);transition:width .5s;"></div>
+      </div>
+      <div id="goalMonthly" style="margin-top:8px;font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;line-height:1.85;">—</div>
+    </div>
   </div>
 
   <!-- Quick feedback form -->
@@ -2641,6 +2659,51 @@
           } catch (e) { App.toast && App.toast('فشل', 'error'); }
         });
       });
+
+      // Goal amount + progress
+      const amtIn = document.getElementById('goalAmt');
+      const yrsIn = document.getElementById('goalYrs');
+      const wrap = document.getElementById('goalProgWrap');
+      const lbl = document.getElementById('goalLabel');
+      const pctTxt = document.getElementById('goalPctTxt');
+      const bar = document.getElementById('goalBar');
+      const monthly = document.getElementById('goalMonthly');
+      amtIn.value = me.user?.goalAmount || '';
+      yrsIn.value = me.user?.yearsToTarget || '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const renderProg = async () => {
+        try {
+          const r = await App.api('GET', '/app/me/goal-progress');
+          if (!r.goalAmount) { wrap.style.display = 'none'; return; }
+          wrap.style.display = '';
+          lbl.textContent = fmt(r.invested) + ' من ' + fmt(r.goalAmount) + ' ر.س';
+          pctTxt.textContent = r.pct + '٪';
+          bar.style.width = r.pct + '%';
+          if (r.remaining > 0 && r.monthlyToReach) {
+            monthly.textContent = '💡 لبلوغ الهدف خلال ' + r.yearsToTarget + ' سنوات: استثمر ~' + fmt(r.monthlyToReach) + ' ر.س شهرياً';
+          } else if (r.remaining > 0) {
+            monthly.textContent = '🏁 متبقّي: ' + fmt(r.remaining) + ' ر.س';
+          } else {
+            monthly.textContent = '🎉 لقد بلغت هدفك! يمكنك تحديد هدف أكبر.';
+          }
+        } catch (e) { wrap.style.display = 'none'; }
+      };
+      let saveTimer;
+      const saveGoal = () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(async () => {
+          const a = Number(amtIn.value || 0);
+          const y = Number(yrsIn.value || 0);
+          try {
+            await App.api('PATCH', '/app/me/goal-amount', { amount: a, yearsToTarget: y || null });
+            App.toast && App.toast('✓ حُفظ الهدف', 'success');
+            renderProg();
+          } catch (e) { App.toast && App.toast('فشل الحفظ', 'error'); }
+        }, 600);
+      };
+      amtIn.addEventListener('input', saveGoal);
+      yrsIn.addEventListener('input', saveGoal);
+      renderProg();
     } catch (e) {}
   })();
 
