@@ -587,6 +587,20 @@
   </a>
 </div>
 
+<!-- Recommended for you -->
+<div class="section" id="recommendedSection" style="display:none;margin-top:14px;margin-bottom:14px;">
+  <div style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">✨ موصى به لك</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);">مختارة بناءً على فرصك السابقة</div>
+      </div>
+      <a href="/projects.html" style="font:800 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;">عرض كل الفرص ←</a>
+    </div>
+    <div id="recommendedGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;"></div>
+  </div>
+</div>
+
 <!-- YTD Tax widget -->
 <div class="section" id="ytdTaxSection" style="display:none;margin-top:14px;margin-bottom:14px;">
   <div style="background:linear-gradient(135deg,#fbf8ee,#fff);border:1px solid rgba(176,136,64,0.20);border-radius:18px;padding:18px;">
@@ -809,6 +823,44 @@
   const bcMeta = document.querySelectorAll('.bc-meta-item');
   if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
   if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
+
+  // ── Recommended projects ──
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/recommended');
+      const list = r.projects || [];
+      if (!list.length) return;
+      const sec = document.getElementById('recommendedSection');
+      const grid = document.getElementById('recommendedGrid');
+      if (!sec || !grid) return;
+      sec.style.display = '';
+      grid.replaceChildren();
+      list.forEach(p => {
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+        a.style.cssText = 'display:block;text-decoration:none;color:inherit;background:#fbf8ee;border:1px solid var(--line);border-radius:12px;padding:14px;transition:transform .15s;';
+        const ico = document.createElement('div');
+        ico.style.cssText = 'font-size:22px;margin-bottom:6px;';
+        ico.textContent = p.image || '📦';
+        const nm = document.createElement('div');
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;line-height:1.4;';
+        nm.textContent = p.name;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
+        meta.textContent = (p.category || '') + ' · ' + (p.profitRate * 100).toFixed(1) + '٪';
+        const bar = document.createElement('div');
+        bar.style.cssText = 'height:5px;background:rgba(13,22,18,0.06);border-radius:6px;overflow:hidden;margin-bottom:4px;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;background:linear-gradient(90deg,#0a4d36,#0f6e3a);width:' + p.fundedPct + '%;';
+        bar.appendChild(fill);
+        const fp = document.createElement('div');
+        fp.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);text-align:end;';
+        fp.textContent = p.fundedPct + '٪ مكتمل';
+        a.append(ico, nm, meta, bar, fp);
+        grid.appendChild(a);
+      });
+    } catch (e) {}
+  })();
 
   // ── YTD tax widget ──
   (() => {

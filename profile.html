@@ -911,6 +911,19 @@
       </div>
     </button>
 
+    <button type="button" id="totpManageBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">المصادقة الثنائية (TOTP)</div>
+        <div class="setting-sub" id="totpSub">تطبيق Google Authenticator أو ١Password</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+
     <button type="button" id="genBackupCodesUserBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="6" y2="12.01"/><line x1="10" y1="12" x2="10" y2="12.01"/><line x1="14" y1="12" x2="14" y2="12.01"/><line x1="18" y1="12" x2="18" y2="12.01"/></svg>
@@ -1922,6 +1935,84 @@
       setTimeout(() => location.reload(), 800);
     } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
   });
+
+  // TOTP enrollment/disablement
+  (async () => {
+    const btn = document.getElementById('totpManageBtn');
+    const sub = document.getElementById('totpSub');
+    if (!btn) return;
+    let enrolled = false;
+    try {
+      const me = await App.api('GET', '/app/me');
+      enrolled = !!me.user?.totpEnrolled;
+      sub.textContent = enrolled ? '✓ مفعّلة — اضغط للإلغاء' : 'فعّلها لإضافة طبقة حماية إضافية';
+    } catch (e) {}
+    btn.addEventListener('click', async () => {
+      if (enrolled) {
+        const code = prompt('أدخل الرمز الحالي من تطبيق المصادقة للإلغاء:');
+        if (!code) return;
+        if (!confirm('إلغاء المصادقة الثنائية؟ هذا يقلل من أمان حسابك.')) return;
+        try {
+          await App.api('POST', '/app/me/2fa/totp/disable', { code: code.trim() });
+          App.toast && App.toast('تم الإلغاء', 'success');
+          setTimeout(() => location.reload(), 600);
+        } catch (e) { App.toast && App.toast(e.message || 'الرمز غير صحيح', 'error'); }
+        return;
+      }
+      try {
+        const init = await App.api('POST', '/app/me/2fa/totp/init');
+        // Show setup modal with the secret and otpauth URI
+        const m = document.createElement('div');
+        m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const c = document.createElement('div');
+        c.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:420px;width:100%;';
+        const h = document.createElement('div'); h.style.cssText='font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;'; h.textContent = '🛡 إعداد المصادقة الثنائية';
+        const step = document.createElement('p'); step.style.cssText='font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;';
+        step.textContent = 'افتح تطبيق Google Authenticator أو 1Password وأضف حساباً جديداً يدوياً بالمفتاح أدناه:';
+        const secretBox = document.createElement('div');
+        secretBox.style.cssText = 'padding:12px;background:#fbf8ee;border:1px dashed var(--gold,#b08840);border-radius:8px;font:800 16px "SF Mono",Menlo,monospace;text-align:center;direction:ltr;color:var(--green-dark);margin-bottom:6px;letter-spacing:2px;word-break:break-all;';
+        secretBox.textContent = init.secret;
+        const copy = document.createElement('button');
+        copy.type='button'; copy.textContent='📋 نسخ المفتاح';
+        copy.style.cssText='display:block;width:100%;margin-bottom:14px;padding:9px;background:transparent;border:1px solid var(--line);border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);';
+        copy.onclick = async () => { try { await navigator.clipboard.writeText(init.secret); copy.textContent = '✓ نُسخ'; } catch (e) {} };
+        const uriBox = document.createElement('p');
+        uriBox.style.cssText = 'font-size:11px;color:var(--muted);direction:ltr;text-align:start;word-break:break-all;background:#fbf8ee;padding:8px 10px;border-radius:6px;margin-bottom:14px;';
+        uriBox.textContent = init.uri;
+        c.append(h, step, secretBox, copy, uriBox);
+        const step2 = document.createElement('p'); step2.style.cssText='font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px;';
+        step2.textContent = 'ثم أدخل الرمز المكوّن من ٦ أرقام للتأكيد:';
+        const codeIn = document.createElement('input');
+        codeIn.type='text'; codeIn.inputMode='numeric'; codeIn.pattern='[0-9]*'; codeIn.maxLength=6;
+        codeIn.placeholder = '••••••';
+        codeIn.style.cssText = 'width:100%;padding:12px;border:1.5px solid var(--line-strong);border-radius:8px;font:800 18px "SF Mono",Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;margin-bottom:14px;';
+        c.append(step2, codeIn);
+        const row = document.createElement('div'); row.style.cssText='display:flex;gap:8px;';
+        const cancel = document.createElement('button');
+        cancel.type='button'; cancel.textContent='إلغاء';
+        cancel.style.cssText='flex:1;padding:11px;background:transparent;border:1px solid var(--line);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+        cancel.onclick = () => m.remove();
+        const enable = document.createElement('button');
+        enable.type='button'; enable.textContent='تفعيل';
+        enable.style.cssText='flex:2;padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        enable.onclick = async () => {
+          const code = codeIn.value.trim();
+          if (code.length !== 6) { App.toast && App.toast('أدخل ٦ أرقام', 'warn'); return; }
+          enable.disabled = true; enable.textContent = 'جارٍ التحقق…';
+          try {
+            await App.api('POST', '/app/me/2fa/totp/enable', { code });
+            App.toast && App.toast('✓ مفعّلة', 'success');
+            m.remove(); setTimeout(() => location.reload(), 600);
+          } catch (e) { enable.disabled = false; enable.textContent = 'تفعيل'; App.toast && App.toast(e.message || 'الرمز غير صحيح', 'error'); }
+        };
+        row.append(cancel, enable);
+        c.appendChild(row);
+        m.appendChild(c);
+        m.onclick = (e) => { if (e.target === m) m.remove(); };
+        document.body.appendChild(m);
+      } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
 
   // Backup codes
   (async () => {

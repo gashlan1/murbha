@@ -1117,6 +1117,27 @@
     </div>
   </div>
 
+  <!-- WELCOME EMAIL TEMPLATE -->
+  <div class="admin-card" id="welcomeEmailCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>✉ بريد الترحيب للمستخدمين الجدد</span>
+      <span class="card-h-sub">استخدم <code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:4px;">{name}</code> لإدراج الاسم</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          عنوان الرسالة
+          <input id="welcomeSubject" type="text" maxlength="120" placeholder="مرحباً {name} في منصة مُرابحة" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نص الرسالة (اتركه فارغاً لاستخدام النص الافتراضي)
+          <textarea id="welcomeBody" rows="8" maxlength="3000" placeholder="مثال: مرحباً {name},&#10;شكراً لانضمامك إلى مُرابحة..." style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;"></textarea>
+        </label>
+        <button id="welcomeSave" type="button" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;align-self:flex-start;">حفظ القالب</button>
+      </div>
+    </div>
+  </div>
+
   <!-- PROMO BAR -->
   <div class="admin-card" id="promoCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2190,6 +2211,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('maintEta').value = m.eta ? new Date(m.eta).toISOString().slice(0, 16) : '';
       document.getElementById('maintScheduledStart').value = m.scheduledStart ? new Date(m.scheduledStart).toISOString().slice(0, 16) : '';
       document.getElementById('maintScheduledEnd').value = m.scheduledEnd ? new Date(m.scheduledEnd).toISOString().slice(0, 16) : '';
+      // Welcome email template
+      const we = s.welcomeEmail || {};
+      document.getElementById('welcomeSubject').value = we.subject || '';
+      document.getElementById('welcomeBody').value = we.body || '';
       // Promo bar
       const p = s.promo || {};
       const pcb = document.getElementById('promoToggle');
@@ -2215,6 +2240,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       syncMaint();
     } catch (e) {}
   }
+
+  document.getElementById('welcomeSave')?.addEventListener('click', async () => {
+    const payload = { welcomeEmail: {
+      subject: document.getElementById('welcomeSubject').value.trim(),
+      body: document.getElementById('welcomeBody').value,
+    }};
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      App.toast && App.toast('✓ تم حفظ قالب الترحيب', 'success');
+      loadSettings();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
 
   document.getElementById('promoSave')?.addEventListener('click', async () => {
     const exp = document.getElementById('promoExpires').value;
@@ -3484,6 +3521,69 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── Webhooks management ───────────────────────────────────────
+  function openWebhookTester(w) {
+    if (document.getElementById('whTesterModal')) return;
+    const m = document.createElement('div');
+    m.id = 'whTesterModal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const c = document.createElement('div');
+    c.style.cssText = 'background:#fff;border-radius:14px;padding:22px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;';
+    const h = document.createElement('div');
+    h.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;';
+    h.textContent = '🪝 اختبار ويب-هوك';
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:14px;direction:ltr;text-align:start;word-break:break-all;';
+    sub.textContent = w.url;
+    c.append(h, sub);
+
+    const lblEvt = document.createElement('label'); lblEvt.style.cssText='display:block;font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;';
+    lblEvt.textContent = 'الحدث';
+    const evt = document.createElement('select');
+    evt.style.cssText='width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:600 13px monospace,sans-serif;background:#fff;margin-bottom:12px;direction:ltr;text-align:start;';
+    (w.events || ['user.registered']).forEach(e => {
+      const o = document.createElement('option'); o.value = e; o.textContent = e; evt.appendChild(o);
+    });
+    c.append(lblEvt, evt);
+
+    const lblPl = document.createElement('label'); lblPl.style.cssText='display:block;font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;';
+    lblPl.textContent = 'محتوى JSON (اختياري)';
+    const pl = document.createElement('textarea');
+    pl.rows = 8;
+    pl.placeholder = '{\n  "userId": "usr_demo",\n  "amount": 5000\n}';
+    pl.style.cssText='width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:500 12px "SF Mono",Menlo,monospace;direction:ltr;text-align:start;margin-bottom:14px;resize:vertical;';
+    c.append(lblPl, pl);
+
+    const result = document.createElement('div');
+    result.style.cssText='font-size:12px;color:var(--muted);min-height:16px;margin-bottom:8px;';
+    c.appendChild(result);
+
+    const row = document.createElement('div'); row.style.cssText='display:flex;gap:8px;';
+    const close = document.createElement('button');
+    close.type='button'; close.textContent='إغلاق';
+    close.style.cssText='flex:1;padding:11px;background:transparent;border:1px solid var(--line);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+    close.onclick = () => m.remove();
+    const fire = document.createElement('button');
+    fire.type='button'; fire.textContent='📤 إطلاق';
+    fire.style.cssText='flex:2;padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    fire.onclick = async () => {
+      fire.disabled = true; fire.textContent = 'جارٍ الإطلاق…';
+      try {
+        const r = await App.api('POST', '/app/admin/webhooks/' + w.id + '/test', {
+          event: evt.value,
+          payload: pl.value.trim() || undefined,
+        });
+        result.textContent = '✓ أُطلق الحدث ' + r.event + ' بنجاح. تحقّق من سجل التسليم لاحقاً.';
+        result.style.color = '#0f6e3a';
+      } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
+      finally { fire.disabled = false; fire.textContent = '📤 إطلاق'; }
+    };
+    row.append(close, fire);
+    c.appendChild(row);
+    m.appendChild(c);
+    m.onclick = (e) => { if (e.target === m) m.remove(); };
+    document.body.appendChild(m);
+  }
+
   async function loadWebhooks() {
     const list = document.getElementById('webhooksList');
     const badge = document.getElementById('webhooksBadge');
@@ -3521,7 +3621,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const testBtn = document.createElement('button'); testBtn.type='button';
         testBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         testBtn.textContent = 'اختبار';
-        testBtn.onclick = async () => { try { await App.api('POST', '/app/admin/webhooks/' + w.id + '/test', {}); alert('تم إطلاق رسالة تجريبية.'); } catch (e) { alert(e.message); } };
+        testBtn.onclick = () => openWebhookTester(w);
         const delBtn = document.createElement('button'); delBtn.type='button';
         delBtn.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         delBtn.textContent = 'حذف';
