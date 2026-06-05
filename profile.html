@@ -1148,6 +1148,7 @@
   <!-- Payments -->
   <div class="settings-group">
     <div class="settings-h">الدفع والمحفظة</div>
+    <div id="paymentMethodsPreview" style="display:none;padding:14px 18px;border-bottom:1px solid var(--line);"></div>
 
     <a href="payment-methods.html" class="setting-row">
       <div class="setting-icon">
@@ -1784,6 +1785,48 @@
         row.append(k, v);
         list.appendChild(row);
       });
+    } catch (e) {}
+  })();
+
+  // Payment methods quick preview
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const methods = (me.paymentMethods || []).filter(m => !m.removedAt);
+      const box = document.getElementById('paymentMethodsPreview');
+      if (!box) return;
+      box.style.display = '';
+      if (!methods.length) {
+        box.replaceChildren();
+        const empty = document.createElement('div');
+        empty.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;';
+        const txt = document.createElement('div');
+        txt.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#c54a3a;';
+        txt.textContent = '⚠ لم تُضِف طريقة دفع بعد';
+        const cta = document.createElement('a');
+        cta.href = 'payment-methods.html';
+        cta.style.cssText = 'background:var(--green-dark);color:#d4ac6e;padding:8px 16px;border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;';
+        cta.textContent = '+ أضف طريقة';
+        empty.append(txt, cta);
+        box.appendChild(empty);
+        return;
+      }
+      const def = methods.find(m => m.isDefault) || methods[0];
+      box.replaceChildren();
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;';
+      const left = document.createElement('div');
+      const lbl = document.createElement('div'); lbl.style.cssText='font:600 11px Tajawal,sans-serif;color:var(--muted);';
+      lbl.textContent = 'الطريقة الافتراضية';
+      const nm = document.createElement('div'); nm.style.cssText='font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-top:2px;';
+      const icon = def.type === 'iban' ? '🏦 ' : '💳 ';
+      nm.textContent = icon + (def.label || def.brand || def.type) + ' · ' + (def.maskedNumber || def.ibanMasked || '');
+      left.append(lbl, nm);
+      const meta = document.createElement('div');
+      meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+      meta.textContent = methods.length > 1 ? '+' + (methods.length - 1) + ' أخرى' : '';
+      row.append(left, meta);
+      box.appendChild(row);
     } catch (e) {}
   })();
 
