@@ -991,6 +991,7 @@
     <span id="milestoneBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#b08840,#d4ac6e);padding:5px 12px;border-radius:999px;"></span>
     <span id="healthBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
     <span id="momentumBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+    <span id="popularityBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;"></span>
     <span id="velocityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.08);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -4741,7 +4742,22 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+
+  function _setPopularity(p) {
+    const badge = document.getElementById('popularityBadge');
+    if (!badge) return;
+    const shares = Number(p.shareCount || 0);
+    const views = Number(p.viewCount || 0);
+    if (shares < 5 && views < 50) return;
+    const parts = [];
+    if (shares >= 5) parts.push('📣 ' + shares.toLocaleString('ar-SA') + ' مشاركة');
+    if (views >= 50) parts.push('👁 ' + views.toLocaleString('ar-SA') + ' مشاهدة');
+    if (shares >= 50) { badge.style.background = 'linear-gradient(90deg,#b08840,#d4ac6e)'; badge.style.color = '#fff'; badge.style.borderColor = 'transparent'; parts.unshift('🔥'); }
+    badge.textContent = parts.join(' · ');
+    badge.title = 'الشهرة: ' + shares + ' مشاركة، ' + views + ' مشاهدة';
+    badge.style.display = '';
+  }
 
   async function _setMomentum(slug) {
     const badge = document.getElementById('momentumBadge');

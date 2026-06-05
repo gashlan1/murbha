@@ -859,6 +859,18 @@
     </div>
   </div>
 
+  <!-- Profit forecast -->
+  <div class="settings-group" id="forecastSec" style="display:none;">
+    <div class="settings-h">🔮 توقّعات أرباحك</div>
+    <div style="padding:14px 18px;">
+      <div id="fcKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">الـ ١٢ شهر القادمة</div>
+      <svg id="fcChart" width="100%" height="100" viewBox="0 0 320 100" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+      <div id="fcLabels" style="display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-top:6px;font:600 9px Tajawal,sans-serif;color:var(--muted);text-align:center;"></div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ توقّعات استرشاديّة بناءً على الجداول المعلَنة. النتيجة الفعلية قد تتغيّر حسب أداء الصفقات.</p>
+    </div>
+  </div>
+
   <!-- Auto-invest stats -->
   <div class="settings-group" id="aiStatsSec" style="display:none;">
     <div class="settings-h">🔁 الاستثمار التلقائي</div>
@@ -2663,6 +2675,56 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Profit forecast
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/profit-forecast');
+      if (!r.hasActive) return;
+      const sec = document.getElementById('forecastSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const kpis = document.getElementById('fcKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('إجمالي مستثمر', fmt(r.totalInvested) + ' ر.س', '#0a4d36'),
+        mk('ربح متوقّع كامل', fmt(r.totalExpectedProfit) + ' ر.س', '#0f6e3a'),
+        mk('متوقّع خلال ١٢ ش', fmt(r.forecastedNext12) + ' ر.س', '#b08840'),
+        mk('صفقات نشطة', r.activeCount, '#062b1e'),
+      );
+      const svg = document.getElementById('fcChart');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const labels = document.getElementById('fcLabels');
+      labels.replaceChildren();
+      const months = r.months || [];
+      const max = Math.max(...months.map(m => m.expected), 1);
+      const W = 320, H = 100, P = 6;
+      const bw = (W - 2 * P) / months.length - 4;
+      const NS = 'http://www.w3.org/2000/svg';
+      months.forEach((m, i) => {
+        const x = P + i * ((W - 2 * P) / months.length) + 2;
+        const h = (m.expected / max) * (H - 2 * P);
+        const y = H - P - h;
+        const rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', x); rect.setAttribute('y', y);
+        rect.setAttribute('width', bw); rect.setAttribute('height', h || 1);
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', m.expected > 0 ? '#0f6e3a' : 'rgba(13,22,18,0.08)');
+        svg.appendChild(rect);
+        const lbl = document.createElement('div'); lbl.textContent = m.label;
+        labels.appendChild(lbl);
       });
     } catch (e) {}
   })();
