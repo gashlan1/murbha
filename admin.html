@@ -673,6 +673,24 @@
     </div>
   </div>
 
+  <!-- IDLE BALANCES -->
+  <div class="admin-card" id="idleBalancesCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💤 أرصدة خاملة</span>
+      <span class="card-h-sub" id="idleBalancesBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="idleBalancesRefresh" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <button type="button" id="idleBalancesNotifyAll" style="padding:7px 14px;background:#fff;color:var(--gold);border:1px solid var(--gold);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">📨 ذكّر الكل</button>
+        <span style="font:600 11px Tajawal,sans-serif;color:var(--muted);">رصيد ≥ ٥٠٠ ر.س، لم يستثمر منذ ١٤ يوماً.</span>
+      </div>
+      <div id="idleBalancesList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- CLOSING SOON -->
   <div class="admin-card" id="closingSoonCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2412,6 +2430,73 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadIdleBalances() {
+    const list = document.getElementById('idleBalancesList');
+    const badge = document.getElementById('idleBalancesBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/idle-balances');
+      const items = r.users || [];
+      if (badge) badge.textContent = items.length + ' مستخدم';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد أرصدة خاملة')); return; }
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      items.slice(0, 100).forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;gap:10px;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = u.name + ' · ' + fmt(u.balance) + ' ر.س';
+        const em = document.createElement('div'); em.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;';
+        em.textContent = u.email + ' · ' + (u.daysIdle != null ? 'خامل ' + u.daysIdle + ' يوماً' : 'لم يستثمر بعد');
+        info.append(nm, em);
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = '📨 ذكّر';
+        btn.style.cssText = 'padding:6px 12px;background:#fff;color:var(--gold);border:1px solid var(--gold);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        btn.onclick = async () => {
+          btn.disabled = true; btn.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/notify-user', {
+              email: u.email,
+              title: 'لا تنسَ رصيدك في مُرابحة',
+              text: 'لديك ' + fmt(u.balance) + ' ر.س في رصيدك في انتظار صفقة. تصفّح الصفقات المفتوحة الآن.',
+              ctaUrl: '/',
+            });
+            App.toast && App.toast('تم التذكير', 'success');
+          } catch (e) { alert(e.message || 'فشل'); }
+          btn.disabled = false; btn.textContent = '📨 ذكّر';
+        };
+        row.append(info, btn);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('idleBalancesRefresh')?.addEventListener('click', loadIdleBalances);
+  document.getElementById('idleBalancesNotifyAll')?.addEventListener('click', async () => {
+    try {
+      const r = await App.api('GET', '/app/admin/idle-balances');
+      const items = r.users || [];
+      if (!items.length) { alert('لا يوجد مستخدمون'); return; }
+      if (!confirm('إرسال تذكير إلى ' + items.length + ' مستخدماً؟')) return;
+      let sent = 0;
+      for (const u of items.slice(0, 100)) {
+        try {
+          await App.api('POST', '/app/admin/notify-user', {
+            email: u.email,
+            title: 'لا تنسَ رصيدك في مُرابحة',
+            text: 'لديك ' + Number(u.balance).toLocaleString('ar-SA') + ' ر.س في رصيدك. تصفّح الصفقات المفتوحة.',
+            ctaUrl: '/',
+          });
+          sent++;
+        } catch {}
+      }
+      App.toast && App.toast('أُرسل لـ ' + sent + ' مستخدماً', 'success');
+    } catch (e) { alert(e.message || 'فشل'); }
+  });
+
   async function loadClosingSoon() {
     const list = document.getElementById('closingSoonList');
     const badge = document.getElementById('closingSoonBadge');
@@ -5117,7 +5202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
