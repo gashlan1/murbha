@@ -954,7 +954,7 @@
   <div class="funding-meta">
     <span>المستهدف <b>٨ مليون ر.س</b></span>
     <span><b>٨٤٧</b> مستثمر</span>
-    <span>متبقّي <b>١٢ يوماً</b></span>
+    <span id="closingCountdown">متبقّي <b>١٢ يوماً</b></span>
   </div>
   <div style="margin-top:10px;text-align:center;">
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -1925,6 +1925,43 @@
       calLink.href = '/app/projects/' + encodeURIComponent(p.slug || p.id) + '/closing.ics';
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
+    }
+
+    // Live countdown to closing
+    if (p.closesAt && p.status === 'open') {
+      const closesTs = new Date(p.closesAt).getTime();
+      const el = document.getElementById('closingCountdown');
+      const tick = () => {
+        const ms = closesTs - Date.now();
+        if (!el) return;
+        el.replaceChildren();
+        if (ms <= 0) {
+          const b = document.createElement('b');
+          b.style.color = '#fca5a5';
+          b.textContent = 'انتهت فترة التمويل';
+          el.appendChild(b); return;
+        }
+        const d = Math.floor(ms / 86400000);
+        const h = Math.floor((ms % 86400000) / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        const b = document.createElement('b');
+        if (d >= 1) {
+          el.appendChild(document.createTextNode('متبقّي '));
+          b.textContent = d + ' يوم · ' + h + ' س';
+        } else if (h >= 1) {
+          el.appendChild(document.createTextNode('يُقفل خلال '));
+          b.textContent = h + ' س ' + (m < 10 ? '0' + m : m) + ' د';
+        } else {
+          el.appendChild(document.createTextNode('يُقفل خلال '));
+          b.style.color = '#fca5a5';
+          b.textContent = (m < 10 ? '0' + m : m) + ' د ' + (s < 10 ? '0' + s : s) + ' ث';
+        }
+        el.appendChild(b);
+      };
+      tick();
+      const interval = (closesTs - Date.now()) < 60 * 60 * 1000 ? 1000 : 30000;
+      setInterval(tick, interval);
     }
 
     // Top investors
