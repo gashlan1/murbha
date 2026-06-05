@@ -2369,6 +2369,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const right = document.createElement('div');
         right.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const runBtn = document.createElement('button');
+        runBtn.type = 'button';
+        runBtn.textContent = '▶ تشغيل الآن';
+        runBtn.style.cssText = 'padding:6px 12px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        runBtn.onclick = async () => {
+          if (!confirm('تشغيل المهمة "' + j.title + '" الآن؟')) return;
+          runBtn.disabled = true; runBtn.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/jobs/' + encodeURIComponent(j.id) + '/run');
+            App.toast && App.toast('تم تشغيل ' + j.title, 'success');
+            loadJobs();
+          } catch (e) { runBtn.disabled = false; runBtn.textContent = '▶ تشغيل الآن'; alert(e.message || 'فشل'); }
+        };
+        right.appendChild(runBtn);
         if (j.overdue) {
           const pill = document.createElement('span');
           pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:rgba(197,74,58,0.12);color:#c54a3a;';

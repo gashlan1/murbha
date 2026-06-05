@@ -2476,6 +2476,45 @@
       }
     }
 
+    // Live funding updates: re-fetch raised/investors every 45s
+    (() => {
+      const slug = p.slug || p.id;
+      let lastRaised = p.raised || 0;
+      const tick = async () => {
+        try {
+          const r = await fetch('/app/projects/' + encodeURIComponent(slug));
+          if (!r.ok) return;
+          const fresh = await r.json();
+          const np = fresh.project || fresh;
+          const newRaised = Number(np.raised || 0);
+          if (newRaised > lastRaised) {
+            const delta = newRaised - lastRaised;
+            lastRaised = newRaised;
+            const raisedEl = document.querySelector('.raised-amt');
+            if (raisedEl) {
+              const formatted = Math.round(newRaised).toLocaleString('ar-SA');
+              raisedEl.innerHTML = formatted + ' <small>ر.س</small>';
+              raisedEl.style.transition = 'color 0.5s';
+              raisedEl.style.color = '#0f6e3a';
+              setTimeout(() => { raisedEl.style.color = ''; }, 800);
+            }
+            const fill = document.querySelector('.funding-fill');
+            const pctEl = document.querySelector('.raised-pct');
+            if (fill && np.fundedPct != null) fill.style.width = np.fundedPct + '%';
+            if (pctEl && np.fundedPct != null) pctEl.textContent = Math.round(np.fundedPct) + '٪';
+            const ring = document.getElementById('fundingRingFill');
+            if (ring && np.fundedPct != null) {
+              const C = 2 * Math.PI * 28;
+              ring.setAttribute('stroke-dashoffset', String(C - (C * Math.max(0, Math.min(100, np.fundedPct)) / 100)));
+            }
+            App.toast && App.toast('+' + Math.round(delta).toLocaleString('ar-SA') + ' ر.س استثمار جديد', 'success');
+          }
+        } catch (e) {}
+      };
+      const iv = setInterval(tick, 45000);
+      window.addEventListener('pagehide', () => clearInterval(iv), { once: true });
+    })();
+
     // Funding velocity badge (ر.س / يوم)
     if (p.status === 'open' && p.raised > 0 && (p.openedAt || p.createdAt)) {
       const opened = new Date(p.openedAt || p.createdAt).getTime();
