@@ -859,6 +859,24 @@
     </div>
   </div>
 
+  <!-- Account health -->
+  <div class="settings-group" id="acctHealthSec">
+    <div class="settings-h">🛡 صحّة الحساب</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <div id="ahTier" style="font:900 16px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div id="ahProgress" style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">—</div>
+        </div>
+        <div id="ahScore" style="font:900 28px Cairo,sans-serif;color:var(--gold);">—</div>
+      </div>
+      <div style="height:8px;background:var(--paper);border-radius:99px;overflow:hidden;margin-bottom:12px;">
+        <div id="ahBar" style="height:100%;width:0%;background:linear-gradient(90deg,#0a4d36,#b08840);transition:width .4s;"></div>
+      </div>
+      <div id="ahChecks" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Locale + calendar preferences -->
   <div class="settings-group" id="localeSec">
     <div class="settings-h">🌐 اللغة والتنسيق</div>
@@ -2440,6 +2458,36 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Account health
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/account-health');
+      const tier = document.getElementById('ahTier');
+      const prog = document.getElementById('ahProgress');
+      const score = document.getElementById('ahScore');
+      const bar = document.getElementById('ahBar');
+      const list = document.getElementById('ahChecks');
+      if (!tier || !list) return;
+      tier.textContent = r.tier || '—';
+      prog.textContent = (r.done || 0) + '/' + (r.total || 0) + ' خطوات مكتملة';
+      score.textContent = (r.score || 0) + '/' + (r.max || 100);
+      if (bar) bar.style.width = ((r.score || 0)) + '%';
+      list.replaceChildren();
+      (r.checks || []).forEach(c => {
+        const row = document.createElement(c.done ? 'div' : 'a');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border-radius:8px;text-decoration:none;color:inherit;' + (c.done ? '' : 'cursor:pointer;border:1px dashed var(--gold);');
+        if (!c.done) row.href = c.href || '#';
+        const lbl = document.createElement('span'); lbl.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--ink);';
+        lbl.textContent = c.label;
+        const right = document.createElement('span');
+        right.style.cssText = 'font:800 11px Cairo,sans-serif;color:' + (c.done ? '#0f6e3a' : 'var(--gold)') + ';';
+        right.textContent = c.done ? '✓ مكتمل' : '+' + c.weight + ' نقطة';
+        row.append(lbl, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
