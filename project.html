@@ -924,6 +924,10 @@
 </header>
 
 <main id="main">
+<!-- CLOSED STICKY BANNER -->
+<div id="closedBanner" style="display:none;position:sticky;top:0;z-index:30;padding:14px 22px;background:linear-gradient(90deg,#0a4d36,#062b1e);color:#d4ac6e;text-align:center;font:800 14px Cairo,sans-serif;box-shadow:0 2px 8px rgba(13,22,18,0.12);">
+  <span id="closedBannerText">✓ اكتمل التمويل — شكراً لـ <b id="closedBannerCount">—</b> مستثمراً جمعوا <b id="closedBannerAmt">—</b> ر.س</span>
+</div>
 <!-- HERO -->
 <div class="hero-banner">
   <div class="hero-info">
@@ -1982,6 +1986,18 @@
       calLink.href = '/app/projects/' + encodeURIComponent(p.slug || p.id) + '/closing.ics';
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
+    }
+
+    // Closed/funded sticky banner
+    if (p.status === 'closed' || p.status === 'funded' || (p.goal && (p.raised || 0) >= p.goal)) {
+      const banner = document.getElementById('closedBanner');
+      if (banner) {
+        const cnt = document.getElementById('closedBannerCount');
+        const amt = document.getElementById('closedBannerAmt');
+        if (cnt) cnt.textContent = Number(p.investorsCount || p.investors || 0).toLocaleString('ar-SA');
+        if (amt) amt.textContent = Number(p.raised || p.goal || 0).toLocaleString('ar-SA');
+        banner.style.display = 'block';
+      }
     }
 
     // My investment badge (auth users who already invested)

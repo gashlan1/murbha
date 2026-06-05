@@ -1847,24 +1847,46 @@
       if (!list || !projects.length) return;
       sec.style.display = '';
       list.textContent = '';
-      projects.forEach(p => {
-        const a = document.createElement('a');
-        a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
-        a.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;text-decoration:none;color:inherit;background:#fff;';
-        const left = document.createElement('div');
-        const nm = document.createElement('div');
-        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
-        nm.textContent = p.name || '';
-        const meta = document.createElement('div');
-        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
-        meta.textContent = `العائد ${p.rate || p.expectedReturn || '—'}% · ${p.category || ''}`;
-        left.appendChild(nm); left.appendChild(meta);
-        const arrow = document.createElement('div');
-        arrow.style.cssText = 'color:var(--gold);font-weight:900;';
-        arrow.textContent = '‹';
-        a.appendChild(left); a.appendChild(arrow);
-        list.appendChild(a);
-      });
+      const render = (items) => {
+        list.textContent = '';
+        items.forEach((p, idx) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;';
+          const a = document.createElement('a');
+          a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+          a.style.cssText = 'flex:1;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;';
+          const left = document.createElement('div');
+          left.style.cssText = 'flex:1;';
+          const nm = document.createElement('div');
+          nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+          nm.textContent = (idx === 0 ? '📌 ' : '') + (p.name || '');
+          const meta = document.createElement('div');
+          meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+          meta.textContent = `العائد ${p.rate || p.expectedReturn || '—'}% · ${p.category || ''}`;
+          left.appendChild(nm); left.appendChild(meta);
+          a.appendChild(left);
+          row.appendChild(a);
+          if (idx !== 0) {
+            const pin = document.createElement('button');
+            pin.type = 'button';
+            pin.title = 'تثبيت أعلى القائمة';
+            pin.textContent = '📌';
+            pin.style.cssText = 'background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px;margin-inline-start:8px;';
+            pin.addEventListener('click', async (ev) => {
+              ev.preventDefault(); ev.stopPropagation();
+              try {
+                await App.api('POST', '/app/me/favorites/pin', { projectId: p.id });
+                const reordered = [p, ...items.filter(x => x.id !== p.id)];
+                render(reordered);
+                App.toast && App.toast('تم التثبيت', 'success');
+              } catch (e) { App.toast && App.toast('فشل', 'error'); }
+            });
+            row.appendChild(pin);
+          }
+          list.appendChild(row);
+        });
+      };
+      render(projects);
     } catch (e) {}
   })();
 
