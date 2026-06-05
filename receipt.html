@@ -214,6 +214,24 @@ async function renderReceipt() {
   small.textContent = tr('small');
   footer.append(p1, p2, small);
 
+  // Verification block (signed public URL anyone can hit to verify)
+  try {
+    const u = await App.api('GET', '/app/me/receipt/url/' + encodeURIComponent(inv.id));
+    if (u?.url) {
+      const verify = document.createElement('div');
+      verify.style.cssText = 'margin-top:18px;padding:12px 14px;border:1.5px dashed #b08840;border-radius:10px;background:#fbf8ee;font-size:11px;color:#7a5a10;line-height:1.6;';
+      const t1 = document.createElement('div');
+      t1.style.cssText = 'font:800 11px Cairo,sans-serif;color:#7a5a10;margin-bottom:4px;';
+      t1.textContent = isEN() ? '🔒 Anyone can verify this receipt at:' : '🔒 يمكن لأي شخص التحقق من هذا الإيصال عبر:';
+      const link = document.createElement('a');
+      link.href = u.url; link.target = '_blank'; link.rel = 'noopener';
+      link.style.cssText = 'color:#062b1e;font:700 11px "SF Mono",Menlo,monospace;direction:ltr;text-decoration:underline;word-break:break-all;display:block;text-align:start;';
+      link.textContent = u.url;
+      verify.append(t1, link);
+      footer.appendChild(verify);
+    }
+  } catch (e) {}
+
   r.append(head, titleRow, grid, amounts, footer);
   root.appendChild(r);
 }

@@ -336,6 +336,7 @@
     <button class="filter-tab" data-filter="payments">العمليات</button>
     <button class="filter-tab" data-filter="security">الأمان</button>
     <button class="filter-tab" data-filter="system">النظام</button>
+    <button class="filter-tab" data-filter="archived">الأرشيف</button>
   </div>
 </header>
 
@@ -518,18 +519,25 @@
     const paymentKinds  = ['deposit','withdraw','invest','contract_signed','profit'];
     const securityKinds = ['security'];
     const sysKinds      = ['welcome','help'];
+    const ARCHIVE_DAYS  = 30;
+    const archiveCutoff = Date.now() - ARCHIVE_DAYS * 24 * 60 * 60 * 1000;
+    const isArchived = (n) => new Date(n.createdAt).getTime() < archiveCutoff;
+    // Default filters hide archived items unless explicitly viewing archive.
+    const inWindow = (n) => f === 'archived' ? isArchived(n) : !isArchived(n);
     const list = _allNotifs.filter(n =>
-      f === 'unread'   ? !n.read :
-      f === 'payments' ? paymentKinds.includes(n.kind) :
-      f === 'security' ? securityKinds.includes(n.kind) :
-      f === 'system'   ? sysKinds.includes(n.kind) :
-      true);
+      f === 'unread'   ? (!n.read && !isArchived(n)) :
+      f === 'payments' ? (paymentKinds.includes(n.kind) && inWindow(n)) :
+      f === 'security' ? (securityKinds.includes(n.kind) && inWindow(n)) :
+      f === 'system'   ? (sysKinds.includes(n.kind) && inWindow(n)) :
+      f === 'archived' ? isArchived(n) :
+      inWindow(n));
     _renderNotifs(list);
     const badgeAll = document.getElementById('badgeAll');
     const badgeUnread = document.getElementById('badgeUnread');
-    if (badgeAll) badgeAll.textContent = _allNotifs.length ? '(' + _allNotifs.length + ')' : '';
+    const recent = _allNotifs.filter(n => !isArchived(n));
+    if (badgeAll) badgeAll.textContent = recent.length ? '(' + recent.length + ')' : '';
     if (badgeUnread) {
-      const u = _allNotifs.filter(n => !n.read).length;
+      const u = recent.filter(n => !n.read).length;
       badgeUnread.textContent = u ? '(' + u + ')' : '';
     }
   }
