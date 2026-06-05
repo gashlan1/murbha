@@ -859,6 +859,26 @@
     </div>
   </div>
 
+  <!-- Quiet hours -->
+  <div class="settings-group" id="quietSec">
+    <div class="settings-h">🌙 ساعات الهدوء</div>
+    <div style="padding:14px 18px;">
+      <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);margin-bottom:10px;">
+        <span>تعطيل إشعارات SMS والإيميل في ساعات النوم</span>
+        <input id="quietEnabled" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
+      </label>
+      <div id="quietTimes" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">من
+          <select id="quietStart" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 13px Tajawal,sans-serif;color:var(--ink);"></select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 11px Cairo,sans-serif;color:var(--muted);">إلى
+          <select id="quietEnd" style="padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 13px Tajawal,sans-serif;color:var(--ink);"></select>
+        </label>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:8px;line-height:1.7;">📌 إشعارات الأمان (تسجيل دخول، تنبيهات احتيال) تبقى مفعّلة دائماً.</p>
+    </div>
+  </div>
+
   <!-- Referral network -->
   <div class="settings-group" id="refNetSec" style="display:none;">
     <div class="settings-h">🤝 شبكة الدعوات</div>
@@ -2499,6 +2519,46 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Quiet hours
+  (async () => {
+    try {
+      const cb = document.getElementById('quietEnabled');
+      const st = document.getElementById('quietStart');
+      const en = document.getElementById('quietEnd');
+      const times = document.getElementById('quietTimes');
+      if (!cb || !st || !en) return;
+      const fmtH = h => String(h).padStart(2, '0') + ':00';
+      for (let h = 0; h < 24; h++) {
+        const o1 = document.createElement('option'); o1.value = h; o1.textContent = fmtH(h); st.appendChild(o1);
+        const o2 = document.createElement('option'); o2.value = h; o2.textContent = fmtH(h); en.appendChild(o2);
+      }
+      const me = await App.api('GET', '/app/me');
+      const qh = me.user?.quietHours || {};
+      cb.checked = qh.enabled !== false && (qh.startHour !== undefined || qh.endHour !== undefined);
+      st.value = qh.startHour ?? 22;
+      en.value = qh.endHour ?? 7;
+      const syncVis = () => { times.style.opacity = cb.checked ? '1' : '0.5'; times.style.pointerEvents = cb.checked ? '' : 'none'; };
+      syncVis();
+      let t;
+      const save = () => {
+        clearTimeout(t);
+        t = setTimeout(async () => {
+          try {
+            await App.api('PATCH', '/app/me/quiet-hours', {
+              enabled: cb.checked,
+              startHour: Number(st.value),
+              endHour: Number(en.value),
+            });
+            App.toast && App.toast('✓ حُفظ', 'success');
+          } catch (e) { App.toast && App.toast('فشل الحفظ', 'error'); }
+        }, 500);
+      };
+      cb.addEventListener('change', () => { syncVis(); save(); });
+      st.addEventListener('change', save);
+      en.addEventListener('change', save);
     } catch (e) {}
   })();
 
