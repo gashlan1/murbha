@@ -768,7 +768,10 @@
   <!-- Profile card -->
   <div class="profile-card">
     <div class="profile-row">
-      <div class="avatar">عر</div>
+      <div class="avatar" id="avatarBox" style="position:relative;cursor:pointer;overflow:hidden;" title="انقر لتغيير الصورة">عر
+        <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp" style="display:none;" />
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;" class="avatar-overlay">📷</div>
+      </div>
       <div class="pinfo">
         <h2>عبدالعزيز الراشد</h2>
         <div class="pid">+966 5X XXX XXXX</div>
@@ -802,12 +805,24 @@
     </div>
   </div>
 
+  <!-- Saved opportunities -->
+  <div class="settings-group" id="saved-projects-section" style="display:none;">
+    <div class="settings-h">الفرص المحفوظة</div>
+    <div id="savedProjectsList" style="padding: 12px 16px;"></div>
+  </div>
+
   <!-- Active Investments Section -->
   <div class="settings-group" id="my-investments-section" style="display:none;">
     <div class="settings-h">استثماراتي والخط الزمني للمشاريع</div>
     <div id="investments-container" style="padding: 12px 16px;">
       <!-- Dynamic investments list with steppers/milestones -->
     </div>
+  </div>
+
+  <!-- Activity timeline -->
+  <div class="settings-group">
+    <div class="settings-h">آخر الأنشطة</div>
+    <div id="activityList" style="padding: 12px 16px;"><div style="color:var(--muted);text-align:center;padding:14px;font-size:13px;">جاري التحميل...</div></div>
   </div>
 
   <!-- Account & Verification -->
@@ -882,6 +897,47 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+
+    <button type="button" id="changePhoneBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1.05.37 2.08.72 3.06a2 2 0 0 1-.45 2.11L8.09 10.91a16 16 0 0 0 6 6l2.02-1.29a2 2 0 0 1 2.11-.45c.98.35 2.01.59 3.06.72A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تغيير رقم الجوال</div>
+        <div class="setting-sub" id="changePhoneSub">سيتطلب رمز تأكيد إلى الرقم الجديد</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+
+    <div class="setting-row" style="cursor:default;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8V5l8-3 8 3v5.2c0 7.3-8 11.8-8 11.8z"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">التحقّق عبر SMS عند تسجيل الدخول</div>
+        <div class="setting-sub" id="sms2faSub">نرسل رمزاً إلى جوالك في كل محاولة دخول جديدة</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="sms2faToggle" style="opacity:0;width:0;height:0;" />
+        <span id="sms2faSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="sms2faKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+
+    <button type="button" id="changeEmailBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تغيير البريد الإلكتروني</div>
+        <div class="setting-sub">رمز تأكيد إلى البريد الجديد + تنبيه إلى القديم</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
 
     <button class="setting-row">
       <div class="setting-icon">
@@ -1005,6 +1061,205 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+  </div>
+
+  <!-- Payments -->
+  <div class="settings-group">
+    <div class="settings-h">الدفع والمحفظة</div>
+
+    <a href="payment-methods.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 11h20"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">طرق الدفع</div>
+        <div class="setting-sub">إدارة البطاقات والحسابات البنكية</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <a href="#" id="csvExportLink" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تصدير سجل الاستثمارات (CSV)</div>
+        <div class="setting-sub">للسجلات الشخصية والإقرارات الضريبية</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <div class="setting-row" style="cursor:default;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">ملخّص أسبوعي تلقائي</div>
+        <div class="setting-sub">ملخّص محفظتك إلى بريدك كل أحد صباحاً</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="weeklySummaryToggle" style="opacity:0;width:0;height:0;" />
+        <span id="wsSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="wsKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+
+    <button type="button" id="sendSummaryBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 1 1 9 9"/><path d="M3 4v7h7"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">إرسال ملخّص محفظتي إلى بريدي</div>
+        <div class="setting-sub">يحتوي الرصيد، الاستثمارات النشطة، والتوزيعات القادمة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+    <a href="/tax-certificate.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">الشهادة الضريبية السنوية</div>
+        <div class="setting-sub">بيان جاهز للطباعة لكل سنة ضريبية</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <a href="/activity.html" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">سجلّ نشاط حسابي</div>
+        <div class="setting-sub">دخول، أمان، عمليات مالية، استثمارات</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <button type="button" id="calFeedBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9"/><path d="M3 12a9 9 0 0 0 9 9"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">رابط تقويم مباشر (Subscribe)</div>
+        <div class="setting-sub">اشترك مرة واحدة في Calendar.app/Google Calendar — يتحدّث تلقائياً</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+    <a href="/app/me/payouts.ics" id="icsExportLink" class="setting-row" download="murbha-payouts.ics">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">إضافة التوزيعات إلى التقويم</div>
+        <div class="setting-sub">ملف .ics يحتوي مواعيد التوزيعات الربعية المتوقّعة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <!-- Leaderboard opt-in -->
+  <div class="settings-group" id="leaderboard">
+    <div class="settings-h">لوحة المستثمرين العامة</div>
+    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;">🏆 عرض اسمي في اللوحة</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;">نُظهر اسمك المختصر (مثل "محمد ع.") مع إجمالي استثمارك. لا تُعرض أي بيانات شخصية أخرى.</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="leaderboardToggle" style="opacity:0;width:0;height:0;" />
+        <span id="leaderboardSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="leaderboardKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+    <a href="/leaderboard.html" style="display:block;padding:10px 18px;text-decoration:none;color:var(--gold);font:700 12px Cairo,sans-serif;border-top:1px solid var(--line);">عرض اللوحة العامة ←</a>
+  </div>
+
+  <!-- Active sessions / devices -->
+  <div class="settings-group">
+    <div class="settings-h">الأجهزة النشطة</div>
+    <div id="sessionsList" style="padding:12px 16px;">
+      <div style="color:var(--muted);text-align:center;padding:8px;font-size:13px;">جاري التحميل…</div>
+    </div>
+    <div style="padding:0 16px 14px;">
+      <button type="button" id="revokeAllSessionsBtn" style="width:100%;padding:11px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">⛔ تسجيل خروج من جميع الأجهزة الأخرى</button>
+    </div>
+  </div>
+
+  <!-- Privacy / PDPL -->
+  <div class="settings-group">
+    <div class="settings-h">الخصوصية والبيانات</div>
+    <a href="/app/me/export" download="murbha-data.json" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تصدير كل بياناتي (JSON)</div>
+        <div class="setting-sub">حقّ الوصول وفق نظام حماية البيانات الشخصية (PDPL)</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <button type="button" id="deleteAccountBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon" style="color:#c54a3a;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name" id="deleteAccountLabel" style="color:#c54a3a;">طلب حذف حسابي نهائياً</div>
+        <div class="setting-sub" id="deleteAccountSub">سيمنح حسابك مهلة ٣٠ يوماً قبل الحذف النهائي. يمكنك الإلغاء خلالها.</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+  </div>
+
+  <!-- Re-run onboarding tour -->
+  <div class="settings-group">
+    <div class="settings-h">الجولة التعريفية</div>
+    <button type="button" id="replayTourBtn" style="margin:14px 18px;background:#fff;border:1px solid var(--line-strong);color:var(--green-dark);padding:11px 16px;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;width:calc(100% - 36px);text-align:start;display:flex;justify-content:space-between;align-items:center;">
+      <span>🧭 أعد عرض الجولة التعريفية</span>
+      <span style="color:var(--muted);font:500 11px Tajawal,sans-serif;">~ ٤ شرائح</span>
+    </button>
+  </div>
+
+  <!-- Theme -->
+  <div class="settings-group">
+    <div class="settings-h">المظهر</div>
+    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;">🌙 الوضع الداكن</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);">يفضّله البعض في الإضاءة المنخفضة</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;">
+        <input type="checkbox" id="darkModeToggle" style="opacity:0;width:0;height:0;" />
+        <span id="darkModeSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="darkModeKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Notification preferences -->
+  <div class="settings-group">
+    <div class="settings-h">تفضيلات الإشعارات</div>
+    <div id="notifPrefsBox" style="padding:14px 18px;"><div style="color:var(--muted);font-size:13px;text-align:center;padding:8px;">جاري التحميل…</div></div>
+  </div>
+
+  <!-- Referral -->
+  <div class="settings-group">
+    <div class="settings-h">ادعُ صديقاً</div>
+    <div id="referralBox" style="padding:14px 18px;"><div style="color:var(--muted);font-size:13px;text-align:center;padding:8px;">جاري التحميل…</div></div>
   </div>
 
   <!-- Help -->
@@ -1403,6 +1658,542 @@
 
   // Load investments on initialization
   await loadInvestments();
+
+  // Load saved projects
+  (async () => {
+    try {
+      const r = await fetch('/app/me/favorites', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const { projects = [] } = await r.json();
+      const sec = document.getElementById('saved-projects-section');
+      const list = document.getElementById('savedProjectsList');
+      if (!list || !projects.length) return;
+      sec.style.display = '';
+      list.textContent = '';
+      projects.forEach(p => {
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+        a.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;text-decoration:none;color:inherit;background:#fff;';
+        const left = document.createElement('div');
+        const nm = document.createElement('div');
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        nm.textContent = p.name || '';
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        meta.textContent = `العائد ${p.rate || p.expectedReturn || '—'}% · ${p.category || ''}`;
+        left.appendChild(nm); left.appendChild(meta);
+        const arrow = document.createElement('div');
+        arrow.style.cssText = 'color:var(--gold);font-weight:900;';
+        arrow.textContent = '‹';
+        a.appendChild(left); a.appendChild(arrow);
+        list.appendChild(a);
+      });
+    } catch (e) {}
+  })();
+
+  // PDPL: deletion request + cancel
+  (async () => {
+    const btn = document.getElementById('deleteAccountBtn');
+    const label = document.getElementById('deleteAccountLabel');
+    const sub = document.getElementById('deleteAccountSub');
+    if (!btn) return;
+    const refresh = async () => {
+      try {
+        const me = await App.api('GET', '/app/me');
+        const u = me.user || {};
+        if (u.deletionScheduledAt) {
+          const eta = new Date(u.deletionScheduledAt);
+          label.textContent = 'إلغاء طلب الحذف';
+          label.style.color = 'var(--green)';
+          sub.textContent = 'سيتم حذف حسابك في ' + eta.toLocaleDateString('ar-SA') + '. اضغط للإلغاء.';
+          btn.dataset.state = 'pending';
+        } else {
+          label.textContent = 'طلب حذف حسابي نهائياً';
+          label.style.color = '#c54a3a';
+          sub.textContent = 'سيمنح حسابك مهلة ٣٠ يوماً قبل الحذف النهائي. يمكنك الإلغاء خلالها.';
+          btn.dataset.state = 'none';
+        }
+      } catch (e) {}
+    };
+    await refresh();
+    btn.addEventListener('click', async () => {
+      if (btn.dataset.state === 'pending') {
+        if (!confirm('إلغاء طلب حذف الحساب؟')) return;
+        try {
+          await App.api('POST', '/app/me/cancel-deletion');
+          App.toast && App.toast('✓ تم إلغاء طلب الحذف', 'success');
+          await refresh();
+        } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        return;
+      }
+      const pwd = prompt('للتأكيد، أدخل كلمة المرور:');
+      if (!pwd) return;
+      if (!confirm('سيتم جدولة حذف حسابك خلال ٣٠ يوماً. تأكيد؟')) return;
+      try {
+        await App.api('POST', '/app/me/request-deletion', { password: pwd });
+        App.toast && App.toast('تم جدولة حذف الحساب', 'success');
+        await refresh();
+      } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
+
+  // Leaderboard opt-in
+  (async () => {
+    const cb = document.getElementById('leaderboardToggle');
+    const sl = document.getElementById('leaderboardSlider');
+    const kb = document.getElementById('leaderboardKnob');
+    if (!cb) return;
+    const sync = (on) => {
+      cb.checked = !!on;
+      sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    try {
+      const me = await App.api('GET', '/app/me');
+      sync(!!me.user?.publicLeaderboard);
+    } catch (e) { sync(false); }
+    cb.addEventListener('change', async () => {
+      const optIn = cb.checked;
+      sync(optIn);
+      try {
+        await App.api('PATCH', '/app/me/leaderboard-opt', { optIn });
+        App.toast && App.toast(optIn ? '✓ ستظهر في اللوحة العامة' : 'تم إخفاء اسمك', 'success');
+      } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
+
+  // Calendar feed subscribe modal
+  document.getElementById('calFeedBtn')?.addEventListener('click', async () => {
+    try {
+      const d = await App.api('GET', '/app/me/calendar-feed');
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border-radius:16px;padding:22px;max-width:480px;width:100%;';
+      const close = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) close(); };
+      const h = document.createElement('div');
+      h.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      h.textContent = 'رابط التقويم المباشر';
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px;';
+      p.textContent = 'انسخ الرابط أدناه واشترك به في تطبيق التقويم. يحتوي كل التوزيعات المتوقّعة لاستثماراتك ويتحدّث تلقائياً.';
+      const linkBox = document.createElement('div');
+      linkBox.style.cssText = 'padding:10px 12px;background:#fbf8ee;border:1px dashed #b08840;border-radius:8px;font:600 11px "SF Mono",Menlo,monospace;direction:ltr;text-align:start;word-break:break-all;color:var(--green-dark);margin-bottom:10px;';
+      linkBox.textContent = d.url;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+      const copy = document.createElement('button');
+      copy.type='button'; copy.textContent='📋 نسخ الرابط';
+      copy.style.cssText = 'flex:1;min-width:120px;padding:9px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      copy.onclick = async () => { try { await navigator.clipboard.writeText(d.url); copy.textContent = '✓ تم النسخ'; } catch (e) {} };
+      const webcal = document.createElement('a');
+      webcal.href = d.webcalUrl;
+      webcal.textContent = '🍎 فتح في Apple Calendar';
+      webcal.style.cssText = 'flex:1;min-width:120px;padding:9px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;text-decoration:none;';
+      const rotate = document.createElement('button');
+      rotate.type='button'; rotate.textContent='↻ تجديد الرابط';
+      rotate.style.cssText = 'flex:1;min-width:120px;padding:9px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      rotate.onclick = async () => {
+        if (!confirm('سيبطل الرابط الحالي عند جميع التقويمات المشتركة. تأكيد؟')) return;
+        try {
+          await App.api('POST', '/app/me/calendar-feed/rotate');
+          App.toast && App.toast('تم التجديد', 'success');
+          close();
+        } catch (e) {}
+      };
+      const closeBtn = document.createElement('button');
+      closeBtn.type='button'; closeBtn.textContent='إغلاق';
+      closeBtn.style.cssText = 'width:100%;margin-top:10px;padding:9px;background:transparent;border:1px solid var(--line);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+      closeBtn.onclick = close;
+      row.append(copy, webcal, rotate);
+      card.append(h, p, linkBox, row, closeBtn);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+  });
+
+  // Weekly summary opt-in
+  (async () => {
+    const cb = document.getElementById('weeklySummaryToggle');
+    const sl = document.getElementById('wsSlider');
+    const kb = document.getElementById('wsKnob');
+    if (!cb) return;
+    const sync = (on) => {
+      cb.checked = !!on;
+      sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    try {
+      const me = await App.api('GET', '/app/me');
+      sync(!!me.user?.weeklySummaryOptIn);
+    } catch (e) { sync(false); }
+    cb.addEventListener('change', async () => {
+      const optIn = cb.checked;
+      sync(optIn);
+      try {
+        await App.api('POST', '/app/me/summary/opt', { optIn });
+        App.toast && App.toast(optIn ? '✓ تم تفعيل الملخّص الأسبوعي' : 'تم إيقاف الملخّص', 'success');
+      } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
+
+  // Send portfolio summary email
+  document.getElementById('sendSummaryBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('sendSummaryBtn');
+    const sub = btn.querySelector('.setting-sub');
+    const original = sub.textContent;
+    sub.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/me/summary/send');
+      sub.textContent = '✓ أُرسل إلى ' + (r.to || 'بريدك');
+      setTimeout(() => { sub.textContent = original; }, 4000);
+    } catch (e) {
+      sub.textContent = original;
+      App.toast && App.toast(e.message || 'فشل الإرسال', 'error');
+    }
+  });
+
+  // Active sessions
+  (async () => {
+    const list = document.getElementById('sessionsList');
+    if (!list) return;
+    try {
+      const d = await App.api('GET', '/app/me/sessions');
+      list.replaceChildren();
+      if (!d.devices.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'color:var(--muted);text-align:center;padding:12px;font-size:13px;';
+        e.textContent = 'لا توجد جلسات مسجّلة بعد.';
+        list.appendChild(e); return;
+      }
+      d.devices.forEach(g => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:6px;';
+        const isCurrent = g.fingerprint === d.currentFingerprint;
+        const title = document.createElement('div');
+        title.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;';
+        const name = document.createElement('span'); name.textContent = g.ua;
+        title.appendChild(name);
+        if (isCurrent) {
+          const pill = document.createElement('span');
+          pill.style.cssText = 'font:800 10px Cairo,sans-serif;padding:2px 8px;border-radius:999px;background:rgba(15,110,58,0.12);color:#0f6e3a;';
+          pill.textContent = 'هذا الجهاز';
+          title.appendChild(pill);
+        }
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;';
+        meta.textContent = g.ip + ' · ' + new Date(g.lastSeen).toLocaleString('ar-SA');
+        row.append(title, meta);
+        list.appendChild(row);
+      });
+      if (d.sessionsInvalidAfter) {
+        const note = document.createElement('div');
+        note.style.cssText = 'font-size:11px;color:var(--muted);margin-top:8px;text-align:center;';
+        note.textContent = '✓ آخر إلغاء عام: ' + new Date(d.sessionsInvalidAfter).toLocaleString('ar-SA');
+        list.appendChild(note);
+      }
+    } catch (e) {
+      list.replaceChildren();
+      const x = document.createElement('div'); x.style.cssText='color:var(--muted);text-align:center;padding:12px;font-size:13px;';
+      x.textContent = 'تعذّر التحميل';
+      list.appendChild(x);
+    }
+  })();
+
+  document.getElementById('revokeAllSessionsBtn')?.addEventListener('click', async () => {
+    if (!confirm('سيتم تسجيل خروجك من كل الأجهزة الأخرى. تبقى متصلاً على هذا الجهاز. تأكيد؟')) return;
+    try {
+      await App.api('POST', '/app/me/sessions/revoke-all');
+      App.toast && App.toast('✓ تم تسجيل الخروج من جميع الأجهزة الأخرى', 'success');
+      setTimeout(() => location.reload(), 800);
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+  });
+
+  // SMS 2FA toggle
+  (async () => {
+    const cb = document.getElementById('sms2faToggle');
+    const sl = document.getElementById('sms2faSlider');
+    const kb = document.getElementById('sms2faKnob');
+    const sub = document.getElementById('sms2faSub');
+    if (!cb) return;
+    const sync = (on) => {
+      cb.checked = !!on;
+      sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    let phone = null;
+    try {
+      const me = await App.api('GET', '/app/me');
+      phone = me.user?.phone;
+      sync(!!me.user?.sms2faEnabled);
+      if (!phone) { sub.textContent = 'أضف رقم جوالك أولاً لتفعيل هذه الميزة.'; cb.disabled = true; sl.style.opacity = 0.5; }
+    } catch (e) { sync(false); }
+    cb.addEventListener('change', async () => {
+      const enable = cb.checked;
+      sync(enable);
+      try {
+        await App.api('POST', '/app/me/sms-2fa', { enable });
+        App.toast && App.toast(enable ? '✓ تم تفعيل التحقّق عبر SMS' : 'تم إلغاء التحقّق', 'success');
+      } catch (e) { sync(!enable); App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
+
+  // Change email (OTP)
+  document.getElementById('changeEmailBtn')?.addEventListener('click', async () => {
+    const newEmail = prompt('أدخل البريد الإلكتروني الجديد:');
+    if (!newEmail) return;
+    try {
+      await App.api('POST', '/app/me/email/init', { email: newEmail });
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); return; }
+    const code = prompt('أرسلنا رمز التحقق إلى بريدك الجديد. أدخل الرمز:');
+    if (!code) return;
+    try {
+      const r = await App.api('POST', '/app/me/email/confirm', { code: code.trim() });
+      App.toast && App.toast('✓ تم تحديث البريد إلى ' + r.email, 'success');
+      setTimeout(() => location.reload(), 800);
+    } catch (e) { App.toast && App.toast(e.message || 'الرمز غير صحيح', 'error'); }
+  });
+
+  // Change phone (OTP)
+  document.getElementById('changePhoneBtn')?.addEventListener('click', async () => {
+    const newPhone = prompt('أدخل رقم الجوال الجديد (مثال: 05XXXXXXXX):');
+    if (!newPhone) return;
+    try {
+      await App.api('POST', '/app/me/phone/init', { phone: newPhone });
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); return; }
+    const code = prompt('أرسلنا رمز التحقق إلى رقمك الجديد. أدخل الرمز:');
+    if (!code) return;
+    try {
+      const r = await App.api('POST', '/app/me/phone/confirm', { code: code.trim() });
+      App.toast && App.toast('✓ تم تحديث رقم الجوال إلى ' + r.phone, 'success');
+      setTimeout(() => location.reload(), 800);
+    } catch (e) { App.toast && App.toast(e.message || 'الرمز غير صحيح', 'error'); }
+  });
+
+  // Replay tour
+  document.getElementById('replayTourBtn')?.addEventListener('click', () => {
+    if (typeof App.resetTour === 'function') App.resetTour();
+    if (typeof App.startTour === 'function') {
+      App.startTour([
+        { title: 'أهلاً بك في مُرابحة 👋', body: 'منصة استثمار شرعية كاملة من البحث عن الفرصة إلى التوقيع وتحصيل الأرباح.' },
+        { title: 'تصفّح الفرص', body: 'كل فرصة تعرض البائع، الأصل، الهامش، والمدة — كله مُعتمَد شرعياً. استخدم البحث أو الترتيب.', cta: true, ctaHref: '/projects.html' },
+        { title: 'احسب عوائدك', body: 'داخل كل فرصة هناك حاسبة تُريك الأرباح المتوقعة وجدول التوزيعات الربعية.' },
+        { title: 'محفظتك = مكان كل شيء', body: 'استثماراتك، عقودك، توزيعاتك، وتصدير .CSV و .ICS كلها في صفحة المحفظة.', cta: true, ctaHref: '/portfolio.html' },
+      ]);
+    } else { location.reload(); }
+  });
+
+  // Theme toggle
+  (() => {
+    const cb = document.getElementById('darkModeToggle');
+    const sl = document.getElementById('darkModeSlider');
+    const kb = document.getElementById('darkModeKnob');
+    if (!cb) return;
+    const sync = () => {
+      const dark = App.getTheme() === 'dark';
+      cb.checked = dark;
+      sl.style.background = dark ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = dark ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    sync();
+    cb.addEventListener('change', () => {
+      App.setTheme(cb.checked ? 'dark' : 'light');
+      sync();
+    });
+  })();
+
+  // Avatar upload
+  (async () => {
+    const box = document.getElementById('avatarBox');
+    const file = document.getElementById('avatarFile');
+    const overlay = box?.querySelector('.avatar-overlay');
+    if (!box || !file) return;
+    // Show overlay on hover (CSS would be cleaner; inline JS for one-off)
+    box.addEventListener('mouseenter', () => { if (overlay) overlay.style.opacity = '1'; });
+    box.addEventListener('mouseleave', () => { if (overlay) overlay.style.opacity = '0'; });
+    box.addEventListener('click', () => file.click());
+    // Only fetch the avatar if the user record says one exists.
+    try {
+      const me = await App.me();
+      if (me?.avatarPath) {
+        const img = new Image();
+        img.onload = () => {
+          box.textContent = '';
+          box.appendChild(img);
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+          const ov = document.createElement('div');
+          ov.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;';
+          ov.className = 'avatar-overlay'; ov.textContent = '📷';
+          box.appendChild(ov);
+          box.appendChild(file);
+        };
+        img.src = '/app/me/avatar?t=' + Date.now();
+      }
+    } catch (e) {}
+    file.addEventListener('change', async () => {
+      const f = file.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { App.toast('الحجم الأقصى 5MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const data = String(reader.result || '');
+        const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+        try {
+          await App.api('POST', '/app/me/avatar', { data: b64 });
+          App.toast('تم تحديث الصورة', 'success');
+          // Force reload of the image
+          const newImg = new Image();
+          newImg.onload = () => {
+            box.replaceChildren(newImg);
+            newImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+            const ov2 = document.createElement('div');
+            ov2.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;';
+            ov2.className = 'avatar-overlay'; ov2.textContent = '📷';
+            box.appendChild(ov2);
+            box.appendChild(file);
+          };
+          newImg.src = '/app/me/avatar?t=' + Date.now();
+        } catch (e) { App.toast(e.message || 'فشل الرفع', 'error'); }
+      };
+      reader.readAsDataURL(f);
+    });
+  })();
+
+  // CSV export
+  const csvLink = document.getElementById('csvExportLink');
+  if (csvLink) csvLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    location.href = '/app/me/export.csv';
+  });
+
+  // Notification preferences
+  (async () => {
+    const box = document.getElementById('notifPrefsBox');
+    if (!box) return;
+    try {
+      const r = await App.api('GET', '/app/me/notification-prefs');
+      box.replaceChildren();
+      const CHANNELS = [
+        { key: 'email', label: '📧 البريد الإلكتروني', kinds: { kyc:'تحديثات التحقق', payments:'العمليات المالية', contracts:'العقود', marketing:'العروض والإعلانات', security:'تنبيهات الأمان' } },
+        { key: 'sms',   label: '📱 الرسائل النصية',  kinds: { otp:'رموز التحقق', payments:'العمليات', security:'تنبيهات الأمان' } },
+        { key: 'push',  label: '🔔 إشعارات الجوال',  kinds: { all:'كل الإشعارات' } },
+      ];
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;gap:14px;';
+      CHANNELS.forEach(ch => {
+        const sec = document.createElement('div');
+        sec.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;';
+        const h = document.createElement('div'); h.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;';
+        h.textContent = ch.label;
+        sec.appendChild(h);
+        Object.entries(ch.kinds).forEach(([k, label]) => {
+          const row = document.createElement('label');
+          row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:6px 0;cursor:pointer;font:500 13px Tajawal,sans-serif;color:var(--ink);';
+          const lbl = document.createElement('span'); lbl.textContent = label;
+          const sw = document.createElement('input');
+          sw.type = 'checkbox';
+          sw.checked = !!r.prefs?.[ch.key]?.[k];
+          sw.style.cssText = 'accent-color:var(--green);width:18px;height:18px;';
+          sw.onchange = async () => {
+            const patch = { [ch.key]: { [k]: sw.checked } };
+            try { await App.api('PATCH', '/app/me/notification-prefs', patch); }
+            catch (e) { sw.checked = !sw.checked; App.toast('تعذّر الحفظ', 'error'); }
+          };
+          row.append(lbl, sw);
+          sec.appendChild(row);
+        });
+        wrap.appendChild(sec);
+      });
+      box.appendChild(wrap);
+    } catch (e) {
+      box.replaceChildren();
+      const x = document.createElement('div'); x.style.cssText='color:var(--muted);text-align:center;padding:8px;'; x.textContent='تعذّر التحميل';
+      box.appendChild(x);
+    }
+  })();
+
+  // Referral widget
+  (async () => {
+    const box = document.getElementById('referralBox');
+    if (!box) return;
+    try {
+      const r = await App.api('GET', '/app/me/referral');
+      box.replaceChildren();
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'background:linear-gradient(135deg, var(--green), var(--green-dark));color:#fff;border-radius:14px;padding:18px;text-align:center;';
+      const tag = document.createElement('div'); tag.style.cssText = 'font:600 11px Tajawal,sans-serif;color:rgba(255,255,255,0.7);margin-bottom:6px;';
+      tag.textContent = 'كود الإحالة الخاص بك';
+      const code = document.createElement('div');
+      code.style.cssText = 'font:900 22px monospace;letter-spacing:2px;color:#d4ac6e;padding:12px;background:rgba(255,255,255,0.08);border:1px dashed rgba(212,172,110,0.4);border-radius:10px;margin-bottom:14px;cursor:pointer;direction:ltr;';
+      code.textContent = r.code;
+      code.title = 'انقر للنسخ';
+      code.onclick = async () => {
+        try { await navigator.clipboard.writeText(r.code); App.toast('تم نسخ الكود', 'success'); }
+        catch (e) {}
+      };
+      const mkStat = (label, value) => {
+        const s = document.createElement('div');
+        s.style.cssText = 'background:rgba(255,255,255,0.08);padding:10px;border-radius:8px;';
+        const l = document.createElement('div'); l.style.cssText = 'color:rgba(255,255,255,0.7);font-size:11px;'; l.textContent = label;
+        const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;'; v.textContent = String(value);
+        s.append(l, v); return s;
+      };
+      const stats = document.createElement('div');
+      stats.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;font-size:13px;';
+      stats.append(mkStat('دعوات', r.invitedCount), mkStat('مستثمرون نشطون', r.activatedCount));
+      const share = document.createElement('button'); share.type='button';
+      share.style.cssText = 'width:100%;padding:12px;background:var(--gold);color:#fff;border:0;border-radius:10px;font:800 14px Cairo,sans-serif;cursor:pointer;';
+      share.textContent = '📤 شارك رابط الدعوة';
+      share.onclick = async () => {
+        const msg = 'انضم لمنصة مُرابحة للاستثمار الإسلامي عبر كودي: ' + r.code + '\n' + r.shareUrl;
+        try {
+          if (navigator.share) await navigator.share({ title: 'مُرابحة — استثمار شرعي', text: msg, url: r.shareUrl });
+          else { await navigator.clipboard.writeText(msg); App.toast('تم نسخ الرابط', 'success'); }
+        } catch (e) {}
+      };
+      wrap.append(tag, code, stats, share);
+      box.appendChild(wrap);
+    } catch (e) {
+      box.replaceChildren();
+      const x = document.createElement('div'); x.style.cssText='color:var(--muted);text-align:center;padding:8px;'; x.textContent='تعذّر التحميل';
+      box.appendChild(x);
+    }
+  })();
+
+  // Activity timeline
+  (async () => {
+    const list = document.getElementById('activityList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/me/activity');
+      list.replaceChildren();
+      if (!r.events.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'color:var(--muted);text-align:center;padding:14px;font-size:13px;';
+        e.textContent = 'لا يوجد نشاط بعد.';
+        list.appendChild(e); return;
+      }
+      const ICONS = { investment: '💎', signing: '✍', deposit: '↓', withdraw: '↑', registered: '🎉', security: '🛡', profile: '📋', login: '🔑' };
+      const COLORS = { investment: '#0a4d36', signing: '#062b1e', deposit: '#0f6e3a', withdraw: '#b08840', registered: '#b08840', security: '#062b1e', profile: '#0a4d36', login: '#6b7268' };
+      r.events.forEach(ev => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);';
+        const ic = document.createElement('div');
+        ic.style.cssText = 'width:32px;height:32px;border-radius:8px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px;color:' + (COLORS[ev.kind] || '#6b7268') + ';flex-shrink:0;';
+        ic.textContent = ICONS[ev.kind] || '•';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = ev.title;
+        const m = document.createElement('div'); m.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        m.textContent = new Date(ev.at).toLocaleString('ar-SA') + (ev.meta ? ' · ' + ev.meta : '');
+        info.append(t, m);
+        row.append(ic, info);
+        list.appendChild(row);
+      });
+      // remove last border
+      const last = list.lastElementChild;
+      if (last) last.style.borderBottom = '0';
+    } catch (e) {}
+  })();
 
   // ── Modal helpers ────────────────────────────────────
   const overlay = document.getElementById('pfModalOverlay');
