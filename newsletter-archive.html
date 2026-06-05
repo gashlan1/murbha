@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>أرشيف النشرة — مُرابحة</title>
+<meta name="description" content="جميع إصدارات نشرة مُرابحة الشهرية في مكان واحد." />
+<meta property="og:title" content="أرشيف النشرة — مُرابحة" />
+<meta property="og:description" content="إصدارات النشرة الشهرية." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:26px 18px 80px; max-width:760px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 26px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:22px; max-width:560px; }
+  .issue { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:10px; text-decoration:none; color:inherit; display:block; transition:transform .15s; }
+  .issue:hover { transform:translateY(-2px); border-color:var(--gold-light); }
+  .issue .date { font:800 12px 'SF Mono',Menlo,monospace; color:var(--gold); direction:ltr; margin-bottom:6px; }
+  .issue h3 { font:800 16px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .issue p { font-size:13px; color:var(--muted); line-height:1.7; }
+  .empty { text-align:center; padding:48px; color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:14px; }
+  .reader { background:#fff; border:1px solid var(--line); border-radius:14px; padding:24px; }
+  .reader h2 { font:900 22px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .reader .when { font:600 12px Tajawal,sans-serif; color:var(--muted); margin-bottom:18px; }
+  .reader .body { font-size:14px; line-height:1.9; color:var(--ink); }
+  .reader .body p { margin-bottom:12px; }
+  .reader .back { background:transparent; border:0; color:var(--green-dark); font:800 13px Cairo,sans-serif; cursor:pointer; padding:6px 0; margin-bottom:14px; }
+  .subscribe { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:14px; padding:20px; margin-top:22px; text-align:center; }
+  .subscribe h3 { font:900 16px Cairo,sans-serif; margin-bottom:6px; }
+  .subscribe p { color:#e8d3a8; font-size:13px; margin-bottom:14px; }
+  .subscribe form { display:flex; gap:6px; max-width:340px; margin:0 auto; background:#fff; border-radius:999px; padding:5px; }
+  .subscribe input { flex:1; padding:10px 16px; border:0; background:transparent; font:600 14px Tajawal,sans-serif; color:#0d1612; direction:ltr; outline:none; }
+  .subscribe button { padding:10px 22px; background:#d4ac6e; color:#062b1e; border:0; border-radius:999px; font:800 13px Cairo,sans-serif; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / <a href="/changelog.html">التحديثات</a> / أرشيف النشرة</div>
+<h1 id="title">أرشيف النشرة</h1>
+<p class="lede" id="lede">كل إصدار شهري من نشرة مُرابحة — ملخّصات الفرص الجديدة، الصفقات المكتملة، وتحديثات المنصة.</p>
+
+<div id="root">
+  <div class="empty">جارٍ التحميل…</div>
+</div>
+
+<div class="subscribe" id="subBox">
+  <h3>اشترك في النشرة</h3>
+  <p>ملخّص واحد شهرياً. بدون إزعاج.</p>
+  <form id="subForm">
+    <input id="subEmail" type="email" required placeholder="بريدك الإلكتروني" />
+    <button type="submit">اشترك</button>
+  </form>
+  <div id="subMsg" style="margin-top:8px;font-size:11px;color:#e8d3a8;min-height:14px;"></div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+const root = document.getElementById('root');
+const qs = new URLSearchParams(location.search);
+const want = qs.get('issue');
+
+async function loadList() {
+  root.replaceChildren();
+  try {
+    const r = await fetch('/app/public/newsletter-issues');
+    const d = await r.json();
+    if (!d.issues.length) {
+      const e = document.createElement('div'); e.className = 'empty';
+      e.textContent = 'لم يصدر أي عدد بعد. اشترك أعلاه ليصلك الأول.';
+      root.appendChild(e); return;
+    }
+    d.issues.forEach(issue => {
+      const a = document.createElement('a');
+      a.className = 'issue';
+      a.href = '?issue=' + encodeURIComponent(issue.slug);
+      const date = document.createElement('div'); date.className = 'date';
+      date.textContent = new Date(issue.publishedAt).toLocaleDateString('en-GB');
+      const h = document.createElement('h3'); h.textContent = issue.title;
+      const p = document.createElement('p'); p.textContent = issue.summary;
+      a.append(date, h, p);
+      root.appendChild(a);
+    });
+  } catch (e) {
+    const x = document.createElement('div'); x.className = 'empty';
+    x.textContent = 'تعذّر تحميل الأرشيف.';
+    root.appendChild(x);
+  }
+}
+
+async function loadIssue(slug) {
+  root.replaceChildren();
+  try {
+    const r = await fetch('/app/public/newsletter-issues/' + encodeURIComponent(slug));
+    if (!r.ok) throw new Error('not found');
+    const { issue } = await r.json();
+    document.title = issue.title + ' — مُرابحة';
+    const card = document.createElement('div'); card.className = 'reader';
+    const back = document.createElement('button'); back.className = 'back'; back.textContent = '← العودة إلى الأرشيف';
+    back.onclick = () => { history.pushState({}, '', '/newsletter-archive.html'); loadList(); };
+    const h = document.createElement('h2'); h.textContent = issue.title;
+    const when = document.createElement('div'); when.className = 'when';
+    when.textContent = new Date(issue.publishedAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+    const body = document.createElement('div'); body.className = 'body';
+    // Split paragraphs on double newlines for readability
+    String(issue.body || '').split(/\n{2,}/).forEach(part => {
+      const p = document.createElement('p');
+      if (window.App && typeof App.mdInline === 'function') App.mdInline(part, p);
+      else p.textContent = part;
+      body.appendChild(p);
+    });
+    card.append(back, h, when, body);
+    root.appendChild(card);
+  } catch (e) {
+    const x = document.createElement('div'); x.className = 'empty';
+    x.textContent = 'لم يُعثر على هذا الإصدار.';
+    root.appendChild(x);
+  }
+}
+
+if (want) loadIssue(want); else loadList();
+
+document.getElementById('subForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('subEmail').value.trim();
+  const msg = document.getElementById('subMsg');
+  msg.textContent = '';
+  try {
+    const r = await fetch('/app/newsletter/subscribe', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'archive_page' }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok) {
+      msg.textContent = d.already ? 'مشترك بالفعل' : '✓ تم الاشتراك';
+      document.getElementById('subEmail').value = '';
+    } else {
+      msg.textContent = d.error === 'invalid_email' ? 'البريد غير صحيح' : 'تعذّر الاشتراك';
+      msg.style.color = '#fca5a5';
+    }
+  } catch (e2) { msg.textContent = 'تعذّر الاتصال'; msg.style.color = '#fca5a5'; }
+});
+</script>
+</body>
+</html>
