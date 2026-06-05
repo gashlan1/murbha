@@ -859,6 +859,14 @@
     </div>
   </div>
 
+  <!-- Scheduled reminders -->
+  <div class="settings-group" id="remSec" style="display:none;">
+    <div class="settings-h">🔔 تذكيرات مجدولة</div>
+    <div style="padding:14px 18px;">
+      <div id="remList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Bookmarked deals -->
   <div class="settings-group" id="bmSec" style="display:none;">
     <div class="settings-h">⭐ صفقات محفوظة</div>
@@ -2834,6 +2842,52 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Scheduled reminders
+  (async () => {
+    try {
+      const sec = document.getElementById('remSec');
+      const list = document.getElementById('remList');
+      if (!sec || !list) return;
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/reminders');
+        if (!r.total) { sec.style.display = 'none'; return; }
+        sec.style.display = '';
+        list.replaceChildren();
+        r.reminders.forEach(rm => {
+          const row = document.createElement('div');
+          const fired = rm.fired;
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 12px;background:' + (fired ? 'rgba(13,22,18,0.04)' : 'linear-gradient(135deg,#fbf6ea,#fff)') + ';border:1px solid ' + (fired ? 'var(--line)' : 'var(--gold)') + ';border-radius:10px;';
+          const left = document.createElement('a');
+          left.href = '/project.html?slug=' + encodeURIComponent(rm.projectSlug || rm.projectId);
+          left.style.cssText = 'text-decoration:none;color:inherit;display:block;overflow:hidden;';
+          const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          t.textContent = (fired ? '⏰ ' : '🔔 ') + rm.projectName;
+          const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+          sub.textContent = (fired ? 'فعّلت في ' : 'سيتذكّرك في ') + new Date(rm.remindAt).toLocaleString('ar-SA');
+          left.append(t, sub);
+          const before = document.createElement('div'); before.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--gold);';
+          before.textContent = 'قبل ' + (rm.hoursBefore >= 24 ? Math.round(rm.hoursBefore / 24) + 'ي' : rm.hoursBefore + 'س');
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.style.cssText = 'background:transparent;color:#c54a3a;border:1px solid #c54a3a;padding:4px 10px;border-radius:6px;font:800 10px Cairo,sans-serif;cursor:pointer;';
+          del.textContent = '🗑';
+          del.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!confirm('إلغاء التذكير؟')) return;
+            try {
+              await App.api('DELETE', '/app/me/reminders/' + encodeURIComponent(rm.id));
+              App.toast && App.toast('✓ أُلغي', 'success');
+              render();
+            } catch (e) { App.toast && App.toast('فشل', 'error'); }
+          });
+          row.append(left, before, del);
+          list.appendChild(row);
+        });
+      };
+      await render();
     } catch (e) {}
   })();
 
