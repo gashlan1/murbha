@@ -98,6 +98,34 @@
     };
   };
 
+  // ─── Tiny safe Markdown renderer ────────────────────────────────
+  // Supports: # / ## / ### headings, **bold**, *italic*, `code`,
+  // [text](url) links (http/https only), unordered/ordered lists,
+  // and paragraph breaks. Everything passes through escapeHtml first so
+  // user input can't inject markup; the regex pass then replaces only
+  // the safe markdown sentinels. Output is a string of safe HTML.
+  const renderMarkdown = (src) => {
+    if (!src) return '';
+    let s = escapeHtml(String(src));
+    s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/((?:^- .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+      return '<ul>' + items + '</ul>';
+    });
+    s = s.replace(/((?:^\d+\. .+\n?)+)/gm, (block) => {
+      const items = block.trim().split(/\n/).map(l => '<li>' + l.replace(/^\d+\. /, '') + '</li>').join('');
+      return '<ol>' + items + '</ol>';
+    });
+    s = s.split(/\n{2,}/).map(p => /^<(?:h\d|ul|ol|pre|blockquote)/.test(p.trim()) ? p : '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+    return s;
+  };
+
   // ─── Cookie consent banner (loaded once) ────────────────────────
   if (typeof document !== 'undefined') {
     const s = document.createElement('script');
@@ -560,7 +588,7 @@
     api, me, meSync, requireAuth, logout,
     toast,
     fmt: { sar, arNum, date, dateTime, relTime },
-    storage, on, qs, escapeHtml,
+    storage, on, qs, escapeHtml, renderMarkdown,
     trapFocus,
     refreshHeader: _wireHeaderAuth,
   };

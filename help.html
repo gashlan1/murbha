@@ -758,7 +758,14 @@
       const h = document.createElement('h3'); h.textContent = article.title;
       const m = document.createElement('div'); m.className = 'meta';
       m.textContent = (CAT_AR[article.category] || article.category) + ' · ' + new Date(article.publishedAt || article.createdAt).toLocaleDateString('ar-SA');
-      const body = document.createElement('div'); body.className = 'body'; body.textContent = article.body;
+      const body = document.createElement('div'); body.className = 'body';
+      if (window.App && typeof App.renderMarkdown === 'function') {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString('<div>' + App.renderMarkdown(article.body) + '</div>', 'text/html');
+        Array.from(doc.body.firstChild.childNodes).forEach(n => body.appendChild(n.cloneNode(true)));
+      } else {
+        body.textContent = article.body;
+      }
       card.append(h, m, body);
       list.append(back, card);
       window.scrollTo({ top: 0, behavior: 'smooth' });

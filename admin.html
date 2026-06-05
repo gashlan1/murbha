@@ -413,6 +413,8 @@
 <main id="main">
   <nav class="admin-toc full-width" aria-label="انتقال سريع">
     <a href="#usersCard">👥 المستثمرون</a>
+    <a href="#projectDocsCard">📎 المستندات</a>
+    <a href="#bulkMsgCard">📨 رسائل</a>
     <a href="#qualificationsCard">⭐ التأهيل</a>
     <a href="#qaCard">❓ الأسئلة</a>
     <a href="#helpCmsCard">📚 المساعدة</a>
@@ -646,6 +648,49 @@
           <div class="empty-state">جاري تحميل الطلبات...</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- PROJECT DOCUMENTS -->
+  <div class="admin-card" id="projectDocsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📎 مستندات المشاريع</span>
+      <span class="card-h-sub" id="pdCountBadge">جاري التحميل…</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="pdForm" style="display:flex;flex-direction:column;gap:10px;">
+          <select id="pdProject" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;"><option value="">— اختر المشروع —</option></select>
+          <input id="pdTitle" type="text" maxlength="200" placeholder="عنوان المستند (مثل: عقد المرابحة)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+          <input id="pdFile" type="file" accept="application/pdf,image/jpeg,image/png" required style="padding:8px;border:1.5px dashed var(--line-strong);border-radius:10px;font-family:inherit;font-size:13px;" />
+          <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">⬆ رفع المستند</button>
+        </form>
+      </div>
+      <div>
+        <div id="pdList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK MESSAGE -->
+  <div class="admin-card" id="bulkMsgCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📨 رسائل جماعية</span>
+      <span class="card-h-sub" id="blastCountBadge"></span>
+    </div>
+    <div class="card-body">
+      <form id="blastForm" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <select id="blastAudience" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+          <option value="all">كل المستخدمين (لديهم بريد)</option>
+          <option value="approved">المعتمدون فقط</option>
+          <option value="pending">بانتظار الموافقة</option>
+          <option value="qualified">المؤهلون (qualified)</option>
+        </select>
+        <input id="blastSubject" type="text" maxlength="200" placeholder="موضوع الرسالة" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        <textarea id="blastBody" rows="5" maxlength="10000" placeholder="نص الرسالة..." required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        <button type="button" id="blastPreviewBtn" style="padding:11px;background:var(--paper);color:var(--green-dark);border:1px solid var(--line);border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">👁 معاينة العدد</button>
+        <button type="submit" style="padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">📤 إرسال للجميع</button>
+      </form>
     </div>
   </div>
 
@@ -1875,6 +1920,107 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (invSearch) { let _invT; invSearch.addEventListener('input', () => { clearTimeout(_invT); _invT = setTimeout(loadInvestments, 250); }); }
   if (invStatusF) invStatusF.addEventListener('change', loadInvestments);
 
+  // ── Project documents ─────────────────────────────────────────
+  let _projectCache = [];
+  async function loadProjectsForDocs() {
+    try {
+      const r = await App.api('GET', '/app/projects');
+      _projectCache = r.projects || [];
+      const sel = document.getElementById('pdProject');
+      if (sel && sel.children.length <= 1) {
+        _projectCache.forEach(p => {
+          const o = document.createElement('option');
+          o.value = p.slug || p.id; o.textContent = p.name;
+          sel.appendChild(o);
+        });
+      }
+    } catch (e) {}
+  }
+  async function loadProjectDocs() {
+    await loadProjectsForDocs();
+    const list = document.getElementById('pdList');
+    const badge = document.getElementById('pdCountBadge');
+    if (!list) return;
+    list.replaceChildren();
+    const slug = document.getElementById('pdProject').value;
+    if (!slug) {
+      badge.textContent = 'اختر مشروعاً';
+      const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;font-size:13px;'; e.textContent='اختر مشروعاً لعرض مستنداته.';
+      list.appendChild(e); return;
+    }
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/documents');
+      badge.textContent = App.fmt.arNum(r.documents.length) + ' مستند';
+      if (!r.documents.length) {
+        const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;font-size:13px;'; e.textContent='لا توجد مستندات.';
+        list.appendChild(e); return;
+      }
+      r.documents.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;';
+        const ic = document.createElement('div');
+        ic.style.cssText='width:34px;height:34px;background:var(--paper);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gold);font:800 10px Cairo,sans-serif;flex-shrink:0;';
+        ic.textContent = (d.mime || '').startsWith('image/') ? 'IMG' : 'PDF';
+        const info = document.createElement('div'); info.style.cssText='flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText='font:800 13px Cairo,sans-serif;color:var(--ink);'; t.textContent = d.title;
+        const m = document.createElement('div'); m.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);'; m.textContent = (d.size/1024).toFixed(1) + ' KB · ' + new Date(d.uploadedAt).toLocaleDateString('ar-SA');
+        info.append(t, m);
+        row.append(ic, info);
+        const del = document.createElement('button'); del.type='button';
+        del.style.cssText='background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.textContent = 'حذف';
+        del.onclick = async () => { if (!confirm('حذف المستند؟')) return; try { await App.api('DELETE', '/app/admin/project-documents/' + d.id); loadProjectDocs(); } catch (e) { alert(e.message); } };
+        row.appendChild(del);
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  document.getElementById('pdProject')?.addEventListener('change', loadProjectDocs);
+  document.getElementById('pdForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const slug = document.getElementById('pdProject').value;
+    const title = document.getElementById('pdTitle').value.trim();
+    const file = document.getElementById('pdFile').files[0];
+    if (!slug || !title || !file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('الحجم الأقصى 5 ميجا.'); return; }
+    const fr = new FileReader();
+    fr.onload = async () => {
+      const data = String(fr.result || '');
+      const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+      try {
+        await App.api('POST', '/app/admin/projects/' + encodeURIComponent(slug) + '/documents', { title, data: b64 });
+        document.getElementById('pdTitle').value = '';
+        document.getElementById('pdFile').value = '';
+        loadProjectDocs();
+      } catch (e) { alert(e.message); }
+    };
+    fr.readAsDataURL(file);
+  });
+
+  // ── Bulk message (email blast) ────────────────────────────────
+  document.getElementById('blastPreviewBtn')?.addEventListener('click', async () => {
+    const audience = document.getElementById('blastAudience').value;
+    try {
+      const r = await App.api('POST', '/app/admin/blast/preview', { audience });
+      document.getElementById('blastCountBadge').textContent = App.fmt.arNum(r.count) + ' مستلم';
+    } catch (e) { alert(e.message); }
+  });
+  document.getElementById('blastForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      audience: document.getElementById('blastAudience').value,
+      subject: document.getElementById('blastSubject').value.trim(),
+      body: document.getElementById('blastBody').value.trim(),
+    };
+    if (!confirm('سيتم إرسال البريد لمجموعة كبيرة من المستخدمين. متأكد؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/blast/send', payload);
+      alert('تم الإرسال إلى ' + r.sent + ' من أصل ' + r.total + ' مستخدم.');
+      document.getElementById('blastForm').reset();
+      document.getElementById('blastCountBadge').textContent = '';
+    } catch (e) { alert(e.message); }
+  });
+
   // ── Help articles CMS ─────────────────────────────────────────
   const HELP_CAT_AR = { getting_started: 'البدء', investing: 'الاستثمار', kyc: 'التحقق', payments: 'المدفوعات', security: 'الأمان', shariah: 'الشرعية' };
   async function loadHelpCms() {
@@ -2034,10 +2180,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         events.textContent = w.events.join(' · ');
         row.append(top, events);
         if (w.lastDeliveredAt) {
-          const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
-          meta.textContent = 'آخر تسليم: ' + new Date(w.lastDeliveredAt).toLocaleString('ar-SA') + (w.lastStatus ? ' · ' + w.lastStatus : '');
+          const meta = document.createElement('div');
+          const ok = w.lastStatus && w.lastStatus >= 200 && w.lastStatus < 300;
+          meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:' + (ok ? '#0f6e3a' : '#c54a3a') + ';margin-top:4px;';
+          meta.textContent = (ok ? '✓ ' : '✗ ') + 'آخر تسليم: ' + new Date(w.lastDeliveredAt).toLocaleString('ar-SA') + (w.lastStatus ? ' · HTTP ' + w.lastStatus : '');
           row.appendChild(meta);
         }
+        const showLogBtn = document.createElement('button'); showLogBtn.type='button';
+        showLogBtn.style.cssText = 'margin-top:6px;background:none;border:0;color:var(--green-dark);font:700 11px Tajawal,sans-serif;cursor:pointer;text-decoration:underline;padding:0;';
+        showLogBtn.textContent = 'تفاصيل التسليم';
+        showLogBtn.onclick = async () => {
+          try {
+            const r = await App.api('GET', '/app/admin/webhooks/' + w.id + '/deliveries');
+            const lines = [
+              'آخر تسليم: ' + (r.lastDeliveredAt ? new Date(r.lastDeliveredAt).toLocaleString('ar-SA') : '—'),
+              'حالة HTTP: ' + (r.lastStatus || '—'),
+              r.lastDeliveryError ? 'الخطأ: ' + r.lastDeliveryError : 'بدون أخطاء',
+              'الأحداث المشترك بها: ' + (r.webhook.events || []).join(', '),
+            ];
+            alert(lines.join('\n'));
+          } catch (e) { alert(e.message); }
+        };
+        row.appendChild(showLogBtn);
         list.appendChild(row);
       });
     } catch (e) { badge.textContent = 'تعذّر التحميل'; }
@@ -2290,7 +2454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

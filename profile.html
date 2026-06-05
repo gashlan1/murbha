@@ -768,7 +768,10 @@
   <!-- Profile card -->
   <div class="profile-card">
     <div class="profile-row">
-      <div class="avatar">عر</div>
+      <div class="avatar" id="avatarBox" style="position:relative;cursor:pointer;overflow:hidden;" title="انقر لتغيير الصورة">عر
+        <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp" style="display:none;" />
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;" class="avatar-overlay">📷</div>
+      </div>
       <div class="pinfo">
         <h2>عبدالعزيز الراشد</h2>
         <div class="pid">+966 5X XXX XXXX</div>
@@ -1451,6 +1454,62 @@
 
   // Load investments on initialization
   await loadInvestments();
+
+  // Avatar upload
+  (async () => {
+    const box = document.getElementById('avatarBox');
+    const file = document.getElementById('avatarFile');
+    const overlay = box?.querySelector('.avatar-overlay');
+    if (!box || !file) return;
+    // Show overlay on hover (CSS would be cleaner; inline JS for one-off)
+    box.addEventListener('mouseenter', () => { if (overlay) overlay.style.opacity = '1'; });
+    box.addEventListener('mouseleave', () => { if (overlay) overlay.style.opacity = '0'; });
+    box.addEventListener('click', () => file.click());
+    // Only fetch the avatar if the user record says one exists.
+    try {
+      const me = await App.me();
+      if (me?.avatarPath) {
+        const img = new Image();
+        img.onload = () => {
+          box.textContent = '';
+          box.appendChild(img);
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+          const ov = document.createElement('div');
+          ov.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;';
+          ov.className = 'avatar-overlay'; ov.textContent = '📷';
+          box.appendChild(ov);
+          box.appendChild(file);
+        };
+        img.src = '/app/me/avatar?t=' + Date.now();
+      }
+    } catch (e) {}
+    file.addEventListener('change', async () => {
+      const f = file.files[0]; if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { App.toast('الحجم الأقصى 5MB', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const data = String(reader.result || '');
+        const b64 = data.indexOf(',') >= 0 ? data.slice(data.indexOf(',') + 1) : data;
+        try {
+          await App.api('POST', '/app/me/avatar', { data: b64 });
+          App.toast('تم تحديث الصورة', 'success');
+          // Force reload of the image
+          const newImg = new Image();
+          newImg.onload = () => {
+            box.replaceChildren(newImg);
+            newImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+            const ov2 = document.createElement('div');
+            ov2.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);color:#fff;font:800 11px Cairo,sans-serif;opacity:0;transition:opacity .2s;';
+            ov2.className = 'avatar-overlay'; ov2.textContent = '📷';
+            box.appendChild(ov2);
+            box.appendChild(file);
+          };
+          newImg.src = '/app/me/avatar?t=' + Date.now();
+        } catch (e) { App.toast(e.message || 'فشل الرفع', 'error'); }
+      };
+      reader.readAsDataURL(f);
+    });
+  })();
 
   // CSV export
   const csvLink = document.getElementById('csvExportLink');

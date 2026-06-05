@@ -1019,21 +1019,59 @@
   if (data.transactions && data.transactions.length) {
     const txnSec = document.createElement('div');
     txnSec.className = 'section';
-    txnSec.innerHTML = '<div class="section-h"><h3>الحركات المالية</h3></div><div class="txn-list"></div>';
-    const list = txnSec.querySelector('.txn-list');
-    data.transactions.forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'txn-row';
-      const sign = t.amount < 0 ? 'neg' : '';
-      row.innerHTML = `
-        <div>
-          <div class="txn-l">${App.escapeHtml(t.description)}</div>
-          <div class="txn-sub">${App.fmt.dateTime(t.createdAt)}</div>
-        </div>
-        <div class="txn-amt ${sign}">${t.amount === 0 ? '—' : (t.amount > 0 ? '+' : '') + App.fmt.sar(Math.abs(t.amount))}</div>`;
-      list.appendChild(row);
+    const head = document.createElement('div'); head.className = 'section-h';
+    const h3 = document.createElement('h3'); h3.textContent = 'الحركات المالية';
+    head.appendChild(h3);
+    txnSec.appendChild(head);
+    // Filter chips
+    const filterBar = document.createElement('div');
+    filterBar.style.cssText = 'display:flex;gap:6px;padding:8px 14px 4px;overflow-x:auto;';
+    const list = document.createElement('div'); list.className = 'txn-list';
+    const FILTERS = [
+      { key: 'all', label: 'الكل' },
+      { key: 'deposit', label: '↓ إيداع' },
+      { key: 'withdraw', label: '↑ سحب' },
+      { key: 'invest_confirm', label: '💎 استثمار' },
+    ];
+    let _activeFilter = 'all';
+    const renderTxns = () => {
+      list.replaceChildren();
+      const subset = data.transactions.filter(t => _activeFilter === 'all' || (t.kind === _activeFilter) || (_activeFilter === 'withdraw' && t.amount < 0 && !t.kind) || (_activeFilter === 'deposit' && t.amount > 0 && t.kind === 'deposit'));
+      if (!subset.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:#6b7268;padding:14px;font-size:13px;';
+        e.textContent = 'لا توجد حركات في هذا التصنيف.';
+        list.appendChild(e); return;
+      }
+      subset.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'txn-row';
+        const left = document.createElement('div');
+        const l = document.createElement('div'); l.className = 'txn-l'; l.textContent = t.description || '';
+        const sub = document.createElement('div'); sub.className = 'txn-sub'; sub.textContent = App.fmt.dateTime(t.createdAt);
+        left.append(l, sub);
+        const sign = t.amount < 0 ? 'neg' : '';
+        const amt = document.createElement('div'); amt.className = 'txn-amt ' + sign;
+        amt.textContent = t.amount === 0 ? '—' : (t.amount > 0 ? '+' : '') + App.fmt.sar(Math.abs(t.amount));
+        row.append(left, amt);
+        list.appendChild(row);
+      });
+    };
+    FILTERS.forEach(f => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.style.cssText = 'flex-shrink:0;padding:6px 14px;border-radius:999px;border:1px solid #eadfc4;background:' + (f.key === 'all' ? '#062b1e' : '#fff') + ';color:' + (f.key === 'all' ? '#fff' : '#062b1e') + ';font:800 11px Cairo,sans-serif;cursor:pointer;white-space:nowrap;';
+      chip.textContent = f.label;
+      chip.onclick = () => {
+        _activeFilter = f.key;
+        filterBar.querySelectorAll('button').forEach(b => { b.style.background='#fff'; b.style.color='#062b1e'; });
+        chip.style.background = '#062b1e'; chip.style.color = '#fff';
+        renderTxns();
+      };
+      filterBar.appendChild(chip);
     });
-    // insert before tab bar
+    txnSec.append(filterBar, list);
+    renderTxns();
     document.querySelector('.tabbar').before(txnSec);
   }
 
