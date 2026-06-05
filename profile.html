@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- Returns summary -->
+  <div class="settings-group" id="returnsSec" style="display:none;">
+    <div class="settings-h">💎 ملخّص أرباحك</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-around;align-items:center;text-align:center;margin-bottom:14px;padding:18px;background:linear-gradient(135deg,#0a4d36,#062b1e);border-radius:14px;color:#d4ac6e;">
+        <div>
+          <div id="rtTotal" style="font:900 26px Cairo,sans-serif;color:#fbf6ea;">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:2px;">إجمالي الأرباح (ر.س)</div>
+        </div>
+        <div style="width:1px;height:50px;background:rgba(255,255,255,0.2);"></div>
+        <div>
+          <div id="rtRoi" style="font:900 26px Cairo,sans-serif;color:#d4ac6e;">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:2px;">العائد على الاستثمار</div>
+        </div>
+      </div>
+      <div id="rtKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">أكثر المشاريع ربحاً</div>
+      <div id="rtTopProj" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Volume trend chart -->
   <div class="settings-group" id="volumeSec" style="display:none;">
     <div class="settings-h">📊 حجم استثمارك (١٢ شهراً)</div>
@@ -2621,6 +2642,46 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Returns summary
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/returns-summary');
+      if (!r.payoutCount) return;
+      const sec = document.getElementById('returnsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      document.getElementById('rtTotal').textContent = fmt(r.totalReturns);
+      document.getElementById('rtRoi').textContent = (r.roi || 0) + '٪';
+      const kpis = document.getElementById('rtKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('عدد الدفعات', r.payoutCount),
+        mk('إجمالي مستثمر', fmt(r.totalInvested) + ' ر.س', '#0a4d36'),
+        mk('متوسط لكل دفعة', fmt(Math.round(r.totalReturns / r.payoutCount)) + ' ر.س', '#b08840'),
+      );
+      const list = document.getElementById('rtTopProj');
+      list.replaceChildren();
+      (r.topProjects || []).forEach((p, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const rk = document.createElement('div'); rk.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--gold);'; rk.textContent = '#' + (i + 1);
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; nm.textContent = p.name;
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0f6e3a;'; amt.textContent = fmt(p.amount) + ' ر.س';
+        row.append(rk, nm, amt);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();

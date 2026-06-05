@@ -1514,6 +1514,13 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Investor types -->
+<div class="card-section" id="invTypesCard" style="display:none;">
+  <h2 class="section-h">👥 أنواع المستثمرين</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">توزيع المستثمرين بين الأفراد، المؤهَّلين، والشركات.</p>
+  <div id="invTypesList" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
 <!-- Top funding days -->
 <div class="card-section" id="topDaysCard" style="display:none;">
   <h2 class="section-h">🏆 أعلى ٥ أيام تمويلاً</h2>
@@ -4352,6 +4359,36 @@
     recalc();
   }
 
+  async function _loadInvTypes(slug) {
+    const card = document.getElementById('invTypesCard');
+    const list = document.getElementById('invTypesList');
+    if (!card || !list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/investor-types');
+      const types = r.types || [];
+      if (!types.length || types.length < 2) { card.style.display = 'none'; return; }
+      list.replaceChildren();
+      const palette = { retail: '#0a4d36', qualified: '#b08840', corporate: '#5c2418' };
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      const max = Math.max(...types.map(t => t.amount), 1);
+      types.forEach(t => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = t.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:18px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((t.amount / max) * 100) + '%;background:' + (palette[t.key] || 'var(--green-dark)') + ';border-radius:4px;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:170px;';
+        meta.textContent = t.count + ' (' + t.countPct + '٪) · ' + fmt(t.amount) + ' ر.س';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadTopDays(slug) {
     const card = document.getElementById('topDaysCard');
     const list = document.getElementById('topDaysList');
@@ -4596,7 +4633,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setMomentum(slug) {
     const badge = document.getElementById('momentumBadge');
