@@ -1012,6 +1012,25 @@
     </div>
   </div>
 
+  <!-- KYC REMINDER -->
+  <div class="admin-card" id="kycReminderCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📨 تذكير KYC غير المكتمل</span>
+      <span class="card-h-sub">يرسل تذكيراً لمن لم يكملوا التحقق</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          مرّت على التسجيل (أيام)
+          <input id="kycRemindDays" type="number" min="1" max="60" value="7" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;direction:ltr;text-align:start;" />
+        </label>
+        <button id="kycRemindBtn" type="button" style="padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">إرسال التذكير</button>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">يستبعد من تلقّوا تذكيراً خلال آخر ٥ أيام لتجنّب الإزعاج. يُسجَّل في سجل التدقيق.</p>
+      <div id="kycRemindResult" style="margin-top:10px;font-size:13px;color:#0f6e3a;"></div>
+    </div>
+  </div>
+
   <!-- SEGMENT BROADCAST -->
   <div class="admin-card" id="segNotifyCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1972,6 +1991,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       _resetNlForm();
       loadNewsletter();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── KYC reminder ─────────────────────────────────────────────
+  document.getElementById('kycRemindBtn')?.addEventListener('click', async () => {
+    const minDays = parseInt(document.getElementById('kycRemindDays').value || '7', 10);
+    if (!confirm('سيتم إرسال تذكير لكل المستخدمين الذين مرّ على تسجيلهم ' + minDays + ' يوم ولم يكملوا KYC؟')) return;
+    const result = document.getElementById('kycRemindResult');
+    result.textContent = '';
+    const btn = document.getElementById('kycRemindBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/admin/notify-kyc-incomplete', { minDays });
+      result.textContent = '✓ أُرسل إلى ' + r.sent + ' من أصل ' + r.eligible + ' مؤهَّل (الباقي مُذكَّر سلفاً)';
+    } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
+    finally { btn.disabled = false; btn.textContent = 'إرسال التذكير'; }
   });
 
   // ── Segment notify ───────────────────────────────────────────

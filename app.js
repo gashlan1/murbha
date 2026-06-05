@@ -744,6 +744,40 @@
     document.body.appendChild(banner);
   };
 
+  // ─── Reading-progress bar (long static pages) ────────────────
+  const _installScrollProgress = () => {
+    if (document.getElementById('mrbScrollProgress')) return;
+    // Skip on tabbed app pages where it competes with the header
+    if (location.pathname.includes('admin') ||
+        location.pathname.includes('portfolio') ||
+        location.pathname.includes('project.') ||
+        location.pathname.includes('hessa') ||
+        location.pathname.includes('login') ||
+        location.pathname.includes('signup') ||
+        location.pathname === '/') return;
+    // Only install when there's enough scroll height to matter
+    if ((document.documentElement.scrollHeight || 0) - window.innerHeight < 600) return;
+    const bar = document.createElement('div');
+    bar.id = 'mrbScrollProgress';
+    bar.style.cssText = 'position:fixed;top:0;inset-inline-start:0;height:3px;width:0;background:linear-gradient(90deg,#b08840,#d4ac6e);z-index:99999;transition:width .08s linear;pointer-events:none;';
+    document.body.appendChild(bar);
+    let ticking = false;
+    const tick = () => {
+      const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+      const max = (document.documentElement.scrollHeight || 0) - window.innerHeight;
+      const pct = max > 0 ? Math.min(100, Math.round((scrolled / max) * 100)) : 0;
+      bar.style.width = pct + '%';
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(tick);
+    }, { passive: true });
+    window.addEventListener('resize', tick, { passive: true });
+    tick();
+  };
+
   // ─── Scroll to top button ──────────────────────────────────────
   const _installScrollTopBtn = () => {
     if (document.getElementById('toTopBtn')) return;
@@ -1040,6 +1074,7 @@
     if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
     _maybeRunTour();
     _installScrollTopBtn();
+    _installScrollProgress();
   });
 
   window.App = {
