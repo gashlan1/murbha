@@ -956,7 +956,8 @@
     <span><b>٨٤٧</b> مستثمر</span>
     <span id="closingCountdown">متبقّي <b>١٢ يوماً</b></span>
   </div>
-  <div style="margin-top:10px;text-align:center;">
+  <div style="margin-top:10px;text-align:center;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+    <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
   </div>
   <div id="fundingHistory" style="margin-top:14px;padding-top:14px;border-top:1px dashed rgba(13,22,18,0.08);display:none;">
@@ -1926,6 +1927,20 @@
       calLink.setAttribute('download', 'closing-' + (p.slug || p.id) + '.ics');
       calLink.style.display = 'inline-block';
     }
+
+    // Recent activity social proof
+    (async () => {
+      try {
+        const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/recent-activity');
+        if (!r.ok) return;
+        const d = await r.json();
+        const badge = document.getElementById('recentActivityBadge');
+        if (!badge || !d.last24h?.count) return;
+        const amt = Number(d.last24h.totalAmount).toLocaleString('ar-SA');
+        badge.textContent = '🔥 ' + d.last24h.count + ' استثمار جديد · ' + amt + ' ر.س في آخر ٢٤ ساعة';
+        badge.style.display = 'inline-block';
+      } catch (e) {}
+    })();
 
     // Live countdown to closing
     if (p.closesAt && p.status === 'open') {

@@ -1162,6 +1162,18 @@
     </div>
   </div>
 
+  <!-- FAILED LOGIN CHART -->
+  <div class="admin-card" id="failedLoginCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛡 محاولات الدخول الفاشلة (آخر ١٤ يوم)</span>
+      <span class="card-h-sub" id="failedLoginBadge">—</span>
+    </div>
+    <div class="card-body">
+      <svg id="failedLoginChart" width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="none" style="display:block;background:#fbf8ee;border-radius:10px;"></svg>
+      <div id="failedLoginPeak" style="margin-top:10px;font:600 12px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- INVESTMENTS CHART -->
   <div class="admin-card" id="invChartCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1896,6 +1908,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
+
+  // ── Failed login chart ────────────────────────────────────────
+  async function loadFailedLoginChart() {
+    const svg = document.getElementById('failedLoginChart');
+    const badge = document.getElementById('failedLoginBadge');
+    const peakEl = document.getElementById('failedLoginPeak');
+    if (!svg) return;
+    try {
+      const r = await App.api('GET', '/app/admin/failed-login-series?days=14');
+      const pts = r.points || [];
+      const total = pts.reduce((s, p) => s + p.count, 0);
+      badge.textContent = total + ' محاولة فاشلة';
+      badge.style.background = total > 50 ? 'rgba(197,74,58,0.20)' : 'rgba(255,255,255,0.15)';
+      const W = 600, H = 100, padX = 4, padY = 8;
+      const max = Math.max(1, ...pts.map(p => p.count));
+      svg.replaceChildren();
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const xy = pts.map((p, i) => {
+        const x = padX + (i / Math.max(1, pts.length - 1)) * (W - 2 * padX);
+        const y = H - padY - (p.count / max) * (H - 2 * padY);
+        return [x, y, p];
+      });
+      const line = document.createElementNS(svgNS, 'path');
+      line.setAttribute('d', 'M' + xy.map(([x, y]) => x.toFixed(1) + ',' + y.toFixed(1)).join(' L'));
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#c54a3a');
+      line.setAttribute('stroke-width', '1.8');
+      svg.appendChild(line);
+      const peakDay = pts.reduce((best, p) => p.count > best.count ? p : best, { count: 0 });
+      peakEl.textContent = peakDay.count > 0 ? 'ذروة: ' + peakDay.day + ' (' + peakDay.count + ' محاولة)' : 'لا توجد محاولات فاشلة';
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
 
   // ── Investments chart ─────────────────────────────────────────
   async function loadInvChart() {
@@ -4444,7 +4488,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

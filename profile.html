@@ -805,6 +805,12 @@
     </div>
   </div>
 
+  <!-- Privacy dashboard -->
+  <div class="settings-group" id="privacyDashboardSection" style="display:none;">
+    <div class="settings-h">لوحة الخصوصية</div>
+    <div id="privacyDashboardList" style="padding:14px 18px;"></div>
+  </div>
+
   <!-- Profile completeness -->
   <div class="settings-group" id="profileCompletenessSection" style="display:none;">
     <div class="settings-h">إكمال الملف الشخصي</div>
@@ -1720,6 +1726,36 @@
 
   // Load investments on initialization
   await loadInvestments();
+
+  // Privacy dashboard
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const list = document.getElementById('privacyDashboardList');
+      const sec = document.getElementById('privacyDashboardSection');
+      if (!list || !sec) return;
+      sec.style.display = '';
+      const items = [
+        { k: 'لغة الواجهة', v: u.locale === 'en' ? 'English' : 'العربية', good: true },
+        { k: 'الوضع', v: (() => { try { return localStorage.getItem('mrb_theme') === 'dark' ? 'داكن' : 'فاتح'; } catch { return 'فاتح'; } })(), good: true },
+        { k: 'مرئي في لوحة المستثمرين', v: u.publicLeaderboard ? 'نعم' : 'لا', good: !u.publicLeaderboard },
+        { k: 'المصادقة الثنائية', v: u.totpEnrolled ? 'TOTP مُفعّل' : (u.sms2faEnabled ? 'SMS مُفعّل' : 'غير مُفعّل'), good: !!(u.totpEnrolled || u.sms2faEnabled) },
+        { k: 'إشعار دخول جديد بالبريد', v: (u.notificationPrefs?.email?.security !== false) ? 'مفعّل' : 'متوقّف', good: u.notificationPrefs?.email?.security !== false },
+        { k: 'ملخّص أسبوعي بالبريد', v: u.weeklySummaryOptIn ? 'مفعّل' : 'متوقّف', good: true },
+        { k: 'جدولة حذف الحساب', v: u.deletionScheduledAt ? new Date(u.deletionScheduledAt).toLocaleDateString('ar-SA') : '—', good: !u.deletionScheduledAt },
+      ];
+      list.replaceChildren();
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font:600 12px Tajawal,sans-serif;';
+        const k = document.createElement('span'); k.style.color = 'var(--muted)'; k.textContent = it.k;
+        const v = document.createElement('span'); v.style.cssText = 'font-weight:800;color:' + (it.good ? 'var(--green-dark)' : '#c54a3a') + ';'; v.textContent = it.v;
+        row.append(k, v);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  })();
 
   // Profile completeness
   (async () => {
