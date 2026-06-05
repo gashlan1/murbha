@@ -1668,6 +1668,13 @@
   </div>
 </div>
 
+<!-- INVESTOR REGIONS -->
+<div class="card-section" id="regionsCard" style="display:none;">
+  <h2 class="section-h" style="margin-bottom:12px;">🗺 من أين يستثمر المستثمرون؟</h2>
+  <div id="regionsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:8px;line-height:1.7;">توزيع تقريبي حسب المنطقة المسجّلة. لا تكشف بيانات شخصية لأي مستثمر.</p>
+</div>
+
 <!-- SIMILAR PROJECTS -->
 <div class="card-section" id="similarProjectsSection" style="display:none;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
@@ -2433,6 +2440,38 @@
           badge.textContent = '★ استثمرت ' + Number(sum).toLocaleString('ar-SA') + ' ر.س في هذا المشروع';
           badge.style.display = 'inline-block';
         }
+      } catch (e) {}
+    })();
+
+    // Investor regions breakdown
+    (async () => {
+      try {
+        const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/investor-regions');
+        if (!r.ok) return;
+        const d = await r.json();
+        const regions = d.regions || [];
+        if (regions.length < 2) return;
+        const card = document.getElementById('regionsCard');
+        const list = document.getElementById('regionsList');
+        if (!card || !list) return;
+        card.style.display = '';
+        list.replaceChildren();
+        const max = Math.max(...regions.map(r => r.count));
+        regions.forEach(r => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:#062b1e;';
+          lbl.textContent = r.region;
+          const bar = document.createElement('div'); bar.style.cssText = 'height:18px;background:#fbf6ea;border-radius:4px;overflow:hidden;';
+          const fill = document.createElement('div');
+          const wpct = max > 0 ? (r.count / max) * 100 : 0;
+          fill.style.cssText = 'height:100%;width:' + wpct + '%;background:linear-gradient(90deg,#0a4d36,#062b1e);border-radius:4px;';
+          bar.appendChild(fill);
+          const cnt = document.createElement('div'); cnt.style.cssText = 'font:700 11px Tajawal,sans-serif;color:#6b7268;text-align:end;min-width:80px;';
+          cnt.textContent = r.count.toLocaleString('ar-SA') + ' · ' + r.pct + '٪';
+          row.append(lbl, bar, cnt);
+          list.appendChild(row);
+        });
       } catch (e) {}
     })();
 

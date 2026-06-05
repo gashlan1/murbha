@@ -811,6 +811,17 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- Deletion banner (when scheduled) -->
+  <div id="deletionBanner" style="display:none;padding:18px 22px;background:linear-gradient(135deg,#5c2418,#8b2e22);color:#fff;border-radius:18px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font:900 15px Cairo,sans-serif;margin-bottom:4px;">⚠ حسابك مُجدوَل للحذف</div>
+        <div id="deletionBannerSub" style="font:600 12px Tajawal,sans-serif;opacity:0.92;line-height:1.7;">سيتم حذفه نهائياً خلال —</div>
+      </div>
+      <button type="button" id="cancelDeletionBtnTop" style="background:#fff;color:#5c2418;border:0;padding:10px 20px;border-radius:10px;font:900 12px Cairo,sans-serif;cursor:pointer;">إلغاء الحذف</button>
+    </div>
+  </div>
+
   <!-- Quick actions -->
   <div class="settings-group" id="quickActionsRow">
     <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -2227,17 +2238,25 @@
       try {
         const me = await App.api('GET', '/app/me');
         const u = me.user || {};
+        const banner = document.getElementById('deletionBanner');
+        const bannerSub = document.getElementById('deletionBannerSub');
         if (u.deletionScheduledAt) {
           const eta = new Date(u.deletionScheduledAt);
           label.textContent = 'إلغاء طلب الحذف';
           label.style.color = 'var(--green)';
           sub.textContent = 'سيتم حذف حسابك في ' + eta.toLocaleDateString('ar-SA') + '. اضغط للإلغاء.';
           btn.dataset.state = 'pending';
+          if (banner && bannerSub) {
+            const days = Math.max(0, Math.ceil((eta.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+            bannerSub.textContent = 'سيتم حذف بياناتك نهائياً خلال ' + days + ' يوماً (في ' + eta.toLocaleDateString('ar-SA') + '). تأكّد من تنزيل بياناتك قبل الموعد.';
+            banner.style.display = '';
+          }
         } else {
           label.textContent = 'طلب حذف حسابي نهائياً';
           label.style.color = '#c54a3a';
           sub.textContent = 'سيمنح حسابك مهلة ٣٠ يوماً قبل الحذف النهائي. يمكنك الإلغاء خلالها.';
           btn.dataset.state = 'none';
+          if (banner) banner.style.display = 'none';
         }
       } catch (e) {}
     };
@@ -2258,6 +2277,14 @@
       try {
         await App.api('POST', '/app/me/request-deletion', { password: pwd });
         App.toast && App.toast('تم جدولة حذف الحساب', 'success');
+        await refresh();
+      } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+    document.getElementById('cancelDeletionBtnTop')?.addEventListener('click', async () => {
+      if (!confirm('إلغاء طلب حذف الحساب؟')) return;
+      try {
+        await App.api('POST', '/app/me/cancel-deletion');
+        App.toast && App.toast('✓ تم إلغاء طلب الحذف', 'success');
         await refresh();
       } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
     });
