@@ -805,6 +805,21 @@
     </div>
   </div>
 
+  <!-- Profile completeness -->
+  <div class="settings-group" id="profileCompletenessSection" style="display:none;">
+    <div class="settings-h">إكمال الملف الشخصي</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">نسبة الإكمال</span>
+        <span id="pcPercent" style="font:900 18px Cairo,sans-serif;color:var(--gold);">٠٪</span>
+      </div>
+      <div style="height:8px;background:var(--paper-2);border-radius:6px;overflow:hidden;margin-bottom:14px;">
+        <div id="pcFill" style="height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:6px;width:0%;transition:width .8s ease;"></div>
+      </div>
+      <div id="pcSteps" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Followed projects -->
   <div class="settings-group" id="followed-projects-section" style="display:none;">
     <div class="settings-h">المشاريع المُتابَعة</div>
@@ -1690,6 +1705,44 @@
 
   // Load investments on initialization
   await loadInvestments();
+
+  // Profile completeness
+  (async () => {
+    try {
+      const me = await App.api('GET', '/app/me');
+      const u = me.user || {};
+      const items = [
+        { label: 'الاسم', done: !!(u.name && u.name.trim()) },
+        { label: 'البريد الإلكتروني مؤكّد', done: !!u.emailVerifiedAt },
+        { label: 'رقم الجوال مؤكّد', done: !!u.mobileVerifiedAt },
+        { label: 'الصورة الرمزية', done: !!u.avatarPath },
+        { label: 'الهوية الوطنية', done: u.kycStatus === 'verified' },
+        { label: 'طريقة دفع واحدة على الأقل', done: (me.paymentMethods || []).some(m => !m.removedAt) },
+        { label: 'تفعيل مصادقة ثنائية', done: !!u.totpEnrolled || !!u.sms2faEnabled },
+      ];
+      const done = items.filter(i => i.done).length;
+      const pct = Math.round((done / items.length) * 100);
+      const sec = document.getElementById('profileCompletenessSection');
+      if (!sec) return;
+      sec.style.display = '';
+      document.getElementById('pcPercent').textContent = pct.toLocaleString('ar-SA') + '٪';
+      document.getElementById('pcFill').style.width = pct + '%';
+      const steps = document.getElementById('pcSteps');
+      steps.replaceChildren();
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:' + (it.done ? '#f0f5f0' : '#fff') + ';';
+        const dot = document.createElement('span');
+        dot.style.cssText = 'width:20px;height:20px;border-radius:50%;background:' + (it.done ? '#0a4d36' : '#fff') + ';color:' + (it.done ? '#fff' : 'var(--muted)') + ';display:flex;align-items:center;justify-content:center;font:900 11px Cairo,sans-serif;border:1px solid ' + (it.done ? '#0a4d36' : 'var(--line)') + ';flex-shrink:0;';
+        dot.textContent = it.done ? '✓' : '○';
+        const txt = document.createElement('span');
+        txt.style.cssText = 'font:600 12px Tajawal,sans-serif;color:' + (it.done ? '#0a4d36' : 'var(--ink)') + ';' + (it.done ? 'text-decoration:line-through;' : '');
+        txt.textContent = it.label;
+        row.append(dot, txt);
+        steps.appendChild(row);
+      });
+    } catch (e) {}
+  })();
 
   // Load followed projects
   (async () => {

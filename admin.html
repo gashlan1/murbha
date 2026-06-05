@@ -1138,6 +1138,18 @@
     </div>
   </div>
 
+  <!-- INVESTMENTS CHART -->
+  <div class="admin-card" id="invChartCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📈 الاستثمارات (آخر ٣٠ يوم)</span>
+      <span class="card-h-sub" id="invChartBadge">—</span>
+    </div>
+    <div class="card-body">
+      <svg id="invChart" width="100%" height="120" viewBox="0 0 600 120" preserveAspectRatio="none" style="display:block;background:#fbf8ee;border-radius:10px;"></svg>
+      <div id="invChartSummary" style="display:flex;justify-content:space-between;margin-top:10px;font:600 12px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- SCHEDULED JOBS -->
   <div class="admin-card" id="jobsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1860,6 +1872,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
   });
+
+  // ── Investments chart ─────────────────────────────────────────
+  async function loadInvChart() {
+    const svg = document.getElementById('invChart');
+    const badge = document.getElementById('invChartBadge');
+    const summary = document.getElementById('invChartSummary');
+    if (!svg) return;
+    try {
+      const r = await App.api('GET', '/app/admin/investment-series?days=30');
+      const pts = r.points || [];
+      const totalCount = pts.reduce((s, p) => s + p.count, 0);
+      const totalAmount = pts.reduce((s, p) => s + p.amount, 0);
+      badge.textContent = totalCount + ' صفقة · ' + Math.round(totalAmount).toLocaleString('ar-SA') + ' ر.س';
+      const W = 600, H = 120, padX = 4, padY = 8;
+      const maxAmt = Math.max(1, ...pts.map(p => p.amount));
+      svg.replaceChildren();
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const xy = pts.map((p, i) => {
+        const x = padX + (i / Math.max(1, pts.length - 1)) * (W - 2 * padX);
+        const y = H - padY - (p.amount / maxAmt) * (H - 2 * padY);
+        return [x, y, p];
+      });
+      // Area
+      const area = document.createElementNS(svgNS, 'path');
+      area.setAttribute('d', 'M' + xy[0][0].toFixed(1) + ',' + H + ' L' + xy.map(([x, y]) => x.toFixed(1) + ',' + y.toFixed(1)).join(' L') + ' L' + xy[xy.length-1][0].toFixed(1) + ',' + H + ' Z');
+      area.setAttribute('fill', 'rgba(176,136,64,0.16)');
+      svg.appendChild(area);
+      const line = document.createElementNS(svgNS, 'path');
+      line.setAttribute('d', 'M' + xy.map(([x, y]) => x.toFixed(1) + ',' + y.toFixed(1)).join(' L'));
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#b08840');
+      line.setAttribute('stroke-width', '1.8');
+      svg.appendChild(line);
+      // First/last labels
+      summary.replaceChildren();
+      const first = document.createElement('span'); first.textContent = pts[0]?.day || '';
+      const peak = document.createElement('span'); peak.style.cssText='font-weight:800;color:var(--green-dark);';
+      const peakDay = pts.reduce((best, p) => p.amount > best.amount ? p : best, { amount: 0 });
+      peak.textContent = 'ذروة: ' + peakDay.day + ' (' + Math.round(peakDay.amount).toLocaleString('ar-SA') + ' ر.س)';
+      const last = document.createElement('span'); last.textContent = pts[pts.length - 1]?.day || '';
+      summary.append(first, peak, last);
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
 
   // ── Scheduled jobs ─────────────────────────────────────────────
   async function loadJobs() {
@@ -4211,7 +4266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

@@ -48,6 +48,17 @@
   <input id="q" type="search" placeholder="اكتب كلمة للبحث..." autocomplete="off" autofocus />
 </div>
 
+<div id="kindFilters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+  <button class="kf active" data-k="all" type="button">الكل</button>
+  <button class="kf" data-k="help" type="button">📘 مساعدة</button>
+  <button class="kf" data-k="announcement" type="button">📢 إعلانات</button>
+  <button class="kf" data-k="project" type="button">💼 فرص</button>
+</div>
+<style>
+  .kf { padding:6px 14px; background:#fff; border:1px solid var(--line); border-radius:999px; font:800 11px Cairo,sans-serif; color:var(--ink); cursor:pointer; }
+  .kf.active { background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+</style>
+
 <div id="results" class="results"></div>
 
 <script>
@@ -75,6 +86,7 @@ const highlight = (text, term) => {
   return out;
 };
 
+let _activeKind = 'all';
 async function run() {
   const term = q.value.trim();
   results.textContent = '';
@@ -86,7 +98,8 @@ async function run() {
   try {
     const r = await fetch('/app/public/search?q=' + encodeURIComponent(term));
     const d = await r.json();
-    if (!d.results.length) {
+    const items = (d.results || []).filter(it => _activeKind === 'all' || it.kind === _activeKind);
+    if (!items.length) {
       const e = document.createElement('div'); e.className = 'empty';
       e.textContent = 'لا توجد نتائج لـ "' + term + '". جرّب كلمة أخرى أو تصفّح ' ;
       const a = document.createElement('a'); a.href = '/help.html'; a.textContent = 'مركز المساعدة';
@@ -94,7 +107,7 @@ async function run() {
       e.appendChild(a);
       results.appendChild(e); return;
     }
-    d.results.forEach(item => {
+    items.forEach(item => {
       const a = document.createElement('a'); a.className = 'result'; a.href = item.url;
       const kind = document.createElement('span'); kind.className = 'kind ' + item.kind; kind.textContent = LABEL[item.kind] || item.kind;
       const h = document.createElement('h3'); h.appendChild(highlight(item.title || '', term));
@@ -109,6 +122,15 @@ async function run() {
     results.appendChild(x);
   }
 }
+
+document.querySelectorAll('.kf').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.kf').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _activeKind = btn.dataset.k;
+    run();
+  });
+});
 
 q.addEventListener('input', () => { clearTimeout(debounceT); debounceT = setTimeout(run, 200); });
 

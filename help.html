@@ -757,7 +757,10 @@
       const card = document.createElement('div'); card.className = 'help-art-detail';
       const h = document.createElement('h3'); h.textContent = article.title;
       const m = document.createElement('div'); m.className = 'meta';
-      m.textContent = (CAT_AR[article.category] || article.category) + ' · ' + new Date(article.publishedAt || article.createdAt).toLocaleDateString('ar-SA');
+      // Reading time estimate: 220 Arabic words/min target
+      const wordCount = String(article.body || '').trim().split(/\s+/).filter(Boolean).length;
+      const minutes = Math.max(1, Math.round(wordCount / 220));
+      m.textContent = (CAT_AR[article.category] || article.category) + ' · ' + new Date(article.publishedAt || article.createdAt).toLocaleDateString('ar-SA') + ' · ⏱ ~' + minutes + ' دقيقة قراءة';
       const body = document.createElement('div'); body.className = 'body';
       if (window.App && typeof App.renderMarkdown === 'function') {
         const parser = new DOMParser();
