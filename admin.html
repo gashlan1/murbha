@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- WEBHOOK HEALTH -->
+  <div class="admin-card" id="whHealthCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔗 صحّة Webhooks</span>
+      <span class="card-h-sub" id="whHealthBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="whHealthList" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- NOTIFICATION BACKLOG -->
   <div class="admin-card" id="notifBacklogCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2767,6 +2780,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadWhHealth() {
+    const list = document.getElementById('whHealthList');
+    const badge = document.getElementById('whHealthBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/webhook-health');
+      const s = r.summary || {};
+      if (badge) badge.textContent = (s.enabled || 0) + ' نشط من ' + (s.total || 0) + ' · معدّل النجاح ' + (s.avgSuccess || 0) + '٪';
+      list.replaceChildren();
+      const items = r.webhooks || [];
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد webhooks مسجّلة')); return; }
+      items.forEach(w => {
+        const sevColor = w.successPct == null ? '#6b7268' : w.successPct >= 95 ? '#0f6e3a' : w.successPct >= 80 ? '#b08840' : '#c54a3a';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;border-inline-start:4px solid ' + sevColor + ';';
+        const info = document.createElement('div'); info.style.cssText = 'min-width:0;';
+        const url = document.createElement('div'); url.style.cssText = 'font:700 11px monospace;color:var(--green-dark);direction:ltr;overflow:hidden;text-overflow:ellipsis;';
+        url.textContent = w.url || '—';
+        const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+        meta.textContent = (w.enabled ? '🟢 نشط' : '⚫ مُعطّل') + ' · ' + w.events + ' أحداث · ' + w.total + ' محاولة' + (w.lastDeliveryAt ? ' · آخر ' + new Date(w.lastDeliveryAt).toLocaleString('ar-SA') : '');
+        info.append(url, meta);
+        const pct = document.createElement('div'); pct.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + sevColor + ';text-align:center;min-width:60px;';
+        pct.textContent = w.successPct == null ? '—' : w.successPct + '٪';
+        const fail = document.createElement('div'); fail.style.cssText = 'font:800 12px Cairo,sans-serif;color:#c54a3a;text-align:center;min-width:60px;';
+        fail.textContent = w.fail > 0 ? '✗ ' + w.fail : '—';
+        row.append(info, pct, fail);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadNotifBacklog() {
     const top = document.getElementById('notifBacklogTop');
     const kinds = document.getElementById('notifBacklogKinds');
@@ -6256,7 +6303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

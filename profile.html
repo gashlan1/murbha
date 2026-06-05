@@ -865,6 +865,14 @@
     </div>
   </div>
 
+  <!-- Keyboard shortcuts help -->
+  <div class="settings-group" id="shortcutsSec">
+    <div class="settings-h" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>⌨ اختصارات لوحة المفاتيح</span>
+      <button type="button" id="showShortcutsBtn" style="background:#fff;border:1px solid var(--line);color:var(--green-dark);padding:6px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">عرض</button>
+    </div>
+  </div>
+
   <!-- Quick actions -->
   <div class="settings-group" id="quickActionsRow">
     <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -2253,6 +2261,64 @@
       // Fallback — open the existing inline change-password handler
       const existing = Array.from(document.querySelectorAll('.setting-name')).find(el => el.textContent.includes('تغيير كلمة المرور'));
       if (existing) existing.parentElement.parentElement.click();
+    });
+  })();
+
+  // Keyboard shortcuts modal
+  (() => {
+    const btn = document.getElementById('showShortcutsBtn');
+    if (!btn) return;
+    const SHORTCUTS = [
+      { keys: ['/'], action: 'فتح البحث السريع' },
+      { keys: ['Esc'], action: 'إغلاق النوافذ المنبثقة' },
+      { keys: ['Tab'], action: 'التنقّل بين العناصر' },
+      { keys: ['Enter'], action: 'تأكيد الزر / الرابط المحدّد' },
+      { keys: ['Space'], action: 'تفعيل checkbox' },
+      { keys: ['g', 'p'], action: 'الذهاب للمحفظة' },
+      { keys: ['g', 'h'], action: 'الذهاب للصفحة الرئيسية' },
+      { keys: ['g', 'n'], action: 'الذهاب للإشعارات' },
+      { keys: ['?'], action: 'عرض هذه القائمة' },
+    ];
+    const open = () => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:480px;width:100%;';
+      const t = document.createElement('div'); t.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--line);';
+      t.textContent = '⌨ اختصارات لوحة المفاتيح';
+      card.appendChild(t);
+      SHORTCUTS.forEach(s => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);';
+        const keys = document.createElement('div'); keys.style.cssText = 'display:flex;gap:4px;';
+        s.keys.forEach((k, i) => {
+          if (i > 0) {
+            const plus = document.createElement('span'); plus.textContent = ',';
+            plus.style.cssText = 'color:var(--muted);font:600 12px Tajawal,sans-serif;align-self:center;';
+            keys.appendChild(plus);
+          }
+          const kbd = document.createElement('code');
+          kbd.style.cssText = 'background:var(--paper);border:1px solid var(--line);padding:3px 9px;border-radius:5px;font:700 12px monospace;color:var(--green-dark);';
+          kbd.textContent = k;
+          keys.appendChild(kbd);
+        });
+        const a = document.createElement('span'); a.style.cssText = 'font:600 13px Tajawal,sans-serif;color:var(--ink);';
+        a.textContent = s.action;
+        row.append(keys, a);
+        card.appendChild(row);
+      });
+      const close = document.createElement('button'); close.type='button'; close.textContent='إغلاق';
+      close.style.cssText = 'margin-top:14px;background:var(--green-dark);color:#d4ac6e;border:0;padding:10px 22px;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;width:100%;';
+      close.onclick = () => overlay.remove();
+      card.appendChild(close);
+      overlay.appendChild(card);
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    };
+    btn.addEventListener('click', open);
+    // ? key shortcut to open
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) open();
     });
   })();
 
