@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Tax year summary -->
+  <div class="settings-group" id="taxYrSec" style="display:none;">
+    <div class="settings-h">📋 ملخّص السنة المالية</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="taxYrTabs"></div>
+      <div id="taxYrKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+      <a id="taxYrCsv" href="#" style="display:block;margin-top:12px;text-align:center;padding:10px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;">📥 تنزيل ملخّص CSV</a>
+    </div>
+  </div>
+
   <!-- Login devices -->
   <div class="settings-group" id="devicesSec" style="display:none;">
     <div class="settings-h">🖥 أجهزة الدخول</div>
@@ -2749,6 +2759,59 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Tax year summary
+  (async () => {
+    try {
+      const sec = document.getElementById('taxYrSec');
+      const tabs = document.getElementById('taxYrTabs');
+      const kpis = document.getElementById('taxYrKpis');
+      const csvLink = document.getElementById('taxYrCsv');
+      if (!sec || !tabs || !kpis) return;
+      const currentYear = new Date().getFullYear();
+      let active = currentYear;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const renderYear = async (year) => {
+        active = year;
+        const r = await App.api('GET', '/app/me/tax-year?year=' + year);
+        if (!r.investedCount && !r.profitCount && year === currentYear) { sec.style.display = 'none'; return false; }
+        sec.style.display = '';
+        kpis.replaceChildren();
+        const mk = (l, v, color) => {
+          const w = document.createElement('div');
+          w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+          const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+          const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+          w.append(vv, ll);
+          return w;
+        };
+        kpis.append(
+          mk('أرباح مُحقَّقة', fmt(r.profitTotal) + ' ر.س', '#0f6e3a'),
+          mk('عدد الدفعات', r.profitCount, '#0a4d36'),
+          mk('استثمارات جديدة', fmt(r.investedTotal) + ' ر.س', '#b08840'),
+          mk('عدد الصفقات', r.investedCount, '#062b1e'),
+          mk('إيداعات', fmt(r.depositTotal) + ' ر.س', '#5c2418'),
+          mk('سحوبات', fmt(r.withdrawTotal) + ' ر.س', '#1e3a8a'),
+          mk('زكاة مُقدّرة (٢٫٥٪)', fmt(r.estimatedZakat) + ' ر.س', '#d97706'),
+        );
+        const renderTabs = () => {
+          tabs.replaceChildren();
+          for (let y = currentYear; y >= currentYear - 3; y--) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.style.cssText = 'padding:8px 14px;border:1px solid var(--line);background:' + (y === active ? 'var(--green-dark)' : '#fff') + ';color:' + (y === active ? 'var(--gold-light)' : 'var(--green-dark)') + ';border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+            b.textContent = y;
+            b.addEventListener('click', () => renderYear(y).then(renderTabs));
+            tabs.appendChild(b);
+          }
+        };
+        renderTabs();
+        if (csvLink) csvLink.href = '/app/me/export.csv?year=' + year;
+        return true;
+      };
+      await renderYear(currentYear);
     } catch (e) {}
   })();
 
