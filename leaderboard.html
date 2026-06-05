@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>لوحة المستثمرين — مُرابحة</title>
+<meta name="description" content="لوحة شرف اختيارية لأبرز المستثمرين على منصة مُرابحة. الاشتراك تطوّعي بالكامل." />
+<meta property="og:title" content="لوحة المستثمرين — مُرابحة" />
+<meta property="og:description" content="أبرز المستثمرين النشطين على منصة مُرابحة." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:26px 18px 80px; max-width:760px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 26px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:22px; max-width:560px; }
+  .top3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:18px; }
+  @media (max-width:560px) { .top3 { grid-template-columns:1fr; } }
+  .top3 .slot { background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px; text-align:center; position:relative; }
+  .top3 .slot.r1 { border-color:var(--gold); background:linear-gradient(180deg,#fff8e6,#fff); transform:scale(1.04); }
+  .top3 .slot.r2 { border-color:#b8b8b8; }
+  .top3 .slot.r3 { border-color:#c98855; }
+  .rank { font:900 28px Cairo,sans-serif; color:var(--green-dark); margin-bottom:4px; }
+  .top3 .slot.r1 .rank::before { content:'🥇 '; }
+  .top3 .slot.r2 .rank::before { content:'🥈 '; }
+  .top3 .slot.r3 .rank::before { content:'🥉 '; }
+  .name { font:800 14px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .amount { font:900 18px Cairo,sans-serif; color:var(--gold); }
+  .deals { font:500 11px Tajawal,sans-serif; color:var(--muted); margin-top:3px; }
+  table { width:100%; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; border-collapse:collapse; }
+  th, td { padding:12px 16px; text-align:start; border-bottom:1px solid var(--line); font-size:14px; }
+  th { background:#fbf8ee; font:800 13px Cairo,sans-serif; color:var(--green-dark); }
+  tr:last-child td { border-bottom:0; }
+  td.r { text-align:end; font-weight:700; }
+  .empty { text-align:center; padding:48px; color:var(--muted); font-size:14px; background:#fff; border:1px solid var(--line); border-radius:14px; }
+  .cta { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:18px; padding:22px; margin-top:24px; text-align:center; }
+  .cta h3 { font:900 18px Cairo,sans-serif; margin-bottom:6px; }
+  .cta p { color:#e8d3a8; font-size:13px; margin-bottom:14px; }
+  .cta a { background:#d4ac6e; color:#062b1e; padding:11px 26px; border-radius:999px; text-decoration:none; font:800 13px Cairo,sans-serif; }
+  .note { font-size:11px; color:var(--muted); margin-top:14px; line-height:1.7; text-align:center; }
+</style>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / لوحة المستثمرين</div>
+<h1>لوحة المستثمرين</h1>
+<p class="lede">قائمة اختيارية لمن سمحوا بإظهار حسابهم. الترتيب حسب الإجمالي المُستثمَر. الاشتراك تطوّعي بالكامل من إعدادات الحساب.</p>
+
+<div id="top3" class="top3"></div>
+<div id="tableWrap"></div>
+<div id="emptyWrap"></div>
+
+<div class="cta">
+  <h3>أضف اسمك إلى اللوحة</h3>
+  <p>المشاركة اختيارية. يمكنك إخفاء حسابك في أي وقت من إعدادات الخصوصية.</p>
+  <a href="/profile.html#leaderboard">إدارة المشاركة</a>
+</div>
+<p class="note">نخفي تفاصيل دقيقة وأرقام الهوية وأسماء كاملة احتراماً للخصوصية.</p>
+
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/leaderboard');
+    const d = await r.json();
+    const list = d.leaderboard || [];
+    const top3 = document.getElementById('top3');
+    const table = document.getElementById('tableWrap');
+    const empty = document.getElementById('emptyWrap');
+    if (!list.length) {
+      const e = document.createElement('div'); e.className = 'empty';
+      e.textContent = 'لا يوجد مستثمرون مشتركون في اللوحة بعد. كن الأول!';
+      empty.appendChild(e);
+      return;
+    }
+    const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+    list.slice(0, 3).forEach((row, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'slot r' + (i + 1);
+      const rank = document.createElement('div'); rank.className = 'rank'; rank.textContent = (i + 1);
+      const name = document.createElement('div'); name.className = 'name'; name.textContent = row.display;
+      const amt = document.createElement('div'); amt.className = 'amount'; amt.textContent = fmt(row.invested) + ' ر.س';
+      const deals = document.createElement('div'); deals.className = 'deals'; deals.textContent = row.deals + ' صفقة';
+      slot.append(rank, name, amt, deals);
+      top3.appendChild(slot);
+    });
+    if (list.length > 3) {
+      const tbl = document.createElement('table');
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      ['#', 'المستثمر', 'الصفقات', 'الإجمالي'].forEach(h => { const th = document.createElement('th'); th.textContent = h; trh.appendChild(th); });
+      thead.appendChild(trh); tbl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      list.slice(3).forEach((row, i) => {
+        const tr = document.createElement('tr');
+        const rk = document.createElement('td'); rk.textContent = (i + 4); tr.appendChild(rk);
+        const nm = document.createElement('td'); nm.textContent = row.display; tr.appendChild(nm);
+        const dl = document.createElement('td'); dl.textContent = row.deals; tr.appendChild(dl);
+        const am = document.createElement('td'); am.className = 'r'; am.textContent = fmt(row.invested) + ' ر.س'; tr.appendChild(am);
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      table.appendChild(tbl);
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
