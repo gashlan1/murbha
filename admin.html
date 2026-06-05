@@ -2212,6 +2212,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       susWrap.append(susInfo, susBtn);
       card.appendChild(susWrap);
 
+      // Issue refund
+      const refWrap = document.createElement('div');
+      refWrap.style.cssText = 'margin-bottom:10px;background:#eef6ee;border:1px dashed #0a4d36;border-radius:10px;padding:10px 12px;';
+      const refH = document.createElement('div');
+      refH.style.cssText = 'font:800 12px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;';
+      refH.textContent = '💸 إصدار استرداد';
+      const refRow = document.createElement('div');
+      refRow.style.cssText = 'display:grid;grid-template-columns:1fr 2fr auto;gap:6px;';
+      const refAmt = document.createElement('input');
+      refAmt.type = 'number'; refAmt.min = 1; refAmt.step = 1; refAmt.placeholder = 'المبلغ ر.س';
+      refAmt.style.cssText = 'padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:700 12px Cairo,sans-serif;background:#fff;direction:ltr;';
+      const refReason = document.createElement('input');
+      refReason.type = 'text'; refReason.placeholder = 'السبب (يظهر للمستخدم)'; refReason.maxLength = 500;
+      refReason.style.cssText = 'padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 12px Tajawal,sans-serif;background:#fff;direction:rtl;';
+      const refBtn = document.createElement('button');
+      refBtn.type = 'button';
+      refBtn.textContent = 'إصدار';
+      refBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:6px;padding:7px 14px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      refBtn.onclick = async () => {
+        const amt = Number(refAmt.value);
+        const reason = refReason.value.trim();
+        if (!(amt > 0) || !reason) { alert('أدخل مبلغاً وسبباً'); return; }
+        if (!confirm('إضافة ' + amt.toLocaleString('ar-SA') + ' ر.س إلى رصيد المستخدم؟')) return;
+        refBtn.disabled = true; refBtn.textContent = '…';
+        try {
+          await App.api('POST', '/app/admin/refund', { userId: d.user.id, amount: amt, reason });
+          App.toast && App.toast('✓ تم إصدار الاسترداد', 'success');
+          modal.remove(); loadUsers();
+        } catch (e) {
+          refBtn.disabled = false; refBtn.textContent = 'إصدار';
+          alert(e.message || 'فشل');
+        }
+      };
+      refRow.append(refAmt, refReason, refBtn);
+      refWrap.append(refH, refRow);
+      card.appendChild(refWrap);
+
       // Send notification composer
       const notifWrap = document.createElement('div');
       notifWrap.style.cssText = 'margin-bottom:10px;background:#eaf3ee;border:1px dashed #0a4d36;border-radius:10px;padding:10px 12px;';
@@ -2580,6 +2617,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Help articles CMS ─────────────────────────────────────────
   const HELP_CAT_AR = { getting_started: 'البدء', investing: 'الاستثمار', kyc: 'التحقق', payments: 'المدفوعات', security: 'الأمان', shariah: 'الشرعية' };
+  let _editingHelpId = null;
+  const hcSubmit = document.querySelector('#helpArticleForm button[type=submit]');
+  let hcCancel = document.getElementById('hcCancelEdit');
+  if (!hcCancel && hcSubmit) {
+    hcCancel = document.createElement('button');
+    hcCancel.id = 'hcCancelEdit'; hcCancel.type = 'button';
+    hcCancel.textContent = 'إلغاء التعديل';
+    hcCancel.style.cssText = 'display:none;margin-inline-start:8px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;';
+    hcCancel.onclick = () => {
+      _editingHelpId = null;
+      document.getElementById('helpArticleForm').reset();
+      document.getElementById('hcPublish').checked = true;
+      if (hcSubmit) hcSubmit.textContent = 'نشر المقال';
+      hcCancel.style.display = 'none';
+    };
+    hcSubmit.after(hcCancel);
+  }
   async function loadHelpCms() {
     const list = document.getElementById('helpArticlesAdmin');
     const badge = document.getElementById('helpCmsBadge');
@@ -2602,6 +2656,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const meta = document.createElement('div'); meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:6px;';
         meta.textContent = (HELP_CAT_AR[a.category] || a.category) + ' · ' + new Date(a.createdAt).toLocaleDateString('ar-SA');
         const acts = document.createElement('div'); acts.style.cssText = 'display:flex;gap:6px;';
+        const edit = document.createElement('button'); edit.type='button';
+        edit.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        edit.textContent = '✏ تعديل';
+        edit.onclick = () => {
+          _editingHelpId = a.id;
+          document.getElementById('hcTitle').value = a.title || '';
+          document.getElementById('hcSummary').value = a.summary || '';
+          document.getElementById('hcBody').value = a.body || '';
+          document.getElementById('hcCat').value = a.category || 'getting_started';
+          document.getElementById('hcPublish').checked = !!a.publishedAt;
+          if (hcSubmit) hcSubmit.textContent = 'حفظ التعديل';
+          if (hcCancel) hcCancel.style.display = '';
+          document.getElementById('hcTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
         const tog = document.createElement('button'); tog.type='button';
         tog.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         tog.textContent = a.publishedAt ? 'إلغاء النشر' : 'نشر';
@@ -2613,7 +2681,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         del.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         del.textContent = 'حذف';
         del.onclick = async () => { if (!confirm('حذف المقال؟')) return; try { await App.api('DELETE', '/app/admin/help/articles/' + a.id); loadHelpCms(); } catch (e) { alert(e.message); } };
-        acts.append(tog, del);
+        acts.append(edit, tog, del);
         row.append(t, meta, acts);
         list.appendChild(row);
       });
@@ -2627,11 +2695,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       summary: document.getElementById('hcSummary').value.trim(),
       body: document.getElementById('hcBody').value.trim(),
       category: document.getElementById('hcCat').value,
-      publish: document.getElementById('hcPublish').checked,
     };
+    const publish = document.getElementById('hcPublish').checked;
     try {
-      await App.api('POST', '/app/admin/help/articles', payload);
-      helpForm.reset(); document.getElementById('hcPublish').checked = true;
+      if (_editingHelpId) {
+        payload.publishedAt = publish ? new Date().toISOString() : null;
+        await App.api('PATCH', '/app/admin/help/articles/' + _editingHelpId, payload);
+        _editingHelpId = null;
+        if (hcSubmit) hcSubmit.textContent = 'نشر المقال';
+        if (hcCancel) hcCancel.style.display = 'none';
+      } else {
+        payload.publish = publish;
+        await App.api('POST', '/app/admin/help/articles', payload);
+      }
+      helpForm.reset();
+      document.getElementById('hcPublish').checked = true;
       loadHelpCms();
     } catch (e2) { alert(e2.message); }
   });
