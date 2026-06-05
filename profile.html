@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Cashflow summary -->
+  <div class="settings-group" id="cfSec" style="display:none;">
+    <div class="settings-h">💵 ملخّص تَدفّقاتك النقديّة</div>
+    <div style="padding:14px 18px;">
+      <div id="cfHero" style="background:linear-gradient(135deg,#fbf6ea,#fff);border:2px solid var(--gold);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;"></div>
+      <div id="cfKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Legacy / beneficiaries -->
   <div class="settings-group" id="legacySec">
     <div class="settings-h">🕊 خطّة الإرث (المستفيدون)</div>
@@ -3019,6 +3028,44 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Cashflow summary
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/cashflow-summary');
+      if (!r.hasData) return;
+      const sec = document.getElementById('cfSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('cfHero');
+      hero.replaceChildren();
+      const moodColors = { saver: '#0f6e3a', balanced: '#0a4d36', caution: '#b08840', spender: '#c54a3a' };
+      const color = moodColors[r.mood] || '#062b1e';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 24px Cairo,sans-serif;color:' + color + ';';
+      big.textContent = (r.depWithdrawRatio !== null ? r.depWithdrawRatio + 'x ' : '') + 'إيداع/سحب';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 13px Tajawal,sans-serif;color:var(--green-dark);margin-top:6px;';
+      sub.textContent = r.advice;
+      hero.append(big, sub);
+      const kpis = document.getElementById('cfKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('💳 الإيداعات', fmt(r.totalDeposits) + ' ر.س', '#0f6e3a'),
+        mk('📤 السحوبات', fmt(r.totalWithdraws) + ' ر.س', '#d97706'),
+        mk('💰 الأرباح', fmt(r.totalProfits) + ' ر.س', '#b08840'),
+        mk('📊 الصافي', (r.netCashflow >= 0 ? '+' : '') + fmt(r.netCashflow) + ' ر.س', r.netCashflow >= 0 ? '#0f6e3a' : '#c54a3a'),
+        mk('🔄 إعادة الاستثمار', r.reinvestRate + '٪', '#0a4d36'),
+      );
     } catch (e) {}
   })();
 
