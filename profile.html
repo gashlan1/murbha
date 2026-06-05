@@ -1064,6 +1064,35 @@
     </a>
   </div>
 
+  <!-- Privacy / PDPL -->
+  <div class="settings-group">
+    <div class="settings-h">الخصوصية والبيانات</div>
+    <a href="/app/me/export" download="murbha-data.json" class="setting-row">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">تصدير كل بياناتي (JSON)</div>
+        <div class="setting-sub">حقّ الوصول وفق نظام حماية البيانات الشخصية (PDPL)</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </a>
+    <button type="button" id="deleteAccountBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon" style="color:#c54a3a;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name" id="deleteAccountLabel" style="color:#c54a3a;">طلب حذف حسابي نهائياً</div>
+        <div class="setting-sub" id="deleteAccountSub">سيمنح حسابك مهلة ٣٠ يوماً قبل الحذف النهائي. يمكنك الإلغاء خلالها.</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+  </div>
+
   <!-- Re-run onboarding tour -->
   <div class="settings-group">
     <div class="settings-h">الجولة التعريفية</div>
@@ -1528,6 +1557,52 @@
         list.appendChild(a);
       });
     } catch (e) {}
+  })();
+
+  // PDPL: deletion request + cancel
+  (async () => {
+    const btn = document.getElementById('deleteAccountBtn');
+    const label = document.getElementById('deleteAccountLabel');
+    const sub = document.getElementById('deleteAccountSub');
+    if (!btn) return;
+    const refresh = async () => {
+      try {
+        const me = await App.api('GET', '/app/me');
+        const u = me.user || {};
+        if (u.deletionScheduledAt) {
+          const eta = new Date(u.deletionScheduledAt);
+          label.textContent = 'إلغاء طلب الحذف';
+          label.style.color = 'var(--green)';
+          sub.textContent = 'سيتم حذف حسابك في ' + eta.toLocaleDateString('ar-SA') + '. اضغط للإلغاء.';
+          btn.dataset.state = 'pending';
+        } else {
+          label.textContent = 'طلب حذف حسابي نهائياً';
+          label.style.color = '#c54a3a';
+          sub.textContent = 'سيمنح حسابك مهلة ٣٠ يوماً قبل الحذف النهائي. يمكنك الإلغاء خلالها.';
+          btn.dataset.state = 'none';
+        }
+      } catch (e) {}
+    };
+    await refresh();
+    btn.addEventListener('click', async () => {
+      if (btn.dataset.state === 'pending') {
+        if (!confirm('إلغاء طلب حذف الحساب؟')) return;
+        try {
+          await App.api('POST', '/app/me/cancel-deletion');
+          App.toast && App.toast('✓ تم إلغاء طلب الحذف', 'success');
+          await refresh();
+        } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        return;
+      }
+      const pwd = prompt('للتأكيد، أدخل كلمة المرور:');
+      if (!pwd) return;
+      if (!confirm('سيتم جدولة حذف حسابك خلال ٣٠ يوماً. تأكيد؟')) return;
+      try {
+        await App.api('POST', '/app/me/request-deletion', { password: pwd });
+        App.toast && App.toast('تم جدولة حذف الحساب', 'success');
+        await refresh();
+      } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
   })();
 
   // Replay tour

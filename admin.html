@@ -986,6 +986,26 @@
     </div>
   </div>
 
+  <!-- FEATURE FLAGS -->
+  <div class="admin-card" id="flagsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🚩 الأعلام (Feature flags)</span>
+      <span class="card-h-sub" id="flagsCount">—</span>
+    </div>
+    <div class="card-body">
+      <div id="flagsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;">
+        <input id="newFlagKey" placeholder="مفتاح جديد (a-z_0-9)" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font:600 13px 'SF Mono',Menlo,monospace;direction:ltr;text-align:start;" />
+        <select id="newFlagValue" style="padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font:600 13px Tajawal,sans-serif;background:#fff;">
+          <option value="true">مفعّل</option>
+          <option value="false">معطّل</option>
+        </select>
+        <button id="addFlagBtn" type="button" style="padding:10px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 13px Cairo,sans-serif;cursor:pointer;">إضافة / تحديث</button>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">تظهر الأعلام على <code style="background:#fbf8ee;padding:2px 6px;border-radius:4px;direction:ltr;display:inline-block;">/app/public/flags</code> للقراءة العامة. استخدمها لتفعيل/تعطيل ميزات بشكل تدريجي.</p>
+    </div>
+  </div>
+
   <!-- MAINTENANCE MODE -->
   <div class="admin-card" id="maintenanceCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1536,6 +1556,72 @@ document.addEventListener('DOMContentLoaded', async () => {
       _resetAnnForm();
       loadAnnouncements();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── Feature flags ─────────────────────────────────────────────
+  async function loadFlags() {
+    const list = document.getElementById('flagsList');
+    const count = document.getElementById('flagsCount');
+    try {
+      const r = await fetch('/app/public/flags', { credentials: 'same-origin' });
+      const d = await r.json();
+      const flags = d.flags || {};
+      const entries = Object.entries(flags);
+      count.textContent = entries.length ? entries.length + ' علم' : 'لا توجد أعلام';
+      list.replaceChildren();
+      if (!entries.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);font-size:13px;padding:14px;background:#fbf8ee;border-radius:8px;';
+        e.textContent = 'لم يتم إنشاء أعلام بعد.';
+        list.appendChild(e); return;
+      }
+      entries.forEach(([k, v]) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;';
+        const left = document.createElement('div');
+        const name = document.createElement('code');
+        name.style.cssText = 'font:800 13px "SF Mono",Menlo,monospace;color:var(--green-dark);direction:ltr;';
+        name.textContent = k;
+        left.appendChild(name);
+        const right = document.createElement('div');
+        right.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        const pill = document.createElement('span');
+        pill.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:' + (v ? 'rgba(15,110,58,0.12)' : 'rgba(13,22,18,0.06)') + ';color:' + (v ? '#0f6e3a' : 'var(--muted)') + ';';
+        pill.textContent = v ? 'مفعّل' : 'معطّل';
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.textContent = v ? 'تعطيل' : 'تفعيل';
+        toggle.style.cssText = 'background:transparent;border:1px solid var(--line-strong);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;color:var(--green-dark);cursor:pointer;';
+        toggle.onclick = async () => {
+          try { await App.api('PATCH', '/app/admin/flags', { [k]: !v }); await loadFlags(); }
+          catch (e) { alert(e.message || 'فشل'); }
+        };
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.textContent = '🗑';
+        del.style.cssText = 'background:transparent;border:1px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;color:#c54a3a;font-size:11px;';
+        del.onclick = async () => {
+          if (!confirm('حذف العلم "' + k + '"؟')) return;
+          try { await App.api('PATCH', '/app/admin/flags', { [k]: null }); await loadFlags(); }
+          catch (e) { alert(e.message || 'فشل'); }
+        };
+        right.append(pill, toggle, del);
+        row.append(left, right);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      count.textContent = 'تعذّر التحميل';
+    }
+  }
+  document.getElementById('addFlagBtn')?.addEventListener('click', async () => {
+    const k = document.getElementById('newFlagKey').value.trim();
+    if (!k) return;
+    const v = document.getElementById('newFlagValue').value === 'true';
+    try {
+      await App.api('PATCH', '/app/admin/flags', { [k]: v });
+      document.getElementById('newFlagKey').value = '';
+      await loadFlags();
+    } catch (e) { alert(e.message || 'فشل'); }
   });
 
   // ── Segment notify ───────────────────────────────────────────
@@ -2925,7 +3011,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

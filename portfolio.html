@@ -924,19 +924,128 @@
   if (qa[1]) {
     qa[1].removeAttribute('href');
     qa[1].style.cursor = 'pointer';
-    qa[1].addEventListener('click', async (e) => {
-      e.preventDefault();
-      const methodId = await pickMethod('iban');
-      if (!methodId) return;
-      const v = prompt('مبلغ السحب (ر.س):');
-      const amt = Number(v);
-      if (!(amt > 0)) return;
-      try {
-        await App.api('POST', '/app/portfolio/withdraw', { amount: amt, methodId });
-        App.toast('تم تقديم طلب السحب.', 'success');
-        setTimeout(() => location.reload(), 600);
-      } catch (err) { App.toast(err.message, 'error'); }
+    qa[1].addEventListener('click', (e) => { e.preventDefault(); openQuickWithdraw(); });
+  }
+
+  async function openQuickWithdraw() {
+    if (document.getElementById('quickWithdrawModal')) return;
+    let balance = 0;
+    let methods = [];
+    try {
+      const me = await App.api('GET', '/app/me');
+      balance = Number(me.user?.balance || 0);
+      methods = (me.paymentMethods || []).filter(m => !m.removedAt && m.type === 'iban');
+    } catch (e) {}
+
+    const modal = document.createElement('div');
+    modal.id = 'quickWithdrawModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;font-family:Tajawal,system-ui,sans-serif;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:18px;padding:22px;max-width:380px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.35);';
+    const close = () => modal.remove();
+    modal.onclick = (e) => { if (e.target === modal) close(); };
+
+    const h = document.createElement('div');
+    h.style.cssText = 'font:900 17px Cairo,sans-serif;color:#062b1e;margin-bottom:4px;';
+    h.textContent = 'سحب سريع';
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font-size:12px;color:#6b7268;line-height:1.7;margin-bottom:16px;';
+    sub.textContent = 'الرصيد المتاح: ' + balance.toLocaleString('ar-SA') + ' ر.س · السحب يصل خلال ١-٣ أيام عمل.';
+    card.append(h, sub);
+
+    if (!methods.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:16px;background:#fbf8ee;border:1px solid #d4ac6e;border-radius:10px;font-size:13px;color:#7a5a10;line-height:1.7;margin-bottom:14px;text-align:center;';
+      empty.appendChild(document.createTextNode('السحب يحتاج إلى حساب بنكي. '));
+      const a = document.createElement('a');
+      a.href = '/payment-methods.html';
+      a.style.cssText = 'color:#062b1e;font-weight:800;text-decoration:underline;';
+      a.textContent = 'أضف IBAN';
+      empty.appendChild(a);
+      card.appendChild(empty);
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button'; closeBtn.textContent = 'إغلاق';
+      closeBtn.style.cssText = 'width:100%;padding:11px;background:#062b1e;color:#fbf6ea;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      closeBtn.onclick = close;
+      card.appendChild(closeBtn);
+      modal.appendChild(card);
+      document.body.appendChild(modal);
+      return;
+    }
+
+    const amtLbl = document.createElement('label');
+    amtLbl.style.cssText = 'display:block;font:700 11px Cairo,sans-serif;color:#6b7268;margin-bottom:4px;';
+    amtLbl.textContent = 'المبلغ (ر.س)';
+    const amtIn = document.createElement('input');
+    amtIn.type = 'number'; amtIn.min = 100; amtIn.max = balance; amtIn.step = 50; amtIn.value = Math.min(500, balance);
+    amtIn.style.cssText = 'width:100%;padding:14px 16px;font:900 22px Cairo,sans-serif;color:#062b1e;border:1.5px solid rgba(13,22,18,0.15);border-radius:12px;direction:ltr;text-align:center;margin-bottom:10px;';
+    card.append(amtLbl, amtIn);
+
+    const maxBtn = document.createElement('button');
+    maxBtn.type = 'button'; maxBtn.textContent = 'الحد الأقصى (' + balance.toLocaleString('ar-SA') + ' ر.س)';
+    maxBtn.style.cssText = 'width:100%;padding:7px;background:#fbf8ee;border:1px solid rgba(176,136,64,0.2);border-radius:8px;font:700 12px Cairo,sans-serif;color:#7a5a10;cursor:pointer;margin-bottom:14px;';
+    maxBtn.onclick = () => { amtIn.value = balance; };
+    card.appendChild(maxBtn);
+
+    const mLbl = document.createElement('label');
+    mLbl.style.cssText = 'display:block;font:700 11px Cairo,sans-serif;color:#6b7268;margin-bottom:4px;';
+    mLbl.textContent = 'الحساب البنكي';
+    const mSel = document.createElement('select');
+    mSel.style.cssText = 'width:100%;padding:11px 14px;background:#fff;border:1.5px solid rgba(13,22,18,0.15);border-radius:10px;font:600 13px Tajawal,sans-serif;color:#0d1612;margin-bottom:14px;';
+    methods.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = '🏦 ' + (m.bankName || m.brand || 'بنك') + ' · ' + (m.ibanMasked || m.last4 || '');
+      mSel.appendChild(opt);
     });
+    card.append(mLbl, mSel);
+
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:11px;color:#6b7268;line-height:1.6;background:#fbf8ee;border-radius:8px;padding:9px 12px;margin-bottom:14px;';
+    note.textContent = 'المبالغ ≥ ١٠,٠٠٠ ر.س. تحتاج رمز تأكيد إلى بريدك الإلكتروني.';
+    card.appendChild(note);
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;';
+    const cancel = document.createElement('button');
+    cancel.type = 'button'; cancel.textContent = 'إلغاء';
+    cancel.style.cssText = 'flex:1;padding:11px;background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;font:800 13px Cairo,sans-serif;color:#3c4d44;cursor:pointer;';
+    cancel.onclick = close;
+    const submit = document.createElement('button');
+    submit.type = 'button'; submit.textContent = 'تأكيد السحب';
+    submit.style.cssText = 'flex:2;padding:11px;background:#062b1e;color:#fbf6ea;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+    submit.onclick = async () => {
+      const amt = Number(amtIn.value);
+      if (!(amt >= 100)) { App.toast && App.toast('الحد الأدنى ١٠٠ ر.س.', 'warn'); return; }
+      if (amt > balance) { App.toast && App.toast('الرصيد غير كافٍ.', 'warn'); return; }
+      const methodId = mSel.value;
+      if (!methodId) return;
+      submit.disabled = true; submit.textContent = 'جارٍ المعالجة…';
+      try {
+        if (amt >= 10000) {
+          const init = await App.api('POST', '/app/portfolio/withdraw/init', { amount: amt, methodId });
+          if (init.requiresConfirmation) {
+            const code = prompt('أرسلنا رمزاً إلى بريدك. أدخل الرمز:');
+            if (!code) { submit.disabled = false; submit.textContent = 'تأكيد السحب'; return; }
+            await App.api('POST', '/app/portfolio/withdraw/confirm', { confirmationId: init.confirmationId, code: code.trim() });
+          }
+        } else {
+          await App.api('POST', '/app/portfolio/withdraw', { amount: amt, methodId });
+        }
+        App.toast && App.toast('✓ تم تقديم طلب السحب', 'success');
+        close();
+        setTimeout(() => location.reload(), 600);
+      } catch (err) {
+        submit.disabled = false; submit.textContent = 'تأكيد السحب';
+        App.toast && App.toast(err.message || 'فشل السحب', 'error');
+      }
+    };
+    row.append(cancel, submit);
+    card.appendChild(row);
+
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+    setTimeout(() => amtIn.focus(), 50);
   }
   // qa[2] "التقارير" with href="#" → show toast (will be a page later)
   if (qa[2]) {

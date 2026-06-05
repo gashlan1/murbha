@@ -62,8 +62,9 @@ main { max-width: 700px; margin: 24px auto; padding: 0 18px; }
 <body>
 <div class="toolbar">
   <a href="portfolio.html" class="back" aria-label="رجوع">←</a>
-  <div class="title">إيصال استثمار</div>
-  <button class="print-btn" onclick="window.print()">🖨 طباعة / حفظ PDF</button>
+  <div class="title" id="toolbarTitle">إيصال استثمار</div>
+  <button id="rcptLangBtn" type="button" style="background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;padding:6px 12px;font:800 11px Cairo,sans-serif;color:#0d1612;cursor:pointer;margin-inline-end:8px;">EN</button>
+  <button class="print-btn" onclick="window.print()" id="printBtn">🖨 طباعة / حفظ PDF</button>
 </div>
 
 <main id="main">
@@ -71,9 +72,44 @@ main { max-width: 700px; margin: 24px auto; padding: 0 18px; }
 </main>
 
 <script>
-const arNum = (n) => n == null ? '—' : Number(n).toLocaleString('ar-SA');
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+const LANG_KEY = 'mrb_receipt_lang';
+let LANG = (() => { try { return localStorage.getItem(LANG_KEY) || 'ar'; } catch { return 'ar'; } })();
+const setLang = (l) => { LANG = l; try { localStorage.setItem(LANG_KEY, l); } catch {} };
+const isEN = () => LANG === 'en';
+
+const arNum = (n) => n == null ? '—' : Number(n).toLocaleString(isEN() ? 'en-US' : 'ar-SA');
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString(isEN() ? 'en-GB' : 'ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
 const STATUS_AR = { active: 'نشط', completed: 'مكتمل', pending_signature: 'بانتظار التوقيع', cancelled: 'ملغى' };
+const STATUS_EN = { active: 'Active', completed: 'Completed', pending_signature: 'Pending signature', cancelled: 'Cancelled' };
+const T = {
+  toolbar:   { ar: 'إيصال استثمار', en: 'Investment Receipt' },
+  brandName: { ar: 'منصة مُرابحة', en: 'Murbha Platform' },
+  brandTag:  { ar: 'منصة الشراكة الاستثمارية الشرعية', en: 'Sharia-compliant investment partnership' },
+  receiptNo: { ar: 'رقم الإيصال', en: 'Receipt No.' },
+  date:      { ar: 'التاريخ', en: 'Date' },
+  title:     { ar: 'إيصال استثمار — ', en: 'Investment Receipt — ' },
+  investor:  { ar: 'اسم المستثمر', en: 'Investor name' },
+  accountId: { ar: 'معرّف الحساب', en: 'Account ID' },
+  project:   { ar: 'اسم المشروع', en: 'Project' },
+  category:  { ar: 'القطاع', en: 'Sector' },
+  term:      { ar: 'المدّة', en: 'Term' },
+  months:    { ar: 'شهر', en: 'months' },
+  rate:      { ar: 'العائد السنوي المتوقع', en: 'Expected annual return' },
+  contract:  { ar: 'رقم العقد', en: 'Contract No.' },
+  status:    { ar: 'حالة الاستثمار', en: 'Status' },
+  signed:    { ar: 'تاريخ التوقيع', en: 'Signed at' },
+  principal: { ar: 'مبلغ الاستثمار', en: 'Principal' },
+  profit:    { ar: 'الربح المتوقع', en: 'Expected profit' },
+  total:     { ar: 'الإجمالي المتوقع', en: 'Expected total' },
+  sar:       { ar: 'ر.س', en: 'SAR' },
+  footerL1a: { ar: 'هذا الإيصال يثبت تفاصيل استثمارك على منصة ', en: 'This receipt records your investment on ' },
+  footerL1b: { ar: '، يُحفظ في حسابك دائماً ويمكن طباعته أو حفظه بصيغة PDF.', en: '. Stored permanently in your account, printable as PDF.' },
+  managedBy: { ar: 'مُدارة بواسطة ', en: 'Operated by ' },
+  forQ:      { ar: ' · للاستفسار: ', en: ' · Support: ' },
+  small:     { ar: 'صادر إلكترونياً — لا يحتاج إلى ختم أو توقيع.', en: 'Electronically issued — no stamp or signature required.' },
+  print:     { ar: '🖨 طباعة / حفظ PDF', en: '🖨 Print / Save PDF' },
+};
+const tr = (k) => T[k]?.[LANG] ?? T[k]?.ar ?? '';
 
 function cell(k, v, opts = {}) {
   const c = document.createElement('div'); c.className = 'cell' + (opts.full ? ' full' : '');
@@ -84,12 +120,17 @@ function cell(k, v, opts = {}) {
   return c;
 }
 
-(async function () {
+async function renderReceipt() {
   const user = await App.requireAuth('login.html?next=/receipt.html');
   if (!user) return;
   const id = new URLSearchParams(location.search).get('inv') || '';
   const root = document.getElementById('receiptRoot');
   root.replaceChildren();
+  document.documentElement.lang = LANG;
+  document.documentElement.dir = isEN() ? 'ltr' : 'rtl';
+  document.getElementById('toolbarTitle').textContent = tr('toolbar');
+  document.getElementById('printBtn').textContent = tr('print');
+  document.getElementById('rcptLangBtn').textContent = isEN() ? 'AR' : 'EN';
   if (!id) {
     const e = document.createElement('div'); e.className = 'error'; e.textContent = 'معرّف الاستثمار مفقود.';
     root.appendChild(e); return;
@@ -113,67 +154,75 @@ function cell(k, v, opts = {}) {
 
   const head = document.createElement('div'); head.className = 'header';
   const brand = document.createElement('div');
-  const bn = document.createElement('div'); bn.className = 'brand-name'; bn.textContent = 'منصة مُرابحة';
-  const bt = document.createElement('div'); bt.className = 'brand-tag'; bt.textContent = 'منصة الشراكة الاستثمارية الشرعية';
+  const bn = document.createElement('div'); bn.className = 'brand-name'; bn.textContent = tr('brandName');
+  const bt = document.createElement('div'); bt.className = 'brand-tag'; bt.textContent = tr('brandTag');
   brand.append(bn, bt);
   const meta = document.createElement('div'); meta.className = 'meta';
-  const _l1 = document.createElement('div'); _l1.className='lbl'; _l1.textContent='رقم الإيصال';
+  const _l1 = document.createElement('div'); _l1.className='lbl'; _l1.textContent=tr('receiptNo');
   const _v1 = document.createElement('div'); _v1.className='val'; _v1.textContent='MRB-' + inv.id.slice(-8).toUpperCase();
-  const _l2 = document.createElement('div'); _l2.className='lbl'; _l2.textContent='التاريخ';
+  const _l2 = document.createElement('div'); _l2.className='lbl'; _l2.textContent=tr('date');
   const _v2 = document.createElement('div'); _v2.className='val'; _v2.textContent=fmtDate(inv.createdAt);
   meta.append(_l1, _v1, _l2, _v2);
   head.append(brand, meta);
 
   const titleRow = document.createElement('div'); titleRow.className = 'title-row';
-  titleRow.textContent = 'إيصال استثمار — ' + (project?.name || 'مشروع');
+  titleRow.textContent = tr('title') + (project?.name || (isEN() ? 'Project' : 'مشروع'));
 
+  const statusMap = isEN() ? STATUS_EN : STATUS_AR;
   const grid = document.createElement('div'); grid.className = 'grid';
   grid.append(
-    cell('اسم المستثمر', user.name),
-    cell('معرّف الحساب', user.id, { mono: true }),
-    cell('اسم المشروع', project?.name, { full: true }),
-    cell('القطاع', project?.category),
-    cell('المدّة', arNum(project?.termMonths || 0) + ' شهر'),
-    cell('العائد السنوي المتوقع', ((project?.profitRate || 0) * 100).toFixed(1) + '٪'),
-    cell('رقم العقد', inv.contractId, { mono: true }),
-    cell('حالة الاستثمار', STATUS_AR[inv.status] || inv.status),
-    cell('تاريخ التوقيع', fmtDate(inv.signedAt)),
+    cell(tr('investor'), user.name),
+    cell(tr('accountId'), user.id, { mono: true }),
+    cell(tr('project'), project?.name, { full: true }),
+    cell(tr('category'), project?.category),
+    cell(tr('term'), arNum(project?.termMonths || 0) + ' ' + tr('months')),
+    cell(tr('rate'), ((project?.profitRate || 0) * 100).toFixed(1) + (isEN() ? '%' : '٪')),
+    cell(tr('contract'), inv.contractId, { mono: true }),
+    cell(tr('status'), statusMap[inv.status] || inv.status),
+    cell(tr('signed'), fmtDate(inv.signedAt)),
   );
 
   const amounts = document.createElement('div'); amounts.className = 'amounts';
   const mkRow = (k, v, total) => {
     const row = document.createElement('div'); row.className = 'row' + (total ? ' total' : '');
     const kk = document.createElement('span'); kk.className='k'; kk.textContent = k;
-    const vv = document.createElement('span'); vv.className='v'; vv.textContent = arNum(v) + ' ر.س';
+    const vv = document.createElement('span'); vv.className='v'; vv.textContent = arNum(v) + ' ' + tr('sar');
     row.append(kk, vv); return row;
   };
   amounts.append(
-    mkRow('مبلغ الاستثمار', principal),
-    mkRow('الربح المتوقع', profit),
-    mkRow('الإجمالي المتوقع', expected, true),
+    mkRow(tr('principal'), principal),
+    mkRow(tr('profit'), profit),
+    mkRow(tr('total'), expected, true),
   );
 
   const footer = document.createElement('div'); footer.className = 'footer';
   const p1 = document.createElement('div');
-  p1.append(document.createTextNode('هذا الإيصال يثبت تفاصيل استثمارك على منصة '));
-  const b1 = document.createElement('b'); b1.textContent = 'مُرابحة'; p1.appendChild(b1);
-  p1.append(document.createTextNode('، يُحفظ في حسابك دائماً ويمكن طباعته أو حفظه بصيغة PDF.'));
+  p1.append(document.createTextNode(tr('footerL1a')));
+  const b1 = document.createElement('b'); b1.textContent = isEN() ? 'Murbha' : 'مُرابحة'; p1.appendChild(b1);
+  p1.append(document.createTextNode(tr('footerL1b')));
   const p2 = document.createElement('div'); p2.style.marginTop='4px';
-  p2.append(document.createTextNode('مُدارة بواسطة '));
-  const b2 = document.createElement('b'); b2.textContent = 'شركة العنقري'; p2.appendChild(b2);
-  p2.append(document.createTextNode(' · للاستفسار: '));
+  p2.append(document.createTextNode(tr('managedBy')));
+  const b2 = document.createElement('b'); b2.textContent = isEN() ? 'AGLC' : 'شركة العنقري'; p2.appendChild(b2);
+  p2.append(document.createTextNode(tr('forQ')));
   const h = document.createElement('span'); h.setAttribute('data-setting', 'support.hotline'); h.textContent = '9200-12345';
   p2.appendChild(h);
   p2.append(document.createTextNode(' · '));
   const e2 = document.createElement('span'); e2.setAttribute('data-setting', 'support.email'); e2.textContent = 'support@murbha.sa';
   p2.appendChild(e2);
   const small = document.createElement('div'); small.style.fontSize='10px'; small.style.marginTop='4px';
-  small.textContent = 'صادر إلكترونياً — لا يحتاج إلى ختم أو توقيع.';
+  small.textContent = tr('small');
   footer.append(p1, p2, small);
 
   r.append(head, titleRow, grid, amounts, footer);
   root.appendChild(r);
-})();
+}
+
+document.getElementById('rcptLangBtn').addEventListener('click', () => {
+  setLang(isEN() ? 'ar' : 'en');
+  renderReceipt();
+});
+
+renderReceipt();
 </script>
 </body>
 </html>
