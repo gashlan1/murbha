@@ -732,6 +732,24 @@
     </div>
   </div>
 
+  <!-- NOTIFY SINGLE USER -->
+  <div class="admin-card" id="notifyUserCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>✉ إشعار لمستخدم بعينه</span>
+      <span class="card-h-sub">يظهر فوراً في جرس الإشعارات للمستخدم</span>
+    </div>
+    <div class="card-body">
+      <form id="notifyUserForm" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <input id="nuEmail" type="email" placeholder="بريد المستخدم" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:600 13px Tajawal,sans-serif;direction:ltr;" />
+        <input id="nuCta" type="text" maxlength="500" placeholder="رابط CTA (اختياري)" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:600 12px 'SF Mono',Menlo,monospace;direction:ltr;" />
+        <input id="nuTitle" type="text" maxlength="200" placeholder="العنوان" required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 14px Cairo,sans-serif;" />
+        <textarea id="nuText" rows="3" maxlength="2000" placeholder="نص الرسالة..." required style="grid-column:1/-1;padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:500 13px Tajawal,sans-serif;resize:vertical;"></textarea>
+        <button type="submit" style="grid-column:1/-1;padding:11px;background:var(--green-dark);color:#fff;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;">📨 إرسال الإشعار</button>
+      </form>
+      <div id="nuResult" style="margin-top:10px;font:700 12px Tajawal,sans-serif;min-height:18px;"></div>
+    </div>
+  </div>
+
   <!-- BULK MESSAGE -->
   <div class="admin-card" id="bulkMsgCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2479,6 +2497,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   document.getElementById('puProject')?.addEventListener('change', loadProjectUpdates);
+  document.getElementById('notifyUserForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const result = document.getElementById('nuResult');
+    result.textContent = '';
+    const payload = {
+      email: document.getElementById('nuEmail').value.trim(),
+      title: document.getElementById('nuTitle').value.trim(),
+      text: document.getElementById('nuText').value.trim(),
+      ctaUrl: document.getElementById('nuCta').value.trim(),
+    };
+    try {
+      const r = await App.api('POST', '/app/admin/notify-user', payload);
+      result.textContent = '✓ أُرسل إلى ' + (r.name || '—');
+      result.style.color = '#0f6e3a';
+      document.getElementById('notifyUserForm').reset();
+    } catch (err) {
+      result.textContent = 'فشل: ' + (err.message || 'تعذّر الإرسال');
+      result.style.color = '#c54a3a';
+    }
+  });
   document.getElementById('puViewInvestorsBtn')?.addEventListener('click', async () => {
     const slug = document.getElementById('puProject').value;
     if (!slug) { alert('اختر مشروعاً أولاً'); return; }
