@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- My reviews -->
+  <div class="settings-group" id="myRvSec" style="display:none;">
+    <div class="settings-h">⭐ مراجعاتك</div>
+    <div style="padding:14px 18px;">
+      <div id="myRvKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="myRvList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Bonus credit history -->
   <div class="settings-group" id="crSec" style="display:none;">
     <div class="settings-h">🎁 سجلّ المكافآت والإضافات</div>
@@ -2861,6 +2870,57 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // My reviews
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/reviews');
+      if (!r.hasReviews) return;
+      const sec = document.getElementById('myRvSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const kpis = document.getElementById('myRvKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('عدد المراجعات', fmt(r.total), '#0a4d36'),
+        mk('متوسط التقييم', r.avgRating + '/5', '#b08840'),
+        mk('إعجابات', fmt(r.totalLikes), '#0f6e3a'),
+      );
+      const list = document.getElementById('myRvList');
+      list.replaceChildren();
+      (r.recent || []).forEach(rv => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:10px;';
+        const left = document.createElement('a');
+        left.href = '/project.html?slug=' + encodeURIComponent(rv.projectSlug);
+        left.style.cssText = 'text-decoration:none;color:inherit;';
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; t.textContent = rv.projectName;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
+        sub.textContent = new Date(rv.createdAt).toLocaleDateString('ar-SA');
+        left.append(t, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--gold);';
+        right.textContent = '★ ' + rv.rating + '/5';
+        head.append(left, right);
+        const body = document.createElement('div'); body.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.85;';
+        body.textContent = rv.comment;
+        const footer = document.createElement('div'); footer.style.cssText = 'margin-top:8px;font:700 11px Cairo,sans-serif;color:var(--muted);';
+        footer.textContent = '👍 ' + fmt(rv.likes) + ' إعجاب';
+        row.append(head, body, footer);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
