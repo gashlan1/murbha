@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- COMPLETED DEALS -->
+  <div class="admin-card" id="completedDealsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>✅ صفقات مكتملة</span>
+      <span class="card-h-sub" id="completedDealsBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="completedDealsList" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- AT-RISK DEALS -->
   <div class="admin-card" id="atRiskCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2738,6 +2751,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadCompletedDeals() {
+    const list = document.getElementById('completedDealsList');
+    const badge = document.getElementById('completedDealsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/completed-deals');
+      const items = r.deals || [];
+      const s = r.summary || {};
+      if (badge) badge.textContent = (s.total || 0) + ' صفقة · ' + Number(s.totalInvested || 0).toLocaleString('ar-SA') + ' ر.س مُستثمَر';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد صفقات مكتملة')); return; }
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      items.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;';
+        const info = document.createElement('div');
+        const nm = document.createElement('a'); nm.href = '/project.html?id=' + encodeURIComponent(d.slug || d.id); nm.target = '_blank';
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;';
+        nm.textContent = d.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = (d.category || '—') + ' · ' + d.investors + ' مستثمر · ' + (d.closedAt ? new Date(d.closedAt).toLocaleDateString('ar-SA') : '—');
+        info.append(nm, sub);
+        const inv = document.createElement('div'); inv.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);text-align:center;min-width:90px;';
+        inv.textContent = fmt(d.invested) + ' ر.س';
+        const rate = document.createElement('div'); rate.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--gold);text-align:center;min-width:50px;';
+        rate.textContent = (d.expectedRate || 0).toFixed(1) + '٪';
+        row.append(info, inv, rate);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadAtRisk() {
     const list = document.getElementById('atRiskList');
     const badge = document.getElementById('atRiskBadge');
@@ -6132,7 +6180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
