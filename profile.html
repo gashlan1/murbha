@@ -859,12 +859,12 @@
     </div>
   </div>
 
-  <!-- Investment streak -->
-  <div class="settings-group" id="streakSec" style="display:none;">
-    <div class="settings-h">🔥 سلسلة استثماراتك الشهريّة</div>
+  <!-- Carbon offset -->
+  <div class="settings-group" id="carbonSec" style="display:none;">
+    <div class="settings-h">🌳 بصمتك الخضراء</div>
     <div style="padding:14px 18px;">
-      <div id="streakHero" style="background:linear-gradient(135deg,#5c2418,#b08840);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
-      <div id="streakKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+      <div id="carbonHero" style="background:linear-gradient(135deg,#0f6e3a,#0a4d36);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="carbonKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
     </div>
   </div>
 
@@ -3060,24 +3060,25 @@
     } catch (e) {}
   })();
 
-  // Investment streak
+  // Carbon offset (green footprint)
   (async () => {
     try {
-      const r = await App.api('GET', '/app/me/investment-streak');
+      const r = await App.api('GET', '/app/me/carbon-offset');
       if (!r.hasData) return;
-      const sec = document.getElementById('streakSec');
+      const sec = document.getElementById('carbonSec');
       if (!sec) return;
       sec.style.display = '';
-      const hero = document.getElementById('streakHero');
+      const hero = document.getElementById('carbonHero');
       hero.replaceChildren();
-      const flame = document.createElement('div'); flame.style.cssText = 'font-size:36px;line-height:1;'; flame.textContent = r.currentStreak > 0 ? '🔥' : '⏸';
-      const big = document.createElement('div'); big.style.cssText = 'font:900 36px Cairo,sans-serif;margin:8px 0 4px;';
-      big.textContent = r.currentStreak + ' شهر متتالي';
+      const leaf = document.createElement('div'); leaf.style.cssText = 'font-size:36px;line-height:1;'; leaf.textContent = '🌳';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 32px Cairo,sans-serif;margin:8px 0 4px;color:#d4ac6e;';
+      big.textContent = r.totalCO2Tons + ' طن CO₂';
       const desc = document.createElement('div'); desc.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.92;';
-      desc.textContent = r.currentStreak >= 6 ? 'مستثمر منضبط! استمر.' : (r.currentStreak >= 1 ? 'استمر بإضافة استثمار شهرياً للحفاظ على السلسلة.' : 'بدأت سلسلة جديدة عند استثمارك القادم.');
-      hero.append(flame, big, desc);
-      const kpis = document.getElementById('streakKpis');
+      desc.textContent = 'تقدير الانبعاثات المُوفّرة عبر استثماراتك الخضراء';
+      hero.append(leaf, big, desc);
+      const kpis = document.getElementById('carbonKpis');
       kpis.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
       const mk = (l, v, color) => {
         const w = document.createElement('div');
         w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
@@ -3087,10 +3088,10 @@
         return w;
       };
       kpis.append(
-        mk('أطول سلسلة', r.longestStreak + ' شهر', '#0a4d36'),
-        mk('إجماليّ الأشهر النشطة', r.totalMonths, '#b08840'),
-        mk('أوّل استثمار', r.firstMonth, '#0a4d36'),
-        mk('آخر استثمار', r.lastMonth, '#0a4d36'),
+        mk('يعادل أشجار', fmt(r.treesEquivalent) + ' 🌳', '#0f6e3a'),
+        mk('سيّارات عن الطريق', r.carsOffRoad + ' 🚗', '#0a4d36'),
+        mk('استثمارات خضراء', fmt(r.greenAmount) + ' ر.س', '#b08840'),
+        mk('من محفظتك', r.greenPct + '٪', '#0f6e3a'),
       );
     } catch (e) {}
   })();
