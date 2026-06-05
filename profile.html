@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Returns by category -->
+  <div class="settings-group" id="retCatSec" style="display:none;">
+    <div class="settings-h">📊 عوائدك حسب الفئة</div>
+    <div style="padding:14px 18px;">
+      <div id="retCatSummary" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
+      <div id="retCatList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Recent activity -->
   <div class="settings-group" id="actSec" style="display:none;">
     <div class="settings-h">📜 آخر نشاطك</div>
@@ -2973,6 +2982,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Returns by category
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/returns-by-category');
+      if (!r.hasData) return;
+      const sec = document.getElementById('retCatSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const summary = document.getElementById('retCatSummary');
+      summary.replaceChildren();
+      const mkSummary = (title, cat, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:linear-gradient(135deg,#fbf6ea,#fff);border:2px solid ' + color + ';border-radius:12px;padding:14px;text-align:center;';
+        const t = document.createElement('div'); t.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);'; t.textContent = title;
+        const c = document.createElement('div'); c.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + color + ';margin-top:4px;'; c.textContent = cat.category;
+        const roi = document.createElement('div'); roi.style.cssText = 'font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-top:4px;'; roi.textContent = cat.roi + '٪';
+        w.append(t, c, roi);
+        return w;
+      };
+      if (r.bestRoi) summary.appendChild(mkSummary('🏆 الأعلى عائداً', r.bestRoi, '#0f6e3a'));
+      if (r.worstRoi && r.worstRoi.category !== r.bestRoi.category) summary.appendChild(mkSummary('📉 الأقل عائداً', r.worstRoi, '#c54a3a'));
+      const list = document.getElementById('retCatList');
+      list.replaceChildren();
+      const max = Math.max(...r.categories.map(c => Math.abs(c.roi)), 1);
+      const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418', '#1e3a8a'];
+      r.categories.forEach((c, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = c.category;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:16px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + Math.round((Math.abs(c.roi) / max) * 100) + '%;background:' + (c.roi >= 0 ? palette[i % palette.length] : '#c54a3a') + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:170px;';
+        meta.textContent = c.deals + ' صفقة · ROI ' + c.roi + '٪ · ' + fmt(c.profit) + ' ر.س';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
