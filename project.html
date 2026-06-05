@@ -1479,6 +1479,13 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Financial summary table -->
+<div class="card-section" id="finSumCard" style="display:none;">
+  <h2 class="section-h">📊 الملخّص المالي</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">المؤشّرات المالية الأساسية للصفقة في جدول واحد.</p>
+  <div id="finSumGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"></div>
+</div>
+
 <!-- Payout schedule -->
 <div class="card-section" id="payoutCard" style="display:none;">
   <h2 class="section-h">📆 جدول الدفعات المتوقّع</h2>
@@ -4210,6 +4217,44 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
+  function _initFinSum(p) {
+    const card = document.getElementById('finSumCard');
+    const grid = document.getElementById('finSumGrid');
+    if (!card || !grid) return;
+    const goal = Number(p.goal || 0);
+    const raised = Number(p.raised || 0);
+    const ret = Number(p.expectedReturn || 0);
+    const months = Number(p.durationMonths || 0);
+    const min = Number(p.minAmount || 0);
+    const maxRetail = 50000;
+    if (!goal && !ret && !months) { card.style.display = 'none'; return; }
+    const fmt = n => Number(Math.round(n || 0)).toLocaleString('ar-SA');
+    const periodReturn = ret && months ? Math.round(ret * (months / 12) * 10) / 10 : 0;
+    const remaining = Math.max(0, goal - raised);
+    const items = [
+      { l: 'الهدف', v: fmt(goal) + ' ر.س' },
+      { l: 'المُجمَّع', v: fmt(raised) + ' ر.س', c: '#0f6e3a' },
+      { l: 'المتبقّي', v: fmt(remaining) + ' ر.س', c: '#b08840' },
+      { l: 'العائد السنوي', v: ret + '٪', c: '#0a4d36' },
+      { l: 'عائد المدّة', v: periodReturn + '٪', c: '#062b1e' },
+      { l: 'المدّة', v: months + ' شهر' },
+      { l: 'حدّ أدنى', v: fmt(min) + ' ر.س' },
+      { l: 'حدّ أعلى (فردي)', v: fmt(maxRetail) + ' ر.س' },
+    ];
+    grid.replaceChildren();
+    items.forEach(it => {
+      const cell = document.createElement('div');
+      cell.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px 10px;text-align:center;';
+      const v = document.createElement('div'); v.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (it.c || 'var(--green-dark)') + ';';
+      v.textContent = it.v;
+      const l = document.createElement('div'); l.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+      l.textContent = it.l;
+      cell.append(v, l);
+      grid.appendChild(cell);
+    });
+    card.style.display = '';
+  }
+
   function _initPayouts(p) {
     const card = document.getElementById('payoutCard');
     const list = document.getElementById('payoutList');
@@ -4450,7 +4495,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setHealth(p) {
     const badge = document.getElementById('healthBadge');
