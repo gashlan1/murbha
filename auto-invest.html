@@ -39,7 +39,8 @@
     padding-bottom: var(--safe-bot);
   }
   button, a, input { font-family: inherit; touch-action: manipulation; }
-  .skip-link { position: absolute; left: -9999px; top: 0; }
+  .skip-link { position: absolute; top: -100px; inset-inline-start: 8px; background: #fff; padding: 8px 12px; border-radius: 8px; z-index: 999; }
+  .skip-link:focus { top: 8px; }
 
   header {
     position: sticky; top: 0;
@@ -362,12 +363,20 @@
         <input id="excludeInviteOnly" type="checkbox" checked />
         <span class="cb-label">استبعاد الفرص المخصّصة بدعوة خاصة فقط</span>
       </label>
+
+      <div style="margin-top:18px;">
+        <div style="font:800 13px Cairo,sans-serif;color:var(--green-dark,#062b1e);margin-bottom:8px;">القطاعات المسموح بها</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted,#6b7268);margin-bottom:10px;line-height:1.7;">اترك الكل بدون تحديد لقبول جميع القطاعات.</div>
+        <div id="categoryChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
     </div>
   </div>
 
-  <div class="save-bar">
+  <div class="save-bar" style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="previewBtn" class="btn" type="button" style="background:#fff;color:var(--green-dark);border:1.5px solid var(--green-dark);">👁 معاينة (دون حفظ)</button>
     <button id="saveBtn" class="btn">حفظ التفضيلات</button>
   </div>
+  <div id="previewResult" style="display:none;margin-top:12px;padding:12px 14px;background:rgba(176,136,64,0.08);border:1px dashed var(--gold-light);border-radius:10px;font:600 13px Tajawal,sans-serif;color:#7a5a10;line-height:1.7;"></div>
 
   <div class="section-h" id="matchesHeader" style="display:none;">
     <h3>فرص تطابق تفضيلاتك</h3>
@@ -414,6 +423,28 @@
     rulesSec.classList.toggle('dim', !enabled);
   }
 
+  const KNOWN_CATEGORIES = ['عقاري', 'تقني', 'صناعي', 'تجاري', 'سياحي', 'صحي', 'تعليمي', 'حكومي'];
+  let _selectedCats = new Set();
+
+  function renderCategoryChips() {
+    const wrap = document.getElementById('categoryChips');
+    if (!wrap) return;
+    wrap.textContent = '';
+    KNOWN_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      const on = _selectedCats.has(cat);
+      chip.style.cssText = 'padding:7px 14px;border-radius:999px;border:1px solid ' + (on ? '#0a4d36' : 'rgba(13,22,18,0.15)') + ';background:' + (on ? '#0a4d36' : '#fff') + ';color:' + (on ? '#fff' : '#0d1612') + ';font:700 12px Cairo,sans-serif;cursor:pointer;';
+      chip.textContent = cat;
+      chip.onclick = () => {
+        if (_selectedCats.has(cat)) _selectedCats.delete(cat);
+        else _selectedCats.add(cat);
+        renderCategoryChips();
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
   function readForm() {
     return {
       enabled,
@@ -422,6 +453,7 @@
       maxTermMonths:     Number($('maxTerm').value)    || 24,
       minProfitRate:     (Number($('minRate').value)  || 8) / 100,
       excludeInviteOnly: $('excludeInviteOnly').checked,
+      categories:        [..._selectedCats],
     };
   }
 
@@ -433,6 +465,8 @@
     $('maxTerm').value   = r.maxTermMonths;
     $('minRate').value   = (r.minProfitRate * 100).toFixed(1).replace(/\.0$/, '');
     $('excludeInviteOnly').checked = !!r.excludeInviteOnly;
+    _selectedCats = new Set(Array.isArray(r.categories) ? r.categories : []);
+    renderCategoryChips();
   }
 
   function toast(msg) {
@@ -532,6 +566,44 @@
       saveBtn.disabled = false;
       saveBtn.textContent = 'حفظ التفضيلات';
     }
+  });
+
+  $('previewBtn')?.addEventListener('click', async () => {
+    const out = $('previewResult');
+    if (!out) return;
+    out.style.display = 'block';
+    out.textContent = 'جارٍ المعاينة…';
+    try {
+      const rules = readForm();
+      const r = await App.api('POST', '/app/auto-invest/preview', rules);
+      const count = (r.matches || []).length;
+      out.textContent = '';
+      if (!count) {
+        out.textContent = '🔍 لن تطابق أي فرصة حالياً بهذه القواعد. وسّع الحدود قليلاً.';
+      } else {
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:6px;';
+        head.textContent = '✓ ' + count + ' فرصة مطابقة · مجموع الاستثمار المقترح ≈ ' + Number(r.wouldInvest || 0).toLocaleString('ar-SA') + ' ر.س';
+        out.appendChild(head);
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+        (r.matches || []).slice(0, 5).forEach(p => {
+          const li = document.createElement('div');
+          li.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#7a5a10;display:flex;justify-content:space-between;gap:8px;';
+          const nm = document.createElement('span'); nm.textContent = '• ' + p.name;
+          const amt = document.createElement('span'); amt.style.cssText='font-weight:800;'; amt.textContent = Number(p.suggestedAmount || 0).toLocaleString('ar-SA') + ' ر.س';
+          li.append(nm, amt);
+          list.appendChild(li);
+        });
+        out.appendChild(list);
+        if (count > 5) {
+          const more = document.createElement('div');
+          more.style.cssText = 'margin-top:6px;font-size:11px;color:#7a5a10;';
+          more.textContent = 'و ' + (count - 5) + ' فرصة أخرى…';
+          out.appendChild(more);
+        }
+      }
+    } catch (e) { out.textContent = 'تعذّرت المعاينة'; out.style.color = '#c54a3a'; }
   });
 
   // Wait for App to be ready
