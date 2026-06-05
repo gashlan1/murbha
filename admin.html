@@ -695,6 +695,17 @@
     </div>
   </div>
 
+  <!-- SLA TRACKER -->
+  <div class="admin-card" id="slaCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📊 لوحة SLA</span>
+      <span class="card-h-sub" id="slaBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="slaList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- TICKET TREND -->
   <div class="admin-card" id="ttCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3191,6 +3202,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadSla() {
+    const list = document.getElementById('slaList');
+    const badge = document.getElementById('slaBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/sla-tracker');
+      if (badge) {
+        const color = r.healthScore >= 80 ? '🟢' : (r.healthScore >= 60 ? '🟡' : '🔴');
+        badge.textContent = color + ' ' + r.healthyCount + '/' + r.totalCount + ' متوافق · ' + r.healthScore + '٪ صحّة';
+      }
+      list.replaceChildren();
+      (r.slas || []).forEach(s => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:160px 1fr auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--paper);border-radius:8px;border-inline-start:4px solid ' + (s.ok ? '#0f6e3a' : '#c54a3a') + ';';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = s.label;
+        const tgt = document.createElement('div'); tgt.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        tgt.textContent = '🎯 ' + s.target;
+        const pen = document.createElement('div'); pen.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--ink);text-align:end;min-width:80px;';
+        pen.textContent = (s.pending || 0).toLocaleString('ar-SA') + ' عنصر';
+        const breach = document.createElement('div'); breach.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + (s.breachPct >= 20 ? '#c54a3a' : (s.breachPct >= 10 ? '#d97706' : '#0f6e3a')) + ';text-align:end;min-width:80px;';
+        breach.textContent = (s.breaches || 0).toLocaleString('ar-SA') + ' خرق (' + (s.breachPct || 0) + '٪)';
+        row.append(lbl, tgt, pen, breach);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadTt() {
     const list = document.getElementById('ttList');
     const badge = document.getElementById('ttBadge');
@@ -7891,7 +7930,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

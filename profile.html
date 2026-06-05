@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Notification channels distribution -->
+  <div class="settings-group" id="chDistSec" style="display:none;">
+    <div class="settings-h">📨 توزيع قنوات الإشعارات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:12px;line-height:1.7;">القنوات التي تستخدمها مُرابحة لإيصال إشعاراتك، ونسبة كل منها.</p>
+      <div id="chDistList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Inbox cleanup -->
   <div class="settings-group" id="inboxSec" style="display:none;">
     <div class="settings-h">🧹 صيانة صندوق الإشعارات</div>
@@ -2784,6 +2793,38 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Notification channels distribution
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/notification-channels');
+      if (!r.total) return;
+      const sec = document.getElementById('chDistSec');
+      const list = document.getElementById('chDistList');
+      if (!sec || !list) return;
+      sec.style.display = '';
+      list.replaceChildren();
+      const palette = { in_app: '#0a4d36', email: '#b08840', sms: '#0f6e3a', push: '#5c2418', whatsapp: '#1e3a8a' };
+      const max = Math.max(...(r.channels || []).map(c => c.count), 1);
+      r.channels.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto auto;gap:10px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = c.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:14px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((c.count / max) * 100) + '%;background:' + (palette[c.key] || '#6b7268') + ';';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:80px;';
+        meta.textContent = c.count + ' (' + c.pct + '٪)';
+        const status = document.createElement('div');
+        status.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 8px;border-radius:99px;' + (c.enabled ? 'color:#0f6e3a;background:rgba(15,110,58,0.10);' : 'color:#6b7268;background:rgba(107,114,104,0.10);');
+        status.textContent = c.enabled ? 'مُفعَّل' : 'متوقّف';
+        row.append(lbl, bar, meta, status);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
