@@ -911,6 +911,21 @@
       </div>
     </button>
 
+    <div class="setting-row" style="cursor:default;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8V5l8-3 8 3v5.2c0 7.3-8 11.8-8 11.8z"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">التحقّق عبر SMS عند تسجيل الدخول</div>
+        <div class="setting-sub" id="sms2faSub">نرسل رمزاً إلى جوالك في كل محاولة دخول جديدة</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;">
+        <input type="checkbox" id="sms2faToggle" style="opacity:0;width:0;height:0;" />
+        <span id="sms2faSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="sms2faKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
+
     <button type="button" id="changeEmailBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -1076,6 +1091,18 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+    <button type="button" id="sendSummaryBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 1 1 9 9"/><path d="M3 4v7h7"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">إرسال ملخّص محفظتي إلى بريدي</div>
+        <div class="setting-sub">يحتوي الرصيد، الاستثمارات النشطة، والتوزيعات القادمة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
     <a href="/app/me/payouts.ics" id="icsExportLink" class="setting-row" download="murbha-payouts.ics">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1670,6 +1697,51 @@
         await App.api('PATCH', '/app/me/leaderboard-opt', { optIn });
         App.toast && App.toast(optIn ? '✓ ستظهر في اللوحة العامة' : 'تم إخفاء اسمك', 'success');
       } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
+
+  // Send portfolio summary email
+  document.getElementById('sendSummaryBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('sendSummaryBtn');
+    const sub = btn.querySelector('.setting-sub');
+    const original = sub.textContent;
+    sub.textContent = 'جارٍ الإرسال…';
+    try {
+      const r = await App.api('POST', '/app/me/summary/send');
+      sub.textContent = '✓ أُرسل إلى ' + (r.to || 'بريدك');
+      setTimeout(() => { sub.textContent = original; }, 4000);
+    } catch (e) {
+      sub.textContent = original;
+      App.toast && App.toast(e.message || 'فشل الإرسال', 'error');
+    }
+  });
+
+  // SMS 2FA toggle
+  (async () => {
+    const cb = document.getElementById('sms2faToggle');
+    const sl = document.getElementById('sms2faSlider');
+    const kb = document.getElementById('sms2faKnob');
+    const sub = document.getElementById('sms2faSub');
+    if (!cb) return;
+    const sync = (on) => {
+      cb.checked = !!on;
+      sl.style.background = on ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    let phone = null;
+    try {
+      const me = await App.api('GET', '/app/me');
+      phone = me.user?.phone;
+      sync(!!me.user?.sms2faEnabled);
+      if (!phone) { sub.textContent = 'أضف رقم جوالك أولاً لتفعيل هذه الميزة.'; cb.disabled = true; sl.style.opacity = 0.5; }
+    } catch (e) { sync(false); }
+    cb.addEventListener('change', async () => {
+      const enable = cb.checked;
+      sync(enable);
+      try {
+        await App.api('POST', '/app/me/sms-2fa', { enable });
+        App.toast && App.toast(enable ? '✓ تم تفعيل التحقّق عبر SMS' : 'تم إلغاء التحقّق', 'success');
+      } catch (e) { sync(!enable); App.toast && App.toast(e.message || 'فشل', 'error'); }
     });
   })();
 

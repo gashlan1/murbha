@@ -1079,6 +1079,38 @@
     btn.addEventListener('click', () => openQuickDeposit());
   }
 
+  // ── Mobile quick-actions FAB ──
+  (() => {
+    if (window.matchMedia && !window.matchMedia('(max-width: 768px)').matches) return;
+    if (document.getElementById('paFab')) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'paFab';
+    wrap.style.cssText = 'position:fixed;inset-block-end:calc(var(--tabbar-h,70px) + env(safe-area-inset-bottom,0px) + 14px);inset-inline-end:14px;z-index:8999;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:8px;';
+    const mkBtn = (label, emoji, onclick, primary) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.style.cssText = primary
+        ? 'width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#b08840,#7a5a10);color:#fff;border:0;box-shadow:0 8px 22px -4px rgba(176,136,64,0.5),0 2px 6px rgba(0,0,0,0.15);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s;'
+        : 'min-width:48px;height:42px;padding:0 14px;border-radius:999px;background:#fff;color:#062b1e;border:1px solid rgba(13,22,18,0.10);box-shadow:0 4px 16px rgba(0,0,0,0.08);font:800 12px Cairo,sans-serif;cursor:pointer;display:none;align-items:center;gap:6px;';
+      b.innerHTML = '';
+      b.textContent = (primary ? emoji : emoji + '  ' + label);
+      b.setAttribute('aria-label', label);
+      b.onclick = onclick;
+      return b;
+    };
+    let open = false;
+    const browseBtn  = mkBtn('تصفّح الفرص',  '🔍', () => { location.href = '/projects.html'; });
+    const withdrawBtn = mkBtn('سحب',         '↑',  () => openQuickWithdraw());
+    const depositBtn  = mkBtn('إيداع سريع',   '+',  () => openQuickDeposit());
+    const mainBtn     = mkBtn('قائمة سريعة',  '⚡', () => {
+      open = !open;
+      [browseBtn, withdrawBtn, depositBtn].forEach(b => b.style.display = open ? 'inline-flex' : 'none');
+      mainBtn.style.transform = open ? 'rotate(45deg)' : 'rotate(0deg)';
+    }, true);
+    wrap.append(mainBtn, depositBtn, withdrawBtn, browseBtn);
+    document.body.appendChild(wrap);
+  })();
+
   async function openQuickDeposit() {
     if (document.getElementById('quickDepositModal')) return;
     const modal = document.createElement('div');
@@ -1116,6 +1148,16 @@
       presets.appendChild(b);
     });
     card.appendChild(presets);
+
+    const wireLink = document.createElement('a');
+    wireLink.href = '/wire-deposit.html';
+    wireLink.style.cssText = 'display:block;text-align:center;margin-bottom:14px;color:#6b7268;font:600 12px Tajawal,sans-serif;text-decoration:none;';
+    const u1 = document.createElement('u');
+    u1.style.cssText = 'color:#062b1e;font-weight:800;';
+    u1.textContent = 'الإيداع عبر حوالة بنكية';
+    wireLink.appendChild(document.createTextNode('أو '));
+    wireLink.appendChild(u1);
+    card.appendChild(wireLink);
 
     const mLbl = document.createElement('label');
     mLbl.style.cssText = 'display:block;font:700 11px Cairo,sans-serif;color:#6b7268;margin-bottom:4px;';
