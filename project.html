@@ -1143,6 +1143,13 @@
         <b id="calcFinal">٣١,٩٠٠ ر.س</b>
       </div>
     </div>
+    <div style="margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font:800 12px Cairo,sans-serif;color:var(--green-dark);">جدول التوزيعات الربعية</span>
+        <span style="font:500 11px Tajawal,sans-serif;color:var(--muted);">تقديري</span>
+      </div>
+      <div id="payoutSchedule" style="display:flex;flex-direction:column;gap:6px;font:600 12px Tajawal,sans-serif;color:var(--ink);"></div>
+    </div>
   </div>
 </div>
 
@@ -1391,6 +1398,41 @@
     document.getElementById('calcYearly').textContent = toArabic(yearly) + ' ر.س';
     document.getElementById('calcTotal').textContent = toArabic(total) + ' ر.س';
     document.getElementById('calcFinal').textContent = toArabic(final) + ' ر.س';
+    // Quarterly payout schedule (3 years = 12 quarters)
+    const sched = document.getElementById('payoutSchedule');
+    if (sched) {
+      sched.textContent = '';
+      const perQ = yearly / 4;
+      const today = new Date();
+      for (let q = 1; q <= 12; q++) {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() + q * 3);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed rgba(13,22,18,0.06);';
+        const left = document.createElement('span');
+        left.textContent = 'الربع ' + toArabic(q) + ' · ' + d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'short' });
+        const right = document.createElement('b');
+        right.style.cssText = 'color:var(--green-dark);';
+        right.textContent = '+' + toArabic(perQ) + ' ر.س';
+        row.appendChild(left); row.appendChild(right);
+        sched.appendChild(row);
+        if (q >= 6 && q < 12) row.style.display = 'none'; // collapse middle for brevity
+      }
+      // Toggle "show all"
+      if (!sched.dataset.toggleAdded) {
+        sched.dataset.toggleAdded = '1';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'عرض الجدول كاملاً ↓';
+        btn.style.cssText = 'margin-top:6px;background:transparent;border:0;color:var(--gold);font:800 11px Cairo,sans-serif;cursor:pointer;padding:4px;';
+        btn.onclick = () => {
+          const hidden = sched.querySelectorAll('div[style*="display:none"], div[style*="display: none"]');
+          if (hidden.length) { hidden.forEach(d => d.style.display = ''); btn.textContent = 'إخفاء المتوسط ↑'; }
+          else { Array.from(sched.querySelectorAll('div')).forEach((d, i) => { if (i >= 5 && i < 11) d.style.display = 'none'; }); btn.textContent = 'عرض الجدول كاملاً ↓'; }
+        };
+        sched.parentElement.appendChild(btn);
+      }
+    }
   }
   slider.addEventListener('input', e => recalc(+e.target.value));
 

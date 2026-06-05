@@ -1658,6 +1658,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         actBtn.textContent = '📜 النشاط';
         actBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openUserActivity(u); };
         tags.appendChild(actBtn);
+        const pfBtn = document.createElement('button');
+        pfBtn.type = 'button';
+        pfBtn.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        pfBtn.textContent = '💼 المحفظة';
+        pfBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openUserPortfolio(u); };
+        tags.appendChild(pfBtn);
         const stChip = document.createElement('span');
         const st = statusOf(u);
         const stColors = { pending: '#b08840', approved: '#0f6e3a', rejected: '#c54a3a', admin: '#0a4d36' };
@@ -1782,6 +1788,110 @@ document.addEventListener('DOMContentLoaded', async () => {
       list.replaceChildren();
       const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:18px;'; e.textContent='تعذّر التحميل.';
       list.appendChild(e);
+    });
+  }
+
+  // ── User portfolio (read-only) ────────────────────────────────
+  function openUserPortfolio(u) {
+    let modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;';
+    const close = () => modal.remove();
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+    const h = document.createElement('div');
+    h.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px;';
+    const title = document.createElement('div');
+    title.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+    title.textContent = '💼 محفظة ' + (u.name || u.email || u.id);
+    const x = document.createElement('button');
+    x.textContent = '✕'; x.type = 'button';
+    x.style.cssText = 'background:transparent;border:0;font-size:18px;cursor:pointer;color:var(--muted);';
+    x.onclick = close;
+    h.append(title, x);
+    card.appendChild(h);
+
+    const loading = document.createElement('div');
+    loading.style.cssText = 'text-align:center;padding:40px;color:var(--muted);';
+    loading.textContent = 'جارٍ التحميل…';
+    card.appendChild(loading);
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    App.api('GET', '/app/admin/users/' + encodeURIComponent(u.id) + '/portfolio').then(d => {
+      loading.remove();
+      const summary = document.createElement('div');
+      summary.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;';
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA') + ' ر.س';
+      [
+        ['إجمالي الاستثمار', fmt(d.summary.totalInvested)],
+        ['إجمالي العوائد', fmt(d.summary.totalReturned)],
+        ['عدد الاستثمارات', d.summary.investmentCount],
+        ['عدد العقود', d.summary.contractCount],
+      ].forEach(([l, v]) => {
+        const t = document.createElement('div');
+        t.style.cssText = 'background:#fbf8ee;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText='font:900 16px Cairo,sans-serif;color:var(--green-dark);'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText='font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        t.append(vv, ll); summary.appendChild(t);
+      });
+      card.appendChild(summary);
+
+      const section = (label) => {
+        const s = document.createElement('div');
+        const sh = document.createElement('div');
+        sh.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);margin:14px 0 8px;';
+        sh.textContent = label;
+        s.appendChild(sh);
+        return s;
+      };
+      const list = (rows, fmtRow) => {
+        const ul = document.createElement('div');
+        ul.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+        if (!rows.length) {
+          const e = document.createElement('div'); e.style.cssText='color:var(--muted);font-size:12px;padding:8px;text-align:center;';
+          e.textContent = '— لا يوجد —';
+          ul.appendChild(e);
+        } else {
+          rows.forEach(r => {
+            const item = document.createElement('div');
+            item.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;font-size:12px;';
+            const a = document.createElement('span'); a.textContent = fmtRow(r).left;
+            const b = document.createElement('span'); b.style.fontWeight = '700'; b.textContent = fmtRow(r).right;
+            item.append(a, b); ul.appendChild(item);
+          });
+        }
+        return ul;
+      };
+
+      const invSec = section('الاستثمارات (' + d.investments.length + ')');
+      invSec.appendChild(list(d.investments.slice(0, 10), i => ({
+        left: i.projectName + ' · ' + (i.createdAt || '').slice(0, 10),
+        right: fmt(i.amount),
+      })));
+      card.appendChild(invSec);
+
+      const txnSec = section('آخر المعاملات (' + d.transactions.length + ')');
+      txnSec.appendChild(list(d.transactions.slice(0, 10), t => ({
+        left: (t.kind || '—') + ' · ' + (t.createdAt || '').slice(0, 10),
+        right: (Number(t.amount) > 0 ? '+' : '') + fmt(t.amount),
+      })));
+      card.appendChild(txnSec);
+
+      const loginSec = section('آخر تسجيلات الدخول');
+      loginSec.appendChild(list(d.recentLogins.slice(0, 6), l => ({
+        left: (l.createdAt || '').slice(0, 16).replace('T', ' ') + ' · ' + (l.ip || ''),
+        right: l.success ? '✓' : '✗ ' + (l.reason || ''),
+      })));
+      card.appendChild(loginSec);
+
+      const note = document.createElement('div');
+      note.style.cssText = 'margin-top:14px;padding:10px;background:#fbf8ee;border:1px dashed var(--gold-light);border-radius:8px;font-size:11px;color:var(--muted);text-align:center;';
+      note.textContent = 'عرض للقراءة فقط. كل وصول مُسجَّل في سجل التدقيق.';
+      card.appendChild(note);
+    }).catch(() => {
+      loading.textContent = 'تعذّر التحميل.';
     });
   }
 
