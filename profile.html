@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Investment style -->
+  <div class="settings-group" id="styleSec" style="display:none;">
+    <div class="settings-h">🎨 أسلوبك الاستثماري</div>
+    <div style="padding:14px 18px;">
+      <div id="styleHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="styleKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">سماتك الاستثماريّة</div>
+      <div id="styleTraits" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Fees summary -->
   <div class="settings-group" id="feesSec" style="display:none;">
     <div class="settings-h">💸 الرسوم المدفوعة</div>
@@ -3036,6 +3047,47 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investment style
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/investment-style');
+      if (!r.hasData) return;
+      const sec = document.getElementById('styleSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('styleHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 30px Cairo,sans-serif;'; big.textContent = r.style;
+      const desc = document.createElement('div'); desc.style.cssText = 'font:600 13px Tajawal,sans-serif;color:#fff;opacity:0.92;margin-top:8px;'; desc.textContent = r.description;
+      const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:#d4ac6e;opacity:0.85;margin-top:10px;';
+      meta.textContent = 'مبنيّ على ' + r.totalDeals + ' صفقة استثمار';
+      hero.append(big, desc, meta);
+      const kpis = document.getElementById('styleKpis');
+      kpis.replaceChildren();
+      const tiles = [
+        { v: r.avgReturn + '٪', l: 'متوسّط العائد', c: '#0a4d36' },
+        { v: r.avgDuration + ' شهر', l: 'متوسّط المدّة', c: '#0a4d36' },
+        { v: Number(r.avgTicket).toLocaleString('ar-SA') + ' ر.س', l: 'حجم تذكرتك', c: '#b08840' },
+        { v: r.riskScore + '٪', l: 'مؤشّر المخاطر', c: r.riskScore >= 60 ? '#c54a3a' : (r.riskScore >= 30 ? '#b08840' : '#0f6e3a') },
+      ];
+      tiles.forEach(t => {
+        const tile = document.createElement('div'); tile.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const tv = document.createElement('div'); tv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + t.c + ';'; tv.textContent = t.v;
+        const tl = document.createElement('div'); tl.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; tl.textContent = t.l;
+        tile.append(tv, tl);
+        kpis.appendChild(tile);
+      });
+      const traits = document.getElementById('styleTraits');
+      traits.replaceChildren();
+      (r.traits || []).forEach(t => {
+        const chip = document.createElement('span');
+        chip.style.cssText = 'font:700 11px Cairo,sans-serif;color:#062b1e;background:#fbf6ea;border:1px solid #d4ac6e;padding:5px 12px;border-radius:999px;';
+        chip.textContent = '✓ ' + t;
+        traits.appendChild(chip);
       });
     } catch (e) {}
   })();
