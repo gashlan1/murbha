@@ -967,6 +967,10 @@
     <span id="minTicketBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
+    <label id="closingReminderToggle" style="display:none;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;cursor:pointer;">
+      <input id="closingReminderCb" type="checkbox" style="margin:0;accent-color:#0a4d36;" />
+      🔔 نبّهني قبل الإغلاق ٢٤ ساعة
+    </label>
   </div>
   <div id="fundingHistory" style="margin-top:14px;padding-top:14px;border-top:1px dashed rgba(13,22,18,0.08);display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -2577,6 +2581,28 @@
           const d = await r.json();
           if (r.ok) { setSaved(!!d.saved); App.toast && App.toast(d.saved ? 'تمت إضافة الفرصة إلى المحفوظات' : 'تم الحذف من المحفوظات', 'success'); }
         } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+      };
+    }
+
+    // Closing reminder toggle (auth + open + has closesAt)
+    const remToggle = document.getElementById('closingReminderToggle');
+    const remCb = document.getElementById('closingReminderCb');
+    if (remToggle && remCb && me && me.id && p.closesAt && p.status === 'open') {
+      remToggle.style.display = 'inline-flex';
+      fetch('/app/me/closing-reminders', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : { ids: [] })
+        .then(d => { remCb.checked = (d.ids || []).includes(p.id); })
+        .catch(() => {});
+      remCb.onchange = async () => {
+        try {
+          const r = await App.csrfFetch('/app/me/closing-reminders/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: p.id }),
+          });
+          const d = await r.json();
+          if (r.ok) App.toast && App.toast(d.enabled ? 'سننبّهك قبل الإغلاق' : 'تم إيقاف التنبيه', 'success');
+        } catch (e) { remCb.checked = !remCb.checked; App.toast && App.toast('تعذّر الحفظ', 'error'); }
       };
     }
 
