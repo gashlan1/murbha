@@ -2152,6 +2152,47 @@
       }
     }
 
+    // Eligibility badge (auth users)
+    (async () => {
+      try {
+        const me = await App.me();
+        if (!me || !me.id) return;
+        const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+        if (!wrap) return;
+        const fresh = await App.api('GET', '/app/me');
+        const u = fresh.user || me;
+        const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [] }));
+        const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+        const investedThisYear = (port.investments || [])
+          .filter(i => i.status !== 'canceled' && new Date(i.createdAt || 0).getTime() >= yearStart)
+          .reduce((s, i) => s + Number(i.amount || 0), 0);
+        const cap = 200000;
+        const remaining = Math.max(0, cap - investedThisYear);
+        const badge = document.createElement('span');
+        badge.style.cssText = 'display:inline-block;font:700 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;';
+        if (u.role === 'qualified_investor' || u.kycStatus === 'verified_qualified') {
+          badge.style.color = '#fff';
+          badge.style.background = 'linear-gradient(90deg,#0a4d36,#062b1e)';
+          badge.textContent = '⭐ مستثمر مؤهّل · لا حدود';
+        } else if (u.kycStatus !== 'verified' && !u.approved) {
+          badge.style.color = '#c54a3a';
+          badge.style.background = 'rgba(197,74,58,0.08)';
+          badge.style.border = '1px solid rgba(197,74,58,0.30)';
+          badge.textContent = '⚠ أكمل التحقّق للاستثمار';
+        } else if (remaining <= 0) {
+          badge.style.color = '#c54a3a';
+          badge.style.background = 'rgba(197,74,58,0.08)';
+          badge.style.border = '1px solid rgba(197,74,58,0.30)';
+          badge.textContent = '⛔ بلغت سقف ٢٠٠ك السنوي';
+        } else {
+          badge.style.color = '#0f6e3a';
+          badge.style.background = 'rgba(15,110,58,0.10)';
+          badge.textContent = '✓ مؤهّل · متبقّي ' + remaining.toLocaleString('ar-SA') + ' ر.س';
+        }
+        wrap.appendChild(badge);
+      } catch (e) {}
+    })();
+
     // My investment badge (auth users who already invested)
     (async () => {
       try {
