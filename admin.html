@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- PENDING DELETIONS -->
+  <div class="admin-card" id="pendingDelCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🗑 طلبات حذف الحساب (PDPL)</span>
+      <span class="card-h-sub" id="pendingDelBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="pendingDelList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- YIELD REPORT -->
   <div class="admin-card" id="yieldReportCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2590,6 +2603,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadPendingDeletions() {
+    const list = document.getElementById('pendingDelList');
+    const badge = document.getElementById('pendingDelBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/pending-deletions');
+      const items = r.users || [];
+      if (badge) badge.textContent = items.length + ' طلب';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد طلبات حذف نشطة')); return; }
+      items.forEach(u => {
+        const row = document.createElement('div');
+        const urgent = u.daysRemaining <= 7;
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid ' + (urgent ? 'rgba(197,74,58,0.30)' : 'var(--line)') + ';border-radius:10px;background:#fff;gap:10px;flex-wrap:wrap;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = u.name + (u.balance > 0 ? ' · رصيد ' + Number(u.balance).toLocaleString('ar-SA') + ' ر.س' : '');
+        const em = document.createElement('div'); em.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;';
+        em.textContent = u.email;
+        const dt = document.createElement('div'); dt.style.cssText = 'font:500 11px Tajawal,sans-serif;color:' + (urgent ? '#c54a3a' : 'var(--muted)') + ';margin-top:2px;';
+        dt.textContent = '📅 طُلب ' + new Date(u.requestedAt).toLocaleDateString('ar-SA') + ' · يُحذف خلال ' + u.daysRemaining + ' يوم';
+        info.append(nm, em, dt);
+        const cancel = document.createElement('button');
+        cancel.type = 'button'; cancel.textContent = '✗ إلغاء الطلب';
+        cancel.style.cssText = 'padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        cancel.onclick = async () => {
+          if (!confirm('إلغاء طلب الحذف لـ ' + u.name + '؟')) return;
+          cancel.disabled = true; cancel.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/users/' + encodeURIComponent(u.id) + '/cancel-deletion');
+            App.toast && App.toast('تم إلغاء الطلب', 'success');
+            loadPendingDeletions();
+          } catch (e) { cancel.disabled = false; cancel.textContent = '✗ إلغاء الطلب'; alert(e.message || 'فشل'); }
+        };
+        row.append(info, cancel);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+
   async function loadYieldReport() {
     const list = document.getElementById('yieldList');
     const badge = document.getElementById('yieldReportBadge');
@@ -5576,7 +5632,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
