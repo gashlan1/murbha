@@ -1461,7 +1461,7 @@
   <div id="projectDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
   <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <span style="font:600 11px Tajawal,sans-serif;color:#6b7268;">قبل الاستثمار:</span>
-    <a href="/downloads.html" style="font:800 11px Cairo,sans-serif;color:var(--green-dark);background:#fff;border:1px solid var(--green-dark);padding:6px 12px;border-radius:999px;text-decoration:none;">📋 نموذج عقد المرابحة الموحّد</a>
+    <button type="button" id="viewContractBtn" style="font:800 11px Cairo,sans-serif;color:var(--green-dark);background:#fff;border:1px solid var(--green-dark);padding:6px 12px;border-radius:999px;cursor:pointer;">📋 معاينة عقد المرابحة</button>
     <a href="/sample-deal.html" style="font:800 11px Cairo,sans-serif;color:var(--gold);background:#fff;border:1px solid var(--gold);padding:6px 12px;border-radius:999px;text-decoration:none;">🔍 صفقة نموذجية مكتملة</a>
     <a href="/risks.html" style="font:800 11px Cairo,sans-serif;color:#c54a3a;background:#fff;border:1px solid #c54a3a;padding:6px 12px;border-radius:999px;text-decoration:none;">⚠ الإفصاح عن المخاطر</a>
   </div>
@@ -3128,6 +3128,42 @@
         row.append(dot, info);
         list.appendChild(row);
       });
+    })();
+
+    // Contract template preview
+    (() => {
+      const btn = document.getElementById('viewContractBtn');
+      if (!btn) return;
+      btn.onclick = () => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:16px;padding:28px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;';
+        const close = document.createElement('button'); close.type='button'; close.textContent='✕ إغلاق';
+        close.style.cssText = 'position:sticky;top:0;float:inline-end;background:#fff;border:1px solid var(--line);color:#062b1e;padding:6px 14px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        close.onclick = () => overlay.remove();
+        const h = document.createElement('h2'); h.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;';
+        h.textContent = '📋 نموذج عقد المرابحة الموحّد';
+        const intro = document.createElement('p'); intro.style.cssText = 'font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.85;margin-bottom:14px;';
+        intro.textContent = 'هذا نموذج معتمد من الهيئة الشرعية لمنصة مُرابحة، وفق معايير AAOIFI. النموذج الفعلي للصفقة قد يتضمّن تفاصيل إضافية حسب طبيعة الأصل.';
+        const sec1 = document.createElement('div'); sec1.style.cssText = 'background:var(--paper);padding:14px;border-radius:10px;margin-bottom:10px;';
+        sec1.innerHTML = '<b style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">المادة ١: الأطراف</b><p style="font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;">الطرف الأوّل: منصّة مُرابحة (البائع). الطرف الثاني: المستثمر (المشتري). الطرف الثالث: البائع الأصلي للأصل.</p>';
+        const sec2 = document.createElement('div'); sec2.style.cssText = 'background:var(--paper);padding:14px;border-radius:10px;margin-bottom:10px;';
+        sec2.innerHTML = '<b style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">المادة ٢: محل العقد</b><p style="font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;">الأصل العقاري المحدّد في الإفصاحات المرفقة، مع كل التوصيفات والمستندات.</p>';
+        const sec3 = document.createElement('div'); sec3.style.cssText = 'background:var(--paper);padding:14px;border-radius:10px;margin-bottom:10px;';
+        sec3.innerHTML = '<b style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">المادة ٣: الثمن والربح</b><p style="font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;">سعر البيع للمشتري يساوي تكلفة الشراء + هامش ربح المنصة المعلوم سلفاً. الربح ثابت لا يتغيّر.</p>';
+        const sec4 = document.createElement('div'); sec4.style.cssText = 'background:var(--paper);padding:14px;border-radius:10px;margin-bottom:10px;';
+        sec4.innerHTML = '<b style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">المادة ٤: التسليم والسداد</b><p style="font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;">يتمّ السداد على دفعات وفق الجدول الزمني المُعتمَد في وثائق الصفقة.</p>';
+        const sec5 = document.createElement('div'); sec5.style.cssText = 'background:var(--paper);padding:14px;border-radius:10px;margin-bottom:10px;';
+        sec5.innerHTML = '<b style="font:900 13px Cairo,sans-serif;color:var(--green-dark);">المادة ٥: الإلغاء</b><p style="font:500 12px Tajawal,sans-serif;color:#0d1612;line-height:1.7;margin-top:4px;">يحقّ للمشتري إلغاء العقد خلال ٢٤ ساعة من توقيعه دون أي خصم أو رسوم.</p>';
+        const dl = document.createElement('a'); dl.href = '/downloads.html'; dl.target = '_blank';
+        dl.style.cssText = 'display:inline-block;background:var(--green-dark);color:#d4ac6e;padding:10px 22px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;margin-top:10px;';
+        dl.textContent = '⬇ تحميل النموذج الكامل';
+        card.append(close, h, intro, sec1, sec2, sec3, sec4, sec5, dl);
+        overlay.appendChild(card);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        document.body.appendChild(overlay);
+      };
     })();
 
     // Project updates feed

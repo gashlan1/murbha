@@ -900,6 +900,7 @@
       <a href="/app/me/transactions.csv" download style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;text-align:center;">📊 سجل المعاملات</a>
       <button type="button" id="quickPwBtn" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;font-family:inherit;">🔐 تغيير كلمة المرور</button>
       <a href="/auto-invest.html" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--gold);color:var(--gold);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;text-decoration:none;text-align:center;">⚡ الاستثمار التلقائي</a>
+      <button type="button" id="acctSummaryBtn" style="flex:1;min-width:120px;background:#fff;border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;font-family:inherit;">📦 ملخّص بياناتي</button>
     </div>
   </div>
 
@@ -2274,6 +2275,51 @@
         });
       });
     } catch (e) {}
+  })();
+
+  // Account summary download (compact JSON)
+  (() => {
+    const btn = document.getElementById('acctSummaryBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = '…';
+      try {
+        const [me, port, follows, favs] = await Promise.all([
+          App.api('GET', '/app/me'),
+          App.api('GET', '/app/portfolio').catch(() => ({})),
+          App.api('GET', '/app/me/follows').catch(() => ({ ids: [] })),
+          App.api('GET', '/app/me/favorites').catch(() => ({ ids: [] })),
+        ]);
+        const summary = {
+          exportedAt: new Date().toISOString(),
+          account: {
+            name: me.user?.name,
+            email: me.user?.email,
+            phone: me.user?.phone,
+            createdAt: me.user?.createdAt,
+            kycStatus: me.user?.kycStatus,
+            approved: !!me.user?.approved,
+            totp: !!me.user?.totpEnrolled,
+          },
+          portfolio: {
+            balance: port.balance,
+            totalInvestments: (port.investments || []).length,
+            totalDeposits: (port.deposits || []).length,
+            totalWithdrawals: (port.withdrawals || []).length,
+          },
+          following: (follows.ids || []).length,
+          favorites: (favs.ids || []).length,
+        };
+        const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'murbha-account-summary-' + new Date().toISOString().slice(0, 10) + '.json';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        App.toast && App.toast('تم التنزيل', 'success');
+      } catch (e) { App.toast && App.toast('فشل', 'error'); }
+      btn.disabled = false; btn.textContent = '📦 ملخّص بياناتي';
+    });
   })();
 
   // Quick password change shortcut

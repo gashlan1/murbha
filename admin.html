@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- KYC PROCESSING TIME -->
+  <div class="admin-card" id="kycTimeCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏳ زمن معالجة KYC</span>
+      <span class="card-h-sub" id="kycTimeBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="kycTimeStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;grid-column:1/-1;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- REVENUE TREND -->
   <div class="admin-card" id="revTrendCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2820,6 +2833,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadKycTime() {
+    const list = document.getElementById('kycTimeStats');
+    const badge = document.getElementById('kycTimeBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/kyc-processing-time?days=90');
+      if (badge) badge.textContent = (r.totalApproved || 0).toLocaleString('ar-SA') + ' من ' + (r.totalSignups || 0) + ' اعتُمدوا · آخر ٩٠ يوماً';
+      const tiles = [
+        { v: (r.medianHours || 0) + 'س', l: 'وسيط زمن المعالجة', c: '#0a4d36' },
+        { v: (r.avgHours || 0) + 'س', l: 'متوسط زمن المعالجة', c: '#062b1e' },
+        { v: (r.p90Hours || 0) + 'س', l: 'P90', c: '#b08840' },
+        { v: (r.within24hPct || 0) + '٪', l: 'خلال ٢٤ ساعة', c: (r.within24hPct >= 80 ? '#0f6e3a' : '#b08840') },
+        { v: (r.within72hPct || 0) + '٪', l: 'خلال ٧٢ ساعة', c: (r.within72hPct >= 95 ? '#0f6e3a' : '#b08840') },
+      ];
+      list.replaceChildren();
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;border-top:3px solid ' + t.c + ';';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);';
+        v.textContent = t.v;
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+        l.textContent = t.l;
+        tile.append(v, l);
+        list.appendChild(tile);
+      });
+    } catch (e) {}
+  }
+
   async function loadRevTrend() {
     const list = document.getElementById('revTrendList');
     const badge = document.getElementById('revTrendBadge');
@@ -6445,7 +6486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
