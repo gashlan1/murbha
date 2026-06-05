@@ -673,6 +673,46 @@
     </div>
   </div>
 
+  <!-- PROJECT UPDATES -->
+  <div class="admin-card" id="projectUpdatesCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 تحديثات المشاريع</span>
+      <span class="card-h-sub">انشر إعلانات وتحديثات تظهر على صفحة المشروع</span>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;">
+      <div>
+        <form id="puForm" style="display:flex;flex-direction:column;gap:10px;">
+          <select id="puProject" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;"><option value="">— اختر المشروع —</option></select>
+          <input id="puTitle" type="text" maxlength="200" placeholder="عنوان التحديث (مثل: اكتمال الحفر)" required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:600 14px Tajawal,sans-serif;" />
+          <textarea id="puText" rows="4" maxlength="4000" placeholder="تفاصيل التحديث..." required style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:500 14px Tajawal,sans-serif;resize:vertical;"></textarea>
+          <button type="submit" style="padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">📤 نشر التحديث</button>
+        </form>
+      </div>
+      <div>
+        <div id="puList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;">
+          <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">اختر مشروعاً لعرض تحديثاته</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEAL ALERTS SUBSCRIBERS -->
+  <div class="admin-card" id="dealAlertsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🎯 مشتركو تنبيهات الصفقات</span>
+      <span class="card-h-sub" id="daCountBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+        <button type="button" id="daRefreshBtn" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <button type="button" id="daExportBtn" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">⬇ تصدير CSV</button>
+      </div>
+      <div id="daList" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- BULK MESSAGE -->
   <div class="admin-card" id="bulkMsgCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2303,6 +2343,125 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function populatePuProjectSelect() {
+    try {
+      const r = await App.api('GET', '/app/projects');
+      const sel = document.getElementById('puProject');
+      if (!sel) return;
+      const current = sel.value;
+      sel.replaceChildren();
+      const ph = document.createElement('option'); ph.value=''; ph.textContent='— اختر المشروع —'; sel.appendChild(ph);
+      (r.projects || []).forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.slug || p.id;
+        o.textContent = (p.archived ? '📦 ' : '') + p.name;
+        sel.appendChild(o);
+      });
+      sel.value = current;
+    } catch {}
+  }
+  async function loadProjectUpdates() {
+    const list = document.getElementById('puList');
+    const sel = document.getElementById('puProject');
+    if (!list || !sel) return;
+    const slug = sel.value;
+    if (!slug) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('اختر مشروعاً لعرض تحديثاته'));
+      return;
+    }
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/updates');
+      const updates = r.updates || [];
+      list.replaceChildren();
+      if (!updates.length) { list.appendChild(_emptyNode('لا توجد تحديثات')); return; }
+      updates.forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;';
+        const left = document.createElement('div'); left.style.cssText = 'flex:1;min-width:0;';
+        const t = document.createElement('div'); t.style.cssText='font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        t.textContent = u.title;
+        const body = document.createElement('div'); body.style.cssText='font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.7;white-space:pre-wrap;';
+        body.textContent = u.text;
+        const meta = document.createElement('div'); meta.style.cssText='font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:6px;';
+        meta.textContent = new Date(u.createdAt).toLocaleString('ar-SA');
+        left.append(t, body, meta);
+        const del = document.createElement('button');
+        del.type='button'; del.textContent='حذف';
+        del.style.cssText='padding:5px 10px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        del.onclick = async () => {
+          if (!confirm('حذف هذا التحديث؟')) return;
+          try {
+            await App.api('DELETE', '/app/admin/projects/' + encodeURIComponent(slug) + '/updates/' + u.id);
+            loadProjectUpdates();
+          } catch (e) { alert(e.message || 'فشل'); }
+        };
+        row.append(left, del);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('puProject')?.addEventListener('change', loadProjectUpdates);
+  document.getElementById('puForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const slug = document.getElementById('puProject').value;
+    const title = document.getElementById('puTitle').value.trim();
+    const text = document.getElementById('puText').value.trim();
+    if (!slug) { alert('اختر مشروعاً'); return; }
+    if (!title || !text) return;
+    try {
+      await App.api('POST', '/app/admin/projects/' + encodeURIComponent(slug) + '/updates', { title, text });
+      document.getElementById('puTitle').value = '';
+      document.getElementById('puText').value = '';
+      loadProjectUpdates();
+    } catch (err) { alert(err.message || 'فشل النشر'); }
+  });
+
+  async function loadDealAlerts() {
+    const list = document.getElementById('daList');
+    const badge = document.getElementById('daCountBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/deal-alerts');
+      const subs = r.subscribers || [];
+      if (badge) badge.textContent = (r.total || subs.length) + ' مشترك';
+      list.replaceChildren();
+      if (!subs.length) { list.appendChild(_emptyNode('لا يوجد مشتركون بعد')); return; }
+      subs.forEach(s => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:600 12px Tajawal,sans-serif;';
+        const left = document.createElement('div');
+        const em = document.createElement('span'); em.textContent = s.email; em.style.cssText = 'direction:ltr;color:var(--green-dark);font-weight:800;';
+        const cat = document.createElement('span'); cat.textContent = ' · ' + (s.category || 'all'); cat.style.color = 'var(--muted)';
+        left.append(em, cat);
+        const dt = document.createElement('span'); dt.style.color = 'var(--muted)'; dt.style.fontSize = '11px';
+        dt.textContent = new Date(s.createdAt).toLocaleDateString('ar-SA');
+        row.append(left, dt);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('daRefreshBtn')?.addEventListener('click', loadDealAlerts);
+  document.getElementById('daExportBtn')?.addEventListener('click', async () => {
+    try {
+      const r = await App.api('GET', '/app/admin/deal-alerts');
+      const subs = r.subscribers || [];
+      const rows = [['email','category','createdAt']];
+      subs.forEach(s => rows.push([s.email, s.category || 'all', s.createdAt]));
+      const csv = rows.map(r => r.map(c => /[",\n]/.test(c) ? '"' + String(c).replace(/"/g,'""') + '"' : c).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'deal-alerts.csv'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { alert(e.message || 'فشل'); }
+  });
+
   async function loadFeedback() {
     const list = document.getElementById('fbList');
     const badge = document.getElementById('fbBadge');
@@ -4649,7 +4808,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
