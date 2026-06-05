@@ -1538,6 +1538,13 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">📌 العائد الفعلي قد يختلف. هذه أرقام استرشاديّة بناءً على العائد المُعلَن.</p>
 </div>
 
+<!-- Accessibility tags -->
+<div class="card-section" id="accTagsCard" style="display:none;">
+  <h2 class="section-h">♿ ميزات الوصول</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">معلومات تساعدك على فهم مدى ملاءمة الصفقة لاحتياجاتك.</p>
+  <div id="accTagsList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+</div>
+
 <!-- Investment thesis -->
 <div class="card-section" id="thesisCard" style="display:none;">
   <h2 class="section-h">💡 لماذا هذه الصفقة؟</h2>
@@ -4515,6 +4522,41 @@
     card.style.display = '';
   }
 
+  function _initAccTags(p) {
+    const card = document.getElementById('accTagsCard');
+    const list = document.getElementById('accTagsList');
+    if (!card || !list) return;
+    const tags = [];
+    const minAmount = Number(p.minAmount || 1000);
+    if (minAmount <= 1000) tags.push({ ic: '💵', t: 'حدّ أدنى منخفض', bg: 'rgba(15,110,58,0.10)', fg: '#0f6e3a' });
+    else if (minAmount <= 5000) tags.push({ ic: '💸', t: 'حدّ أدنى متوسط', bg: 'rgba(176,136,64,0.10)', fg: '#b08840' });
+    const months = Number(p.durationMonths || 0);
+    if (months > 0 && months <= 12) tags.push({ ic: '⏱', t: 'مدّة قصيرة', bg: 'rgba(10,77,54,0.10)', fg: '#0a4d36' });
+    else if (months >= 36) tags.push({ ic: '🏛', t: 'استثمار طويل المدى', bg: 'rgba(92,36,24,0.10)', fg: '#5c2418' });
+    const cadence = (p.payoutCadence || '').toString();
+    if (cadence === 'monthly') tags.push({ ic: '📅', t: 'دخل شهري', bg: 'rgba(15,110,58,0.10)', fg: '#0f6e3a' });
+    else if (cadence === 'quarterly') tags.push({ ic: '📊', t: 'دخل ربعي', bg: 'rgba(176,136,64,0.10)', fg: '#b08840' });
+    const ret = Number(p.expectedReturn || 0);
+    if (ret >= 10) tags.push({ ic: '🚀', t: 'عائد مرتفع', bg: 'rgba(197,74,58,0.10)', fg: '#c54a3a' });
+    else if (ret >= 7) tags.push({ ic: '📈', t: 'عائد جيّد', bg: 'rgba(15,110,58,0.10)', fg: '#0f6e3a' });
+    if (p.riskLevel === 'low' || p.risk === 'low') tags.push({ ic: '🟢', t: 'مخاطر منخفضة', bg: 'rgba(15,110,58,0.10)', fg: '#0f6e3a' });
+    else if (p.riskLevel === 'high' || p.risk === 'high') tags.push({ ic: '🔴', t: 'مخاطر مرتفعة', bg: 'rgba(197,74,58,0.10)', fg: '#c54a3a' });
+    if (p.shariaCertified !== false) tags.push({ ic: '☪', t: 'شرعي مُعتمَد', bg: 'rgba(10,77,54,0.10)', fg: '#0a4d36' });
+    if (p.qualifiedOnly || p.qualifiedInvestorsOnly) tags.push({ ic: '⭐', t: 'مستثمرون مؤهَّلون فقط', bg: 'rgba(176,136,64,0.10)', fg: '#b08840' });
+    else tags.push({ ic: '👥', t: 'متاحة للجميع', bg: 'rgba(10,77,54,0.10)', fg: '#0a4d36' });
+    if (p.escrow !== false) tags.push({ ic: '🔒', t: 'حساب ضمان (Escrow)', bg: 'rgba(176,136,64,0.10)', fg: '#b08840' });
+    if (p.fastFunding) tags.push({ ic: '⚡', t: 'تمويل سريع', bg: 'rgba(217,119,6,0.10)', fg: '#d97706' });
+    if (!tags.length) { card.style.display = 'none'; return; }
+    list.replaceChildren();
+    tags.forEach(tg => {
+      const chip = document.createElement('span');
+      chip.style.cssText = 'font:800 12px Cairo,sans-serif;padding:8px 14px;border-radius:99px;background:' + tg.bg + ';color:' + tg.fg + ';';
+      chip.textContent = tg.ic + ' ' + tg.t;
+      list.appendChild(chip);
+    });
+    card.style.display = '';
+  }
+
   function _initThesis(p) {
     const card = document.getElementById('thesisCard');
     const list = document.getElementById('thesisList');
@@ -5229,7 +5271,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setHistFund(slug) {
     const badge = document.getElementById('histFundBadge');
