@@ -2604,6 +2604,17 @@
         if (badge) {
           badge.textContent = '★ استثمرت ' + Number(sum).toLocaleString('ar-SA') + ' ر.س في هذا المشروع';
           badge.style.display = 'inline-block';
+          // Click → share investment text
+          badge.style.cursor = 'pointer';
+          badge.title = 'اضغط لمشاركة فخرك';
+          badge.addEventListener('click', () => {
+            const url = location.origin + '/p/' + encodeURIComponent(p.slug || p.id);
+            const text = '🎯 استثمرت في ' + p.name + ' عبر مُرابحة. استثمار شرعي عقاري من ١٬٠٠٠ ر.س.\n' + url;
+            if (navigator.share) navigator.share({ title: p.name, text, url }).catch(() => {});
+            else {
+              navigator.clipboard.writeText(text).then(() => App.toast && App.toast('تم نسخ نص المشاركة', 'success'));
+            }
+          });
         }
       } catch (e) {}
     })();
