@@ -1465,6 +1465,30 @@
   </p>
 </div>
 
+<!-- COUNTDOWN HUD -->
+<div class="card-section" id="countdownHud" style="padding:18px 22px;display:none;">
+  <h2 class="section-h" style="margin-bottom:12px;">⏰ يُغلق التسجيل خلال</h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px 6px;">
+      <div id="cdDays" style="font:900 28px Cairo,sans-serif;color:#fbf6ea;font-variant-numeric:tabular-nums;">٠</div>
+      <div style="font:700 10px Tajawal,sans-serif;letter-spacing:1px;margin-top:2px;">يوم</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px 6px;">
+      <div id="cdHours" style="font:900 28px Cairo,sans-serif;color:#fbf6ea;font-variant-numeric:tabular-nums;">٠٠</div>
+      <div style="font:700 10px Tajawal,sans-serif;letter-spacing:1px;margin-top:2px;">ساعة</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px 6px;">
+      <div id="cdMins" style="font:900 28px Cairo,sans-serif;color:#fbf6ea;font-variant-numeric:tabular-nums;">٠٠</div>
+      <div style="font:700 10px Tajawal,sans-serif;letter-spacing:1px;margin-top:2px;">دقيقة</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px 6px;">
+      <div id="cdSecs" style="font:900 28px Cairo,sans-serif;color:#fbf6ea;font-variant-numeric:tabular-nums;">٠٠</div>
+      <div style="font:700 10px Tajawal,sans-serif;letter-spacing:1px;margin-top:2px;">ثانية</div>
+    </div>
+  </div>
+  <div id="cdNote" style="text-align:center;font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:10px;"></div>
+</div>
+
 <!-- TRUST SIGNALS BAR -->
 <div class="card-section" style="padding:14px 22px;background:linear-gradient(90deg,#fbf6ea,#fff);">
   <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;text-align:center;font:600 11px Tajawal,sans-serif;color:#6b7268;">
@@ -2427,6 +2451,42 @@
         });
       } catch (e) {}
     })();
+
+    // Countdown HUD (4-tile big counter)
+    if (p.closesAt && p.status === 'open') {
+      const target = new Date(p.closesAt).getTime();
+      const hud = document.getElementById('countdownHud');
+      const els = {
+        d: document.getElementById('cdDays'),
+        h: document.getElementById('cdHours'),
+        m: document.getElementById('cdMins'),
+        s: document.getElementById('cdSecs'),
+        n: document.getElementById('cdNote'),
+      };
+      if (hud) {
+        hud.style.display = '';
+        const ar = (n, w = 2) => String(n).padStart(w, '0').split('').map(c => /\d/.test(c) ? '٠١٢٣٤٥٦٧٨٩'[+c] : c).join('');
+        const tick = () => {
+          const ms = target - Date.now();
+          if (ms <= 0) {
+            els.d.textContent = els.h.textContent = els.m.textContent = els.s.textContent = '٠٠';
+            els.n.textContent = '✗ انتهت فترة التمويل';
+            return;
+          }
+          const d = Math.floor(ms / 86400000);
+          const h = Math.floor((ms % 86400000) / 3600000);
+          const m = Math.floor((ms % 3600000) / 60000);
+          const s = Math.floor((ms % 60000) / 1000);
+          els.d.textContent = ar(d, d > 99 ? 3 : 2);
+          els.h.textContent = ar(h);
+          els.m.textContent = ar(m);
+          els.s.textContent = ar(s);
+          els.n.textContent = d <= 1 ? '⚡ الإغلاق قريب جداً' : (d <= 3 ? '🔥 الإغلاق قريب' : '');
+        };
+        tick();
+        setInterval(tick, 1000);
+      }
+    }
 
     // Live countdown to closing
     if (p.closesAt && p.status === 'open') {

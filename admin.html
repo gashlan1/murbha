@@ -828,6 +828,13 @@
       <span class="card-h-sub" id="usersCountBadge">جاري التحميل…</span>
     </div>
     <div class="card-body">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button type="button" data-preset="all" class="userPreset" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">الكل</button>
+        <button type="button" data-preset="pending" class="userPreset" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">🪪 KYC مكتمل بانتظار الاعتماد</button>
+        <button type="button" data-preset="approved" class="userPreset" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">✓ المعتمدون</button>
+        <button type="button" data-preset="rejected" class="userPreset" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">✗ المرفوضون</button>
+        <button type="button" data-preset="kyc_incomplete" class="userPreset" style="padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;cursor:pointer;">⏳ KYC ناقص</button>
+      </div>
       <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:14px;">
         <input id="userSearchInput" type="text" placeholder="بحث بالاسم أو البريد أو الجوال أو رقم الهوية" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
         <select id="userStatusFilter" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
@@ -3705,6 +3712,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   userStatus.addEventListener('change', loadUsers);
   userKyc.addEventListener('change', loadUsers);
+  document.querySelectorAll('.userPreset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.preset;
+      userSearch.value = '';
+      userStatus.value = '';
+      userKyc.value = '';
+      if (p === 'pending') { userStatus.value = 'pending'; userKyc.value = 'verified'; }
+      else if (p === 'approved') { userStatus.value = 'approved'; }
+      else if (p === 'rejected') { userStatus.value = 'rejected'; }
+      else if (p === 'kyc_incomplete') { userKyc.value = 'pending'; }
+      document.querySelectorAll('.userPreset').forEach(b => {
+        const on = b === btn;
+        b.style.background = on ? 'var(--green-dark)' : '#fff';
+        b.style.color = on ? '#d4ac6e' : 'var(--green-dark)';
+        b.style.borderColor = on ? 'var(--green-dark)' : 'var(--line)';
+      });
+      loadUsers();
+    });
+  });
 
   document.getElementById('exportUsersCsvBtn')?.addEventListener('click', () => {
     const params = new URLSearchParams();
