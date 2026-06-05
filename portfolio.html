@@ -1192,7 +1192,18 @@
       if (!methodId) { App.toast && App.toast('اختر طريقة دفع أو أضف واحدة.', 'warn'); return; }
       submit.disabled = true; submit.textContent = 'جارٍ الإيداع…';
       try {
-        await App.api('POST', '/app/portfolio/deposit', { amount: amt, methodId });
+        if (amt >= 10000) {
+          const init = await App.api('POST', '/app/portfolio/deposit/init', { amount: amt, methodId });
+          if (init.requiresConfirmation) {
+            const code = prompt('أرسلنا رمز تأكيد إلى بريدك. أدخل الرمز:');
+            if (!code) { submit.disabled = false; submit.textContent = 'تأكيد الإيداع'; return; }
+            await App.api('POST', '/app/portfolio/deposit/confirm', { confirmationId: init.confirmationId, code: code.trim() });
+          } else {
+            await App.api('POST', '/app/portfolio/deposit', { amount: amt, methodId });
+          }
+        } else {
+          await App.api('POST', '/app/portfolio/deposit', { amount: amt, methodId });
+        }
         App.toast && App.toast('تم الإيداع بنجاح.', 'success');
         close();
         setTimeout(() => location.reload(), 600);

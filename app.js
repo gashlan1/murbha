@@ -927,6 +927,47 @@
       const r = await fetch('/app/public/maintenance', { credentials: 'same-origin' });
       if (!r.ok) return;
       const d = await r.json();
+      // Heads-up: scheduled window is ≤24h away but not yet active.
+      if (!d.active && d.scheduledStart) {
+        const startTs = new Date(d.scheduledStart).getTime();
+        const ms = startTs - Date.now();
+        const dismissed = (() => { try { return +localStorage.getItem('mrb_maint_heads_dismissed') || 0; } catch { return 0; } })();
+        if (ms > 0 && ms <= 24 * 60 * 60 * 1000 && dismissed < startTs - 24 * 60 * 60 * 1000 + 1) {
+          if (!document.getElementById('maintHeadsBanner')) {
+            const banner = document.createElement('div');
+            banner.id = 'maintHeadsBanner';
+            banner.style.cssText = 'position:fixed;top:0;inset-inline-start:0;inset-inline-end:0;z-index:9998;background:linear-gradient(90deg,#b08840,#d4ac6e);color:#062b1e;text-align:center;padding:10px 16px;font:700 13px Cairo,Tajawal,sans-serif;display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;';
+            const txt = document.createElement('span');
+            txt.textContent = '🛠 صيانة مجدولة قادمة';
+            const when = document.createElement('span');
+            when.style.cssText = 'opacity:0.85;font-weight:500;';
+            when.textContent = 'تبدأ ' + new Date(d.scheduledStart).toLocaleString('ar-SA');
+            const cd = document.createElement('span');
+            cd.style.cssText = 'background:rgba(255,255,255,0.45);padding:3px 12px;border-radius:999px;font:800 11px "SF Mono",Menlo,monospace;direction:ltr;color:#062b1e;';
+            banner.append(txt, when, cd);
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.setAttribute('aria-label', 'إغلاق');
+            close.style.cssText = 'background:transparent;border:0;color:#062b1e;font:900 14px Cairo,sans-serif;cursor:pointer;opacity:0.7;padding:0 4px;';
+            close.textContent = '✕';
+            close.onclick = () => {
+              try { localStorage.setItem('mrb_maint_heads_dismissed', String(startTs)); } catch {}
+              banner.remove();
+            };
+            banner.appendChild(close);
+            document.body.appendChild(banner);
+            const tick = () => {
+              const remain = startTs - Date.now();
+              if (remain <= 0) { cd.textContent = 'بدأت'; return; }
+              const h = Math.floor(remain / 3600000);
+              const m = Math.floor((remain % 3600000) / 60000);
+              cd.textContent = (h > 0 ? h + 'س ' : '') + m + 'د';
+            };
+            tick(); setInterval(tick, 60000);
+          }
+        }
+        return;
+      }
       if (!d.active || document.getElementById('maintBanner')) return;
       const banner = document.createElement('div');
       banner.id = 'maintBanner';

@@ -958,6 +958,30 @@
     </div>
   </div>
 
+  <!-- FEEDBACK INBOX -->
+  <div class="admin-card" id="feedbackCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💬 ملاحظات المستخدمين</span>
+      <span class="card-h-sub" id="fbBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;background:#fbf8ee;border:1px solid rgba(176,136,64,0.18);border-radius:12px;padding:14px;text-align:center;">
+          <div id="fbNps" style="font:900 28px Cairo,sans-serif;color:var(--green-dark);">—</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;">صافي مؤشر الترشيح (NPS)</div>
+        </div>
+        <div style="flex:1;min-width:200px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;">
+          <div id="fbTotal" style="font:900 22px Cairo,sans-serif;color:var(--green-dark);">0</div>
+          <div style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;">إجمالي الملاحظات</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font:700 12px Cairo,sans-serif;color:var(--muted);align-self:center;cursor:pointer;">
+          <input id="fbOnlyOpen" type="checkbox" /> غير المُعالَجة فقط
+        </label>
+      </div>
+      <div id="fbList" style="display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
   <!-- NEWSLETTER ISSUES -->
   <div class="admin-card" id="newsletterCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1784,6 +1808,78 @@ document.addEventListener('DOMContentLoaded', async () => {
       await loadFlags();
     } catch (e) { alert(e.message || 'فشل'); }
   });
+
+  // ── Feedback inbox ────────────────────────────────────────────
+  async function loadFeedback() {
+    const list = document.getElementById('fbList');
+    const badge = document.getElementById('fbBadge');
+    if (!list) return;
+    try {
+      const params = new URLSearchParams({ limit: '100' });
+      if (document.getElementById('fbOnlyOpen')?.checked) params.set('open', '1');
+      const r = await App.api('GET', '/app/admin/feedback?' + params.toString());
+      const items = r.feedback || [];
+      const openCount = items.filter(i => !i.resolvedAt).length;
+      badge.textContent = openCount + ' غير مُعالَجة من ' + items.length;
+      document.getElementById('fbNps').textContent = r.nps == null ? '—' : (r.nps > 0 ? '+' + r.nps : r.nps);
+      document.getElementById('fbTotal').textContent = (r.total || 0).toLocaleString('ar-SA');
+      list.replaceChildren();
+      if (!items.length) {
+        const e = document.createElement('div');
+        e.style.cssText = 'text-align:center;color:var(--muted);padding:18px;font-size:13px;background:#fbf8ee;border-radius:10px;';
+        e.textContent = 'لا توجد ملاحظات حتى الآن.';
+        list.appendChild(e); return;
+      }
+      const CAT_AR = { general: 'عام', onboarding: 'التسجيل', projects: 'الفرص', payments: 'المدفوعات', performance: 'الأداء', content: 'المحتوى' };
+      items.forEach(fb => {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:' + (fb.resolvedAt ? '#fbf8ee' : '#fff') + ';opacity:' + (fb.resolvedAt ? '0.7' : '1') + ';';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;';
+        const scorePill = document.createElement('span');
+        const color = fb.score >= 9 ? '#0f6e3a' : fb.score >= 7 ? '#b08840' : '#c54a3a';
+        scorePill.style.cssText = 'font:900 13px Cairo,sans-serif;padding:4px 10px;border-radius:8px;background:' + color + ';color:#fff;flex-shrink:0;';
+        scorePill.textContent = fb.score;
+        const meta = document.createElement('div');
+        meta.style.cssText = 'flex:1;font:600 12px Tajawal,sans-serif;color:var(--muted);';
+        const who = fb.name || fb.email || (fb.userId ? 'مستخدم' : 'مجهول');
+        meta.textContent = (CAT_AR[fb.category] || fb.category) + ' · ' + who + ' · ' + new Date(fb.createdAt).toLocaleString('ar-SA');
+        head.append(scorePill, meta);
+        row.appendChild(head);
+        if (fb.comment) {
+          const body = document.createElement('div');
+          body.style.cssText = 'font-size:13px;color:var(--ink);line-height:1.7;padding-inline-start:42px;';
+          body.textContent = fb.comment;
+          row.appendChild(body);
+        }
+        if (!fb.resolvedAt) {
+          const acts = document.createElement('div');
+          acts.style.cssText = 'display:flex;gap:6px;margin-top:8px;padding-inline-start:42px;';
+          const done = document.createElement('button');
+          done.type = 'button';
+          done.style.cssText = 'background:#0a4d36;color:#fff;border:0;padding:5px 14px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          done.textContent = '✓ معالَجة';
+          done.onclick = async () => {
+            try {
+              await App.api('POST', '/app/admin/feedback/' + encodeURIComponent(fb.id) + '/resolve');
+              loadFeedback();
+            } catch (e) { alert(e.message || 'فشل'); }
+          };
+          if (fb.email) {
+            const reply = document.createElement('a');
+            reply.href = 'mailto:' + fb.email + '?subject=' + encodeURIComponent('ردّاً على ملاحظتك على مُرابحة');
+            reply.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);padding:5px 14px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;text-decoration:none;';
+            reply.textContent = '📧 ردّ';
+            acts.appendChild(reply);
+          }
+          acts.appendChild(done);
+          row.appendChild(acts);
+        }
+        list.appendChild(row);
+      });
+    } catch (e) { badge.textContent = 'تعذّر التحميل'; }
+  }
+  document.getElementById('fbOnlyOpen')?.addEventListener('change', loadFeedback);
 
   // ── Newsletter issues ────────────────────────────────────────
   let _editingNlId = null;
@@ -3420,7 +3516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
