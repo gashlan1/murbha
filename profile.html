@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Login devices -->
+  <div class="settings-group" id="devicesSec" style="display:none;">
+    <div class="settings-h">🖥 أجهزة الدخول</div>
+    <div style="padding:14px 18px;">
+      <div id="devHeader" style="background:var(--paper);border-radius:10px;padding:10px 12px;margin-bottom:10px;font:600 12px Tajawal,sans-serif;color:var(--muted);"></div>
+      <div id="devList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ إذا رأيت جهازاً لا تعرفه، غيّر كلمة مرورك فوراً وأنهِ كل الجلسات من <a href="/security-faq.html" style="color:var(--gold);font-weight:800;">صفحة الأمن ←</a></p>
+    </div>
+  </div>
+
   <!-- Digest preferences -->
   <div class="settings-group" id="digestSec">
     <div class="settings-h">📰 ملخّصاتك الدوريّة</div>
@@ -2738,6 +2748,38 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Login devices
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/login-devices');
+      if (!r.devices || !r.devices.length) return;
+      const sec = document.getElementById('devicesSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const header = document.getElementById('devHeader');
+      header.textContent = '📊 إجمالي تسجيلات الدخول: ' + (r.totalLogins || 0).toLocaleString('ar-SA') +
+        (r.lastLogin ? ' · آخر دخول: ' + new Date(r.lastLogin).toLocaleString('ar-SA') : '');
+      const list = document.getElementById('devList');
+      list.replaceChildren();
+      r.devices.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 12px;background:var(--paper);border-radius:8px;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = d.device + ' · ' + d.browser;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+        const lastTxt = d.lastSeen ? new Date(d.lastSeen).toLocaleDateString('ar-SA') : '—';
+        sub.textContent = 'آخر دخول: ' + lastTxt + (d.ipPrefixes.length ? ' · IP: ' + d.ipPrefixes.join(', ') : '');
+        left.append(t, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0a4d36;';
+        right.textContent = d.count + ' مرة';
+        row.append(left, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
