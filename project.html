@@ -1477,6 +1477,13 @@
   <div id="plannedMilestonesList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Comparable / similar deals -->
+<div class="card-section" id="similarCard" style="display:none;">
+  <h2 class="section-h">🔁 صفقات مماثلة</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">صفقات أخرى قد تهمّك بناءً على الفئة، المدينة، والعائد المتوقّع.</p>
+  <div id="similarList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;"></div>
+</div>
+
 <!-- Project Updates Feed -->
 <div class="card-section" id="updatesCard" style="display:none;">
   <h2 class="section-h">📣 آخر التحديثات</h2>
@@ -4151,7 +4158,39 @@
     s.textContent = JSON.stringify(data);
     document.head.appendChild(s);
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} };
+  async function _loadSimilar(slug) {
+    const card = document.getElementById('similarCard');
+    const grid = document.getElementById('similarList');
+    if (!card || !grid) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/similar');
+      const list = r.projects || [];
+      if (!list.length) { card.style.display = 'none'; return; }
+      grid.replaceChildren();
+      list.forEach(p => {
+        const a = document.createElement('a');
+        a.href = '/project.html?slug=' + encodeURIComponent(p.slug || p.id);
+        a.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;text-decoration:none;color:inherit;transition:transform .15s;';
+        a.addEventListener('mouseenter', () => a.style.transform = 'translateY(-2px)');
+        a.addEventListener('mouseleave', () => a.style.transform = '');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = p.title || p.name || 'صفقة';
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        sub.textContent = [p.category, p.city].filter(Boolean).join(' · ');
+        const meta = document.createElement('div'); meta.style.cssText = 'display:flex;justify-content:space-between;font:700 11px Cairo,sans-serif;color:var(--ink);margin-top:4px;';
+        const ret = document.createElement('span'); ret.textContent = '📈 ' + (p.expectedReturn ? p.expectedReturn + '٪' : '—');
+        const fpct = document.createElement('span'); fpct.textContent = '🏗 ' + p.fundedPct + '٪';
+        meta.append(ret, fpct);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:5px;background:var(--paper);border-radius:99px;overflow:hidden;margin-top:2px;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + p.fundedPct + '%;background:var(--green);';
+        bar.appendChild(fill);
+        a.append(t, sub, meta, bar);
+        grid.appendChild(a);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} };
 
   // kick off
   _loadProject();

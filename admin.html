@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- NEW vs RETURNING INVESTORS -->
+  <div class="admin-card" id="nvrCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🆕 جديد مقابل متكرّر (١٢ شهراً)</span>
+      <span class="card-h-sub" id="nvrBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="nvrList" style="display:flex;flex-direction:column;gap:6px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- INVESTMENT AMOUNT HISTOGRAM -->
   <div class="admin-card" id="amtHistCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2913,6 +2926,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadNvr() {
+    const list = document.getElementById('nvrList');
+    const badge = document.getElementById('nvrBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/new-vs-returning');
+      const months = r.months || [];
+      const t = r.totals || {};
+      if (badge) badge.textContent = (t.newInv || 0).toLocaleString('ar-SA') + ' جديد · ' + (t.returning || 0).toLocaleString('ar-SA') + ' متكرّر';
+      list.replaceChildren();
+      const max = Math.max(...months.map(m => m.total || 0), 1);
+      months.forEach(m => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = m.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:18px;background:var(--paper);border-radius:4px;overflow:hidden;display:flex;';
+        const nf = document.createElement('div');
+        nf.style.cssText = 'height:100%;width:' + ((m.newInv / max) * 100) + '%;background:#0f6e3a;';
+        const rf = document.createElement('div');
+        rf.style.cssText = 'height:100%;width:' + ((m.returning / max) * 100) + '%;background:#b08840;';
+        bar.append(nf, rf);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:160px;';
+        meta.textContent = '🟢 ' + m.newInv + ' · 🟡 ' + m.returning + ' · ' + Number(m.newAmount + m.returningAmount).toLocaleString('ar-SA') + ' ر.س';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      const legend = document.createElement('div');
+      legend.style.cssText = 'display:flex;gap:14px;justify-content:center;margin-top:8px;font:600 11px Tajawal,sans-serif;color:var(--muted);';
+      const mkLeg = (clr, txt) => {
+        const wrap = document.createElement('span');
+        const dot = document.createElement('span');
+        dot.style.cssText = 'display:inline-block;width:10px;height:10px;background:' + clr + ';border-radius:2px;margin-inline-end:4px;';
+        wrap.appendChild(dot);
+        wrap.appendChild(document.createTextNode(txt));
+        return wrap;
+      };
+      legend.append(mkLeg('#0f6e3a', 'مستثمر جديد'), mkLeg('#b08840', 'متكرّر'));
+      list.appendChild(legend);
+    } catch (e) {}
+  }
+
   async function loadAmtHist() {
     const list = document.getElementById('amtHistList');
     const badge = document.getElementById('amtHistBadge');
@@ -6685,7 +6740,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
