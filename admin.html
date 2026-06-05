@@ -1506,10 +1506,26 @@ document.addEventListener('DOMContentLoaded', async () => {
           ex.textContent = '⏰ ينتهي: ' + new Date(a.expiresAt).toLocaleDateString('ar-SA');
           meta.appendChild(ex);
         }
+        if (a.pinned) {
+          const pin = document.createElement('span');
+          pin.style.cssText = 'font:800 11px Cairo,sans-serif;color:#7a5a10;background:rgba(176,136,64,0.16);padding:2px 8px;border-radius:999px;';
+          pin.textContent = '📌 مثبّت';
+          meta.appendChild(pin);
+        }
         if (!expired) {
+          const pinBtn = document.createElement('button');
+          pinBtn.type = 'button';
+          pinBtn.style.cssText = 'background:none;border:0;color:#b08840;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          pinBtn.textContent = a.pinned ? 'إلغاء التثبيت' : '📌 تثبيت';
+          pinBtn.onclick = async () => {
+            try { await App.api('PATCH', '/app/admin/announcements/' + a.id, { pinned: !a.pinned }); loadAnnouncements(); }
+            catch (e) { alert(e.message || 'فشل'); }
+          };
+          meta.appendChild(pinBtn);
+
           const editBtn = document.createElement('button');
           editBtn.type = 'button';
-          editBtn.style.cssText = 'background:none;border:0;color:#0a4d36;font:700 11px Tajawal,sans-serif;cursor:pointer;margin-inline-start:auto;';
+          editBtn.style.cssText = 'background:none;border:0;color:#0a4d36;font:700 11px Tajawal,sans-serif;cursor:pointer;';
           editBtn.textContent = '✏ تعديل';
           editBtn.onclick = () => {
             _editingAnnId = a.id;

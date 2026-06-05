@@ -1127,6 +1127,18 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+    <button type="button" id="calFeedBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9"/><path d="M3 12a9 9 0 0 0 9 9"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">رابط تقويم مباشر (Subscribe)</div>
+        <div class="setting-sub">اشترك مرة واحدة في Calendar.app/Google Calendar — يتحدّث تلقائياً</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
     <a href="/app/me/payouts.ics" id="icsExportLink" class="setting-row" download="murbha-payouts.ics">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1734,6 +1746,57 @@
       } catch (e) { sync(!optIn); App.toast && App.toast(e.message || 'فشل', 'error'); }
     });
   })();
+
+  // Calendar feed subscribe modal
+  document.getElementById('calFeedBtn')?.addEventListener('click', async () => {
+    try {
+      const d = await App.api('GET', '/app/me/calendar-feed');
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border-radius:16px;padding:22px;max-width:480px;width:100%;';
+      const close = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) close(); };
+      const h = document.createElement('div');
+      h.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      h.textContent = 'رابط التقويم المباشر';
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px;';
+      p.textContent = 'انسخ الرابط أدناه واشترك به في تطبيق التقويم. يحتوي كل التوزيعات المتوقّعة لاستثماراتك ويتحدّث تلقائياً.';
+      const linkBox = document.createElement('div');
+      linkBox.style.cssText = 'padding:10px 12px;background:#fbf8ee;border:1px dashed #b08840;border-radius:8px;font:600 11px "SF Mono",Menlo,monospace;direction:ltr;text-align:start;word-break:break-all;color:var(--green-dark);margin-bottom:10px;';
+      linkBox.textContent = d.url;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+      const copy = document.createElement('button');
+      copy.type='button'; copy.textContent='📋 نسخ الرابط';
+      copy.style.cssText = 'flex:1;min-width:120px;padding:9px;background:var(--green-dark);color:#fff;border:0;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      copy.onclick = async () => { try { await navigator.clipboard.writeText(d.url); copy.textContent = '✓ تم النسخ'; } catch (e) {} };
+      const webcal = document.createElement('a');
+      webcal.href = d.webcalUrl;
+      webcal.textContent = '🍎 فتح في Apple Calendar';
+      webcal.style.cssText = 'flex:1;min-width:120px;padding:9px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;text-align:center;text-decoration:none;';
+      const rotate = document.createElement('button');
+      rotate.type='button'; rotate.textContent='↻ تجديد الرابط';
+      rotate.style.cssText = 'flex:1;min-width:120px;padding:9px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      rotate.onclick = async () => {
+        if (!confirm('سيبطل الرابط الحالي عند جميع التقويمات المشتركة. تأكيد؟')) return;
+        try {
+          await App.api('POST', '/app/me/calendar-feed/rotate');
+          App.toast && App.toast('تم التجديد', 'success');
+          close();
+        } catch (e) {}
+      };
+      const closeBtn = document.createElement('button');
+      closeBtn.type='button'; closeBtn.textContent='إغلاق';
+      closeBtn.style.cssText = 'width:100%;margin-top:10px;padding:9px;background:transparent;border:1px solid var(--line);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);';
+      closeBtn.onclick = close;
+      row.append(copy, webcal, rotate);
+      card.append(h, p, linkBox, row, closeBtn);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+    } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+  });
 
   // Send portfolio summary email
   document.getElementById('sendSummaryBtn')?.addEventListener('click', async () => {
