@@ -859,6 +859,35 @@
     </div>
   </div>
 
+  <!-- Digest preferences -->
+  <div class="settings-group" id="digestSec">
+    <div class="settings-h">📰 ملخّصاتك الدوريّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;line-height:1.7;">اختر تكرار وصول الملخّصات إلى بريدك، وما الذي يهمّك سماعه.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-bottom:14px;">
+        <button type="button" data-cad="off" class="digestCadBtn" style="padding:10px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 11px Cairo,sans-serif;cursor:pointer;">⏸ متوقّف</button>
+        <button type="button" data-cad="weekly" class="digestCadBtn" style="padding:10px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 11px Cairo,sans-serif;cursor:pointer;">📅 أسبوعي</button>
+        <button type="button" data-cad="biweekly" class="digestCadBtn" style="padding:10px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 11px Cairo,sans-serif;cursor:pointer;">📆 كل أسبوعين</button>
+        <button type="button" data-cad="monthly" class="digestCadBtn" style="padding:10px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 11px Cairo,sans-serif;cursor:pointer;">🗓 شهري</button>
+      </div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">المحتوى الذي تريد رؤيته</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);padding:10px;background:var(--paper);border-radius:8px;">
+          <span>📊 أداء محفظتك</span><input type="checkbox" data-kind="portfolio" class="digestKindCb" style="accent-color:var(--green);width:18px;height:18px;" />
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);padding:10px;background:var(--paper);border-radius:8px;">
+          <span>📈 تطوّر السوق العقاري</span><input type="checkbox" data-kind="market" class="digestKindCb" style="accent-color:var(--green);width:18px;height:18px;" />
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);padding:10px;background:var(--paper);border-radius:8px;">
+          <span>🎯 صفقات جديدة تناسبك</span><input type="checkbox" data-kind="opportunities" class="digestKindCb" style="accent-color:var(--green);width:18px;height:18px;" />
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font:600 13px Tajawal,sans-serif;color:var(--ink);padding:10px;background:var(--paper);border-radius:8px;">
+          <span>☪ تحديثات شرعيّة وفقهيّة</span><input type="checkbox" data-kind="sharia" class="digestKindCb" style="accent-color:var(--green);width:18px;height:18px;" />
+        </label>
+      </div>
+    </div>
+  </div>
+
   <!-- Account anniversary -->
   <div class="settings-group" id="annivSec" style="display:none;">
     <div class="settings-h">🎉 رحلتك مع مُرابحة</div>
@@ -2710,6 +2739,41 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Digest preferences
+  (async () => {
+    try {
+      const cadBtns = document.querySelectorAll('.digestCadBtn');
+      const kindCbs = document.querySelectorAll('.digestKindCb');
+      if (!cadBtns.length) return;
+      const me = await App.api('GET', '/app/me');
+      const prefs = me.user?.digestPrefs || { cadence: 'monthly', kinds: ['portfolio', 'opportunities'] };
+      const syncCad = () => cadBtns.forEach(b => {
+        const on = b.dataset.cad === prefs.cadence;
+        b.style.background = on ? 'var(--green-dark)' : '#fff';
+        b.style.color = on ? 'var(--gold-light)' : 'var(--green-dark)';
+        b.style.borderColor = on ? 'var(--green-dark)' : 'var(--line)';
+      });
+      const syncKinds = () => kindCbs.forEach(cb => { cb.checked = (prefs.kinds || []).includes(cb.dataset.kind); });
+      syncCad(); syncKinds();
+      const save = async (patch) => {
+        try {
+          const r = await App.api('PATCH', '/app/me/digest-prefs', patch);
+          Object.assign(prefs, r.digestPrefs);
+          App.toast && App.toast('✓ حُفظ', 'success');
+        } catch (e) { App.toast && App.toast('فشل', 'error'); }
+      };
+      cadBtns.forEach(b => b.addEventListener('click', () => {
+        prefs.cadence = b.dataset.cad; syncCad();
+        save({ cadence: b.dataset.cad });
+      }));
+      kindCbs.forEach(cb => cb.addEventListener('change', () => {
+        const kinds = [...kindCbs].filter(c => c.checked).map(c => c.dataset.kind);
+        prefs.kinds = kinds;
+        save({ kinds });
+      }));
     } catch (e) {}
   })();
 
