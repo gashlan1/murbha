@@ -592,11 +592,85 @@
     });
   };
 
+  // ─── Cookie consent (PDPL-friendly) ───────────────────────────
+  const CONSENT_KEY = 'mrb_consent_v1';
+  const _getConsent = () => {
+    try { return JSON.parse(localStorage.getItem(CONSENT_KEY) || 'null'); } catch { return null; }
+  };
+  const _setConsent = (c) => {
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ ...c, at: Date.now() })); } catch {}
+  };
+  const _renderConsent = () => {
+    if (_getConsent()) return;
+    if (document.getElementById('consentBanner')) return;
+    const html = document.documentElement.lang === 'en' || document.documentElement.dataset.langOverride === 'en';
+    const banner = document.createElement('div');
+    banner.id = 'consentBanner';
+    banner.style.cssText = 'position:fixed;bottom:14px;inset-inline-start:14px;inset-inline-end:14px;max-width:560px;margin:0 auto;background:#0a4d36;color:#fbf6ea;border-radius:16px;padding:16px 18px;font-family:Tajawal,system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.25);z-index:9998;font-size:13px;line-height:1.7;';
+    const txt = document.createElement('div');
+    txt.textContent = html
+      ? 'We use essential cookies for the platform to work. Optional analytics help us improve. You can change this anytime.'
+      : 'نستخدم ملفات تعريف ارتباط أساسية ليعمل النظام، وأخرى اختيارية للتحليلات لتحسين تجربتك. يمكنك تغيير اختيارك في أي وقت.';
+    txt.style.marginBottom = '12px';
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+    const mkBtn = (label, primary, onclick) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.style.cssText = 'flex:1;min-width:110px;padding:10px 14px;border-radius:999px;border:0;font:800 12px Cairo,sans-serif;cursor:pointer;' +
+        (primary ? 'background:#d4ac6e;color:#062b1e;' : 'background:transparent;color:#fbf6ea;border:1px solid rgba(255,255,255,0.25);');
+      b.onclick = onclick;
+      return b;
+    };
+    const accept = mkBtn(html ? 'Accept all' : 'قبول الكل', true, () => {
+      _setConsent({ essential: true, analytics: true });
+      banner.remove();
+    });
+    const reject = mkBtn(html ? 'Essential only' : 'الأساسية فقط', false, () => {
+      _setConsent({ essential: true, analytics: false });
+      banner.remove();
+    });
+    const learn = document.createElement('a');
+    learn.href = '/cookies.html';
+    learn.textContent = html ? 'Learn more' : 'تفاصيل';
+    learn.style.cssText = 'color:#d4ac6e;text-decoration:underline;font:700 11px Tajawal,sans-serif;align-self:center;padding:0 6px;';
+    btns.append(accept, reject, learn);
+    banner.append(txt, btns);
+    document.body.appendChild(banner);
+  };
+
+  // ─── Maintenance banner (poll once on load) ────────────────────
+  const _checkMaintenance = async () => {
+    try {
+      const r = await fetch('/app/public/maintenance', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!d.active || document.getElementById('maintBanner')) return;
+      const banner = document.createElement('div');
+      banner.id = 'maintBanner';
+      banner.style.cssText = 'position:fixed;top:0;inset-inline-start:0;inset-inline-end:0;z-index:9999;background:linear-gradient(90deg,#c54a3a,#b08840);color:#fff;text-align:center;padding:10px 16px;font:700 13px Cairo,Tajawal,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+      const txt = document.createElement('span');
+      txt.textContent = '🛠 ' + (d.message || 'النظام تحت الصيانة حالياً.');
+      banner.appendChild(txt);
+      if (d.eta) {
+        const eta = document.createElement('small');
+        eta.style.cssText = 'margin-inline-start:10px;opacity:0.85;font-weight:500;';
+        eta.textContent = '· نعود حوالي ' + new Date(d.eta).toLocaleString('ar-SA');
+        banner.appendChild(eta);
+      }
+      document.body.appendChild(banner);
+      document.body.style.paddingTop = (banner.offsetHeight + (parseInt(document.body.style.paddingTop || 0) || 0)) + 'px';
+    } catch (e) {}
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     _wireActions();
     _wireHeaderAuth();
     _wireLangToggle();
     _injectSupportFab();
+    if (!location.pathname.includes('cookies.html')) _renderConsent();
+    if (!location.pathname.includes('admin')) _checkMaintenance();
   });
 
   window.App = {
@@ -605,6 +679,7 @@
     fmt: { sar, arNum, date, dateTime, relTime },
     storage, on, qs, escapeHtml, renderMarkdown,
     getTheme, setTheme,
+    getConsent: _getConsent, setConsent: _setConsent,
     trapFocus,
     refreshHeader: _wireHeaderAuth,
   };

@@ -950,6 +950,38 @@
     </div>
   </div>
 
+  <!-- MAINTENANCE MODE -->
+  <div class="admin-card" id="maintenanceCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛠 وضع الصيانة</span>
+      <span class="card-h-sub" id="maintStatusBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:14px;background:#fbf8ee;border:1px solid var(--line);border-radius:12px;">
+        <label style="position:relative;display:inline-block;width:54px;height:30px;flex-shrink:0;">
+          <input type="checkbox" id="maintToggle" style="opacity:0;width:0;height:0;" />
+          <span id="maintSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+          <span id="maintKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+        </label>
+        <div>
+          <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">تفعيل صفحة الصيانة العامة</div>
+          <div style="font:500 12px Tajawal,sans-serif;color:var(--muted);">حين يكون مفعّلاً، يرى الزوار إشعاراً علوياً بنص الرسالة. الإدارة تستمر في الوصول.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          نص الرسالة
+          <input id="maintMsg" type="text" placeholder="نعمل على ترقية النظام، سنعود خلال ساعة" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          الوقت المتوقّع للعودة (اختياري)
+          <input id="maintEta" type="datetime-local" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;" />
+        </label>
+      </div>
+      <button id="maintSave" type="button" style="margin-top:14px;padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">حفظ إعدادات الصيانة</button>
+    </div>
+  </div>
+
   <!-- ADMIN 2FA enrollment -->
   <div class="admin-card" id="twofaCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -1475,8 +1507,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('setYoutube').value   = s.social?.youtube   || '';
       document.getElementById('setHotline').value   = s.support?.hotline  || '';
       document.getElementById('setSupportEmail').value = s.support?.email || '';
+      // Maintenance mode
+      const m = s.maintenance || {};
+      const cb = document.getElementById('maintToggle');
+      const sl = document.getElementById('maintSlider');
+      const kb = document.getElementById('maintKnob');
+      const badge = document.getElementById('maintStatusBadge');
+      const syncMaint = () => {
+        const on = !!cb.checked;
+        sl.style.background = on ? '#c54a3a' : 'var(--line-strong)';
+        kb.style.transform = on ? 'translateX(-24px)' : 'translateX(0)';
+        if (badge) {
+          badge.textContent = on ? '🛠 مفعّل الآن' : 'مغلق';
+          badge.style.background = on ? 'rgba(197,74,58,0.20)' : 'rgba(255,255,255,0.15)';
+        }
+      };
+      cb.checked = !!m.active;
+      document.getElementById('maintMsg').value = m.message || '';
+      document.getElementById('maintEta').value = m.eta ? new Date(m.eta).toISOString().slice(0, 16) : '';
+      cb.onchange = syncMaint;
+      syncMaint();
     } catch (e) {}
   }
+
+  document.getElementById('maintSave')?.addEventListener('click', async () => {
+    const eta = document.getElementById('maintEta').value;
+    const payload = { maintenance: {
+      active: document.getElementById('maintToggle').checked,
+      message: document.getElementById('maintMsg').value.trim() || null,
+      eta: eta ? new Date(eta).toISOString() : null,
+    }};
+    try {
+      await App.api('PATCH', '/app/admin/settings', payload);
+      App.toast && App.toast('تم حفظ إعدادات الصيانة', 'success');
+      loadSettings();
+    } catch (e) { alert(e.message || 'فشل الحفظ'); }
+  });
   document.getElementById('settingsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {

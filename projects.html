@@ -689,8 +689,18 @@
       <h3 id="live-title">الفرص المتاحة الآن</h3>
       <a href="/compare.html" style="font:800 12px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">⇆ مقارنة الفرص</a>
     </div>
-    <div style="padding:0 14px;margin-bottom:8px;">
+    <div style="padding:0 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
       <span class="live-count" id="liveCount" style="font:700 12px 'Tajawal';color:var(--muted)"></span>
+      <label style="display:flex;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:var(--muted);">
+        ترتيب حسب
+        <select id="liveSort" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:700 12px Tajawal,sans-serif;color:var(--ink);cursor:pointer;">
+          <option value="newest">الأحدث</option>
+          <option value="ending">ينتهي قريباً</option>
+          <option value="return">أعلى عائد</option>
+          <option value="funded">الأكثر تمويلاً</option>
+          <option value="min">الحد الأدنى الأقل</option>
+        </select>
+      </label>
     </div>
     <div id="liveProjects" class="live-projects" style="display:grid;gap:12px;padding:0 14px 18px"></div>
     <div id="liveLoading" style="padding:24px;text-align:center;color:var(--muted);font:600 13px 'Tajawal'">…جارٍ تحميل الفرص</div>
@@ -754,8 +764,22 @@
         ld.style.display = 'none';
         const q = (s) => App.escapeHtml(s);
 
-        const liveProjects = projects.filter(p => p.status !== 'completed');
+        let liveProjects = projects.filter(p => p.status !== 'completed');
         const completedProjects = projects.filter(p => p.status === 'completed');
+
+        const sortSel = document.getElementById('liveSort');
+        const applySort = () => {
+          const mode = sortSel?.value || 'newest';
+          const sorted = liveProjects.slice();
+          if (mode === 'newest')      sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          else if (mode === 'ending') sorted.sort((a, b) => new Date(a.closesAt || 0) - new Date(b.closesAt || 0));
+          else if (mode === 'return') sorted.sort((a, b) => (b.profitRate || 0) - (a.profitRate || 0));
+          else if (mode === 'funded') sorted.sort((a, b) => (b.fundedPct || 0) - (a.fundedPct || 0));
+          else if (mode === 'min')    sorted.sort((a, b) => (a.minTicket || Infinity) - (b.minTicket || Infinity));
+          liveProjects = sorted;
+        };
+        applySort();
+        if (sortSel) sortSel.addEventListener('change', () => { applySort(); window.loadProjects(); });
 
         cnt.textContent = App.fmt.arNum(liveProjects.length) + ' فرصة';
         compCnt.textContent = App.fmt.arNum(completedProjects.length) + ' مشروع';
