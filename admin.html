@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- REFUND RATIO -->
+  <div class="admin-card" id="refRatioCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>↩ نسبة الاسترداد إلى الإيداع (آخر ١٢ شهر)</span>
+      <span class="card-h-sub" id="refRatioBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="refRatioChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;margin-bottom:8px;"></div>
+      <div id="refRatioLegend" style="display:flex;justify-content:space-between;font:600 10px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- KYC REJECTION REASONS -->
   <div class="admin-card" id="kycRejCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3532,6 +3544,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadRefRatio() {
+    const chart = document.getElementById('refRatioChart');
+    const legend = document.getElementById('refRatioLegend');
+    const badge = document.getElementById('refRatioBadge');
+    if (!chart) return;
+    try {
+      const r = await App.api('GET', '/app/admin/refund-ratio');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = 'إجمالي: ' + r.overallRatio + '٪';
+      chart.replaceChildren();
+      legend.replaceChildren();
+      const max = Math.max(1, ...r.months.map(m => m.ratio));
+      r.months.forEach(m => {
+        const col = document.createElement('div');
+        col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;';
+        const bar = document.createElement('div');
+        const color = m.ratio >= 15 ? '#c54a3a' : (m.ratio >= 5 ? '#b08840' : '#0f6e3a');
+        bar.style.cssText = 'width:100%;height:' + Math.max(4, (m.ratio / max) * 100) + '%;background:' + color + ';border-radius:4px 4px 0 0;';
+        bar.title = m.month + ' — ' + m.ratio + '٪ (' + Math.round(m.refundsAmount).toLocaleString('ar-SA') + '/' + Math.round(m.depositsAmount).toLocaleString('ar-SA') + ')';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 9px Cairo,sans-serif;color:' + color + ';';
+        lbl.textContent = m.ratio + '٪';
+        col.append(bar, lbl);
+        chart.appendChild(col);
+        const tag = document.createElement('div'); tag.style.cssText = 'flex:1;text-align:center;';
+        tag.textContent = m.month.slice(5);
+        legend.appendChild(tag);
+      });
+    } catch (e) {}
+  }
+
   async function loadKycRej() {
     const wrap = document.getElementById('kycRejList');
     const badge = document.getElementById('kycRejBadge');
@@ -9309,7 +9351,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

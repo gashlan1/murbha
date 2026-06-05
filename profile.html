@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Best month -->
+  <div class="settings-group" id="bestMoSec" style="display:none;">
+    <div class="settings-h">🏆 أفضل شهر استثماري</div>
+    <div style="padding:14px 18px;">
+      <div id="bestMoHero" style="background:linear-gradient(135deg,#b08840,#5c2418);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="bestMoKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Hold time -->
   <div class="settings-group" id="holdSec" style="display:none;">
     <div class="settings-h">⏳ متوسّط فترة حملك للاستثمارات</div>
@@ -3066,6 +3075,43 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Best month
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/best-month');
+      if (!r.hasData) return;
+      const sec = document.getElementById('bestMoSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('bestMoHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:36px;line-height:1;'; ic.textContent = '🏆';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 30px Cairo,sans-serif;margin:8px 0 4px;color:#d4ac6e;';
+      big.textContent = r.bestMonth;
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 14px Cairo,sans-serif;color:#fff;margin-bottom:6px;';
+      sub.textContent = Number(r.bestMonthAmount).toLocaleString('ar-SA') + ' ر.س · ' + r.bestMonthCount + ' صفقة';
+      const desc = document.createElement('div'); desc.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.92;';
+      desc.textContent = r.bestVsAvgPct > 0 ? ('أعلى من متوسّطك بـ ' + r.bestVsAvgPct + '٪') : 'شهر متوازن مع متوسّط استثماراتك';
+      hero.append(ic, big, sub, desc);
+      const kpis = document.getElementById('bestMoKpis');
+      kpis.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || '#062b1e') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('أكثر شهر صفقات', r.busiestMonth + ' (' + r.busiestMonthCount + ')', '#0a4d36'),
+        mk('متوسّط شهري', fmt(r.avgPerActiveMonth) + ' ر.س', '#b08840'),
+        mk('أشهر نشطة', r.totalActiveMonths, '#0f6e3a'),
+      );
     } catch (e) {}
   })();
 
