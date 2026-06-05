@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقرير الإدارة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/assets/site.css" />
+<script src="app.js"></script>
+<style>
+:root { --ink: #0d1612; --paper: #fbf6ea; --green: #0a4d36; --green-dark: #062b1e; --gold: #b08840; --muted: #6b7268; --line: rgba(13,22,18,0.10); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--paper); }
+body { font-family: 'Tajawal','Geeza Pro',system-ui,sans-serif; color: var(--ink); line-height: 1.6; overflow-x: hidden; }
+.toolbar { position: sticky; top: 0; background: rgba(251,246,234,0.92); backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); padding: 12px 18px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+.back { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; background: #fff; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--green-dark); font: 800 18px Cairo,sans-serif; }
+.title { font: 800 16px Cairo,sans-serif; color: var(--green-dark); flex: 1; }
+.print-btn { background: var(--green-dark); color: #fff; border: 0; padding: 9px 18px; border-radius: 8px; font: 800 13px Cairo,sans-serif; cursor: pointer; }
+main { max-width: 860px; margin: 24px auto; padding: 0 18px 60px; }
+.report { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 36px; box-shadow: 0 12px 30px rgba(13,22,18,0.05); max-width: 100%; overflow-x: hidden; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; }
+.table-wrap table { margin-top: 0; min-width: 480px; }
+@media (max-width: 600px) { .report { padding: 22px 16px; } }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding-bottom: 22px; border-bottom: 2px solid var(--green-dark); margin-bottom: 26px; }
+.brand .name { font: 900 22px Cairo,sans-serif; color: var(--green-dark); }
+.brand .tag { font: 600 12px Tajawal,sans-serif; color: var(--muted); margin-top: 2px; }
+.meta { text-align: end; }
+.meta .lbl { font: 500 10px Tajawal,sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.meta .val { font: 800 14px Cairo,sans-serif; color: var(--ink); margin-bottom: 6px; }
+h2 { font: 900 18px Cairo,sans-serif; color: var(--green-dark); margin: 24px 0 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.stat { background: var(--paper); padding: 14px 16px; border-radius: 10px; }
+.stat .k { font: 500 11px Tajawal,sans-serif; color: var(--muted); margin-bottom: 4px; }
+.stat .v { font: 900 18px Cairo,sans-serif; color: var(--green-dark); }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+table th { text-align: start; font: 800 11px Cairo,sans-serif; color: var(--muted); padding: 8px 10px; background: var(--paper); border-bottom: 2px solid var(--line); }
+table td { padding: 10px; border-bottom: 1px solid var(--line); }
+table tr:last-child td { border-bottom: 0; }
+.bar { background: var(--paper); height: 10px; border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-dark)); }
+.footer { padding-top: 22px; border-top: 1px dashed var(--line); text-align: center; font-size: 11px; color: var(--muted); line-height: 1.7; margin-top: 26px; }
+.error { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+@media print {
+  .toolbar { display: none; }
+  body { background: #fff; }
+  .report { box-shadow: none; border: 0; border-radius: 0; padding: 28px; }
+  main { margin: 0; padding: 0; max-width: none; }
+  h2 { page-break-before: auto; }
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <a href="admin.html" class="back" aria-label="رجوع">←</a>
+  <div class="title">تقرير الإدارة</div>
+  <button class="print-btn" onclick="window.print()">🖨 طباعة / حفظ PDF</button>
+</div>
+
+<main id="main">
+  <div id="reportRoot"><div class="error">جاري التحميل...</div></div>
+</main>
+
+<script>
+const arNum = (n) => n == null ? '—' : Number(n).toLocaleString('ar-SA');
+const KYC_AR = { pending: 'لم يبدأ', email_verified: 'تحقق بريد', mobile_verified: 'تحقق جوال', id_verified: 'تحقق هوية', verified: 'مكتمل' };
+
+(async function () {
+  const user = await App.requireAuth('login.html');
+  if (!user || user.role !== 'admin') {
+    document.getElementById('reportRoot').textContent = 'هذا التقرير متاح للمسؤولين فقط.';
+    return;
+  }
+  let r;
+  try { r = await App.api('GET', '/app/admin/reports'); }
+  catch (e) {
+    document.getElementById('reportRoot').textContent = 'تعذّر تحميل التقرير.';
+    return;
+  }
+  const root = document.getElementById('reportRoot');
+  root.replaceChildren();
+
+  const report = document.createElement('div'); report.className = 'report';
+
+  const head = document.createElement('div'); head.className = 'head';
+  const brand = document.createElement('div');
+  const bn = document.createElement('div'); bn.className='brand'; bn.appendChild(Object.assign(document.createElement('div'), {className:'name', textContent:'منصة مُرابحة'}));
+  bn.appendChild(Object.assign(document.createElement('div'), {className:'tag', textContent:'تقرير الإدارة الدوري'}));
+  const meta = document.createElement('div'); meta.className='meta';
+  const _l1 = document.createElement('div'); _l1.className='lbl'; _l1.textContent='تاريخ التقرير';
+  const _v1 = document.createElement('div'); _v1.className='val'; _v1.textContent = new Date(r.generatedAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const _l2 = document.createElement('div'); _l2.className='lbl'; _l2.textContent='النطاق';
+  const _v2 = document.createElement('div'); _v2.className='val'; _v2.textContent='آخر 30 يوم';
+  meta.append(_l1, _v1, _l2, _v2);
+  head.append(bn, meta);
+  report.appendChild(head);
+
+  // ── Cash flow (last 30 days)
+  const cfH = document.createElement('h2'); cfH.textContent = 'التدفقات النقدية — آخر 30 يوم';
+  report.appendChild(cfH);
+  const cfStats = document.createElement('div'); cfStats.className='stats';
+  const mkStat = (k, v) => {
+    const d = document.createElement('div'); d.className='stat';
+    const a = document.createElement('div'); a.className='k'; a.textContent = k;
+    const b = document.createElement('div'); b.className='v'; b.textContent = v;
+    d.append(a, b); return d;
+  };
+  cfStats.append(
+    mkStat('إيداعات', arNum(r.cashFlow30d.deposits) + ' ر.س'),
+    mkStat('سحوبات', arNum(r.cashFlow30d.withdraws) + ' ر.س'),
+    mkStat('استثمارات جديدة', arNum(r.cashFlow30d.invests) + ' ر.س'),
+    mkStat('بانتظار الموافقة', arNum(r.awaitingApproval)),
+  );
+  report.appendChild(cfStats);
+
+  // ── KYC funnel
+  const kH = document.createElement('h2'); kH.textContent = 'مسار التحقق من الهوية (KYC)';
+  report.appendChild(kH);
+  const kTable = document.createElement('table');
+  const kThead = document.createElement('thead');
+  const kTr = document.createElement('tr');
+  ['الخطوة','عدد المستخدمين'].forEach(h => { const th=document.createElement('th'); th.textContent=h; kTr.appendChild(th); });
+  kThead.appendChild(kTr); kTable.appendChild(kThead);
+  const kBody = document.createElement('tbody');
+  r.kycFunnel.forEach(s => {
+    const tr = document.createElement('tr');
+    const a = document.createElement('td'); a.textContent = KYC_AR[s.step] || s.step;
+    const b = document.createElement('td'); b.textContent = arNum(s.count);
+    tr.append(a, b); kBody.appendChild(tr);
+  });
+  kTable.appendChild(kBody);
+  const kWrap = document.createElement('div'); kWrap.className = 'table-wrap'; kWrap.appendChild(kTable); report.appendChild(kWrap);
+
+  // ── Top investors
+  const tH = document.createElement('h2'); tH.textContent = 'كبار المستثمرين';
+  report.appendChild(tH);
+  if (r.topInvestors.length) {
+    const t = document.createElement('table');
+    const thead = document.createElement('thead'); const tr = document.createElement('tr');
+    ['#','الاسم','عمليات','إجمالي'].forEach(h => { const th=document.createElement('th'); th.textContent=h; tr.appendChild(th); });
+    thead.appendChild(tr); t.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    r.topInvestors.forEach((u, i) => {
+      const row = document.createElement('tr');
+      const a = document.createElement('td'); a.textContent = (i + 1);
+      const b = document.createElement('td'); b.textContent = u.name || '—';
+      const c = document.createElement('td'); c.textContent = arNum(u.count);
+      const d = document.createElement('td'); d.style.fontWeight='800'; d.style.color='var(--green-dark)'; d.textContent = arNum(u.total) + ' ر.س';
+      row.append(a, b, c, d); tbody.appendChild(row);
+    });
+    t.appendChild(tbody); const _w = document.createElement('div'); _w.className='table-wrap'; _w.appendChild(t); report.appendChild(_w);
+  } else {
+    const e = document.createElement('div'); e.className = 'error'; e.style.textAlign='start'; e.textContent = 'لا توجد بيانات.';
+    report.appendChild(e);
+  }
+
+  // ── Project performance
+  const pH = document.createElement('h2'); pH.textContent = 'أداء المشاريع';
+  report.appendChild(pH);
+  if (r.projectStats.length) {
+    const t = document.createElement('table');
+    const thead = document.createElement('thead'); const tr = document.createElement('tr');
+    ['المشروع','الهدف','جُمع','%','مستثمرون','30 يوم'].forEach(h => { const th=document.createElement('th'); th.textContent=h; tr.appendChild(th); });
+    thead.appendChild(tr); t.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    r.projectStats.forEach(p => {
+      const row = document.createElement('tr');
+      const a = document.createElement('td'); a.style.fontWeight='700'; a.textContent = p.name;
+      const b = document.createElement('td'); b.textContent = arNum(p.goal);
+      const c = document.createElement('td'); c.textContent = arNum(p.raised);
+      const d = document.createElement('td');
+      const bar = document.createElement('div'); bar.className='bar';
+      const fill = document.createElement('div'); fill.className='bar-fill'; fill.style.width = Math.min(100, p.fundedPct) + '%';
+      bar.appendChild(fill); d.appendChild(bar);
+      const small = document.createElement('div'); small.style.fontSize='10px'; small.style.color='var(--muted)'; small.style.marginTop='2px'; small.textContent = p.fundedPct + '٪';
+      d.appendChild(small);
+      const e = document.createElement('td'); e.textContent = arNum(p.investorCount);
+      const f = document.createElement('td'); f.textContent = arNum(p.raisedLast30d) + ' ر.س';
+      row.append(a, b, c, d, e, f); tbody.appendChild(row);
+    });
+    t.appendChild(tbody); const _w = document.createElement('div'); _w.className='table-wrap'; _w.appendChild(t); report.appendChild(_w);
+  }
+
+  const footer = document.createElement('div'); footer.className='footer';
+  footer.textContent = 'تقرير صادر إلكترونياً من منصة مُرابحة — للاستخدام الداخلي للإدارة فقط.';
+  report.appendChild(footer);
+
+  root.appendChild(report);
+})();
+</script>
+</body>
+</html>
