@@ -970,6 +970,9 @@
     <button class="share-btn copy" id="shareCopyBtn" type="button" aria-label="نسخ الرابط">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </button>
+    <button class="share-btn fav" id="favBtn" type="button" aria-label="حفظ" title="حفظ" style="display:none;">
+      <svg id="favIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </button>
   </div>
 </div>
 
@@ -1848,6 +1851,37 @@
     if (typeof p.shareCount === 'number' && p.shareCount > 0) {
       const lbl = document.getElementById('shareCountLabel');
       if (lbl) lbl.textContent = `${p.shareCount} مشاركة حتى الآن`;
+    }
+
+    // Favorite (auth users only)
+    const favBtn = document.getElementById('favBtn');
+    const me = App.me && App.me();
+    if (favBtn && me && me.id) {
+      favBtn.style.display = 'inline-flex';
+      const setSaved = (saved) => {
+        favBtn.title = saved ? 'محفوظ — اضغط لإزالته' : 'حفظ';
+        favBtn.setAttribute('aria-label', favBtn.title);
+        favBtn.style.background = saved ? '#fff3cd' : '';
+        favBtn.style.borderColor = saved ? '#d4ac6e' : '';
+        favBtn.style.color = saved ? '#b08840' : '';
+        const ic = document.getElementById('favIcon');
+        if (ic) ic.setAttribute('fill', saved ? '#d4ac6e' : 'none');
+      };
+      fetch('/app/me/favorites', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : { ids: [] })
+        .then(d => setSaved((d.ids || []).includes(p.id)))
+        .catch(() => {});
+      favBtn.onclick = async () => {
+        try {
+          const r = await App.csrfFetch('/app/me/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: p.id })
+          });
+          const d = await r.json();
+          if (r.ok) { setSaved(!!d.saved); App.toast && App.toast(d.saved ? 'تمت إضافة الفرصة إلى المحفوظات' : 'تم الحذف من المحفوظات', 'success'); }
+        } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+      };
     }
   }
   function _trackShare(channel) {

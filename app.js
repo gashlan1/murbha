@@ -98,6 +98,21 @@
     };
   };
 
+  // ─── Theme (light / dark) ───────────────────────────────────────
+  const THEME_KEY = 'mrb_theme';
+  const applyTheme = (theme) => {
+    document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+  };
+  const getTheme = () => {
+    try { return localStorage.getItem(THEME_KEY) || 'light'; } catch { return 'light'; }
+  };
+  const setTheme = (theme) => {
+    try { localStorage.setItem(THEME_KEY, theme); } catch {}
+    applyTheme(theme);
+  };
+  // Apply early so first paint matches saved preference.
+  if (typeof document !== 'undefined') applyTheme(getTheme());
+
   // ─── Tiny safe Markdown renderer ────────────────────────────────
   // Supports: # / ## / ### headings, **bold**, *italic*, `code`,
   // [text](url) links (http/https only), unordered/ordered lists,
@@ -589,6 +604,7 @@
     toast,
     fmt: { sar, arNum, date, dateTime, relTime },
     storage, on, qs, escapeHtml, renderMarkdown,
+    getTheme, setTheme,
     trapFocus,
     refreshHeader: _wireHeaderAuth,
   };

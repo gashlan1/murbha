@@ -805,6 +805,12 @@
     </div>
   </div>
 
+  <!-- Saved opportunities -->
+  <div class="settings-group" id="saved-projects-section" style="display:none;">
+    <div class="settings-h">الفرص المحفوظة</div>
+    <div id="savedProjectsList" style="padding: 12px 16px;"></div>
+  </div>
+
   <!-- Active Investments Section -->
   <div class="settings-group" id="my-investments-section" style="display:none;">
     <div class="settings-h">استثماراتي والخط الزمني للمشاريع</div>
@@ -1044,6 +1050,22 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </a>
+  </div>
+
+  <!-- Theme -->
+  <div class="settings-group">
+    <div class="settings-h">المظهر</div>
+    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;">🌙 الوضع الداكن</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);">يفضّله البعض في الإضاءة المنخفضة</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;">
+        <input type="checkbox" id="darkModeToggle" style="opacity:0;width:0;height:0;" />
+        <span id="darkModeSlider" style="position:absolute;cursor:pointer;inset:0;background:var(--line-strong);border-radius:999px;transition:background .25s;"></span>
+        <span id="darkModeKnob" style="position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2);"></span>
+      </label>
+    </div>
   </div>
 
   <!-- Notification preferences -->
@@ -1454,6 +1476,57 @@
 
   // Load investments on initialization
   await loadInvestments();
+
+  // Load saved projects
+  (async () => {
+    try {
+      const r = await fetch('/app/me/favorites', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const { projects = [] } = await r.json();
+      const sec = document.getElementById('saved-projects-section');
+      const list = document.getElementById('savedProjectsList');
+      if (!list || !projects.length) return;
+      sec.style.display = '';
+      list.textContent = '';
+      projects.forEach(p => {
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+        a.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;text-decoration:none;color:inherit;background:#fff;';
+        const left = document.createElement('div');
+        const nm = document.createElement('div');
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        nm.textContent = p.name || '';
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        meta.textContent = `العائد ${p.rate || p.expectedReturn || '—'}% · ${p.category || ''}`;
+        left.appendChild(nm); left.appendChild(meta);
+        const arrow = document.createElement('div');
+        arrow.style.cssText = 'color:var(--gold);font-weight:900;';
+        arrow.textContent = '‹';
+        a.appendChild(left); a.appendChild(arrow);
+        list.appendChild(a);
+      });
+    } catch (e) {}
+  })();
+
+  // Theme toggle
+  (() => {
+    const cb = document.getElementById('darkModeToggle');
+    const sl = document.getElementById('darkModeSlider');
+    const kb = document.getElementById('darkModeKnob');
+    if (!cb) return;
+    const sync = () => {
+      const dark = App.getTheme() === 'dark';
+      cb.checked = dark;
+      sl.style.background = dark ? 'var(--green)' : 'var(--line-strong)';
+      kb.style.transform = dark ? 'translateX(-22px)' : 'translateX(0)';
+    };
+    sync();
+    cb.addEventListener('change', () => {
+      App.setTheme(cb.checked ? 'dark' : 'light');
+      sync();
+    });
+  })();
 
   // Avatar upload
   (async () => {

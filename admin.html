@@ -966,6 +966,16 @@
           <div style="font:800 14px Cairo,sans-serif;color:#0f6e3a;margin-bottom:4px;">✓ المصادقة الثنائية مفعّلة</div>
           <div id="twofaEnabledAt" style="font-size:12px;color:var(--muted);"></div>
         </div>
+        <div style="background:#fff8e6;border:1px solid #f0d28a;padding:12px 14px;border-radius:10px;margin-bottom:14px;">
+          <div style="font:800 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:6px;">رموز الاحتياط</div>
+          <div style="font-size:12px;color:#7a5a10;line-height:1.7;margin-bottom:10px;">إذا فقدت تطبيق المصادقة، استخدم أحد هذه الرموز لتسجيل الدخول. كل رمز يعمل لمرة واحدة فقط.</div>
+          <button id="genBackupCodesBtn" style="width:100%;padding:10px;border:0;border-radius:8px;background:#b08840;color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">توليد ٨ رموز جديدة</button>
+          <div id="backupCodesArea" style="display:none;margin-top:12px;background:#fff;border:1px dashed #b08840;border-radius:10px;padding:12px;">
+            <div id="backupCodesList" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font:700 13px 'SF Mono',Menlo,monospace;text-align:center;direction:ltr;"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;">احفظها في مكان آمن — لن نعرضها مرة أخرى.</div>
+            <button id="copyBackupCodesBtn" type="button" style="margin-top:8px;width:100%;padding:8px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;font:700 12px Cairo,sans-serif;cursor:pointer;">نسخ الكل</button>
+          </div>
+        </div>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">للإلغاء، أدخل الرمز الحالي من تطبيق المصادقة:</p>
         <input id="twofaDisableCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="رمز التحقق" style="width:100%;padding:12px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font:700 16px 'SF Mono',Menlo,monospace;letter-spacing:6px;text-align:center;direction:ltr;margin-bottom:10px;" />
         <button id="twofaDisableBtn" style="width:100%;padding:12px;border:0;border-radius:10px;background:#c54a3a;color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">إلغاء التفعيل</button>
@@ -1528,6 +1538,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       twofaEnableCode.value = '';
       refreshTwofa();
     } catch (e) { alert(e.message || 'فشل التفعيل. تأكد من الرمز.'); }
+  });
+
+  document.getElementById('genBackupCodesBtn').addEventListener('click', async () => {
+    if (!confirm('سيتم إبطال أي رموز سابقة. متابعة؟')) return;
+    try {
+      const r = await App.api('POST', '/app/admin/2fa/backup-codes/generate', {});
+      const list = document.getElementById('backupCodesList');
+      list.textContent = '';
+      (r.codes || []).forEach(c => {
+        const el = document.createElement('div');
+        el.style.cssText = 'padding:8px;background:#f7f0e0;border-radius:6px;letter-spacing:2px;';
+        el.textContent = c;
+        list.appendChild(el);
+      });
+      document.getElementById('backupCodesArea').style.display = '';
+      window._backupCodes = r.codes || [];
+    } catch (e) { alert(e.message || 'فشل التوليد'); }
+  });
+
+  document.getElementById('copyBackupCodesBtn').addEventListener('click', async () => {
+    const codes = window._backupCodes || [];
+    if (!codes.length) return;
+    try { await navigator.clipboard.writeText(codes.join('\n')); App.toast && App.toast('تم نسخ الرموز', 'success'); }
+    catch (e) { alert('تعذّر النسخ'); }
   });
 
   document.getElementById('twofaDisableBtn').addEventListener('click', async () => {
