@@ -2422,6 +2422,24 @@ document.addEventListener('DOMContentLoaded', async () => {
           };
           right.appendChild(inspect);
         }
+        if (t.userId && Math.abs(t.amount) > 0) {
+          const refund = document.createElement('button');
+          refund.type = 'button';
+          refund.style.cssText = 'background:var(--gold);color:#062b1e;border:0;border-radius:6px;padding:3px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+          refund.textContent = '↩ استرداد';
+          refund.onclick = async () => {
+            const amount = Math.abs(Number(t.amount) || 0);
+            const reason = prompt('سبب الاسترداد:', 'تعويض عن معاملة فاشلة');
+            if (!reason) return;
+            refund.disabled = true; refund.textContent = '…';
+            try {
+              await App.api('POST', '/app/admin/refund', { userId: t.userId, amount, reason });
+              App.toast && App.toast('تم استرداد ' + amount.toLocaleString('ar-SA') + ' ر.س', 'success');
+              loadFailedTxns();
+            } catch (e) { refund.disabled = false; refund.textContent = '↩ استرداد'; alert(e.message || 'فشل'); }
+          };
+          right.appendChild(refund);
+        }
         row.append(left, right);
         list.appendChild(row);
       });
