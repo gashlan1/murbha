@@ -1122,6 +1122,56 @@
     storage, on, qs, escapeHtml, renderMarkdown,
     getTheme, setTheme,
     getConsent: _getConsent, setConsent: _setConsent,
+    // Type-to-confirm prompt for destructive actions. Resolves to boolean.
+    confirmDestructive: (opts) => new Promise(resolve => {
+      const o = opts || {};
+      const challenge = (o.challenge || 'DELETE').toString().toUpperCase();
+      const m = document.createElement('div');
+      m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const c = document.createElement('div');
+      c.style.cssText = 'background:#fff;border-radius:14px;padding:22px;max-width:420px;width:100%;border-top:4px solid #c54a3a;';
+      const h = document.createElement('div');
+      h.style.cssText = 'font:900 17px Cairo,sans-serif;color:#c54a3a;margin-bottom:8px;';
+      h.textContent = o.title || '⚠ تأكيد عملية حساسة';
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:13px;color:#3c4d44;line-height:1.7;margin-bottom:14px;';
+      p.textContent = o.body || 'هذه العملية لا يمكن التراجع عنها.';
+      c.append(h, p);
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:block;font:700 11px Cairo,sans-serif;color:#6b7268;margin-bottom:6px;';
+      lbl.appendChild(document.createTextNode('للمتابعة، اكتب '));
+      const code = document.createElement('code');
+      code.style.cssText = 'background:#fbf8ee;padding:2px 8px;border-radius:4px;color:#7a5a10;font-family:"SF Mono",Menlo,monospace;';
+      code.textContent = challenge;
+      lbl.appendChild(code);
+      lbl.appendChild(document.createTextNode(' أدناه:'));
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.style.cssText = 'width:100%;padding:11px;border:1.5px solid rgba(13,22,18,0.15);border-radius:8px;font:800 14px "SF Mono",Menlo,monospace;letter-spacing:2px;text-align:center;text-transform:uppercase;margin-bottom:14px;';
+      c.append(lbl, input);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;';
+      const cancel = document.createElement('button');
+      cancel.type = 'button'; cancel.textContent = 'إلغاء';
+      cancel.style.cssText = 'flex:1;padding:11px;background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;font:800 13px Cairo,sans-serif;color:#3c4d44;cursor:pointer;';
+      cancel.onclick = () => { m.remove(); resolve(false); };
+      const ok = document.createElement('button');
+      ok.type = 'button'; ok.textContent = o.confirmLabel || 'متابعة';
+      ok.style.cssText = 'flex:2;padding:11px;background:#c54a3a;color:#fff;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;opacity:0.5;';
+      ok.disabled = true;
+      input.addEventListener('input', () => {
+        const ready = input.value.trim().toUpperCase() === challenge;
+        ok.disabled = !ready;
+        ok.style.opacity = ready ? '1' : '0.5';
+      });
+      ok.onclick = () => { m.remove(); resolve(true); };
+      row.append(cancel, ok);
+      c.append(row);
+      m.append(c);
+      m.addEventListener('click', (e) => { if (e.target === m) { m.remove(); resolve(false); } });
+      document.body.append(m);
+      setTimeout(() => input.focus(), 50);
+    }),
     startTour, resetTour: () => { try { localStorage.removeItem(TOUR_KEY); } catch {} },
     mdInline: (text, parent) => {
       // Safe inline markdown to DOM nodes. Skips innerHTML entirely.

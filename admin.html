@@ -2867,7 +2867,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         susBtn.onclick = async () => {
           const reason = prompt('سبب التعليق (يظهر في سجل التدقيق):', '');
           if (reason === null) return;
-          if (!confirm('تأكيد تعليق هذا الحساب؟ سيتم إنهاء جلساته الحالية.')) return;
+          const confirmed = await App.confirmDestructive({
+            title: '⛔ تعليق الحساب',
+            body: 'سيتم إنهاء جميع جلسات هذا المستخدم ومنع تسجيله الدخول مجدّداً حتى تعكس القرار. اكتب SUSPEND للمتابعة.',
+            challenge: 'SUSPEND',
+            confirmLabel: 'تعليق',
+          });
+          if (!confirmed) return;
           try {
             await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/suspend', { reason });
             App.toast && App.toast('✓ تم تعليق الحساب', 'success');
@@ -3190,7 +3196,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) { alert(e.message || 'فشل النسخ'); }
   }
   async function archiveProject(projectId, archive) {
-    if (!confirm(archive ? 'أرشفة هذا المشروع وإخفاؤه من القائمة العامة؟' : 'إعادة نشر هذا المشروع؟')) return;
+    if (archive) {
+      const ok = await App.confirmDestructive({
+        title: '📦 أرشفة المشروع',
+        body: 'سيختفي المشروع من القائمة العامة. لن يستطيع زوّار جدد العثور عليه. اكتب ARCHIVE للمتابعة.',
+        challenge: 'ARCHIVE',
+        confirmLabel: 'أرشفة',
+      });
+      if (!ok) return;
+    } else {
+      if (!confirm('إعادة نشر هذا المشروع؟')) return;
+    }
     try {
       await App.api('POST', '/app/admin/projects/' + encodeURIComponent(projectId) + '/archive', { archive });
       App.toast && App.toast(archive ? '✓ تمت الأرشفة' : '✓ تمت إعادة النشر', 'success');

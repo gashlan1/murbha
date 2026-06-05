@@ -142,6 +142,60 @@
   </div>
 </div>
 
+<h2 style="font:900 18px Cairo,sans-serif;color:#062b1e;margin:30px 0 12px;">🗳 صوّت لما تريد رؤيته بعد ذلك</h2>
+<p style="font-size:13px;color:#6b7268;line-height:1.7;margin-bottom:14px;">صوتك يُساعدنا في ترتيب الأولويات.</p>
+<div id="votingItems" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+  <div style="text-align:center;padding:24px;color:#6b7268;font-size:13px;">جارٍ التحميل…</div>
+</div>
+<script>
+(async () => {
+  const root = document.getElementById('votingItems');
+  if (!root) return;
+  try {
+    const r = await fetch('/app/public/roadmap');
+    if (!r.ok) return;
+    const { items } = await r.json();
+    const open = items.filter(i => i.stage !== 'shipped');
+    root.replaceChildren();
+    if (!open.length) {
+      const e = document.createElement('div'); e.style.cssText='text-align:center;padding:24px;color:#6b7268;font-size:13px;';
+      e.textContent='لا توجد عناصر مرشحة للتصويت حالياً.'; root.appendChild(e); return;
+    }
+    const voted = (() => { try { return JSON.parse(localStorage.getItem('mrb_roadmap_voted') || '{}'); } catch { return {}; } })();
+    open.sort((a, b) => b.votes - a.votes);
+    open.forEach(item => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:14px;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:14px 16px;';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const hasVoted = !!voted[item.id];
+      btn.style.cssText = 'flex-shrink:0;width:64px;height:64px;border-radius:14px;background:' + (hasVoted ? '#0a4d36' : '#fff') + ';color:' + (hasVoted ? '#fff' : '#062b1e') + ';border:1.5px solid #0a4d36;font:900 13px Cairo,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;';
+      btn.disabled = hasVoted;
+      const arrow = document.createElement('span'); arrow.style.fontSize='16px'; arrow.textContent='▲';
+      const count = document.createElement('span'); count.style.cssText='font-size:14px;margin-top:2px;'; count.textContent = item.votes || 0;
+      btn.append(arrow, count);
+      btn.onclick = async () => {
+        btn.disabled = true;
+        try {
+          const r2 = await fetch('/app/public/roadmap/' + encodeURIComponent(item.id) + '/vote', { method: 'POST' });
+          const d2 = await r2.json();
+          if (r2.ok) { count.textContent = d2.votes; voted[item.id] = true; try { localStorage.setItem('mrb_roadmap_voted', JSON.stringify(voted)); } catch {}; btn.style.background = '#0a4d36'; btn.style.color = '#fff'; }
+        } catch (e) { btn.disabled = false; }
+      };
+      const txt = document.createElement('div'); txt.style.flex = '1';
+      const t = document.createElement('div'); t.style.cssText='font:800 14px Cairo,sans-serif;color:#062b1e;margin-bottom:4px;'; t.textContent = item.title;
+      const b = document.createElement('div'); b.style.cssText='font-size:13px;color:#6b7268;line-height:1.7;'; b.textContent = item.body || '';
+      const stage = document.createElement('span');
+      stage.style.cssText = 'display:inline-block;margin-top:6px;font:800 10px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:' + (item.stage === 'considering' ? 'rgba(176,136,64,0.16)' : 'rgba(15,110,58,0.12)') + ';color:' + (item.stage === 'considering' ? '#7a5a10' : '#0f6e3a') + ';';
+      stage.textContent = item.stage === 'considering' ? 'قيد الدراسة' : 'مخطّط';
+      txt.append(t, b, stage);
+      row.append(btn, txt);
+      root.appendChild(row);
+    });
+  } catch (e) {}
+})();
+</script>
+
 <div class="voice">
   <h3>صوتك يحدّد ما يأتي</h3>
   <p>هل لديك اقتراح أو ميزة تتمنى رؤيتها؟ نقرأ كل بريد ونردّ خلال ٤٨ ساعة.</p>

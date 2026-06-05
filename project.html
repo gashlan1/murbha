@@ -956,6 +956,13 @@
     <span><b>٨٤٧</b> مستثمر</span>
     <span>متبقّي <b>١٢ يوماً</b></span>
   </div>
+  <div id="fundingHistory" style="margin-top:14px;padding-top:14px;border-top:1px dashed rgba(13,22,18,0.08);display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font:700 11px Cairo,sans-serif;color:var(--muted);">تطوّر التمويل</span>
+      <span id="fundingHistoryFirstLast" style="font:600 10px 'SF Mono',Menlo,monospace;color:var(--muted);direction:ltr;"></span>
+    </div>
+    <svg id="fundingChart" width="100%" height="60" viewBox="0 0 300 60" preserveAspectRatio="none" style="display:block;"></svg>
+  </div>
 </div>
 
 <!-- SHARE -->
@@ -1669,6 +1676,59 @@
     } catch (e) {}
   }
 
+  async function _loadFundingHistory(p) {
+    const wrap = document.getElementById('fundingHistory');
+    const svg = document.getElementById('fundingChart');
+    if (!wrap || !svg) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/funding-history');
+      if (!r.ok) return;
+      const d = await r.json();
+      const pts = d.points || [];
+      if (pts.length < 2) return;
+      const W = 300, H = 60, padTop = 4;
+      const maxR = Math.max(d.goal || 0, ...pts.map(x => x.raised));
+      const firstT = new Date(pts[0].day).getTime();
+      const lastT = new Date(pts[pts.length - 1].day).getTime();
+      const span = Math.max(1, lastT - firstT);
+      const xy = pts.map(pt => {
+        const x = ((new Date(pt.day).getTime() - firstT) / span) * (W - 4) + 2;
+        const y = H - padTop - ((pt.raised / Math.max(1, maxR)) * (H - padTop - 2));
+        return [x, y];
+      });
+      svg.replaceChildren();
+      const svgNS = 'http://www.w3.org/2000/svg';
+      // Filled area path
+      const area = document.createElementNS(svgNS, 'path');
+      const dArea = 'M' + xy[0][0].toFixed(1) + ',' + H + ' L' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + ' L' + xy[xy.length-1][0].toFixed(1) + ',' + H + ' Z';
+      area.setAttribute('d', dArea);
+      area.setAttribute('fill', 'rgba(15,110,58,0.12)');
+      svg.appendChild(area);
+      // Line stroke
+      const line = document.createElementNS(svgNS, 'path');
+      line.setAttribute('d', 'M' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L'));
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#0a4d36');
+      line.setAttribute('stroke-width', '1.8');
+      line.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(line);
+      // Goal line (dashed) if defined
+      if (d.goal) {
+        const goalY = H - padTop - ((d.goal / Math.max(1, maxR)) * (H - padTop - 2));
+        const dash = document.createElementNS(svgNS, 'line');
+        dash.setAttribute('x1', '0'); dash.setAttribute('x2', String(W));
+        dash.setAttribute('y1', goalY.toFixed(1)); dash.setAttribute('y2', goalY.toFixed(1));
+        dash.setAttribute('stroke', '#b08840');
+        dash.setAttribute('stroke-dasharray', '3 3');
+        dash.setAttribute('stroke-width', '1');
+        svg.appendChild(dash);
+      }
+      const flLabel = document.getElementById('fundingHistoryFirstLast');
+      if (flLabel) flLabel.textContent = pts[0].day + ' → ' + pts[pts.length - 1].day;
+      wrap.style.display = '';
+    } catch (e) {}
+  }
+
   async function _loadAdminFaq(p) {
     const list = document.getElementById('adminFaqList');
     if (!list) return;
@@ -1776,6 +1836,9 @@
 
     // Ratings
     _loadRatings(p);
+
+    // Funding history chart
+    _loadFundingHistory(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');
