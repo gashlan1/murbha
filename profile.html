@@ -859,6 +859,18 @@
     </div>
   </div>
 
+  <!-- Auto-invest stats -->
+  <div class="settings-group" id="aiStatsSec" style="display:none;">
+    <div class="settings-h">🔁 الاستثمار التلقائي</div>
+    <div style="padding:14px 18px;">
+      <div id="aiStatus" style="background:var(--paper);border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;"></div>
+      <div id="aiKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px;"></div>
+      <div id="aiSplit" style="display:flex;height:18px;background:var(--paper);border-radius:99px;overflow:hidden;margin-bottom:8px;"></div>
+      <div id="aiSplitLabels" style="display:flex;justify-content:space-between;font:700 11px Cairo,sans-serif;color:var(--muted);"></div>
+      <a href="/auto-invest.html" style="display:block;margin-top:12px;text-align:center;padding:10px;background:linear-gradient(90deg,#0a4d36,#062b1e);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--gold-light);text-decoration:none;">⚙️ إدارة الإعدادات</a>
+    </div>
+  </div>
+
   <!-- Payment method usage -->
   <div class="settings-group" id="pmuSec" style="display:none;">
     <div class="settings-h">💳 طرق الدفع المفضّلة</div>
@@ -2652,6 +2664,61 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Auto-invest stats
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/auto-invest-stats');
+      if (!r.enabled && !r.autoCount) return;
+      const sec = document.getElementById('aiStatsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const status = document.getElementById('aiStatus');
+      status.replaceChildren();
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (r.enabled ? '#0f6e3a' : 'var(--muted)') + ';';
+      lbl.textContent = r.enabled ? '🟢 مُفعَّل' : '⏸ متوقّف';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.7;';
+      const bits = [];
+      if (r.monthlyBudget) bits.push('ميزانية شهرية: ' + fmt(r.monthlyBudget) + ' ر.س');
+      if (r.minTicket || r.maxTicket) bits.push((r.minTicket || 0) + ' – ' + (r.maxTicket || 0) + ' ر.س لكل صفقة');
+      if (r.lastAutoAt) bits.push('آخر تفعيل: ' + new Date(r.lastAutoAt).toLocaleDateString('ar-SA'));
+      sub.textContent = bits.join(' · ') || 'لم تُحدَّد إعدادات بعد';
+      status.append(lbl, sub);
+      const kpis = document.getElementById('aiKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('استثمارات تلقائية', r.autoCount, '#0f6e3a'),
+        mk('مبلغ تلقائي', fmt(r.autoAmount) + ' ر.س', '#0a4d36'),
+        mk('استثمارات يدوية', r.manualCount, '#b08840'),
+        mk('نسبة التلقائي', r.autoSharePct + '٪', '#062b1e'),
+      );
+      const split = document.getElementById('aiSplit');
+      split.replaceChildren();
+      const auto = document.createElement('div');
+      auto.style.cssText = 'background:#0f6e3a;width:' + r.autoSharePct + '%;';
+      const man = document.createElement('div');
+      man.style.cssText = 'background:#b08840;width:' + (100 - r.autoSharePct) + '%;';
+      split.append(auto, man);
+      const labels = document.getElementById('aiSplitLabels');
+      labels.replaceChildren();
+      const l1 = document.createElement('span'); l1.textContent = '🤖 تلقائي ' + r.autoSharePct + '٪';
+      l1.style.color = '#0f6e3a';
+      const l2 = document.createElement('span'); l2.textContent = '✋ يدوي ' + (100 - r.autoSharePct) + '٪';
+      l2.style.color = '#b08840';
+      labels.append(l1, l2);
     } catch (e) {}
   })();
 

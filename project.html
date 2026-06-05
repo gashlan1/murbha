@@ -1514,6 +1514,18 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Realized ROI from similar deals -->
+<div class="card-section" id="roiBandCard" style="display:none;">
+  <h2 class="section-h">📈 العوائد المحقّقة في صفقات مماثلة</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">نطاق العوائد الفعلية على صفقاتنا السابقة من نفس الفئة والمنطقة — مؤشّر تاريخي وليس وعداً.</p>
+  <div id="roiBandStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+  <div id="roiBandBar" style="position:relative;height:30px;background:var(--paper);border-radius:99px;overflow:visible;">
+    <div id="roiBandRange" style="position:absolute;top:0;bottom:0;background:linear-gradient(90deg,#0f6e3a,#b08840);border-radius:99px;"></div>
+    <div id="roiBandExpected" style="position:absolute;top:-4px;bottom:-4px;width:3px;background:#062b1e;border-radius:2px;"></div>
+  </div>
+  <div id="roiBandLabels" style="display:flex;justify-content:space-between;margin-top:6px;font:700 11px Cairo,sans-serif;color:var(--muted);"></div>
+</div>
+
 <!-- Contract signing speed -->
 <div class="card-section" id="signSpeedCard" style="display:none;">
   <h2 class="section-h">✍️ سرعة توقيع العقود</h2>
@@ -4367,6 +4379,49 @@
     recalc();
   }
 
+  async function _loadRoiBand(slug) {
+    const card = document.getElementById('roiBandCard');
+    const stats = document.getElementById('roiBandStats');
+    const bar = document.getElementById('roiBandRange');
+    const marker = document.getElementById('roiBandExpected');
+    const labels = document.getElementById('roiBandLabels');
+    if (!card || !stats || !bar) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/realized-roi');
+      if (!r.hasHistory) { card.style.display = 'none'; return; }
+      stats.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      stats.append(
+        mk('متوقّع لهذه', r.expected + '٪', '#062b1e'),
+        mk('متوسط محقّق', r.avg + '٪', '#0f6e3a'),
+        mk('وسيط', r.median + '٪', '#0a4d36'),
+        mk('فوق التوقّع', r.aboveExpectedPct + '٪', '#b08840'),
+        mk('عيّنة', r.similarCount, '#5c2418'),
+      );
+      const lo = Math.min(r.min, r.expected) - 1;
+      const hi = Math.max(r.max, r.expected) + 1;
+      const range = hi - lo;
+      const leftPct = ((r.min - lo) / range) * 100;
+      const widthPct = ((r.max - r.min) / range) * 100;
+      bar.style.insetInlineStart = leftPct + '%';
+      bar.style.width = widthPct + '%';
+      const expPct = ((r.expected - lo) / range) * 100;
+      marker.style.insetInlineStart = 'calc(' + expPct + '% - 1.5px)';
+      labels.replaceChildren();
+      const l1 = document.createElement('span'); l1.textContent = r.min + '٪ (أدنى)';
+      const l2 = document.createElement('span'); l2.textContent = r.max + '٪ (أعلى)';
+      labels.append(l1, l2);
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadSignSpeed(slug) {
     const card = document.getElementById('signSpeedCard');
     const kpis = document.getElementById('signSpeedKpis');
@@ -4686,7 +4741,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setMomentum(slug) {
     const badge = document.getElementById('momentumBadge');
