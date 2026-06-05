@@ -995,6 +995,7 @@
     <span id="listingAgeBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"></span>
     <span id="closeSpeedBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
     <span id="histFundBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fbf6ea,#fff);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
+    <span id="lastActBadge" style="display:none;font:700 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
     <button type="button" id="bookmarkBtn" style="display:none;font:800 11px Cairo,sans-serif;background:#fff;border:1px solid var(--gold);color:var(--gold);padding:5px 14px;border-radius:999px;cursor:pointer;" title="حفظ الصفقة في المفضّلة"></button>
     <span id="reminderWrap" style="display:none;position:relative;">
       <button type="button" id="reminderBtn" style="font:800 11px Cairo,sans-serif;background:#fff;border:1px solid var(--green);color:var(--green);padding:5px 14px;border-radius:999px;cursor:pointer;">🔔 ذكّرني</button>
@@ -4759,21 +4760,22 @@
     if (!card || !list) return;
     try {
       const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/top-investors');
-      if (!r.hasData) { card.style.display = 'none'; return; }
+      const top = r.topInvestors || [];
+      if (!top.length || (r.totalInvestors || 0) < 3) { card.style.display = 'none'; return; }
       list.replaceChildren();
       const medals = ['🥇', '🥈', '🥉', '#4', '#5'];
-      const verifiedLabels = { qualified: '⭐ مؤهَّل', approved: '✓ مُوثَّق', pending: '⏳ قيد التحقّق' };
-      r.top5.forEach((inv, i) => {
+      top.forEach((inv, i) => {
         const row = document.createElement('div');
         row.style.cssText = 'display:grid;grid-template-columns:40px 1fr auto auto;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
         const rk = document.createElement('div'); rk.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--gold);text-align:center;';
-        rk.textContent = medals[i] || ('#' + inv.rank);
-        const name = document.createElement('div'); name.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; name.textContent = inv.name;
-        const ver = document.createElement('div'); ver.style.cssText = 'font:700 10px Cairo,sans-serif;color:#0a4d36;background:rgba(10,77,54,0.10);padding:4px 8px;border-radius:99px;';
-        ver.textContent = verifiedLabels[inv.verified] || inv.verified;
+        rk.textContent = medals[i] || ('#' + (i + 1));
+        const name = document.createElement('div'); name.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; name.textContent = inv.display;
+        const optedChip = document.createElement('div');
+        optedChip.style.cssText = 'font:700 10px Cairo,sans-serif;padding:4px 8px;border-radius:99px;' + (inv.optedIn ? 'color:#0a4d36;background:rgba(10,77,54,0.10);' : 'color:#6b7268;background:rgba(107,114,104,0.10);');
+        optedChip.textContent = inv.optedIn ? '👁 ظاهر' : '🔒 مجهّل';
         const meta = document.createElement('div'); meta.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);text-align:end;min-width:120px;';
-        meta.textContent = Number(inv.amount).toLocaleString('ar-SA') + ' ر.س (' + inv.pct + '٪)';
-        row.append(rk, name, ver, meta);
+        meta.textContent = Number(inv.amount).toLocaleString('ar-SA') + ' ر.س';
+        row.append(rk, name, optedChip, meta);
         list.appendChild(row);
       });
       card.style.display = '';
@@ -5305,7 +5307,28 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+
+  async function _setLastActivity(slug) {
+    const badge = document.getElementById('lastActBadge');
+    if (!badge) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/last-activity');
+      if (!r.hasActivity) return;
+      const mins = Math.floor(r.ageMs / 60000);
+      const fmt = n => Number(n).toLocaleString('ar-SA');
+      let txt, bg, fg;
+      if (mins < 5) { txt = '🟢 الآن'; bg = 'rgba(15,110,58,0.15)'; fg = '#0f6e3a'; }
+      else if (mins < 60) { txt = '🟢 قبل ' + mins + ' دق'; bg = 'rgba(15,110,58,0.10)'; fg = '#0f6e3a'; }
+      else if (mins < 1440) { txt = '🟡 قبل ' + Math.floor(mins / 60) + ' س'; bg = 'rgba(176,136,64,0.10)'; fg = '#b08840'; }
+      else { txt = '⚪ قبل ' + Math.floor(mins / 1440) + ' يوم'; bg = 'rgba(13,22,18,0.05)'; fg = '#6b7268'; }
+      if (r.last24hCount > 0) txt += ' (' + fmt(r.last24hCount) + ' خلال ٢٤س)';
+      badge.textContent = '👤 ' + txt;
+      badge.style.background = bg;
+      badge.style.color = fg;
+      badge.style.display = '';
+    } catch (e) {}
+  }
 
   async function _setHistFund(slug) {
     const badge = document.getElementById('histFundBadge');
