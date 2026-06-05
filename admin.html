@@ -695,6 +695,27 @@
     </div>
   </div>
 
+  <!-- REALISED VS EXPECTED -->
+  <div class="admin-card" id="rveCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🎯 المحقّق vs المتوقّع</span>
+      <span class="card-h-sub" id="rveBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="rveKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:1fr;gap:14px;">
+        <div>
+          <div style="font:800 12px Cairo,sans-serif;color:#0f6e3a;margin-bottom:6px;">🟢 الأفضل أداءً</div>
+          <div id="rveTop" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <div>
+          <div style="font:800 12px Cairo,sans-serif;color:#c54a3a;margin-bottom:6px;">🔴 الأقل أداءً</div>
+          <div id="rveBottom" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DEAL CONVERSION -->
   <div class="admin-card" id="dcCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3321,6 +3342,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadRve() {
+    const kpis = document.getElementById('rveKpis');
+    const top = document.getElementById('rveTop');
+    const bottom = document.getElementById('rveBottom');
+    const badge = document.getElementById('rveBadge');
+    if (!kpis || !top || !bottom) return;
+    try {
+      const r = await App.api('GET', '/app/admin/realised-vs-expected');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = (r.totalDeals || 0) + ' صفقة مكتملة · فارق ' + (r.avgDiff >= 0 ? '+' : '') + r.avgDiff + '٪';
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('🟢 فاق التوقّع', r.aboveCount, '#0f6e3a'),
+        mk('🟡 ضمن التوقّع', r.onTargetCount, '#b08840'),
+        mk('🔴 دون التوقّع', r.belowCount, '#c54a3a'),
+        mk('متوقّع متوسط', r.avgExpected + '٪', '#062b1e'),
+        mk('محقّق متوسط', r.avgRealised + '٪', '#0a4d36'),
+      );
+      const renderRows = (target, items, posColor) => {
+        target.replaceChildren();
+        items.forEach(it => {
+          const row = document.createElement('a');
+          row.href = '/project.html?slug=' + encodeURIComponent(it.slug);
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;text-decoration:none;color:inherit;';
+          const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; nm.textContent = it.name;
+          const exp = document.createElement('div'); exp.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);min-width:60px;text-align:end;'; exp.textContent = 'م ' + it.expected + '٪';
+          const real = document.createElement('div'); real.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--green-dark);min-width:60px;text-align:end;'; real.textContent = 'ح ' + it.realised + '٪';
+          const diff = document.createElement('div'); diff.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + (it.diff >= 0 ? posColor : '#c54a3a') + ';min-width:60px;text-align:end;'; diff.textContent = (it.diff >= 0 ? '+' : '') + it.diff + '٪';
+          row.append(nm, exp, real, diff);
+          target.appendChild(row);
+        });
+      };
+      renderRows(top, r.overperformers || [], '#0f6e3a');
+      renderRows(bottom, r.underperformers || [], '#0f6e3a');
+    } catch (e) {}
+  }
+
   async function loadDc() {
     const kpis = document.getElementById('dcKpis');
     const list = document.getElementById('dcList');
@@ -8470,7 +8536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
