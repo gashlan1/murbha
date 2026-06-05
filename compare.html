@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مقارنة الفرص — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --paper-2: #efe8d6;
+    --green: #0a4d36; --green-dark: #062b1e;
+    --gold: #b08840; --gold-light: #d4ac6e;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); padding: 18px; max-width: 1200px; margin: 0 auto; }
+  h1 { font: 900 22px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 6px; }
+  .lede { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .picker { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 18px; }
+  .picker label { display: block; font: 700 12px Cairo,sans-serif; color: var(--muted); margin-bottom: 6px; }
+  .picker select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--line-strong); border-radius: 10px; font: 600 14px Tajawal,sans-serif; background: #fff; margin-bottom: 8px; }
+  .slot-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 720px) { .slot-row { grid-template-columns: 1fr; } }
+  .compare-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .compare-table th, .compare-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: start; font-size: 14px; }
+  .compare-table th { background: #f6efde; font: 800 13px Cairo,sans-serif; color: var(--green-dark); }
+  .compare-table tr:last-child td { border-bottom: 0; }
+  .compare-table .row-label { font: 800 12px Cairo,sans-serif; color: var(--muted); background: #fbf8ee; width: 160px; }
+  .compare-table .v { font: 700 15px Cairo,sans-serif; color: var(--ink); }
+  .winner { background: rgba(176,136,64,0.10); }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: var(--green-dark); text-decoration: none; font: 800 13px Cairo,sans-serif; margin-bottom: 12px; }
+  .back:hover { text-decoration: underline; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font: 800 11px Cairo,sans-serif; }
+  .pill.green { background: rgba(15,110,58,0.12); color: #0f6e3a; }
+  .pill.gold { background: rgba(176,136,64,0.14); color: #7a5a10; }
+  .pill.red { background: rgba(181,73,53,0.12); color: #b54935; }
+</style>
+</head>
+<body>
+<a class="back" href="/projects.html">‹ العودة إلى الفرص</a>
+<h1>مقارنة الفرص</h1>
+<div class="lede">اختر حتى ٣ فرص لعرض المقارنة جنباً إلى جنب. تُوضَّح أفضل قيمة في كل صف بإطار ذهبي.</div>
+
+<div class="picker">
+  <div class="slot-row">
+    <div><label>الفرصة ١</label><select id="slot0"><option value="">— اختر —</option></select></div>
+    <div><label>الفرصة ٢</label><select id="slot1"><option value="">— اختر —</option></select></div>
+    <div><label>الفرصة ٣ (اختياري)</label><select id="slot2"><option value="">— اختر —</option></select></div>
+  </div>
+</div>
+
+<div id="compareArea" class="empty">اختر فرصتين على الأقل لبدء المقارنة.</div>
+
+<script src="/app.js"></script>
+<script>
+(async () => {
+  const slots = [document.getElementById('slot0'), document.getElementById('slot1'), document.getElementById('slot2')];
+  let projects = [];
+  try {
+    const r = await fetch('/app/projects', { credentials: 'same-origin' });
+    const d = await r.json();
+    projects = d.projects || [];
+  } catch (e) { projects = []; }
+
+  if (!projects.length) {
+    document.getElementById('compareArea').textContent = 'لا توجد فرص للمقارنة حالياً.';
+    return;
+  }
+
+  slots.forEach((sel) => {
+    projects.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.name || p.id;
+      sel.appendChild(o);
+    });
+  });
+
+  // Preselect from ?ids=a,b,c
+  const qs = new URLSearchParams(location.search);
+  const ids = (qs.get('ids') || '').split(',').filter(Boolean);
+  ids.slice(0, 3).forEach((id, i) => { if (slots[i]) slots[i].value = id; });
+
+  const fmtMoney = (v) => v == null ? '—' : (Number(v).toLocaleString('ar-SA') + ' ر.س');
+  const fmtPct = (v) => v == null ? '—' : Number(v).toLocaleString('ar-SA') + '٪';
+  const rows = [
+    { key: 'name', label: 'اسم الفرصة', map: p => p.name || '—', winner: null },
+    { key: 'category', label: 'القطاع', map: p => p.category || '—', winner: null },
+    { key: 'rate', label: 'العائد السنوي', map: p => p.rate ?? p.expectedReturn, fmt: fmtPct, winner: 'max' },
+    { key: 'termMonths', label: 'المدة', map: p => p.termMonths ? p.termMonths + ' شهر' : '—', winnerVal: p => p.termMonths, winner: 'min' },
+    { key: 'minTicket', label: 'الحد الأدنى', map: p => p.minTicket, fmt: fmtMoney, winner: 'min' },
+    { key: 'targetAmount', label: 'المبلغ المستهدف', map: p => p.targetAmount, fmt: fmtMoney, winner: null },
+    { key: 'fundedPct', label: 'نسبة التمويل', map: p => {
+        const t = Number(p.targetAmount) || 0;
+        const f = Number(p.fundedAmount) || 0;
+        return t > 0 ? Math.round((f/t)*100) : 0;
+      }, fmt: fmtPct, winner: 'max' },
+    { key: 'risk', label: 'مستوى المخاطرة', map: p => p.riskLevel || p.risk || '—', winner: null },
+    { key: 'shariaApproved', label: 'مُعتمَد شرعياً', map: p => p.shariaApproved === false ? '— لا' : '✓ نعم', winner: null },
+  ];
+
+  const render = () => {
+    const picked = slots.map(s => projects.find(p => p.id === s.value)).filter(Boolean);
+    const area = document.getElementById('compareArea');
+    if (picked.length < 2) {
+      area.className = 'empty';
+      area.textContent = 'اختر فرصتين على الأقل لبدء المقارنة.';
+      return;
+    }
+    area.className = '';
+    area.textContent = '';
+
+    const tbl = document.createElement('table');
+    tbl.className = 'compare-table';
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    const blank = document.createElement('th'); blank.textContent = ''; trh.appendChild(blank);
+    picked.forEach(p => { const th = document.createElement('th'); th.textContent = p.name; trh.appendChild(th); });
+    thead.appendChild(trh); tbl.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.className = 'row-label'; td0.textContent = row.label; tr.appendChild(td0);
+      const values = picked.map(p => {
+        const raw = row.winnerVal ? row.winnerVal(p) : row.map(p);
+        return { raw, display: row.fmt ? row.fmt(row.map(p)) : row.map(p) };
+      });
+      let winIdx = -1;
+      if (row.winner === 'max') {
+        let best = -Infinity;
+        values.forEach((v, i) => { const n = Number(v.raw); if (!isNaN(n) && n > best) { best = n; winIdx = i; } });
+      } else if (row.winner === 'min') {
+        let best = Infinity;
+        values.forEach((v, i) => { const n = Number(v.raw); if (!isNaN(n) && n < best) { best = n; winIdx = i; } });
+      }
+      values.forEach((v, i) => {
+        const td = document.createElement('td');
+        td.className = 'v' + (i === winIdx ? ' winner' : '');
+        td.textContent = v.display == null ? '—' : String(v.display);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    area.appendChild(tbl);
+  };
+
+  slots.forEach(s => s.addEventListener('change', render));
+  render();
+})();
+</script>
+</body>
+</html>
