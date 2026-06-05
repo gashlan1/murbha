@@ -969,6 +969,10 @@
     <span><b>٨٤٧</b> مستثمر</span>
     <span id="closingCountdown">متبقّي <b>١٢ يوماً</b></span>
   </div>
+  <div id="investorAvatars" style="display:none;margin-top:12px;align-items:center;gap:6px;flex-wrap:wrap;">
+    <div id="investorAvatarStack" style="display:flex;align-items:center;"></div>
+    <span id="investorAvatarText" style="font:700 12px Cairo,sans-serif;color:#062b1e;">—</span>
+  </div>
   <div style="margin-top:10px;text-align:center;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
     <span id="myInvestmentBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#0a4d36,#062b1e);padding:5px 12px;border-radius:999px;"></span>
     <span id="remainingBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#eaf3ee,#fff);border:1px solid #0a4d36;padding:5px 12px;border-radius:999px;"></span>
@@ -1959,6 +1963,25 @@
       const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/top-investors');
       if (!r.ok) return;
       const d = await r.json();
+      // Avatar stack in the funding card
+      const stackWrap = document.getElementById('investorAvatars');
+      const stack = document.getElementById('investorAvatarStack');
+      const text = document.getElementById('investorAvatarText');
+      if (stackWrap && stack && text && Array.isArray(d.topInvestors)) {
+        const total = p.investorsCount || p.investors || d.topInvestors.length;
+        if (total >= 3) {
+          stackWrap.style.display = 'flex';
+          stack.replaceChildren();
+          const palette = ['#0a4d36', '#062b1e', '#b08840', '#0f6e3a', '#5c2418'];
+          d.topInvestors.slice(0, 5).forEach((row, i) => {
+            const av = document.createElement('div');
+            av.style.cssText = 'width:28px;height:28px;border-radius:50%;background:' + palette[i % palette.length] + ';color:#d4ac6e;display:flex;align-items:center;justify-content:center;font:900 11px Cairo,sans-serif;border:2px solid #fff;margin-inline-start:' + (i === 0 ? '0' : '-8px') + ';box-shadow:0 1px 3px rgba(0,0,0,0.15);';
+            av.textContent = (row.display || '?').replace(/[\s.•]/g, '').slice(0, 1).toUpperCase() || '★';
+            stack.appendChild(av);
+          });
+          text.textContent = '+ ' + Number(Math.max(0, total - 5)).toLocaleString('ar-SA') + ' مستثمر آخر';
+        }
+      }
       wrap.replaceChildren();
       if (!d.topInvestors.length) return;
       const medals = ['🥇', '🥈', '🥉'];

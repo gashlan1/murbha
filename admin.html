@@ -2643,6 +2643,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dt = document.createElement('div'); dt.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;';
         dt.textContent = 'سُجّل ' + (u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '—') + ' · KYC: ' + (u.kycStatus || '—');
         info.append(nm, em, dt);
+        const ageMs = u.createdAt ? Date.now() - new Date(u.createdAt).getTime() : 0;
+        const ageHours = ageMs / (60 * 60 * 1000);
+        const ageBadge = document.createElement('span');
+        ageBadge.style.cssText = 'font:800 10px Cairo,sans-serif;padding:3px 10px;border-radius:999px;align-self:center;flex-shrink:0;';
+        if (ageHours < 24) { ageBadge.textContent = '🟢 جديد'; ageBadge.style.background = 'rgba(15,110,58,0.10)'; ageBadge.style.color = '#0f6e3a'; }
+        else if (ageHours < 72) { ageBadge.textContent = '🟡 ' + Math.floor(ageHours / 24) + 'ي'; ageBadge.style.background = 'rgba(176,136,64,0.15)'; ageBadge.style.color = '#b08840'; }
+        else { ageBadge.textContent = '🔴 ' + Math.floor(ageHours / 24) + 'ي متأخّر'; ageBadge.style.background = 'rgba(197,74,58,0.10)'; ageBadge.style.color = '#c54a3a'; }
+        info.appendChild(ageBadge);
         const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:6px;';
         const approve = document.createElement('button');
         approve.type = 'button'; approve.textContent = '✓ اعتماد';
