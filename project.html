@@ -990,6 +990,7 @@
     <span id="loyaltyBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:rgba(176,136,64,0.10);border:1px solid rgba(176,136,64,0.30);padding:5px 12px;border-radius:999px;"></span>
     <span id="milestoneBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#b08840,#d4ac6e);padding:5px 12px;border-radius:999px;"></span>
     <span id="healthBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
+    <span id="momentumBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
     <span id="velocityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.08);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -4595,7 +4596,29 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+
+  async function _setMomentum(slug) {
+    const badge = document.getElementById('momentumBadge');
+    if (!badge) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/momentum');
+      if (!r.last7Count && !r.prev7Count) return;
+      const trends = {
+        hot:     { txt: '🔥 ساخنة (+' + r.amountDeltaPct + '٪)', bg: 'linear-gradient(90deg,#c54a3a,#d97706)', fg: '#fff' },
+        rising:  { txt: '📈 صاعدة (+' + r.amountDeltaPct + '٪)', bg: 'rgba(15,110,58,0.12)', fg: '#0f6e3a' },
+        flat:    { txt: '➡️ ثابتة (' + (r.amountDeltaPct >= 0 ? '+' : '') + r.amountDeltaPct + '٪)', bg: 'rgba(176,136,64,0.10)', fg: '#b08840' },
+        slowing: { txt: '📉 متباطئة (' + r.amountDeltaPct + '٪)', bg: 'rgba(217,119,6,0.10)', fg: '#d97706' },
+        cooling: { txt: '❄️ متبرّدة (' + r.amountDeltaPct + '٪)', bg: 'rgba(197,74,58,0.10)', fg: '#c54a3a' },
+      };
+      const t = trends[r.trend] || trends.flat;
+      badge.textContent = t.txt;
+      badge.style.background = t.bg;
+      badge.style.color = t.fg;
+      badge.title = '٧ أيام: ' + r.last7Count + ' استثمار · ' + Number(r.last7Amount).toLocaleString('ar-SA') + ' ر.س · مقارنة بـ ' + r.prev7Count + ' في الأسبوع السابق';
+      badge.style.display = '';
+    } catch (e) {}
+  }
 
   function _setHealth(p) {
     const badge = document.getElementById('healthBadge');

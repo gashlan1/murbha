@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- INACTIVE PROJECTS -->
+  <div class="admin-card" id="inactCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💤 صفقات بدون نشاط</span>
+      <span class="card-h-sub" id="inactBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="inactKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="inactList" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- DEAL VELOCITY -->
   <div class="admin-card" id="velCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3051,6 +3063,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadInact() {
+    const kpis = document.getElementById('inactKpis');
+    const list = document.getElementById('inactList');
+    const badge = document.getElementById('inactBadge');
+    if (!kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/inactive-projects');
+      if (badge) badge.textContent = (r.total || 0).toLocaleString('ar-SA') + ' صفقة خاملة';
+      kpis.replaceChildren();
+      const mkKpi = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = Number(v || 0).toLocaleString('ar-SA');
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      const b = r.buckets || {};
+      kpis.append(
+        mkKpi('🟡 ١-٢ أسبوع', b.week1to2, '#b08840'),
+        mkKpi('🟠 ٢-٤ أسبوع', b.week2to4, '#d97706'),
+        mkKpi('🔴 ١-٣ شهر', b.month1to3, '#c54a3a'),
+        mkKpi('⚫ ٣+ شهر', b.over3mo, '#5c2418'),
+      );
+      list.replaceChildren();
+      const items = r.rows || [];
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد صفقات خاملة')); return; }
+      items.forEach(row => {
+        const r2 = document.createElement('div');
+        r2.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; nm.textContent = row.name;
+        const st = document.createElement('div'); st.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);'; st.textContent = row.status;
+        const pc = document.createElement('div'); pc.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);min-width:50px;text-align:end;'; pc.textContent = row.raisedPct + '٪';
+        const dy = document.createElement('div'); dy.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + (row.daysSince >= 90 ? '#5c2418' : (row.daysSince >= 30 ? '#c54a3a' : (row.daysSince >= 14 ? '#d97706' : '#b08840'))) + ';min-width:80px;text-align:end;';
+        dy.textContent = row.daysSince + ' يوم';
+        r2.append(nm, st, pc, dy);
+        list.appendChild(r2);
+      });
+    } catch (e) {}
+  }
+
   async function loadVel() {
     const kpis = document.getElementById('velKpis');
     const list = document.getElementById('velList');
@@ -7269,7 +7322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
