@@ -1032,6 +1032,33 @@
     </div>
   </div>
 
+  <!-- SMS BROADCAST -->
+  <div class="admin-card" id="smsBroadcastCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📱 رسالة SMS لجميع الأرقام الموثَّقة</span>
+      <span class="card-h-sub">قنوات اتصال محدودة — استخدمها بحذر</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          الشريحة
+          <select id="smsSeg" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;background:#fff;">
+            <option value="verified-phone">كل الأرقام الموثَّقة</option>
+            <option value="investors">المستثمرون فقط</option>
+            <option value="kyc-pending">KYC غير مكتمل</option>
+          </select>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">
+          محتوى الرسالة (≤160 حرف)
+          <textarea id="smsText" rows="3" maxlength="160" placeholder="فرصة جديدة على مُرابحة — اطلع عليها الآن" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;"></textarea>
+        </label>
+      </div>
+      <button id="smsSendBtn" type="button" style="padding:12px 24px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 13px Cairo,sans-serif;cursor:pointer;">إرسال SMS للشريحة</button>
+      <p style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.7;">يتم تجاهل أي رقم بدون توثيق. كل عملية تُسجَّل في سجل التدقيق.</p>
+      <div id="smsResult" style="margin-top:10px;font-size:13px;color:#0f6e3a;"></div>
+    </div>
+  </div>
+
   <!-- KYC REMINDER -->
   <div class="admin-card" id="kycReminderCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2154,6 +2181,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       _resetNlForm();
       loadNewsletter();
     } catch (e2) { alert(e2.message || 'فشل النشر'); }
+  });
+
+  // ── SMS broadcast ─────────────────────────────────────────────
+  document.getElementById('smsSendBtn')?.addEventListener('click', async () => {
+    const text = document.getElementById('smsText').value.trim();
+    const segment = document.getElementById('smsSeg').value;
+    if (!text) { alert('اكتب نص الرسالة'); return; }
+    const SEG_AR = { 'verified-phone': 'كل الأرقام الموثَّقة', investors: 'المستثمرون', 'kyc-pending': 'KYC غير مكتمل' };
+    if (!confirm('إرسال SMS إلى شريحة "' + SEG_AR[segment] + '"؟ هذا قد يكلّف رسوماً.')) return;
+    const btn = document.getElementById('smsSendBtn');
+    const result = document.getElementById('smsResult');
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…'; result.textContent = '';
+    try {
+      const r = await App.api('POST', '/app/admin/sms-broadcast', { text, segment });
+      result.textContent = '✓ أُرسل إلى ' + r.sent + ' من أصل ' + r.recipients + ' مؤهَّل';
+    } catch (e) { result.textContent = 'فشل: ' + (e.message || ''); result.style.color = '#c54a3a'; }
+    finally { btn.disabled = false; btn.textContent = 'إرسال SMS للشريحة'; }
   });
 
   // ── KYC reminder ─────────────────────────────────────────────

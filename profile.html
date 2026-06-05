@@ -805,6 +805,12 @@
     </div>
   </div>
 
+  <!-- Followed projects -->
+  <div class="settings-group" id="followed-projects-section" style="display:none;">
+    <div class="settings-h">المشاريع المُتابَعة</div>
+    <div id="followedProjectsList" style="padding: 12px 16px;"></div>
+  </div>
+
   <!-- Saved opportunities -->
   <div class="settings-group" id="saved-projects-section" style="display:none;">
     <div class="settings-h">الفرص المحفوظة</div>
@@ -1685,6 +1691,47 @@
   // Load investments on initialization
   await loadInvestments();
 
+  // Load followed projects
+  (async () => {
+    try {
+      const r = await fetch('/app/me/follows', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const { projects = [] } = await r.json();
+      const sec = document.getElementById('followed-projects-section');
+      const list = document.getElementById('followedProjectsList');
+      if (!list || !projects.length) return;
+      sec.style.display = '';
+      list.textContent = '';
+      projects.forEach(p => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;gap:10px;';
+        const a = document.createElement('a');
+        a.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+        a.style.cssText = 'flex:1;text-decoration:none;color:inherit;';
+        const nm = document.createElement('div');
+        nm.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;';
+        nm.textContent = p.name || '';
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        meta.textContent = (p.category || '') + ' · ' + ((p.profitRate || 0) * 100).toFixed(1) + '٪ · ' + (p.fundedPct || 0) + '٪ مكتمل';
+        a.append(nm, meta);
+        const unfollow = document.createElement('button');
+        unfollow.type = 'button';
+        unfollow.textContent = '✗ إلغاء';
+        unfollow.style.cssText = 'background:transparent;border:1px solid var(--line);color:#c54a3a;padding:5px 10px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;flex-shrink:0;';
+        unfollow.onclick = async () => {
+          try {
+            await App.api('POST', '/app/me/follows/toggle', { projectId: p.id });
+            row.remove();
+            if (!list.children.length) sec.style.display = 'none';
+          } catch (e) { App.toast && App.toast('فشل', 'error'); }
+        };
+        row.append(a, unfollow);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  })();
+
   // Load saved projects
   (async () => {
     try {
@@ -1899,7 +1946,7 @@
         const isCurrent = g.fingerprint === d.currentFingerprint;
         const title = document.createElement('div');
         title.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;';
-        const name = document.createElement('span'); name.textContent = g.ua;
+        const name = document.createElement('span'); name.textContent = g.label || g.ua;
         title.appendChild(name);
         if (isCurrent) {
           const pill = document.createElement('span');
@@ -1909,8 +1956,21 @@
         }
         const meta = document.createElement('div');
         meta.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;';
-        meta.textContent = g.ip + ' · ' + new Date(g.lastSeen).toLocaleString('ar-SA');
-        row.append(title, meta);
+        meta.textContent = g.ua + ' · ' + g.ip + ' · ' + new Date(g.lastSeen).toLocaleString('ar-SA');
+        const renameBtn = document.createElement('button');
+        renameBtn.type = 'button';
+        renameBtn.style.cssText = 'background:transparent;border:0;color:var(--gold);font:700 11px Cairo,sans-serif;cursor:pointer;padding:4px 0;';
+        renameBtn.textContent = g.label ? '✏ تغيير الاسم' : '✏ تسمية الجهاز';
+        renameBtn.onclick = async () => {
+          const newLabel = prompt('اسم مختصر لهذا الجهاز (مثال: لابتوب العمل):', g.label || '');
+          if (newLabel === null) return;
+          try {
+            await App.api('POST', '/app/me/sessions/label', { fingerprint: g.fingerprint, label: newLabel.trim() });
+            App.toast && App.toast('✓ تم الحفظ', 'success');
+            location.reload();
+          } catch (e) { App.toast && App.toast('فشل الحفظ', 'error'); }
+        };
+        row.append(title, meta, renameBtn);
         list.appendChild(row);
       });
       if (d.sessionsInvalidAfter) {

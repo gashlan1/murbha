@@ -1994,6 +1994,67 @@
 })();
 </script>
 
+<!-- COMPLETED DEALS SHOWCASE -->
+<section id="completedDealsSection" style="padding:30px 22px;background:#fbf6ea;display:none;border-top:1px solid rgba(13,22,18,0.05);">
+  <div style="max-width:1080px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#0f6e3a;letter-spacing:2px;background:rgba(15,110,58,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="DELIVERED">صفقات أكملت</span>
+        <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="Deals we already closed">صفقات أنجزناها فعلاً</h2>
+      </div>
+      <a href="/projects.html#completed" style="font:800 13px Cairo,sans-serif;color:#0f6e3a;text-decoration:none;padding:8px 16px;border:1px solid #0f6e3a;border-radius:999px;" data-en="See all">عرض الكل ←</a>
+    </div>
+    <div id="completedDealsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/completed-deals?limit=3');
+    if (!r.ok) return;
+    const { projects } = await r.json();
+    if (!projects.length) return;
+    const sec = document.getElementById('completedDealsSection');
+    const grid = document.getElementById('completedDealsGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+    projects.forEach(p => {
+      const card = document.createElement('a');
+      card.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+      card.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:16px;padding:18px;text-decoration:none;color:inherit;transition:transform .15s;position:relative;overflow:hidden;';
+      card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+      card.onmouseleave = () => card.style.transform = 'translateY(0)';
+      const badge = document.createElement('span');
+      badge.style.cssText = 'position:absolute;top:14px;inset-inline-end:14px;background:rgba(15,110,58,0.12);color:#0f6e3a;padding:4px 10px;border-radius:999px;font:800 11px Cairo,sans-serif;';
+      badge.textContent = '✓ مكتمل';
+      card.appendChild(badge);
+      const head = document.createElement('div'); head.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-inline-end:80px;';
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:28px;'; ic.textContent = p.image || '✓';
+      const right = document.createElement('div'); right.style.flex = '1';
+      const nm = document.createElement('div'); nm.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;line-height:1.3;'; nm.textContent = p.name;
+      const cat = document.createElement('div'); cat.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:2px;'; cat.textContent = p.category || '';
+      right.append(nm, cat);
+      head.append(ic, right);
+      const stats = document.createElement('div'); stats.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#fbf8ee;border-radius:10px;padding:10px;';
+      [
+        ['إجمالي رأس المال', fmt(p.totalRaised) + ' ر.س'],
+        ['الأرباح الموزَّعة', (p.totalProfitDistributed != null ? fmt(p.totalProfitDistributed) + ' ر.س' : '—')],
+        ['المستثمرون', fmt(p.investorCount)],
+        ['العائد السنوي', ((p.profitRate || 0) * 100).toFixed(1) + '٪'],
+      ].forEach(([l, v]) => {
+        const cell = document.createElement('div'); cell.style.cssText = 'text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:#062b1e;'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:#6b7268;margin-top:2px;'; ll.textContent = l;
+        cell.append(vv, ll); stats.appendChild(cell);
+      });
+      card.append(head, stats);
+      grid.appendChild(card);
+    });
+  } catch (e) {}
+})();
+</script>
+
 <!-- TOP INVESTORS -->
 <section id="topInvestorsSection" style="padding:30px 22px;background:#fbf6ea;display:none;">
   <div style="max-width:880px;margin:0 auto;">
