@@ -859,6 +859,41 @@
     </div>
   </div>
 
+  <!-- SAMA cap usage -->
+  <div class="settings-group" id="capSec">
+    <div class="settings-h">🏛 الحدّ السنوي (ساما)</div>
+    <div style="padding:14px 18px;">
+      <div id="capQualified" style="display:none;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font:900 16px Cairo,sans-serif;color:var(--gold);">⭐ مستثمر مؤهَّل</div>
+        <div style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.7;">حسابك مُعفى من القيود السنوية للمستثمر الأفراد.</div>
+        <div id="capQualSub" style="margin-top:10px;font:600 12px Tajawal,sans-serif;color:var(--ink);"></div>
+      </div>
+      <div id="capRetail" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <div id="capYearAmt" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">—</div>
+            <div id="capYearSub" style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">—</div>
+          </div>
+          <div id="capYearPct" style="font:900 22px Cairo,sans-serif;color:var(--gold);">—</div>
+        </div>
+        <div style="height:10px;background:var(--paper);border-radius:99px;overflow:hidden;margin-bottom:12px;">
+          <div id="capBar" style="height:100%;width:0%;background:linear-gradient(90deg,#0a4d36,#b08840);transition:width .4s;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--paper);border-radius:8px;padding:10px;text-align:center;">
+            <div id="capRem" style="font:900 14px Cairo,sans-serif;color:#0f6e3a;">—</div>
+            <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">متبقّي هذا العام</div>
+          </div>
+          <div style="background:var(--paper);border-radius:8px;padding:10px;text-align:center;">
+            <div id="capPerDeal" style="font:900 14px Cairo,sans-serif;color:#b08840;">—</div>
+            <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">حدّ أعلى لكل صفقة</div>
+          </div>
+        </div>
+        <a href="/qualify.html" style="display:block;margin-top:12px;text-align:center;padding:10px;background:linear-gradient(90deg,#0a4d36,#062b1e);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--gold-light);text-decoration:none;">⭐ ارفع حدودك → كن مستثمراً مؤهَّلاً</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification language -->
   <div class="settings-group" id="notifLangSec">
     <div class="settings-h">✉️ لغة الإشعارات</div>
@@ -2537,6 +2572,29 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // SAMA cap usage
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/cap-usage');
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (r.investorClass === 'qualified') {
+        document.getElementById('capQualified').style.display = '';
+        document.getElementById('capQualSub').textContent =
+          'استثمرت ' + fmt(r.yearTotal) + ' ر.س خلال آخر ١٢ شهراً عبر ' + (r.count12mo || 0) + ' صفقة';
+        return;
+      }
+      document.getElementById('capRetail').style.display = '';
+      document.getElementById('capYearAmt').textContent = fmt(r.yearTotal) + ' / ' + fmt(r.perYearCap) + ' ر.س';
+      document.getElementById('capYearSub').textContent = (r.count12mo || 0) + ' صفقة خلال ١٢ شهراً';
+      document.getElementById('capYearPct').textContent = r.yearPct + '٪';
+      const bar = document.getElementById('capBar'); bar.style.width = Math.min(100, r.yearPct) + '%';
+      if (r.yearPct >= 90) bar.style.background = 'linear-gradient(90deg,#c54a3a,#8b2e22)';
+      else if (r.yearPct >= 70) bar.style.background = 'linear-gradient(90deg,#d97706,#b08840)';
+      document.getElementById('capRem').textContent = fmt(r.yearRemaining) + ' ر.س';
+      document.getElementById('capPerDeal').textContent = fmt(r.perDealCap) + ' ر.س';
     } catch (e) {}
   })();
 
