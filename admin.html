@@ -2359,6 +2359,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lastRun = j.lastRunAt ? new Date(j.lastRunAt).toLocaleString('ar-SA') : '— لم تُسجَّل';
         sub.textContent = j.cadence + ' · آخر تنفيذ: ' + lastRun;
         left.append(t, sub);
+        // Next expected run + last result
+        if (j.lastRunAt && j.expectedFrequencyMin) {
+          const next = new Date(new Date(j.lastRunAt).getTime() + j.expectedFrequencyMin * 60 * 1000);
+          const detail = document.createElement('div');
+          detail.style.cssText = 'font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:2px;';
+          detail.textContent = 'التالي ~ ' + next.toLocaleString('ar-SA') + (j.lastResult ? ' · النتيجة: ' + j.lastResult : '');
+          left.appendChild(detail);
+        }
         const right = document.createElement('div');
         right.style.cssText = 'display:flex;gap:6px;align-items:center;';
         if (j.overdue) {
