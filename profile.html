@@ -879,6 +879,13 @@
         <span>📊 منع مشاركة بياناتي للأبحاث المجهّلة</span>
         <input id="privNoAnalytics" type="checkbox" style="accent-color:var(--green);width:18px;height:18px;" />
       </label>
+      <div style="margin-top:8px;padding-top:10px;border-top:1px dashed var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;">
+        <a href="#" id="dataRightsBtn" style="text-decoration:none;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);"><span>📥</span><span>تنزيل بياناتي</span></a>
+        <a href="#" id="dataDeleteBtn" style="text-decoration:none;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:#c54a3a;"><span>🗑</span><span>طلب حذف الحساب</span></a>
+        <a href="#" id="dataRectBtn" style="text-decoration:none;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);"><span>✏️</span><span>طلب تصحيح</span></a>
+        <a href="/legal.html#pdpl" style="text-decoration:none;display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper);border-radius:10px;font:800 12px Cairo,sans-serif;color:var(--gold);"><span>📜</span><span>سياسة الخصوصية</span></a>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:6px;line-height:1.7;">حقوقك بموجب نظام حماية البيانات الشخصية (PDPL) السعودي: الوصول، التصحيح، الحذف، النقل، وسحب الموافقة.</p>
     </div>
   </div>
 
@@ -2350,6 +2357,36 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Data-rights center buttons
+  (() => {
+    const dlBtn = document.getElementById('dataRightsBtn');
+    const delBtn = document.getElementById('dataDeleteBtn');
+    const rectBtn = document.getElementById('dataRectBtn');
+    if (dlBtn) dlBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const a = document.createElement('a');
+      a.href = '/app/me/export.csv';
+      a.download = 'murbha-data.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      App.toast && App.toast('✓ يبدأ تنزيل بياناتك الآن', 'success');
+    });
+    if (delBtn) delBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!confirm('سيُجدول حذف حسابك خلال ٣٠ يوماً. يمكنك التراجع قبل اكتمال المدّة. هل تريد المتابعة؟')) return;
+      App.api('POST', '/app/me/request-deletion', { reason: 'user_request' })
+        .then(() => App.toast && App.toast('✓ تم استلام طلب الحذف', 'success'))
+        .catch(() => App.toast && App.toast('تعذّر إرسال الطلب', 'error'));
+    });
+    if (rectBtn) rectBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const detail = prompt('صف بدقّة البيانات التي تحتاج تصحيحاً:');
+      if (!detail || !detail.trim()) return;
+      App.api('POST', '/app/feedback', { score: 5, comment: '[PDPL تصحيح بيانات] ' + detail, category: 'pdpl' })
+        .then(() => App.toast && App.toast('✓ أُرسلت طلبك لفريق الخصوصية', 'success'))
+        .catch(() => App.toast && App.toast('تعذّر إرسال الطلب', 'error'));
+    });
   })();
 
   // Privacy quick toggles
