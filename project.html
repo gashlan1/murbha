@@ -1663,7 +1663,13 @@
 
 <!-- SIMILAR PROJECTS -->
 <div class="card-section" id="similarProjectsSection" style="display:none;">
-  <h2 class="section-h">فرص مشابهة</h2>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+    <h2 class="section-h" style="margin:0;">فرص مشابهة</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <a id="catSearchLink" href="/search.html" style="font:800 11px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;padding:6px 12px;border:1px solid var(--green-dark);border-radius:999px;">🔍 كل الفئة</a>
+      <button type="button" id="catSubscribeBtn" style="font:800 11px Cairo,sans-serif;color:#fff;background:var(--green-dark);border:0;padding:6px 14px;border-radius:999px;cursor:pointer;">🔔 نبّهني بصفقات الفئة</button>
+    </div>
+  </div>
   <div id="similarProjectsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
 </div>
 </main>
@@ -1990,6 +1996,28 @@
         .slice(0, 3);
       if (!peers.length) return;
       sec.style.display = '';
+      // Category-level controls
+      const cat = p.category || '';
+      const catLink = document.getElementById('catSearchLink');
+      if (catLink && cat) catLink.href = '/search.html?cat=' + encodeURIComponent(cat);
+      const subBtn = document.getElementById('catSubscribeBtn');
+      if (subBtn) {
+        subBtn.onclick = async () => {
+          const me = await App.me().catch(() => null);
+          const email = me?.email || prompt('بريدك الإلكتروني لتلقّي إشعارات صفقات هذه الفئة:');
+          if (!email) return;
+          subBtn.disabled = true; subBtn.textContent = '…';
+          try {
+            const r = await fetch('/app/public/deal-alerts/subscribe', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, category: cat || 'all' }),
+            });
+            const d = await r.json().catch(() => ({}));
+            App.toast && App.toast(d.already ? 'مشترك بالفعل ✓' : '✓ سنخبرك عند صفقة جديدة', 'success');
+          } catch (e) { App.toast && App.toast('فشل', 'error'); }
+          subBtn.disabled = false; subBtn.textContent = '🔔 نبّهني بصفقات الفئة';
+        };
+      }
       grid.replaceChildren();
       peers.forEach(peer => {
         const a = document.createElement('a');
