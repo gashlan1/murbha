@@ -870,6 +870,20 @@
     </div>
   </div>
 
+  <!-- Account ID card -->
+  <div class="settings-group" id="acctIdSection" style="display:none;">
+    <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div>
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);">🆔 رقم حسابي</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">يستخدم في كل مراسلة مع الدعم.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <code id="acctIdText" style="font:700 14px 'SF Mono',Menlo,monospace;color:var(--green-dark);background:var(--paper);padding:8px 12px;border-radius:8px;direction:ltr;">—</code>
+        <button type="button" id="copyAcctId" style="padding:8px 12px;background:var(--green-dark);color:#d4ac6e;border:0;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">📋 نسخ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 2FA quick card -->
   <div class="settings-group" id="twofaQuickCard" style="display:none;">
     <div class="settings-h">المصادقة الثنائية</div>
@@ -1975,6 +1989,27 @@
       document.getElementById('cntFavs').textContent = fmt((favs.ids || []).length);
       document.getElementById('cntDevices').textContent = fmt((sess.devices || []).length);
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Account ID display
+  (async () => {
+    try {
+      const me = await App.me();
+      if (!me?.id) return;
+      const sec = document.getElementById('acctIdSection');
+      const txt = document.getElementById('acctIdText');
+      const btn = document.getElementById('copyAcctId');
+      if (!sec || !txt) return;
+      sec.style.display = '';
+      const short = me.id.slice(0, 8).toUpperCase();
+      txt.textContent = 'MRB-' + short;
+      btn?.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText('MRB-' + short);
+          App.toast && App.toast('تم النسخ', 'success');
+        } catch (e) { App.toast && App.toast('فشل النسخ', 'error'); }
+      });
     } catch (e) {}
   })();
 
