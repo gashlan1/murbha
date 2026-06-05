@@ -411,6 +411,10 @@
 </header>
 
 <main id="main">
+  <div id="maintStatusBanner" style="display:none;background:linear-gradient(135deg,#c54a3a,#8b2e22);color:#fff;padding:12px 22px;border-radius:14px;margin-bottom:16px;font:800 13px Cairo,sans-serif;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;">
+    <span id="maintStatusText">—</span>
+    <a href="#settingsCard" style="background:#fff;color:#c54a3a;padding:6px 14px;border-radius:8px;font:900 11px Cairo,sans-serif;text-decoration:none;">إدارة ←</a>
+  </div>
   <nav class="admin-toc full-width" aria-label="انتقال سريع">
     <a href="#usersCard">👥 المستثمرون</a>
     <a href="#projectDocsCard">📎 المستندات</a>
@@ -2751,6 +2755,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadMaintStatus() {
+    try {
+      const banner = document.getElementById('maintStatusBanner');
+      const text = document.getElementById('maintStatusText');
+      if (!banner || !text) return;
+      const r = await fetch('/app/public/maintenance').then(x => x.json()).catch(() => null);
+      if (!r) return;
+      const m = r.maintenance || r;
+      if (m.active) {
+        banner.style.display = 'flex';
+        const eta = m.eta ? new Date(m.eta).toLocaleString('ar-SA') : '—';
+        text.textContent = '🛠 الصيانة مفعّلة الآن · ' + (m.message || 'الموقع في وضع الصيانة') + ' · ETA ' + eta;
+      } else if (m.scheduledStart && new Date(m.scheduledStart).getTime() > Date.now()) {
+        banner.style.display = 'flex';
+        banner.style.background = 'linear-gradient(135deg,#b08840,#8a6a30)';
+        const start = new Date(m.scheduledStart).toLocaleString('ar-SA');
+        const end = m.scheduledEnd ? ' حتى ' + new Date(m.scheduledEnd).toLocaleString('ar-SA') : '';
+        text.textContent = '📅 صيانة مجدولة: ' + start + end;
+      } else {
+        banner.style.display = 'none';
+      }
+    } catch (e) {}
+  }
+
   async function loadCompletedDeals() {
     const list = document.getElementById('completedDealsList');
     const badge = document.getElementById('completedDealsBadge');
@@ -6180,7 +6208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
