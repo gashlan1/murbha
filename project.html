@@ -1516,6 +1516,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Funding velocity (last 14 days) -->
+<div class="card-section" id="velCard" style="display:none;">
+  <h2 class="section-h">⚡ سرعة التمويل (آخر ١٤ يوم)</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">معدل ما يدخل الصفقة يومياً، والوقت المُتوقَّع لاكتمال التمويل بناءً على وتيرة الأسبوع الأخير.</p>
+  <div id="velKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+  <svg id="velChart" width="100%" height="80" viewBox="0 0 320 80" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+</div>
+
 <!-- Sponsor track record -->
 <div class="card-section" id="sponsorHistCard" style="display:none;">
   <h2 class="section-h">🏗 سجلّ المطوّر السابق</h2>
@@ -4396,6 +4404,59 @@
     recalc();
   }
 
+  async function _loadVelocity(slug) {
+    const card = document.getElementById('velCard');
+    const kpis = document.getElementById('velKpis');
+    const svg = document.getElementById('velChart');
+    if (!card || !kpis || !svg) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/funding-velocity');
+      if (!r.hasData) { card.style.display = 'none'; return; }
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('متوسط آخر ٧ أيام', fmt(r.recent7Avg) + ' ر.س/يوم', '#0f6e3a'),
+        mk('متوسط منذ الافتتاح', fmt(r.avgDaily) + ' ر.س/يوم', '#0a4d36'),
+        mk('متبقّي', fmt(r.remaining) + ' ر.س', '#b08840'),
+      );
+      if (r.projectedDays !== null) {
+        kpis.appendChild(mk('متوقّع الاكتمال', r.projectedDays + ' يوم', '#5c2418'));
+        if (r.projectedFundDate) {
+          kpis.appendChild(mk('تاريخ متوقّع', new Date(r.projectedFundDate).toLocaleDateString('ar-SA'), '#062b1e'));
+        }
+      }
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const days = r.days || [];
+      const max = Math.max(...days.map(d => d.amount), 1);
+      const W = 320, H = 80, P = 6;
+      const bw = (W - 2 * P) / days.length - 3;
+      const NS = 'http://www.w3.org/2000/svg';
+      days.forEach((d, i) => {
+        const x = P + i * ((W - 2 * P) / days.length) + 1.5;
+        const h = (d.amount / max) * (H - 2 * P);
+        const y = H - P - h;
+        const rect = document.createElementNS(NS, 'rect');
+        rect.setAttribute('x', x); rect.setAttribute('y', y);
+        rect.setAttribute('width', bw); rect.setAttribute('height', h || 1);
+        rect.setAttribute('rx', '2');
+        rect.setAttribute('fill', d.amount > 0 ? '#0a4d36' : 'rgba(13,22,18,0.08)');
+        const t = document.createElementNS(NS, 'title');
+        t.textContent = d.date + ': ' + Number(d.amount).toLocaleString('ar-SA') + ' ر.س · ' + d.count + ' استثمار';
+        rect.appendChild(t);
+        svg.appendChild(rect);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadSponsorHist(slug) {
     const card = document.getElementById('sponsorHistCard');
     const intro = document.getElementById('sponsorHistIntro');
@@ -4828,7 +4889,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setListingAge(p) {
     const badge = document.getElementById('listingAgeBadge');
