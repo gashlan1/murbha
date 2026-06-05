@@ -2385,6 +2385,34 @@
       }
     }
 
+    // Max recommended amount based on remaining SAMA cap
+    (async () => {
+      try {
+        const me = await App.me();
+        if (!me || !me.id) return;
+        const fresh = await App.api('GET', '/app/me');
+        const u = fresh.user || me;
+        if (u.role === 'qualified_investor' || u.kycStatus === 'verified_qualified') return;
+        const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [] }));
+        const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+        const investedThisYear = (port.investments || [])
+          .filter(i => i.status !== 'canceled' && new Date(i.createdAt || 0).getTime() >= yearStart)
+          .reduce((s, i) => s + Number(i.amount || 0), 0);
+        const annualCap = 200000;
+        const perDealCap = 50000;
+        const remaining = Math.max(0, annualCap - investedThisYear);
+        const maxAllowed = Math.min(perDealCap, remaining);
+        if (maxAllowed <= 0) return;
+        const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+        if (!wrap) return;
+        const badge = document.createElement('span');
+        badge.style.cssText = 'display:inline-block;font:700 11px Cairo,sans-serif;color:#062b1e;background:rgba(176,136,64,0.10);border:1px solid rgba(176,136,64,0.30);padding:5px 12px;border-radius:999px;';
+        badge.textContent = '⚖ الحد الأقصى لك: ' + maxAllowed.toLocaleString('ar-SA') + ' ر.س';
+        badge.title = 'حد الصفقة ٥٠ك · المتبقّي من السقف السنوي ٢٠٠ك: ' + remaining.toLocaleString('ar-SA');
+        wrap.appendChild(badge);
+      } catch (e) {}
+    })();
+
     // Eligibility badge (auth users)
     (async () => {
       try {

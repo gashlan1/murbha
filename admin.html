@@ -691,6 +691,19 @@
     </div>
   </div>
 
+  <!-- ACTIVATION RATE -->
+  <div class="admin-card" id="activationCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🎯 معدّل التفعيل</span>
+      <span class="card-h-sub" id="activationBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="activationStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;grid-column:1/-1;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- SIGNUP SOURCES -->
   <div class="admin-card" id="signupSourcesCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2625,6 +2638,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadActivation() {
+    const list = document.getElementById('activationStats');
+    const badge = document.getElementById('activationBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/activation-rate?days=30');
+      if (badge) badge.textContent = 'آخر ٣٠ يوماً · ' + (r.totalSignups || 0).toLocaleString('ar-SA') + ' تسجيل';
+      const tiles = [
+        { v: (r.totalSignups || 0).toLocaleString('ar-SA'), l: 'تسجيلات جديدة', c: '#0a4d36' },
+        { v: (r.depositedCount || 0).toLocaleString('ar-SA') + ' (' + (r.depositRate || 0) + '٪)', l: 'أودعوا (تفعيل)', c: '#b08840' },
+        { v: (r.investedCount || 0).toLocaleString('ar-SA') + ' (' + (r.investRate || 0) + '٪)', l: 'استثمروا', c: '#0f6e3a' },
+        { v: (r.depositToInvest || 0) + '٪', l: 'إيداع → استثمار', c: '#062b1e' },
+      ];
+      list.replaceChildren();
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;border-top:3px solid ' + t.c + ';';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;';
+        v.textContent = t.v;
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        l.textContent = t.l;
+        tile.append(v, l);
+        list.appendChild(tile);
+      });
+    } catch (e) {}
+  }
+
   async function loadSignupSources() {
     const list = document.getElementById('signupSourcesList');
     const badge = document.getElementById('signupSourcesBadge');
@@ -5689,7 +5729,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
