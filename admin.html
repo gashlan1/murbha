@@ -691,6 +691,24 @@
     </div>
   </div>
 
+  <!-- STUCK SIGNUPS -->
+  <div class="admin-card" id="stuckSignupsCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏰ تسجيلات متعثّرة</span>
+      <span class="card-h-sub" id="stuckSignupsBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="stuckSignupsRefresh" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <button type="button" id="stuckSignupsRemindAll" style="padding:7px 14px;background:#fff;color:var(--gold);border:1px solid var(--gold);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">📨 تذكير الكل</button>
+        <span style="font:600 11px Tajawal,sans-serif;color:var(--muted);">سجّلوا قبل ٧+ أيام ولم يُكملوا KYC.</span>
+      </div>
+      <div id="stuckSignupsList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PROJECT ENGAGEMENT -->
   <div class="admin-card" id="projViewsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2664,6 +2682,74 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadStuckSignups() {
+    const list = document.getElementById('stuckSignupsList');
+    const badge = document.getElementById('stuckSignupsBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/stuck-signups');
+      const items = r.users || [];
+      if (badge) badge.textContent = items.length + ' متعثّر';
+      list.replaceChildren();
+      if (!items.length) { list.appendChild(_emptyNode('لا توجد تسجيلات متعثّرة')); return; }
+      items.slice(0, 50).forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;gap:10px;';
+        const info = document.createElement('div'); info.style.cssText = 'flex:1;min-width:0;';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = u.name;
+        const em = document.createElement('div'); em.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);direction:ltr;';
+        em.textContent = u.email + ' · ' + u.phone;
+        const dt = document.createElement('div'); dt.style.cssText = 'font:500 11px Tajawal,sans-serif;color:#c54a3a;margin-top:2px;';
+        dt.textContent = '⏰ ' + u.daysOld + ' يوماً · KYC: ' + u.kycStatus;
+        info.append(nm, em, dt);
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = '📨 ذكّر';
+        btn.style.cssText = 'padding:6px 12px;background:#fff;color:var(--gold);border:1px solid var(--gold);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        btn.onclick = async () => {
+          btn.disabled = true; btn.textContent = '…';
+          try {
+            await App.api('POST', '/app/admin/notify-user', {
+              email: u.email,
+              title: 'أكمل تحقّق هويتك',
+              text: 'مضى ' + u.daysOld + ' يوماً على تسجيلك ولم تُكمل التحقّق من هويتك. الإكمال يستغرق دقيقتين فقط.',
+              ctaUrl: '/kyc.html',
+            });
+            App.toast && App.toast('تم التذكير', 'success');
+          } catch (e) { alert(e.message || 'فشل'); }
+          btn.disabled = false; btn.textContent = '📨 ذكّر';
+        };
+        row.append(info, btn);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('stuckSignupsRefresh')?.addEventListener('click', loadStuckSignups);
+  document.getElementById('stuckSignupsRemindAll')?.addEventListener('click', async () => {
+    try {
+      const r = await App.api('GET', '/app/admin/stuck-signups');
+      const items = r.users || [];
+      if (!items.length) { alert('لا يوجد متعثّرون'); return; }
+      if (!confirm('إرسال تذكير لـ ' + items.length + ' مستخدماً؟')) return;
+      let sent = 0;
+      for (const u of items.slice(0, 100)) {
+        try {
+          await App.api('POST', '/app/admin/notify-user', {
+            email: u.email,
+            title: 'أكمل تحقّق هويتك',
+            text: 'مضى ' + u.daysOld + ' يوماً على تسجيلك. أكمل التحقّق لتبدأ الاستثمار.',
+            ctaUrl: '/kyc.html',
+          });
+          sent++;
+        } catch {}
+      }
+      App.toast && App.toast('أُرسل لـ ' + sent + ' مستخدماً', 'success');
+    } catch (e) { alert(e.message || 'فشل'); }
+  });
+
   async function loadProjViews() {
     const list = document.getElementById('projViewsList');
     if (!list) return;
@@ -5823,7 +5909,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
