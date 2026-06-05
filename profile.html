@@ -889,6 +889,18 @@
     </div>
   </div>
 
+  <!-- Review prompt (one-time, dismissible) -->
+  <div id="reviewPromptCard" style="display:none;background:linear-gradient(135deg,#fbf8ee,#fff);border:1px solid rgba(176,136,64,0.40);border-radius:14px;padding:16px 20px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font:900 14px Cairo,sans-serif;color:#062b1e;margin-bottom:4px;">⭐ كيف ترى مُرابحة؟</div>
+        <div style="font:500 12px Tajawal,sans-serif;color:#6b7268;line-height:1.7;">سؤال واحد سريع: على مقياس ٠-١٠، كم احتمال أن تنصح صديقاً بنا؟</div>
+        <div id="reviewScoreRow" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
+      <button type="button" id="reviewPromptDismiss" style="background:transparent;border:0;color:#6b7268;font:700 11px Cairo,sans-serif;cursor:pointer;text-decoration:underline;flex-shrink:0;">ليس الآن ←</button>
+    </div>
+  </div>
+
   <!-- Counters row -->
   <div class="settings-group" id="countersRow" style="display:none;">
     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
@@ -2112,6 +2124,46 @@
         grid.appendChild(cell);
       });
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Review prompt (one-shot, dismissible, only for users with 1+ investment)
+  (async () => {
+    try {
+      const card = document.getElementById('reviewPromptCard');
+      const row = document.getElementById('reviewScoreRow');
+      const dismiss = document.getElementById('reviewPromptDismiss');
+      if (!card || !row) return;
+      // Already shown this session?
+      if (localStorage.getItem('mrb_review_prompt_done')) return;
+      const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [] }));
+      const invs = (port.investments || []).filter(i => i.status !== 'canceled');
+      if (invs.length < 1) return;
+      card.style.display = '';
+      row.replaceChildren();
+      for (let n = 0; n <= 10; n++) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = n;
+        b.style.cssText = 'width:32px;height:32px;border-radius:50%;border:1px solid rgba(13,22,18,0.18);background:#fff;color:#062b1e;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        b.onmouseenter = () => { b.style.background = '#0a4d36'; b.style.color = '#d4ac6e'; };
+        b.onmouseleave = () => { b.style.background = '#fff'; b.style.color = '#062b1e'; };
+        b.onclick = async () => {
+          try {
+            await fetch('/app/feedback', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'nps', nps: n, body: 'NPS ' + n + ' from profile prompt' }),
+            });
+            try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
+            card.style.display = 'none';
+            App.toast && App.toast('شكراً لتقييمك ' + n + '/١٠', 'success');
+          } catch { App.toast && App.toast('فشل', 'error'); }
+        };
+        row.appendChild(b);
+      }
+      dismiss?.addEventListener('click', () => {
+        try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
+        card.style.display = 'none';
+      });
     } catch (e) {}
   })();
 
