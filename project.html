@@ -3617,6 +3617,36 @@
     _setMeta('meta[property="og:url"]', 'content', url);
     _setMeta('meta[name="twitter:title"]', 'content', p.name + ' — مُرابحة');
     _setMeta('meta[name="twitter:description"]', 'content', description);
+    // Inject JSON-LD product schema for richer SEO
+    try {
+      let scriptEl = document.getElementById('projectJsonLd');
+      if (!scriptEl) {
+        scriptEl = document.createElement('script');
+        scriptEl.id = 'projectJsonLd';
+        scriptEl.type = 'application/ld+json';
+        document.head.appendChild(scriptEl);
+      }
+      const ld = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: p.name,
+        description,
+        category: p.category || 'استثمار عقاري شرعي',
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'SAR',
+          price: p.minTicket || 1000,
+          availability: p.status === 'open' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          url,
+        },
+        aggregateRating: (p.ratingsAverage && p.ratingsCount) ? {
+          '@type': 'AggregateRating',
+          ratingValue: p.ratingsAverage,
+          reviewCount: p.ratingsCount,
+        } : undefined,
+      };
+      scriptEl.textContent = JSON.stringify(ld);
+    } catch (e) {}
   }
   function _bindShare(p) {
     if (!p) return;
