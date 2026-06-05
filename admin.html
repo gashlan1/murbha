@@ -3716,6 +3716,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         info.append(top, sub);
         const tags = document.createElement('div');
         tags.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;';
+        if (u.adminNote) {
+          const noteBadge = document.createElement('span');
+          noteBadge.style.cssText = 'background:rgba(176,136,64,0.10);color:var(--gold);border:1px solid rgba(176,136,64,0.30);border-radius:6px;padding:3px 8px;font:800 10px Cairo,sans-serif;cursor:help;';
+          noteBadge.textContent = '📝 ملاحظة';
+          noteBadge.title = u.adminNote.slice(0, 240);
+          tags.appendChild(noteBadge);
+        }
+        const noteBtn = document.createElement('button');
+        noteBtn.type = 'button';
+        noteBtn.style.cssText = 'background:#fff;color:var(--green-dark);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        noteBtn.textContent = u.adminNote ? '✎ تعديل ملاحظة' : '📝 إضافة ملاحظة';
+        noteBtn.onclick = async (ev) => {
+          ev.preventDefault(); ev.stopPropagation();
+          const cur = u.adminNote || '';
+          const newNote = prompt('ملاحظة داخلية عن ' + u.name + ' (تظهر للإدارة فقط):', cur);
+          if (newNote === null) return;
+          try {
+            await App.api('PUT', '/app/admin/users/' + encodeURIComponent(u.id) + '/note', { note: newNote });
+            App.toast && App.toast('تم الحفظ', 'success');
+            loadUsers();
+          } catch (e) { alert(e.message || 'فشل'); }
+        };
+        tags.appendChild(noteBtn);
         if (u.kycDocs && (u.kycDocs.id_front || u.kycDocs.selfie)) {
           const viewBtn = document.createElement('button');
           viewBtn.type = 'button';
