@@ -989,6 +989,7 @@
     <span id="scarcityBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#c54a3a,#8b2e22);padding:5px 12px;border-radius:999px;"></span>
     <span id="loyaltyBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:rgba(176,136,64,0.10);border:1px solid rgba(176,136,64,0.30);padding:5px 12px;border-radius:999px;"></span>
     <span id="milestoneBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#b08840,#d4ac6e);padding:5px 12px;border-radius:999px;"></span>
+    <span id="healthBadge" style="display:none;font:800 11px Cairo,sans-serif;padding:5px 12px;border-radius:999px;"></span>
     <span id="velocityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.08);padding:5px 12px;border-radius:999px;"></span>
     <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
@@ -4449,7 +4450,29 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} };
+
+  function _setHealth(p) {
+    const badge = document.getElementById('healthBadge');
+    if (!badge) return;
+    const closingAt = p.closingAt ? new Date(p.closingAt) : null;
+    if (!closingAt) return;
+    const now = new Date();
+    const daysLeft = Math.ceil((closingAt - now) / 86400e3);
+    const fundedPct = Number(p.fundedPct || 0);
+    let label, bg, fg;
+    if (daysLeft < 0) { label = '⚪ مغلقة'; bg = 'rgba(107,114,104,0.15)'; fg = '#6b7268'; }
+    else if (fundedPct >= 100) { label = '✓ ممَوَّلة بالكامل'; bg = 'rgba(15,110,58,0.12)'; fg = '#0f6e3a'; }
+    else if (daysLeft <= 3 && fundedPct < 70) { label = '🚨 خطر — ' + daysLeft + ' يوم'; bg = 'linear-gradient(90deg,#c54a3a,#8b2e22)'; fg = '#fff'; }
+    else if (daysLeft <= 7 && fundedPct < 80) { label = '⚠ تحذير — ' + fundedPct + '٪ بـ ' + daysLeft + ' يوم'; bg = 'rgba(217,119,6,0.15)'; fg = '#d97706'; }
+    else if (fundedPct >= 80 && daysLeft > 7) { label = '🔥 ساخنة — ' + fundedPct + '٪'; bg = 'linear-gradient(90deg,#0f6e3a,#0a4d36)'; fg = '#fff'; }
+    else if (fundedPct >= 50) { label = '✅ صحّية — ' + fundedPct + '٪'; bg = 'rgba(15,110,58,0.10)'; fg = '#0f6e3a'; }
+    else { label = '🌱 بداية — ' + fundedPct + '٪'; bg = 'rgba(176,136,64,0.12)'; fg = '#b08840'; }
+    badge.textContent = label;
+    badge.style.background = bg;
+    badge.style.color = fg;
+    badge.style.display = '';
+  }
 
   function _setMilestone(p) {
     const badge = document.getElementById('milestoneBadge');

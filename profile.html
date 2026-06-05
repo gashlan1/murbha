@@ -859,6 +859,24 @@
     </div>
   </div>
 
+  <!-- Notification language -->
+  <div class="settings-group" id="notifLangSec">
+    <div class="settings-h">✉️ لغة الإشعارات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;line-height:1.7;">اللغة المستخدمة في رسائل البريد و SMS التي تصلك (مستقلّة عن لغة الواجهة).</p>
+      <div style="display:flex;gap:8px;">
+        <button type="button" data-lang="ar" class="notifLangBtn" style="flex:1;padding:14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span>🇸🇦 العربية</span>
+          <span style="font:600 10px Tajawal,sans-serif;color:var(--muted);">"وصلت دفعة جديدة"</span>
+        </button>
+        <button type="button" data-lang="en" class="notifLangBtn" style="flex:1;padding:14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span>🇬🇧 English</span>
+          <span style="font:600 10px Tajawal,sans-serif;color:var(--muted);">"New payout received"</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Quiet hours -->
   <div class="settings-group" id="quietSec">
     <div class="settings-h">🌙 ساعات الهدوء</div>
@@ -2519,6 +2537,32 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Notification language
+  (async () => {
+    try {
+      const btns = document.querySelectorAll('.notifLangBtn');
+      if (!btns.length) return;
+      const me = await App.api('GET', '/app/me');
+      let cur = me.user?.notificationLanguage || 'ar';
+      const sync = () => btns.forEach(b => {
+        const on = b.dataset.lang === cur;
+        b.style.background = on ? 'var(--green-dark)' : '#fff';
+        b.style.color = on ? 'var(--gold-light)' : 'var(--green-dark)';
+        b.style.borderColor = on ? 'var(--green-dark)' : 'var(--line)';
+      });
+      sync();
+      btns.forEach(b => b.addEventListener('click', async () => {
+        const lang = b.dataset.lang;
+        if (lang === cur) return;
+        try {
+          await App.api('PATCH', '/app/me/notification-language', { language: lang });
+          cur = lang; sync();
+          App.toast && App.toast('✓ ' + (lang === 'ar' ? 'العربية' : 'English'), 'success');
+        } catch (e) { App.toast && App.toast('فشل', 'error'); }
+      }));
     } catch (e) {}
   })();
 

@@ -695,6 +695,17 @@
     </div>
   </div>
 
+  <!-- CAMPAIGN EFFECTIVENESS -->
+  <div class="admin-card" id="campCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📣 فعّالية مصادر التسجيل</span>
+      <span class="card-h-sub" id="campBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="campList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- KYC AGING -->
   <div class="admin-card" id="kycAgeCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3006,6 +3017,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadCamp() {
+    const list = document.getElementById('campList');
+    const badge = document.getElementById('campBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/campaign-effectiveness');
+      const rows = r.rows || [];
+      if (badge) badge.textContent = rows.length + ' مصدر';
+      list.replaceChildren();
+      if (!rows.length) { list.appendChild(_emptyNode('لا توجد بيانات')); return; }
+      const head = document.createElement('div');
+      head.style.cssText = 'display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:8px;padding:6px 10px;font:800 11px Cairo,sans-serif;color:var(--muted);border-bottom:1px dashed var(--line);';
+      ['المصدر', 'تسجيل', 'استثمر', 'تحويل٪', 'متوسط', 'TTFI ساعة'].forEach(t => {
+        const c = document.createElement('div'); c.textContent = t;
+        if (t !== 'المصدر') c.style.textAlign = 'center';
+        head.appendChild(c);
+      });
+      list.appendChild(head);
+      rows.forEach(row => {
+        const r2 = document.createElement('div');
+        const cv = row.conversionPct >= 25 ? '#0f6e3a' : (row.conversionPct >= 10 ? '#b08840' : '#c54a3a');
+        r2.style.cssText = 'display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:8px;padding:8px 10px;background:var(--paper);border-radius:8px;font:600 12px Tajawal,sans-serif;color:var(--ink);align-items:center;';
+        const s = document.createElement('div'); s.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; s.textContent = row.source;
+        const c1 = document.createElement('div'); c1.style.textAlign = 'center'; c1.textContent = row.signups;
+        const c2 = document.createElement('div'); c2.style.textAlign = 'center'; c2.textContent = row.invested;
+        const c3 = document.createElement('div'); c3.style.cssText = 'text-align:center;font:800 12px Cairo,sans-serif;color:' + cv + ';'; c3.textContent = row.conversionPct + '٪';
+        const c4 = document.createElement('div'); c4.style.textAlign = 'center'; c4.textContent = Number(row.avgTicket).toLocaleString('ar-SA');
+        const c5 = document.createElement('div'); c5.style.textAlign = 'center'; c5.textContent = row.medianTtfiHours || '—';
+        r2.append(s, c1, c2, c3, c4, c5);
+        list.appendChild(r2);
+      });
+    } catch (e) {}
+  }
+
   async function loadKycAge() {
     const list = document.getElementById('kycAgeList');
     const oldest = document.getElementById('kycAgeOldest');
@@ -7088,7 +7133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
