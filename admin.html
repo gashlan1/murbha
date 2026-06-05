@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- PROJECT STATUS DISTRIBUTION -->
+  <div class="admin-card" id="projStatusCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🗂 توزيع حالات المشاريع</span>
+      <span class="card-h-sub" id="projStatusBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="projStatusList" style="display:flex;flex-direction:column;gap:6px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- INVESTMENTS BY CATEGORY -->
   <div class="admin-card" id="invByCatCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2859,6 +2872,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadProjStatus() {
+    const list = document.getElementById('projStatusList');
+    const badge = document.getElementById('projStatusBadge');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/project-status');
+      const items = r.statuses || [];
+      if (badge) badge.textContent = (r.total || 0).toLocaleString('ar-SA') + ' مشروع';
+      list.replaceChildren();
+      const palette = ['#0f6e3a', '#0a4d36', '#1e3a8a', '#062b1e', '#b08840', '#6b7268', '#5c2418'];
+      const max = Math.max(...items.map(i => i.count), 1);
+      items.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:180px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = s.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:18px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((s.count / max) * 100) + '%;background:' + palette[i % palette.length] + ';border-radius:4px;';
+        bar.appendChild(fill);
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:end;min-width:80px;';
+        cnt.textContent = s.count.toLocaleString('ar-SA') + ' · ' + s.pct + '٪';
+        row.append(lbl, bar, cnt);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadInvByCat() {
     const list = document.getElementById('invByCatList');
     const badge = document.getElementById('invByCatBadge');
@@ -6574,7 +6615,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

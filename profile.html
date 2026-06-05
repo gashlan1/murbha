@@ -1780,7 +1780,29 @@
   const initial = document.querySelector('.profile-card .avatar, .profile-card .pavatar, .profile-card [class*="avatar"]');
   if (initial && initial.textContent.trim().length <= 2) initial.textContent = (user.name || '?').trim().charAt(0);
   const vp = document.querySelector('.verified-pill');
-  if (vp) vp.textContent = user.approved ? '⬢ حساب موثّق' : '⏳ لم يُتحقّق بعد';
+  if (vp) {
+    if (user.role === 'qualified_investor' || user.kycStatus === 'verified_qualified') {
+      vp.textContent = '⭐ مستثمر مؤهّل';
+      vp.style.background = 'linear-gradient(135deg,#062b1e,#0a4d36)';
+      vp.style.color = '#d4ac6e';
+    } else if (user.approved && (user.kycStatus === 'verified' || user.kycStatus === 'verified_qualified')) {
+      vp.textContent = '⬢ حساب موثّق ومُعتمَد';
+      vp.style.background = 'linear-gradient(135deg,#0f6e3a,#0a4d36)';
+      vp.style.color = '#fff';
+    } else if (user.kycStatus === 'verified') {
+      vp.textContent = '✓ KYC مكتمل · بانتظار الاعتماد';
+      vp.style.background = 'rgba(176,136,64,0.15)';
+      vp.style.color = '#b08840';
+    } else if (user.kycStatus === 'mobile_verified' || user.kycStatus === 'email_verified') {
+      vp.textContent = '⏳ KYC قيد الإكمال';
+      vp.style.background = 'rgba(176,136,64,0.10)';
+      vp.style.color = '#b08840';
+    } else {
+      vp.textContent = '⚠ KYC لم يبدأ';
+      vp.style.background = 'rgba(197,74,58,0.10)';
+      vp.style.color = '#c54a3a';
+    }
+  }
 
   // pull portfolio for stats
   try {
