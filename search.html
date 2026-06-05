@@ -99,6 +99,21 @@ async function run() {
     const r = await fetch('/app/public/search?q=' + encodeURIComponent(term));
     const d = await r.json();
     const items = (d.results || []).filter(it => _activeKind === 'all' || it.kind === _activeKind);
+    // Show total count + per-kind breakdown
+    const total = (d.results || []).length;
+    if (total > 0) {
+      const summary = document.createElement('div');
+      summary.style.cssText = 'padding:10px 14px;background:#fbf8ee;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;font:600 12px Tajawal,sans-serif;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;';
+      const left = document.createElement('span');
+      const strong = document.createElement('b'); strong.style.cssText='color:var(--green-dark,#062b1e);'; strong.textContent = total.toLocaleString('ar-SA');
+      left.append(strong, document.createTextNode(' نتيجة لـ "' + term + '"'));
+      const right = document.createElement('span');
+      const byKind = {};
+      (d.results || []).forEach(r => { byKind[r.kind] = (byKind[r.kind] || 0) + 1; });
+      right.textContent = Object.entries(byKind).map(([k, c]) => (LABEL[k] || k) + ': ' + c).join(' · ');
+      summary.append(left, right);
+      results.appendChild(summary);
+    }
     if (!items.length) {
       const e = document.createElement('div'); e.className = 'empty';
       e.textContent = 'لا توجد نتائج لـ "' + term + '". جرّب كلمة أخرى أو تصفّح ' ;

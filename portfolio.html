@@ -601,6 +601,20 @@
   </div>
 </div>
 
+<!-- Balance over time -->
+<div class="section" id="balanceChartSection" style="display:none;margin-top:14px;margin-bottom:14px;">
+  <div style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">📈 الرصيد عبر الزمن</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);" id="balanceChartRange">آخر ٩٠ يوم</div>
+      </div>
+      <span id="balanceChartCurrent" style="font:900 14px Cairo,sans-serif;color:var(--gold);"></span>
+    </div>
+    <svg id="balanceChart" width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="none" style="display:block;background:#fbf8ee;border-radius:10px;"></svg>
+  </div>
+</div>
+
 <!-- YTD Tax widget -->
 <div class="section" id="ytdTaxSection" style="display:none;margin-top:14px;margin-bottom:14px;">
   <div style="background:linear-gradient(135deg,#fbf8ee,#fff);border:1px solid rgba(176,136,64,0.20);border-radius:18px;padding:18px;">
@@ -823,6 +837,53 @@
   const bcMeta = document.querySelectorAll('.bc-meta-item');
   if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
   if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
+
+  // ── Balance over time chart ──
+  (() => {
+    const sec = document.getElementById('balanceChartSection');
+    const svg = document.getElementById('balanceChart');
+    if (!sec || !svg) return;
+    const txns = (data.transactions || []).slice().sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    if (txns.length < 2) return;
+    // Replay transactions chronologically to derive cumulative balance points,
+    // working backwards from the current balance: each txn moved the balance
+    // by its amount, so the pre-txn balance = currentBalance - sum(later txns)
+    const now = Date.now();
+    const fromTs = now - 90 * 24 * 60 * 60 * 1000;
+    const series = [];
+    let running = 0;
+    for (const t of txns) {
+      const amt = Number(t.amount) || 0;
+      // For invest: amount is recorded negative on outflow; for deposit positive.
+      running += amt;
+      const ts = new Date(t.createdAt).getTime();
+      if (ts >= fromTs) series.push({ ts, balance: running });
+    }
+    if (series.length < 2) return;
+    // Append "now" point with current balance
+    series.push({ ts: now, balance: Number(data.balance || running) });
+    sec.style.display = '';
+    document.getElementById('balanceChartCurrent').textContent = App.fmt.sar(data.balance || 0);
+    const W = 600, H = 100, padY = 6;
+    const min = Math.min(...series.map(p => p.balance));
+    const max = Math.max(...series.map(p => p.balance), min + 1);
+    const minTs = series[0].ts, maxTs = series[series.length - 1].ts;
+    const span = Math.max(1, maxTs - minTs);
+    const xy = series.map(p => [((p.ts - minTs) / span) * (W - 4) + 2, H - padY - ((p.balance - min) / Math.max(1, max - min)) * (H - 2 * padY)]);
+    svg.replaceChildren();
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const area = document.createElementNS(svgNS, 'path');
+    area.setAttribute('d', 'M' + xy[0][0].toFixed(1) + ',' + H + ' L' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + ' L' + xy[xy.length-1][0].toFixed(1) + ',' + H + ' Z');
+    area.setAttribute('fill', 'rgba(10,77,54,0.12)');
+    svg.appendChild(area);
+    const line = document.createElementNS(svgNS, 'path');
+    line.setAttribute('d', 'M' + xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L'));
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#0a4d36');
+    line.setAttribute('stroke-width', '1.8');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+  })();
 
   // ── Recommended projects ──
   (async () => {

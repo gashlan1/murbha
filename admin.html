@@ -3939,6 +3939,57 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── Webhooks management ───────────────────────────────────────
+  async function openWebhookLog(w) {
+    let deliveries = [];
+    try {
+      const r = await App.api('GET', '/app/admin/webhooks/' + encodeURIComponent(w.id) + '/deliveries');
+      deliveries = r.deliveries || [];
+    } catch (e) { alert(e.message || 'تعذّر التحميل'); return; }
+    const m = document.createElement('div');
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+    const c = document.createElement('div');
+    c.style.cssText = 'background:#fff;border-radius:14px;padding:22px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;';
+    const h = document.createElement('div');
+    h.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);';
+    const title = document.createElement('div'); title.style.cssText='font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+    title.textContent = '📜 سجل التسليم — ' + deliveries.length + ' محاولة';
+    const x = document.createElement('button'); x.type='button'; x.textContent='✕'; x.style.cssText='background:transparent;border:0;font-size:18px;cursor:pointer;color:var(--muted);';
+    x.onclick = () => m.remove();
+    h.append(title, x); c.appendChild(h);
+
+    const sub = document.createElement('div');
+    sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);direction:ltr;text-align:start;margin-bottom:14px;word-break:break-all;';
+    sub.textContent = w.url;
+    c.appendChild(sub);
+
+    if (!deliveries.length) {
+      const e = document.createElement('div'); e.style.cssText='text-align:center;color:var(--muted);padding:24px;font-size:13px;';
+      e.textContent = 'لم تُسلَّم رسائل بعد. اضغط "اختبار" لإطلاق محاولة.';
+      c.appendChild(e);
+    } else {
+      deliveries.forEach(d => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:' + (d.error ? '#fdecea' : '#f0f5f0') + ';margin-bottom:6px;gap:8px;flex-wrap:wrap;';
+        const left = document.createElement('div'); left.style.flex='1';
+        const tt = document.createElement('div'); tt.style.cssText='font:800 12px monospace,sans-serif;color:var(--ink);direction:ltr;text-align:start;';
+        tt.textContent = d.event;
+        const time = document.createElement('div'); time.style.cssText='font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        time.textContent = new Date(d.at).toLocaleString('ar-SA');
+        left.append(tt, time);
+        const right = document.createElement('span');
+        const ok = d.status && d.status >= 200 && d.status < 300;
+        right.style.cssText = 'font:800 11px Cairo,sans-serif;padding:3px 10px;border-radius:999px;background:' + (ok ? 'rgba(15,110,58,0.12)' : 'rgba(197,74,58,0.12)') + ';color:' + (ok ? '#0f6e3a' : '#c54a3a') + ';';
+        right.textContent = d.status ? String(d.status) : (d.error ? '✗ ' + (d.error || '').slice(0, 24) : '—');
+        row.append(left, right);
+        c.appendChild(row);
+      });
+    }
+
+    m.appendChild(c);
+    m.onclick = (e) => { if (e.target === m) m.remove(); };
+    document.body.appendChild(m);
+  }
+
   function openWebhookTester(w) {
     if (document.getElementById('whTesterModal')) return;
     const m = document.createElement('div');
@@ -4044,7 +4095,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         delBtn.style.cssText = 'background:#fff;color:#c54a3a;border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
         delBtn.textContent = 'حذف';
         delBtn.onclick = async () => { if (!confirm('حذف هذا الويب-هوك؟')) return; try { await App.api('DELETE', '/app/admin/webhooks/' + w.id); loadWebhooks(); } catch (e) { alert(e.message); } };
-        act.append(testBtn, delBtn);
+        const logBtn = document.createElement('button'); logBtn.type='button';
+        logBtn.style.cssText = 'background:var(--paper);color:var(--green-dark);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        logBtn.textContent = '📜 السجل (' + (w.deliveryCount || 0) + ')';
+        logBtn.onclick = () => openWebhookLog(w);
+        act.append(testBtn, logBtn, delBtn);
         top.append(u, act);
         const events = document.createElement('div'); events.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);';
         events.textContent = w.events.join(' · ');

@@ -1281,6 +1281,21 @@
     </button>
   </div>
 
+  <!-- Language -->
+  <div class="settings-group">
+    <div class="settings-h">اللغة المفضّلة</div>
+    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font:800 13px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;">🌐 لغة الواجهة</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);">يُحفظ الاختيار على حسابك ويُتطبَّق على كل أجهزتك</div>
+      </div>
+      <div style="display:flex;gap:4px;background:#fbf8ee;border-radius:999px;padding:3px;">
+        <button type="button" id="langChoiceAr" style="padding:6px 16px;border:0;border-radius:999px;background:var(--green-dark);color:#fff;font:800 12px Cairo,sans-serif;cursor:pointer;">العربية</button>
+        <button type="button" id="langChoiceEn" style="padding:6px 16px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:800 12px Cairo,sans-serif;cursor:pointer;">English</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Theme -->
   <div class="settings-group">
     <div class="settings-h">المظهر</div>
@@ -2256,6 +2271,39 @@
       ]);
     } else { location.reload(); }
   });
+
+  // Language preference toggle
+  (() => {
+    const arBtn = document.getElementById('langChoiceAr');
+    const enBtn = document.getElementById('langChoiceEn');
+    if (!arBtn || !enBtn) return;
+    const KEY = 'murbha.lang';
+    const setUi = (lang) => {
+      const ar = lang !== 'en';
+      arBtn.style.background = ar ? 'var(--green-dark)' : 'transparent';
+      arBtn.style.color = ar ? '#fff' : 'var(--muted)';
+      enBtn.style.background = ar ? 'transparent' : 'var(--green-dark)';
+      enBtn.style.color = ar ? 'var(--muted)' : '#fff';
+    };
+    const apply = async (lang) => {
+      try { localStorage.setItem(KEY, lang); } catch {}
+      try {
+        await fetch('/app/me/locale', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin', body: JSON.stringify({ locale: lang }),
+        });
+      } catch (e) {}
+      setUi(lang);
+      // Use existing header toggle's apply pipeline if possible by reloading
+      // (cheap & reliable, since per-page render is heterogeneous)
+      setTimeout(() => location.reload(), 250);
+    };
+    let current = 'ar';
+    try { current = localStorage.getItem(KEY) === 'en' ? 'en' : 'ar'; } catch {}
+    setUi(current);
+    arBtn.onclick = () => apply('ar');
+    enBtn.onclick = () => apply('en');
+  })();
 
   // Theme toggle
   (() => {
