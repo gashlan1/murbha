@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Pending actions -->
+  <div class="settings-group" id="pendActSec" style="display:none;">
+    <div class="settings-h">🎯 المهامّ المعلّقة</div>
+    <div style="padding:14px 18px;">
+      <div id="pendSummary" style="background:linear-gradient(135deg,#fbf6ea,#fff);border:2px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;"></div>
+      <div id="pendList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Trusted devices -->
   <div class="settings-group" id="tdSec">
     <div class="settings-h">🛡 الأجهزة الموثوقة</div>
@@ -2806,6 +2815,53 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Pending actions
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/pending-actions');
+      if (!r.total) return;
+      const sec = document.getElementById('pendActSec');
+      const sum = document.getElementById('pendSummary');
+      const list = document.getElementById('pendList');
+      if (!sec || !sum || !list) return;
+      sec.style.display = '';
+      sum.replaceChildren();
+      const big = document.createElement('div');
+      big.style.cssText = 'font:900 22px Cairo,sans-serif;color:var(--green-dark);';
+      big.textContent = r.total + ' مهمّة بانتظارك';
+      const chips = document.createElement('div');
+      chips.style.cssText = 'display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;';
+      const mkChip = (label, value, color) => {
+        const c = document.createElement('span');
+        c.style.cssText = 'padding:4px 10px;background:' + color + ';color:#fff;border-radius:99px;font:800 11px Cairo,sans-serif;';
+        c.textContent = label + ' ' + value;
+        return c;
+      };
+      if (r.high) chips.appendChild(mkChip('🔴 عاجل', r.high, '#c54a3a'));
+      if (r.medium) chips.appendChild(mkChip('🟡 مهمّ', r.medium, '#b08840'));
+      if (r.low) chips.appendChild(mkChip('🟢 اختياري', r.low, '#0f6e3a'));
+      sum.append(big, chips);
+      list.replaceChildren();
+      const urgencyStyles = {
+        high:   { border: '#c54a3a', bg: 'linear-gradient(135deg,rgba(197,74,58,0.05),#fff)' },
+        medium: { border: '#b08840', bg: 'linear-gradient(135deg,rgba(176,136,64,0.05),#fff)' },
+        low:    { border: 'var(--line)', bg: 'var(--paper)' },
+      };
+      (r.actions || []).forEach(a => {
+        const s = urgencyStyles[a.urgency] || urgencyStyles.low;
+        const row = document.createElement('a');
+        row.href = a.href || '#';
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 14px;background:' + s.bg + ';border:1px solid ' + s.border + ';border-radius:10px;text-decoration:none;color:inherit;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = a.label;
+        const arrow = document.createElement('div'); arrow.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--gold);';
+        arrow.textContent = '←';
+        row.append(lbl, arrow);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
