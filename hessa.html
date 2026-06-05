@@ -1891,6 +1891,51 @@
   </div>
 </div>
 
+<!-- LIVE DEAL TICKER -->
+<section style="background:#062b1e;color:#fbf6ea;padding:14px 0;overflow:hidden;border-top:1px solid rgba(212,172,110,0.18);border-bottom:1px solid rgba(212,172,110,0.18);">
+  <div style="display:flex;align-items:center;gap:18px;padding:0 22px;">
+    <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:#d4ac6e;">
+      <span style="width:8px;height:8px;background:#16a34a;border-radius:50%;animation:tickerPulse 1.4s ease-in-out infinite;"></span>
+      <span data-en="LIVE">مباشر</span>
+    </span>
+    <div style="flex:1;overflow:hidden;mask-image:linear-gradient(to left,transparent,#000 8%,#000 92%,transparent);">
+      <div id="tickerStrip" style="display:flex;gap:42px;white-space:nowrap;animation:tickerScroll 60s linear infinite;font:600 13px Tajawal,sans-serif;color:rgba(251,246,234,0.85);">
+        <span style="opacity:.6;" data-en="Loading recent activity…">جارٍ تحميل النشاط…</span>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes tickerPulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  html[dir="rtl"] @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(50%); } }
+</style>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/ticker');
+    if (!r.ok) return;
+    const { ticker = [] } = await r.json();
+    if (!ticker.length) return;
+    const strip = document.getElementById('tickerStrip');
+    if (!strip) return;
+    strip.textContent = '';
+    const render = (parent) => ticker.forEach(t => {
+      const sp = document.createElement('span');
+      sp.style.cssText = 'display:inline-flex;gap:8px;align-items:center;';
+      const dot = document.createElement('span'); dot.textContent = '•'; dot.style.color = '#d4ac6e'; sp.appendChild(dot);
+      const text = document.createElement('span');
+      const amt = Number(t.amount).toLocaleString('ar-SA');
+      text.textContent = `${t.investor} استثمر ${amt} ر.س في ${t.project}`;
+      sp.appendChild(text);
+      parent.appendChild(sp);
+    });
+    render(strip);
+    render(strip); // duplicate for seamless scroll
+  } catch (e) {}
+})();
+</script>
+
 <!-- HOW IT WORKS — explains the actual contract-execution Murabaha model -->
 <section class="how section-pad" id="how">
   <div class="section-head">
