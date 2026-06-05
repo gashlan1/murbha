@@ -1989,6 +1989,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       noteWrap.append(noteH, noteTa, noteBtn);
       card.appendChild(noteWrap);
 
+      // Send notification composer
+      const notifWrap = document.createElement('div');
+      notifWrap.style.cssText = 'margin-bottom:10px;background:#eaf3ee;border:1px dashed #0a4d36;border-radius:10px;padding:10px 12px;';
+      const notifH = document.createElement('div');
+      notifH.style.cssText = 'font:800 12px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;';
+      notifH.textContent = '📨 إرسال إشعار للمستخدم';
+      const notifTitle = document.createElement('input');
+      notifTitle.type = 'text'; notifTitle.placeholder = 'العنوان (مثال: تذكير KYC)';
+      notifTitle.maxLength = 120;
+      notifTitle.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:700 12px Cairo,sans-serif;background:#fff;margin-bottom:5px;';
+      const notifBody = document.createElement('textarea');
+      notifBody.rows = 2; notifBody.placeholder = 'نص الإشعار…'; notifBody.maxLength = 1000;
+      notifBody.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 12px Tajawal,sans-serif;background:#fff;resize:vertical;margin-bottom:5px;direction:rtl;';
+      const notifCta = document.createElement('input');
+      notifCta.type = 'text'; notifCta.placeholder = 'رابط زر CTA (اختياري)';
+      notifCta.style.cssText = 'width:100%;padding:7px 10px;border:1px solid #0a4d36;border-radius:6px;font:600 11px Tajawal,sans-serif;background:#fff;direction:ltr;text-align:start;margin-bottom:6px;';
+      const notifBtn = document.createElement('button');
+      notifBtn.type = 'button';
+      notifBtn.textContent = 'إرسال';
+      notifBtn.style.cssText = 'background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:7px 16px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      notifBtn.onclick = async () => {
+        const t = notifTitle.value.trim(), b = notifBody.value.trim();
+        if (!t || !b) { alert('يجب إدخال عنوان ونص'); return; }
+        notifBtn.disabled = true; notifBtn.textContent = 'جارٍ الإرسال…';
+        try {
+          await App.api('POST', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/notify', {
+            title: t, body: b, ctaUrl: notifCta.value.trim() || undefined,
+          });
+          notifTitle.value = ''; notifBody.value = ''; notifCta.value = '';
+          notifBtn.textContent = '✓ أُرسل';
+          setTimeout(() => { notifBtn.textContent = 'إرسال'; notifBtn.disabled = false; }, 1500);
+        } catch (e) {
+          notifBtn.disabled = false; notifBtn.textContent = 'إرسال';
+          alert(e.message || 'فشل الإرسال');
+        }
+      };
+      notifWrap.append(notifH, notifTitle, notifBody, notifCta, notifBtn);
+      card.appendChild(notifWrap);
+
       const section = (label) => {
         const s = document.createElement('div');
         const sh = document.createElement('div');

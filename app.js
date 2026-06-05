@@ -713,6 +713,108 @@
     setTimeout(_maybeShowInstallPrompt, 8000);
   });
 
+  // ─── Onboarding tour (first-time users) ────────────────────────
+  const TOUR_KEY = 'mrb_tour_done_v1';
+  const _tourSeen = () => {
+    try { return localStorage.getItem(TOUR_KEY) === '1'; } catch { return true; }
+  };
+  const _markTourDone = () => {
+    try { localStorage.setItem(TOUR_KEY, '1'); } catch {}
+  };
+
+  const startTour = (steps) => {
+    if (!Array.isArray(steps) || !steps.length) return;
+    let i = 0;
+    const overlay = document.createElement('div');
+    overlay.id = 'tourOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.78);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:24px;font-family:Tajawal,system-ui,sans-serif;';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:18px;padding:22px 24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);';
+    overlay.appendChild(card);
+
+    const renderStep = () => {
+      card.textContent = '';
+      const s = steps[i];
+      const dots = document.createElement('div');
+      dots.style.cssText = 'display:flex;gap:5px;justify-content:center;margin-bottom:14px;';
+      steps.forEach((_, idx) => {
+        const d = document.createElement('span');
+        d.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + (idx === i ? '#b08840' : 'rgba(13,22,18,0.15)') + ';';
+        dots.appendChild(d);
+      });
+      const h = document.createElement('div');
+      h.style.cssText = 'font:900 18px Cairo,sans-serif;color:#062b1e;margin-bottom:8px;';
+      h.textContent = s.title;
+      const p = document.createElement('div');
+      p.style.cssText = 'color:#3c4d44;font-size:14px;line-height:1.8;margin-bottom:18px;';
+      p.textContent = s.body;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;';
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = 'تخطّي';
+      skipBtn.type = 'button';
+      skipBtn.style.cssText = 'flex:1;padding:11px;background:transparent;border:1px solid rgba(13,22,18,0.15);border-radius:999px;font:800 13px Cairo,sans-serif;color:#3c4d44;cursor:pointer;';
+      skipBtn.onclick = () => { _markTourDone(); overlay.remove(); };
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = i === steps.length - 1 ? 'تم — هيا نبدأ' : 'التالي';
+      nextBtn.type = 'button';
+      nextBtn.style.cssText = 'flex:2;padding:11px;background:#062b1e;color:#fbf6ea;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      nextBtn.onclick = () => {
+        if (i === steps.length - 1) {
+          _markTourDone();
+          overlay.remove();
+          if (s.cta && s.ctaHref) location.href = s.ctaHref;
+        } else {
+          i++; renderStep();
+        }
+      };
+      row.append(skipBtn, nextBtn);
+      card.append(dots, h, p, row);
+    };
+
+    renderStep();
+    document.body.appendChild(overlay);
+  };
+
+  const _maybeRunTour = async () => {
+    if (_tourSeen()) return;
+    if (location.pathname.includes('admin') || location.pathname.includes('cookies') ||
+        location.pathname.includes('auth') || location.pathname.includes('login') ||
+        location.pathname.includes('signup') || location.pathname.includes('kyc')) return;
+    // Only show to authenticated users so it doesn't startle visitors
+    try {
+      const r = await fetch('/app/me', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      const data = await r.json();
+      if (!data?.user?.id) return;
+      // Skip if user has any investments already (returning user)
+      if (Array.isArray(data.investments) && data.investments.length) {
+        _markTourDone(); return;
+      }
+    } catch (e) { return; }
+
+    setTimeout(() => startTour([
+      {
+        title: 'أهلاً بك في مُرابحة 👋',
+        body: 'منصة استثمار شرعية كاملة من البحث عن الفرصة إلى التوقيع وتحصيل الأرباح. سنشرح لك أهم ٤ أماكن في أقل من دقيقة.',
+      },
+      {
+        title: 'تصفّح الفرص',
+        body: 'كل فرصة تعرض البائع، الأصل، الهامش، والمدة — كله مُعتمَد شرعياً. استخدم البحث أو الترتيب لتختار الأنسب.',
+        cta: true, ctaHref: '/projects.html',
+      },
+      {
+        title: 'احسب عوائدك',
+        body: 'داخل كل فرصة هناك حاسبة تُريك الأرباح المتوقعة وجدول التوزيعات الربعية حسب المبلغ.',
+      },
+      {
+        title: 'محفظتك = مكان كل شيء',
+        body: 'استثماراتك، عقودك، توزيعاتك، وتصدير .CSV و .ICS كلها في صفحة المحفظة. ابدأ الآن.',
+        cta: true, ctaHref: '/projects.html',
+      },
+    ]), 800);
+  };
+
   // ─── Maintenance banner (poll once on load) ────────────────────
   const _checkMaintenance = async () => {
     try {
@@ -746,6 +848,7 @@
     if (!location.pathname.includes('admin')) _checkMaintenance();
     // iOS Safari has no beforeinstallprompt; show its hint after delay.
     if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
+    _maybeRunTour();
   });
 
   window.App = {
@@ -755,6 +858,7 @@
     storage, on, qs, escapeHtml, renderMarkdown,
     getTheme, setTheme,
     getConsent: _getConsent, setConsent: _setConsent,
+    startTour, resetTour: () => { try { localStorage.removeItem(TOUR_KEY); } catch {} },
     trapFocus,
     refreshHeader: _wireHeaderAuth,
   };
