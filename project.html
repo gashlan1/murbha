@@ -1516,6 +1516,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Cancellation reasons -->
+<div class="card-section" id="cxlCard" style="display:none;">
+  <h2 class="section-h">↩ أسباب الإلغاء</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">شفافية حول سبب إلغاء بعض المستثمرين لاستثماراتهم.</p>
+  <div id="cxlKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+  <div id="cxlList" style="display:flex;flex-direction:column;gap:5px;"></div>
+</div>
+
 <!-- Concentration risk -->
 <div class="card-section" id="concCard" style="display:none;">
   <h2 class="section-h">⚖️ مخاطر التركّز</h2>
@@ -4412,6 +4420,49 @@
     recalc();
   }
 
+  async function _loadCxl(slug) {
+    const card = document.getElementById('cxlCard');
+    const kpis = document.getElementById('cxlKpis');
+    const list = document.getElementById('cxlList');
+    if (!card || !kpis || !list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/cancellation-reasons');
+      if (!r.hasCancellations) { card.style.display = 'none'; return; }
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mk('عدد المُلغاة', r.totalCanceled, '#c54a3a'),
+        mk('قيمة مُلغاة', fmt(r.totalAmount) + ' ر.س', '#d97706'),
+        mk('نسبة الإلغاء', r.cancelRate + '٪', r.cancelRate >= 15 ? '#c54a3a' : (r.cancelRate >= 5 ? '#b08840' : '#0f6e3a')),
+      );
+      list.replaceChildren();
+      const max = Math.max(...r.reasons.map(rs => rs.count), 1);
+      r.reasons.forEach(rs => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:700 12px Tajawal,sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        lbl.textContent = rs.reason;
+        const bar = document.createElement('div'); bar.style.cssText = 'min-width:120px;height:12px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((rs.count / max) * 100) + '%;background:#d97706;';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--muted);text-align:end;min-width:70px;';
+        meta.textContent = rs.count + ' · ' + rs.pct + '٪';
+        row.append(lbl, bar, meta);
+        list.appendChild(row);
+      });
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadConcRisk(slug) {
     const card = document.getElementById('concCard');
     const risk = document.getElementById('concRisk');
@@ -4937,7 +4988,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   function _setListingAge(p) {
     const badge = document.getElementById('listingAgeBadge');

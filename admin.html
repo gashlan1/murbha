@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- LIVE FEED -->
+  <div class="admin-card" id="lvCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📡 آخر ٢٤ ساعة</span>
+      <span class="card-h-sub" id="lvBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="lvKpis" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+      <div id="lvFeed" style="display:flex;flex-direction:column;gap:5px;max-height:380px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
   <!-- LARGEST DEALS -->
   <div class="admin-card" id="lgCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3168,6 +3180,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadLv() {
+    const kpis = document.getElementById('lvKpis');
+    const feed = document.getElementById('lvFeed');
+    const badge = document.getElementById('lvBadge');
+    if (!kpis || !feed) return;
+    try {
+      const r = await App.api('GET', '/app/admin/live-feed');
+      if (badge) badge.textContent = (r.totalCount || 0).toLocaleString('ar-SA') + ' حدث';
+      const labels = { signup: '👋 تسجيلات', kyc: '🪪 KYC', invest: '💼 استثمار', deposit: '💳 إيداع', withdraw: '📤 سحب', payout: '💰 دفعة' };
+      const colors = { signup: '#0a4d36', kyc: '#1e3a8a', invest: '#0f6e3a', deposit: '#b08840', withdraw: '#d97706', payout: '#5c2418' };
+      kpis.replaceChildren();
+      Object.entries(r.summary || {}).forEach(([k, v]) => {
+        const chip = document.createElement('span');
+        chip.style.cssText = 'padding:6px 12px;background:' + (colors[k] || '#6b7268') + ';color:#fbf6ea;border-radius:99px;font:800 11px Cairo,sans-serif;';
+        chip.textContent = (labels[k] || k) + ': ' + v;
+        kpis.appendChild(chip);
+      });
+      feed.replaceChildren();
+      const items = r.events || [];
+      if (!items.length) { feed.appendChild(_emptyNode('لا أحداث في آخر ٢٤ ساعة')); return; }
+      items.forEach(ev => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:30px 1fr auto auto;gap:8px;align-items:center;padding:6px 10px;background:var(--paper);border-radius:8px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:16px;text-align:center;';
+        ic.textContent = ev.icon;
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = ev.label;
+        const det = document.createElement('div'); det.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--ink);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; det.textContent = ev.detail;
+        const ts = document.createElement('div'); ts.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);min-width:50px;text-align:end;';
+        const diff = Date.now() - new Date(ev.at).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) ts.textContent = 'الآن';
+        else if (mins < 60) ts.textContent = mins + ' د';
+        else ts.textContent = Math.floor(mins / 60) + ' س';
+        row.append(ic, lbl, det, ts);
+        feed.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadLg() {
     const list = document.getElementById('lgList');
     const badge = document.getElementById('lgBadge');
@@ -7793,7 +7844,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
