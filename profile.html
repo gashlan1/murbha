@@ -859,6 +859,18 @@
     </div>
   </div>
 
+  <!-- Achievement badges -->
+  <div class="settings-group" id="badgesSec">
+    <div class="settings-h">🏆 الإنجازات</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div id="bdProgress" style="font:700 12px Tajawal,sans-serif;color:var(--muted);">—</div>
+        <div id="bdScore" style="font:900 22px Cairo,sans-serif;color:var(--gold);">—</div>
+      </div>
+      <div id="bdGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Account health -->
   <div class="settings-group" id="acctHealthSec">
     <div class="settings-h">🛡 صحّة الحساب</div>
@@ -2458,6 +2470,29 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Achievement badges
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/badges');
+      const grid = document.getElementById('bdGrid');
+      const prog = document.getElementById('bdProgress');
+      const score = document.getElementById('bdScore');
+      if (!grid) return;
+      prog.textContent = (r.earned || 0) + ' من ' + (r.total || 0) + ' شارة محرَزة';
+      score.textContent = (r.earned || 0) + '/' + (r.total || 0);
+      grid.replaceChildren();
+      (r.badges || []).forEach(b => {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'background:' + (b.earned ? 'linear-gradient(135deg,#fbf6ea,#fff)' : 'var(--paper)') + ';border:1px solid ' + (b.earned ? 'var(--gold)' : 'var(--line)') + ';border-radius:12px;padding:10px 8px;text-align:center;opacity:' + (b.earned ? '1' : '0.45') + ';cursor:help;';
+        cell.title = b.desc + (b.earned ? '' : ' — لم تُحرز بعد');
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:24px;margin-bottom:4px;'; ic.textContent = b.ic;
+        const name = document.createElement('div'); name.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);line-height:1.4;'; name.textContent = b.name;
+        cell.append(ic, name);
+        grid.appendChild(cell);
       });
     } catch (e) {}
   })();

@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- DORMANT INVESTORS -->
+  <div class="admin-card" id="dormCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>😴 المستثمرون الخاملون</span>
+      <span class="card-h-sub" id="dormBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="dormKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="dormTop" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- WITHDRAWAL VELOCITY -->
   <div class="admin-card" id="wvCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2958,6 +2970,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadDorm() {
+    const kpis = document.getElementById('dormKpis');
+    const top = document.getElementById('dormTop');
+    const badge = document.getElementById('dormBadge');
+    if (!kpis || !top) return;
+    try {
+      const r = await App.api('GET', '/app/admin/dormant-investors');
+      if (badge) badge.textContent = (r.total || 0).toLocaleString('ar-SA') + ' مستخدم';
+      kpis.replaceChildren();
+      const mkKpi = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = Number(v || 0).toLocaleString('ar-SA');
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      kpis.append(
+        mkKpi('🟢 نشط (< ٣٠ يوم)', r.active30, '#0f6e3a'),
+        mkKpi('🟡 ٣٠–٩٠ يوم', r.dormant30_90, '#b08840'),
+        mkKpi('🟠 ٩٠–١٨٠ يوم', r.dormant90_180, '#d97706'),
+        mkKpi('🔴 ١٨٠+ يوم', r.dormant180, '#c54a3a'),
+        mkKpi('⚪ لم يتفاعل', r.neverActive, '#6b7268'),
+      );
+      top.replaceChildren();
+      const items = r.topDormant || [];
+      if (!items.length) { top.appendChild(_emptyNode('لا يوجد خاملون')); return; }
+      const head = document.createElement('div');
+      head.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      head.textContent = 'أكثرهم خمولاً';
+      top.appendChild(head);
+      items.forEach(u => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--paper);border-radius:8px;';
+        const left = document.createElement('div');
+        const n = document.createElement('div'); n.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; n.textContent = u.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);'; sub.textContent = 'آخر نشاط: ' + new Date(u.lastActivity).toLocaleDateString('ar-SA');
+        left.append(n, sub);
+        const right = document.createElement('div');
+        right.style.cssText = 'font:900 12px Cairo,sans-serif;color:#c54a3a;';
+        right.textContent = u.daysSince + ' يوم';
+        row.append(left, right);
+        top.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadWv() {
     const list = document.getElementById('wvList');
     const kpis = document.getElementById('wvKpis');
@@ -6857,7 +6916,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
