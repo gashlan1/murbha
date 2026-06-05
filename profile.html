@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Next milestones -->
+  <div class="settings-group" id="nextMileSec" style="display:none;">
+    <div class="settings-h">🎯 الإنجازات القادمة</div>
+    <div style="padding:14px 18px;">
+      <div id="nextMileSummary" style="text-align:center;margin-bottom:14px;font:700 12px Tajawal,sans-serif;color:var(--muted);"></div>
+      <div id="nextMileList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Weekly retrospective -->
   <div class="settings-group" id="weeklySec" style="display:none;">
     <div class="settings-h">📅 جردة أسبوعك</div>
@@ -2992,6 +3001,44 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Next milestones
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/next-milestones');
+      if (!r.hasData) return;
+      const sec = document.getElementById('nextMileSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const summary = document.getElementById('nextMileSummary');
+      summary.textContent = '✓ ' + r.achieved + ' من ' + r.total + ' إنجاز مُحرَز';
+      const list = document.getElementById('nextMileList');
+      list.replaceChildren();
+      (r.upcoming || []).forEach(m => {
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:14px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:10px;';
+        const t = document.createElement('div'); t.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = m.label;
+        const pct = document.createElement('div'); pct.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--gold);';
+        pct.textContent = m.pct + '٪';
+        head.append(t, pct);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:8px;background:var(--paper);border-radius:99px;overflow:hidden;margin-bottom:8px;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + m.pct + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'display:flex;justify-content:space-between;font:600 11px Tajawal,sans-serif;color:var(--muted);';
+        const cur = document.createElement('span'); cur.textContent = 'الحالي: ' + fmt(m.current);
+        const remaining = document.createElement('span'); remaining.style.color = '#0a4d36'; remaining.textContent = m.kind === 'amount' ? ('متبقّي ' + fmt(m.remaining) + ' ر.س') : ('متبقّي ' + fmt(m.remaining));
+        meta.append(cur, remaining);
+        const reward = document.createElement('div'); reward.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--gold);margin-top:6px;';
+        reward.textContent = '🎁 المكافأة: ' + m.reward;
+        card.append(head, bar, meta, reward);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
