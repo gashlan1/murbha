@@ -372,9 +372,11 @@
     </div>
   </div>
 
-  <div class="save-bar">
+  <div class="save-bar" style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="previewBtn" class="btn" type="button" style="background:#fff;color:var(--green-dark);border:1.5px solid var(--green-dark);">👁 معاينة (دون حفظ)</button>
     <button id="saveBtn" class="btn">حفظ التفضيلات</button>
   </div>
+  <div id="previewResult" style="display:none;margin-top:12px;padding:12px 14px;background:rgba(176,136,64,0.08);border:1px dashed var(--gold-light);border-radius:10px;font:600 13px Tajawal,sans-serif;color:#7a5a10;line-height:1.7;"></div>
 
   <div class="section-h" id="matchesHeader" style="display:none;">
     <h3>فرص تطابق تفضيلاتك</h3>
@@ -564,6 +566,44 @@
       saveBtn.disabled = false;
       saveBtn.textContent = 'حفظ التفضيلات';
     }
+  });
+
+  $('previewBtn')?.addEventListener('click', async () => {
+    const out = $('previewResult');
+    if (!out) return;
+    out.style.display = 'block';
+    out.textContent = 'جارٍ المعاينة…';
+    try {
+      const rules = readForm();
+      const r = await App.api('POST', '/app/auto-invest/preview', rules);
+      const count = (r.matches || []).length;
+      out.textContent = '';
+      if (!count) {
+        out.textContent = '🔍 لن تطابق أي فرصة حالياً بهذه القواعد. وسّع الحدود قليلاً.';
+      } else {
+        const head = document.createElement('div');
+        head.style.cssText = 'font:800 13px Cairo,sans-serif;color:#7a5a10;margin-bottom:6px;';
+        head.textContent = '✓ ' + count + ' فرصة مطابقة · مجموع الاستثمار المقترح ≈ ' + Number(r.wouldInvest || 0).toLocaleString('ar-SA') + ' ر.س';
+        out.appendChild(head);
+        const list = document.createElement('div');
+        list.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+        (r.matches || []).slice(0, 5).forEach(p => {
+          const li = document.createElement('div');
+          li.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#7a5a10;display:flex;justify-content:space-between;gap:8px;';
+          const nm = document.createElement('span'); nm.textContent = '• ' + p.name;
+          const amt = document.createElement('span'); amt.style.cssText='font-weight:800;'; amt.textContent = Number(p.suggestedAmount || 0).toLocaleString('ar-SA') + ' ر.س';
+          li.append(nm, amt);
+          list.appendChild(li);
+        });
+        out.appendChild(list);
+        if (count > 5) {
+          const more = document.createElement('div');
+          more.style.cssText = 'margin-top:6px;font-size:11px;color:#7a5a10;';
+          more.textContent = 'و ' + (count - 5) + ' فرصة أخرى…';
+          out.appendChild(more);
+        }
+      }
+    } catch (e) { out.textContent = 'تعذّرت المعاينة'; out.style.color = '#c54a3a'; }
   });
 
   // Wait for App to be ready
