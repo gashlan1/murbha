@@ -1137,6 +1137,14 @@
   </div>
 </div>
 
+<!-- COST BREAKDOWN -->
+<div class="card-section" id="costBreakdownSection" style="display:none;">
+  <h2 class="section-h">هيكل تكاليف المشروع</h2>
+  <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-bottom:14px;line-height:1.7;">تفصيل القيمة الكلية: تكاليف التشغيل، التكاليف الأخرى، وصافي الربح المتاح للمستثمرين.</div>
+  <div id="costBreakdownChart" style="height:18px;display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--line);margin-bottom:12px;"></div>
+  <div id="costBreakdownLegend" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
 <!-- STATUS TIMELINE -->
 <div class="card-section">
   <h2 class="section-h">مراحل المشروع</h2>
@@ -1688,6 +1696,48 @@
     } catch (e) {}
   }
 
+  function _renderCostBreakdown(p) {
+    const total = Number(p.totalProjectValue || p.goal || 0);
+    const ops = Number(p.opsCosts || 0);
+    const other = Number(p.otherCosts || 0);
+    const profit = Math.max(0, total - ops - other);
+    if (!total || (!ops && !other && !profit)) return;
+    const sec = document.getElementById('costBreakdownSection');
+    const bar = document.getElementById('costBreakdownChart');
+    const legend = document.getElementById('costBreakdownLegend');
+    if (!sec || !bar || !legend) return;
+    sec.style.display = '';
+    bar.replaceChildren();
+    legend.replaceChildren();
+    const fmt = (n) => Number(n).toLocaleString('ar-SA') + ' ر.س';
+    const segments = [
+      { label: 'صافي الربح', amount: profit, color: '#0a4d36' },
+      { label: 'تكاليف تشغيلية', amount: ops, color: '#b08840' },
+      { label: 'تكاليف أخرى', amount: other, color: '#1e3a8a' },
+    ];
+    segments.forEach(s => {
+      if (!s.amount) return;
+      const pct = Math.round((s.amount / total) * 100);
+      const seg = document.createElement('div');
+      seg.style.cssText = 'width:' + pct + '%;background:' + s.color + ';';
+      seg.title = s.label + ': ' + fmt(s.amount) + ' (' + pct + '٪)';
+      bar.appendChild(seg);
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;font:600 12px Tajawal,sans-serif;color:var(--ink);';
+      const dot = document.createElement('span'); dot.style.cssText = 'width:12px;height:12px;border-radius:3px;background:' + s.color + ';flex-shrink:0;';
+      const lbl = document.createElement('span'); lbl.style.flex = '1'; lbl.textContent = s.label;
+      const val = document.createElement('span'); val.style.cssText = 'font-weight:800;color:var(--green-dark);'; val.textContent = fmt(s.amount) + ' · ' + pct + '٪';
+      row.append(dot, lbl, val);
+      legend.appendChild(row);
+    });
+    const total_row = document.createElement('div');
+    total_row.style.cssText = 'display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);margin-top:6px;font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+    const tk = document.createElement('span'); tk.textContent = 'القيمة الكلية';
+    const tv = document.createElement('span'); tv.textContent = fmt(total);
+    total_row.append(tk, tv);
+    legend.appendChild(total_row);
+  }
+
   async function _loadSimilarProjects(p) {
     const sec = document.getElementById('similarProjectsSection');
     const grid = document.getElementById('similarProjectsGrid');
@@ -1911,6 +1961,9 @@
 
     // Status timeline
     _renderTimeline(p);
+
+    // Cost breakdown
+    _renderCostBreakdown(p);
 
     // Project-specific FAQ from admin
     _loadAdminFaq(p);
@@ -2337,7 +2390,7 @@
     if (el) el.setAttribute(attr, value);
   }
   function _updateShareMeta(p) {
-    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const url = location.origin + '/p/' + encodeURIComponent(p.slug || p.id);
     const rate = ((p.profitRate || 0) * 100).toFixed(1);
     const term = p.termMonths || 12;
     const description = p.summary
@@ -2354,7 +2407,7 @@
   function _bindShare(p) {
     if (!p) return;
     _updateShareMeta(p);
-    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const url = location.origin + '/p/' + encodeURIComponent(p.slug || p.id);
     const rate = ((p.profitRate || 0) * 100).toFixed(1);
     const shareText = `${p.name} — فرصة استثمار شرعية على منصة مُرابحة 🌟\nالعائد المتوقع: ${rate}٪ سنوياً\n${url}`;
     const term = p.termMonths || 12;
@@ -2599,7 +2652,7 @@
     // Replace any prior FinancialProduct JSON-LD we injected so re-render
     // doesn't pile up.
     document.querySelectorAll('script[data-mrb-product]').forEach(n => n.remove());
-    const url = location.origin + location.pathname + '?id=' + encodeURIComponent(p.slug || p.id);
+    const url = location.origin + '/p/' + encodeURIComponent(p.slug || p.id);
     const data = {
       "@context": "https://schema.org",
       "@type": "FinancialProduct",

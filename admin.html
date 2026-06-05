@@ -931,6 +931,14 @@
       <span class="card-h-sub">تظهر في تذييل الصفحة الرئيسية</span>
     </div>
     <div class="card-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--line);">
+        <a href="/app/admin/settings/export" style="padding:8px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;text-decoration:none;">⬇ تصدير الإعدادات</a>
+        <label style="padding:8px 14px;background:#fff;color:var(--gold);border:1px solid var(--gold);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;display:inline-block;">
+          ⬆ استيراد JSON
+          <input id="settingsImportFile" type="file" accept="application/json" style="display:none;" />
+        </label>
+        <span id="settingsImportResult" style="align-self:center;font:600 12px Tajawal,sans-serif;color:var(--muted);"></span>
+      </div>
       <form id="settingsForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
         <label style="display:flex;flex-direction:column;gap:4px;font:700 12px Cairo,sans-serif;color:var(--muted);">X (تويتر)
           <input id="setTwitter" type="url" style="padding:11px 14px;border:1.5px solid var(--line-strong);border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink);direction:ltr;" />
@@ -2756,6 +2764,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadSettings();
     } catch (e) { alert(e.message || 'فشل الحفظ'); }
   });
+  document.getElementById('settingsImportFile')?.addEventListener('change', async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const result = document.getElementById('settingsImportResult');
+    const ok = await App.confirmDestructive({
+      title: '⬆ استيراد إعدادات',
+      body: 'سيستبدل قيم الإعدادات القابلة للاستيراد بما في الملف. اكتب IMPORT للتأكيد.',
+      challenge: 'IMPORT',
+      confirmLabel: 'استيراد',
+    });
+    if (!ok) { e.target.value = ''; return; }
+    try {
+      const text = await f.text();
+      const data = JSON.parse(text);
+      const r = await App.api('POST', '/app/admin/settings/import', data);
+      result.textContent = '✓ طُبّق ' + (r.applied || []).length + ' مفتاح';
+      result.style.color = '#0f6e3a';
+      loadSettings(); loadRoadmap();
+    } catch (err) {
+      result.textContent = 'فشل: ' + (err.message || 'ملف غير صالح');
+      result.style.color = '#c54a3a';
+    }
+    e.target.value = '';
+  });
+
   document.getElementById('settingsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {

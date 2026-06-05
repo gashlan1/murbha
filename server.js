@@ -240,6 +240,14 @@ const server = http.createServer(async (req, res) => {
       return api.handle(req, res, parsed);
     }
 
+    // Short URL: /p/<slug> → /project.html?id=<slug>
+    const shortMatch = parsed.pathname.match(/^\/p\/([a-z0-9\-_%أ-ي]+)\/?$/i);
+    if (shortMatch) {
+      const slug = decodeURIComponent(shortMatch[1]);
+      res.writeHead(302, { 'Location': '/project.html?id=' + encodeURIComponent(slug) });
+      return res.end();
+    }
+
     // Nafath upstream proxy
     if (parsed.pathname.startsWith('/api/v1/') || parsed.pathname.startsWith('/stg/')) {
       return proxyNafath(req, res, parsed);
