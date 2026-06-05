@@ -2590,6 +2590,24 @@
       });
     })();
 
+    // Quick deposit nudge (auth + low balance)
+    (async () => {
+      try {
+        const me = await App.me();
+        if (!me?.id) return;
+        const port = await App.api('GET', '/app/portfolio').catch(() => ({ balance: 0 }));
+        const min = p.minTicket || p.minAmount || 1000;
+        if ((port.balance || 0) >= min) return;
+        const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+        if (!wrap) return;
+        const a = document.createElement('a');
+        a.href = '/portfolio.html';
+        a.style.cssText = 'display:inline-block;font:800 11px Cairo,sans-serif;color:#fff;background:linear-gradient(90deg,#b08840,#d4ac6e);padding:5px 14px;border-radius:999px;text-decoration:none;';
+        a.textContent = '💳 رصيدك أقل من الحدّ الأدنى — أودع الآن';
+        wrap.appendChild(a);
+      } catch (e) {}
+    })();
+
     // Eligibility checklist (for authenticated users)
     (async () => {
       try {
