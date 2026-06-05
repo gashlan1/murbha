@@ -1290,9 +1290,23 @@
   </div>
 </div>
 
+<!-- Project ratings (only renders when there are ratings) -->
+<div class="card-section" id="ratingsSection" style="display:none;">
+  <h2 class="section-h">تقييم المستثمرين</h2>
+  <div id="ratingsSummary" style="display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;"></div>
+  <div id="ratingsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  <div id="rateBox" style="display:none;margin-top:14px;padding:14px;background:#fbf8ee;border:1px dashed var(--gold);border-radius:12px;">
+    <div style="font:800 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">قيّم هذه الفرصة</div>
+    <div id="starPicker" style="display:flex;gap:4px;margin-bottom:8px;direction:ltr;justify-content:start;"></div>
+    <textarea id="rateComment" rows="2" maxlength="1000" placeholder="ملاحظة اختيارية…" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:600 13px Tajawal,sans-serif;background:#fff;margin-bottom:6px;direction:rtl;"></textarea>
+    <button type="button" id="rateSubmit" style="background:var(--green-dark);color:#fff;border:0;border-radius:8px;padding:7px 18px;font:800 12px Cairo,sans-serif;cursor:pointer;">إرسال التقييم</button>
+  </div>
+</div>
+
 <!-- Q&A -->
 <div class="card-section">
   <h2 class="section-h">أسئلة شائعة</h2>
+  <div id="adminFaqList"></div>
   <div class="qa-item">
     <div class="qa-q" onclick="this.parentElement.classList.toggle('open')">متى أحصل على أول دفعة من الأرباح؟</div>
     <div class="qa-a">بعد إقفال الجولة بنجاح وتوقيع كل المستثمرين، تبدأ مدة العقد رسمياً، وتُوزّع أول دفعة بعد ٩٠ يوماً (الربع الأول).</div>
@@ -1567,6 +1581,115 @@
     }
   }
 
+  async function _loadRatings(p) {
+    const sec = document.getElementById('ratingsSection');
+    if (!sec) return;
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/ratings');
+      if (!r.ok) return;
+      const d = await r.json();
+      const me = await App.me().catch(() => null);
+      // Show the rate box if user has a completed investment in this project
+      let canRate = false;
+      if (me) {
+        try {
+          const port = await App.api('GET', '/app/portfolio');
+          canRate = (port.investments || []).some(i => i.projectId === p.id && i.status === 'completed');
+        } catch (e) {}
+      }
+      if (!d.count && !canRate) return;
+      sec.style.display = '';
+
+      const summary = document.getElementById('ratingsSummary');
+      summary.replaceChildren();
+      const big = document.createElement('div');
+      big.style.cssText = 'font:900 36px Cairo,sans-serif;color:var(--gold);text-align:center;min-width:80px;';
+      big.textContent = d.count ? d.average.toFixed(1).replace('.', '٫') : '—';
+      const right = document.createElement('div'); right.style.flex = '1';
+      const stars = document.createElement('div'); stars.style.cssText = 'font:900 18px Cairo,sans-serif;color:#d4ac6e;letter-spacing:2px;direction:ltr;';
+      const full = Math.round(d.average);
+      stars.textContent = '★'.repeat(full) + '☆'.repeat(5 - full);
+      const cnt = document.createElement('div'); cnt.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+      cnt.textContent = (d.count || 0) + ' تقييم من المستثمرين بعد اكتمال صفقاتهم';
+      right.append(stars, cnt);
+      summary.append(big, right);
+
+      const list = document.getElementById('ratingsList');
+      list.replaceChildren();
+      (d.reviews || []).forEach(rev => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;';
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;justify-content:space-between;font:700 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:4px;';
+        const who = document.createElement('span'); who.textContent = rev.display;
+        const st = document.createElement('span');
+        st.style.cssText = 'color:#d4ac6e;letter-spacing:1px;direction:ltr;';
+        const f = Math.round(rev.stars);
+        st.textContent = '★'.repeat(f) + '☆'.repeat(5 - f);
+        head.append(who, st);
+        const body = document.createElement('div'); body.style.cssText = 'font-size:13px;color:var(--ink);line-height:1.7;';
+        body.textContent = rev.comment;
+        row.append(head, body);
+        list.appendChild(row);
+      });
+
+      if (canRate) {
+        const box = document.getElementById('rateBox'); box.style.display = '';
+        const pick = document.getElementById('starPicker');
+        let chosen = 0;
+        pick.replaceChildren();
+        for (let i = 1; i <= 5; i++) {
+          const b = document.createElement('button');
+          b.type='button'; b.textContent = '☆';
+          b.style.cssText = 'background:transparent;border:0;font:900 28px Cairo,sans-serif;color:#ccc;cursor:pointer;padding:0 2px;';
+          b.onclick = () => {
+            chosen = i;
+            pick.querySelectorAll('button').forEach((x, idx) => {
+              x.textContent = idx < chosen ? '★' : '☆';
+              x.style.color = idx < chosen ? '#d4ac6e' : '#ccc';
+            });
+          };
+          pick.appendChild(b);
+        }
+        document.getElementById('rateSubmit').onclick = async () => {
+          if (!chosen) { App.toast && App.toast('اختر عدد النجوم', 'warn'); return; }
+          try {
+            await App.api('POST', '/app/projects/' + encodeURIComponent(p.slug || p.id) + '/rate', {
+              stars: chosen,
+              comment: document.getElementById('rateComment').value.trim(),
+            });
+            App.toast && App.toast('✓ شكراً لتقييمك', 'success');
+            _loadRatings(p);
+          } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+        };
+      }
+    } catch (e) {}
+  }
+
+  async function _loadAdminFaq(p) {
+    const list = document.getElementById('adminFaqList');
+    if (!list) return;
+    list.replaceChildren();
+    try {
+      const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/faq');
+      if (!r.ok) return;
+      const d = await r.json();
+      (d.faq || []).forEach(item => {
+        const wrap = document.createElement('div');
+        wrap.className = 'qa-item';
+        const q = document.createElement('div');
+        q.className = 'qa-q';
+        q.textContent = item.question;
+        q.onclick = () => wrap.classList.toggle('open');
+        const a = document.createElement('div');
+        a.className = 'qa-a';
+        a.textContent = item.answer;
+        wrap.append(q, a);
+        list.appendChild(wrap);
+      });
+    } catch (e) {}
+  }
+
   function _renderTimeline(p) {
     const root = document.getElementById('statusTimeline');
     if (!root) return;
@@ -1644,6 +1767,12 @@
 
     // Status timeline
     _renderTimeline(p);
+
+    // Project-specific FAQ from admin
+    _loadAdminFaq(p);
+
+    // Ratings
+    _loadRatings(p);
 
     // hero
     const h1 = document.querySelector('.hero-info h1');

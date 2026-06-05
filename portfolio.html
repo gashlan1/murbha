@@ -587,6 +587,38 @@
   </a>
 </div>
 
+<!-- YTD Tax widget -->
+<div class="section" id="ytdTaxSection" style="display:none;margin-top:14px;margin-bottom:14px;">
+  <div style="background:linear-gradient(135deg,#fbf8ee,#fff);border:1px solid rgba(176,136,64,0.20);border-radius:18px;padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);" id="ytdHeading">📊 ملخّص السنة الضريبية</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">منذ ١ يناير حتى اليوم</div>
+      </div>
+      <a href="/tax-certificate.html" style="font:800 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">شهادة كاملة ←</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;">
+      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;">
+        <div id="ytdInvested" style="font:900 17px Cairo,sans-serif;color:var(--green-dark);">٠ ر.س</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">رأس المال المُستثمَر</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;">
+        <div id="ytdProfit" style="font:900 17px Cairo,sans-serif;color:#0f6e3a;">٠ ر.س</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">الأرباح والتوزيعات</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;">
+        <div id="ytdDeals" style="font:900 17px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">عدد الصفقات</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;">
+        <div id="ytdRoi" style="font:900 17px Cairo,sans-serif;color:var(--gold);">٠٪</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">العائد التقديري</div>
+      </div>
+    </div>
+    <p style="margin-top:10px;font-size:10px;color:var(--muted);line-height:1.6;text-align:center;">المعلومات للعرض فقط ولا تُغني عن استشارة المحاسب القانوني.</p>
+  </div>
+</div>
+
 <!-- Onboarding Checklist (only renders when user hasn't completed all steps) -->
 <div class="section" id="onboardingChecklistSection" style="display:none;margin-top:14px;margin-bottom:14px;">
   <div style="background:linear-gradient(135deg,#fff8e6,#fff);border:1px solid rgba(176,136,64,0.25);border-radius:18px;padding:18px;">
@@ -778,7 +810,23 @@
   if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
   if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
 
-  // ── Onboarding checklist (hides itself when complete or dismissed) ──
+  // ── YTD tax widget ──
+  (() => {
+    const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+    const ytdInvs = (data.investments || []).filter(i => new Date(i.createdAt).getTime() >= yearStart);
+    const ytdTxns = (data.transactions || []).filter(t => new Date(t.createdAt).getTime() >= yearStart);
+    if (!ytdInvs.length && !ytdTxns.length) return;
+    const invested = ytdInvs.reduce((s, i) => s + Number(i.amount || 0), 0);
+    const profit = ytdTxns.filter(t => t.kind === 'profit' || t.kind === 'payout').reduce((s, t) => s + Number(t.amount || 0), 0);
+    const roi = invested > 0 ? Math.round((profit / invested) * 1000) / 10 : 0;
+    document.getElementById('ytdTaxSection').style.display = '';
+    document.getElementById('ytdHeading').textContent = '📊 ملخّص السنة الضريبية ' + new Date().getFullYear();
+    document.getElementById('ytdInvested').textContent = App.fmt.sar(invested);
+    document.getElementById('ytdProfit').textContent = App.fmt.sar(profit);
+    document.getElementById('ytdDeals').textContent = App.fmt.arNum(ytdInvs.length);
+    document.getElementById('ytdRoi').textContent = (roi > 0 ? '+' : '') + roi.toString().replace('.', '٫') + '٪';
+  })();
+
   (() => {
     if (localStorage.getItem('mrb_onboarding_hide') === '1') return;
     const steps = [

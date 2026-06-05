@@ -911,6 +911,19 @@
       </div>
     </button>
 
+    <button type="button" id="genBackupCodesUserBtn" class="setting-row" style="background:transparent;border:0;text-align:start;width:100%;cursor:pointer;color:inherit;font-family:inherit;">
+      <div class="setting-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="6" y2="12.01"/><line x1="10" y1="12" x2="10" y2="12.01"/><line x1="14" y1="12" x2="14" y2="12.01"/><line x1="18" y1="12" x2="18" y2="12.01"/></svg>
+      </div>
+      <div class="setting-info">
+        <div class="setting-name">رموز احتياط للمصادقة الثنائية</div>
+        <div class="setting-sub" id="backupCodesSub">للدخول إذا فقدت جوالك أو تطبيق المصادقة</div>
+      </div>
+      <div class="setting-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transform:rotate(180deg)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+
     <div class="setting-row" style="cursor:default;">
       <div class="setting-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8V5l8-3 8 3v5.2c0 7.3-8 11.8-8 11.8z"/></svg>
@@ -1909,6 +1922,62 @@
       setTimeout(() => location.reload(), 800);
     } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
   });
+
+  // Backup codes
+  (async () => {
+    const btn = document.getElementById('genBackupCodesUserBtn');
+    const sub = document.getElementById('backupCodesSub');
+    if (!btn) return;
+    try {
+      const info = await App.api('GET', '/app/me/2fa/backup-codes/info');
+      if (info.remaining > 0) {
+        sub.textContent = 'متبقّي ' + info.remaining + ' رمز' + (info.generatedAt ? ' · جُدّدت ' + new Date(info.generatedAt).toLocaleDateString('ar-SA') : '');
+      } else {
+        sub.textContent = 'لم تُولَّد بعد — اضغط لإنشاء ٨ رموز';
+      }
+    } catch (e) {}
+    btn.addEventListener('click', async () => {
+      const me = await App.api('GET', '/app/me');
+      if (!me.user?.sms2faEnabled && !me.user?.totpEnrolled) {
+        App.toast && App.toast('فعّل التحقق الثنائي أولاً (SMS أو TOTP).', 'warn'); return;
+      }
+      if (!confirm('سيتم إبطال أي رموز سابقة. توليد ٨ رموز جديدة؟')) return;
+      try {
+        const r = await App.api('POST', '/app/me/2fa/backup-codes/generate');
+        // Show modal with one-time view of codes
+        const m = document.createElement('div');
+        m.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+        const c = document.createElement('div');
+        c.style.cssText = 'background:#fff;border-radius:14px;padding:24px;max-width:420px;width:100%;';
+        const h = document.createElement('div'); h.style.cssText='font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;'; h.textContent = '🔑 رموز الاحتياط';
+        const note = document.createElement('p'); note.style.cssText='font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;';
+        note.textContent = 'احفظها في مكان آمن — لن نعرضها مرة أخرى. كل رمز يعمل لمرة واحدة.';
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#fbf8ee;padding:12px;border-radius:10px;border:1px dashed var(--gold,#b08840);margin-bottom:14px;';
+        (r.codes || []).forEach(code => {
+          const el = document.createElement('div');
+          el.style.cssText = 'padding:7px;background:#fff;border-radius:5px;font:700 13px "SF Mono",Menlo,monospace;text-align:center;direction:ltr;color:var(--green-dark);';
+          el.textContent = code;
+          grid.appendChild(el);
+        });
+        c.append(h, note, grid);
+        const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;';
+        const copy = document.createElement('button');
+        copy.type='button'; copy.textContent='📋 نسخ الكل';
+        copy.style.cssText='flex:1;padding:10px;background:var(--green-dark);color:#fff;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        copy.onclick = async () => { try { await navigator.clipboard.writeText((r.codes||[]).join('\n')); copy.textContent = '✓ نُسخت'; } catch (e) {} };
+        const close = document.createElement('button');
+        close.type='button'; close.textContent='تم';
+        close.style.cssText='flex:1;padding:10px;background:transparent;border:1px solid var(--line);border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+        close.onclick = () => { m.remove(); location.reload(); };
+        row.append(copy, close);
+        c.appendChild(row);
+        m.appendChild(c);
+        m.onclick = (e) => { if (e.target === m) m.remove(); };
+        document.body.appendChild(m);
+      } catch (e) { App.toast && App.toast(e.message || 'فشل', 'error'); }
+    });
+  })();
 
   // SMS 2FA toggle
   (async () => {
