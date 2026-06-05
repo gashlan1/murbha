@@ -1518,6 +1518,14 @@
   <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">⚠ التقدير مبني على العائد المعلَن. النتيجة الفعلية قد تتغيّر حسب أداء الصفقة. الاستثمار يحمل مخاطر.</p>
 </div>
 
+<!-- Profitability index -->
+<div class="card-section" id="piCard" style="display:none;">
+  <h2 class="section-h">💎 مؤشّر الربحيّة</h2>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">مؤشّر يجمع العائد + المدّة + المقارنة بالادخار البنكي (٣٪) لتقدير جاذبيّة الصفقة.</p>
+  <div id="piHero" style="background:linear-gradient(135deg,#fbf6ea,#fff);border:2px solid var(--gold);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center;"></div>
+  <div id="piKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+</div>
+
 <!-- Funding S-curve -->
 <div class="card-section" id="curveCard" style="display:none;">
   <h2 class="section-h">📈 منحنى التمويل التراكمي</h2>
@@ -4430,6 +4438,42 @@
     recalc();
   }
 
+  async function _loadPI(slug) {
+    const card = document.getElementById('piCard');
+    const hero = document.getElementById('piHero');
+    const kpis = document.getElementById('piKpis');
+    if (!card || !hero || !kpis) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/profitability-index');
+      if (!r.hasData) { card.style.display = 'none'; return; }
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 32px Cairo,sans-serif;color:var(--gold);';
+      big.textContent = r.profitabilityIndex + 'x';
+      const stars = document.createElement('div'); stars.style.cssText = 'font-size:18px;margin:6px 0;';
+      stars.textContent = r.rating;
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;';
+      sub.textContent = 'لكلّ ١ ر.س مستثمَر، تستردّ ' + r.profitabilityIndex.toFixed(2) + ' ر.س في نهاية المدّة';
+      hero.append(big, stars, sub);
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      const alphaColor = r.alphaPct >= 5 ? '#0f6e3a' : (r.alphaPct >= 0 ? '#b08840' : '#c54a3a');
+      kpis.append(
+        mk('عائد سنوي', r.annualisedReturn + '٪', '#0f6e3a'),
+        mk('عائد المدّة', r.periodReturn + '٪', '#0a4d36'),
+        mk('المدّة', r.durationMonths + ' شهر', '#062b1e'),
+        mk('vs ادخار بنكي', '+' + r.alphaPct + '٪', alphaColor),
+      );
+      card.style.display = '';
+    } catch (e) { card.style.display = 'none'; }
+  }
+
   async function _loadCurve(slug) {
     const card = document.getElementById('curveCard');
     const svg = document.getElementById('curveChart');
@@ -5067,7 +5111,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setHistFund(slug) {
     const badge = document.getElementById('histFundBadge');
