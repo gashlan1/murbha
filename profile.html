@@ -848,6 +848,15 @@
     </div>
   </div>
 
+  <!-- Recent investments mini list -->
+  <div class="settings-group" id="recentInvSec" style="display:none;">
+    <div class="settings-h" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>آخر استثماراتك</span>
+      <a href="/portfolio.html" style="font:800 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;">عرض الكل ←</a>
+    </div>
+    <div id="recentInvList" style="padding:0 18px 14px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
   <!-- 12-month activity calendar -->
   <div class="settings-group" id="activityCalSec" style="display:none;">
     <div class="settings-h">📅 نشاطك آخر ١٢ شهراً</div>
@@ -2007,6 +2016,42 @@
       document.getElementById('cntFavs').textContent = fmt((favs.ids || []).length);
       document.getElementById('cntDevices').textContent = fmt((sess.devices || []).length);
       sec.style.display = '';
+    } catch (e) {}
+  })();
+
+  // Recent 3 investments mini list
+  (async () => {
+    try {
+      const sec = document.getElementById('recentInvSec');
+      const list = document.getElementById('recentInvList');
+      if (!sec || !list) return;
+      const port = await App.api('GET', '/app/portfolio').catch(() => ({ investments: [] }));
+      const projects = await App.api('GET', '/app/projects').then(r => r.projects || []).catch(() => []);
+      const projIdx = Object.fromEntries(projects.map(p => [p.id, p]));
+      const invs = (port.investments || [])
+        .filter(i => i.status !== 'canceled')
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3);
+      if (!invs.length) return;
+      sec.style.display = '';
+      list.replaceChildren();
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      invs.forEach(i => {
+        const proj = projIdx[i.projectId] || {};
+        const row = document.createElement('a');
+        row.href = '/project.html?id=' + encodeURIComponent(proj.slug || i.projectId);
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;text-decoration:none;color:inherit;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);';
+        t.textContent = proj.name || '— مشروع —';
+        const d = document.createElement('div'); d.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);';
+        d.textContent = new Date(i.createdAt).toLocaleDateString('ar-SA') + ' · ' + (i.status || '');
+        left.append(t, d);
+        const right = document.createElement('div'); right.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);text-align:end;';
+        right.textContent = fmt(i.amount) + ' ر.س';
+        row.append(left, right);
+        list.appendChild(row);
+      });
     } catch (e) {}
   })();
 
