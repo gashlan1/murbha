@@ -1019,6 +1019,7 @@
           </label>
           <div style="display:flex;gap:8px;">
             <button type="submit" id="nlSubmit" style="flex:1;padding:12px;border:0;border-radius:10px;background:var(--green-dark);color:#fff;font:800 14px Cairo,sans-serif;cursor:pointer;">نشر الإصدار</button>
+            <button type="button" id="nlTestSendBtn" style="display:none;padding:12px 18px;border:1px solid var(--gold);border-radius:10px;background:#fff;color:#7a5a10;font:700 12px Cairo,sans-serif;cursor:pointer;">📧 اختبار</button>
             <button type="button" id="nlCancelEdit" style="display:none;padding:12px 18px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font:700 12px Cairo,sans-serif;cursor:pointer;">إلغاء التعديل</button>
           </div>
         </form>
@@ -1296,6 +1297,7 @@
           <input id="auditFrom" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
           <input id="auditTo" type="date" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
         </div>
+        <button id="auditExportBtn" type="button" style="margin-bottom:8px;padding:6px 12px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">⬇ تصدير CSV</button>
         <div id="auditList" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;">
           <div class="empty-state" style="text-align:center;color:var(--muted);padding:32px;">جاري التحميل…</div>
         </div>
@@ -2102,6 +2104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('nlPublish').checked = !!dd.issue.publishedAt;
             document.getElementById('nlSubmit').textContent = 'حفظ التعديل';
             document.getElementById('nlCancelEdit').style.display = '';
+            document.getElementById('nlTestSendBtn').style.display = '';
             document.getElementById('nlTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
           } catch (e) {}
         };
@@ -2118,8 +2121,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     _editingNlId = null;
     document.getElementById('nlSubmit').textContent = 'نشر الإصدار';
     document.getElementById('nlCancelEdit').style.display = 'none';
+    document.getElementById('nlTestSendBtn').style.display = 'none';
   };
   document.getElementById('nlCancelEdit')?.addEventListener('click', _resetNlForm);
+  document.getElementById('nlTestSendBtn')?.addEventListener('click', async () => {
+    if (!_editingNlId) return;
+    const to = prompt('أرسل اختباراً إلى أي بريد؟', 'admin@murbha.sa');
+    if (!to) return;
+    try {
+      const r = await App.api('POST', '/app/admin/newsletter-issues/' + _editingNlId + '/test-send', { to });
+      App.toast && App.toast('✓ أُرسل إلى ' + r.to, 'success');
+    } catch (e) { App.toast && App.toast(e.message || 'فشل الإرسال', 'error'); }
+  });
 
   document.getElementById('nlForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -2359,6 +2372,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         ['auditQ','auditAction','auditFrom','auditTo'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.addEventListener('input', fire);
+        });
+        const exp = document.getElementById('auditExportBtn');
+        if (exp) exp.addEventListener('click', () => {
+          const params = new URLSearchParams();
+          const q = document.getElementById('auditQ')?.value.trim();
+          const a = document.getElementById('auditAction')?.value.trim();
+          const f = document.getElementById('auditFrom')?.value;
+          const tt = document.getElementById('auditTo')?.value;
+          if (q) params.set('q', q);
+          if (a) params.set('action', a);
+          if (f) params.set('from', f);
+          if (tt) params.set('to', tt);
+          location.href = '/app/admin/audit-log.csv' + (params.toString() ? '?' + params.toString() : '');
         });
       }
       loginList.replaceChildren();
@@ -3183,7 +3209,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     faqBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
     faqBtn.textContent = '❓ FAQ';
     faqBtn.onclick = () => openProjectFaqEditor(project);
-    e.target.after(cloneBtn, archBtn, imgBtn, faqBtn);
+    const sponsorBtn = document.createElement('button');
+    sponsorBtn.id = 'projectSponsorBtn';
+    sponsorBtn.type = 'button';
+    const isVerified = project.sponsorVerified || project.sponsor?.verified;
+    sponsorBtn.style.cssText = 'margin-inline-start:6px;padding:7px 14px;background:#fff;color:' + (isVerified ? '#0f9f5e' : 'var(--muted)') + ';border:1px solid ' + (isVerified ? '#0f9f5e' : 'var(--line)') + ';border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    sponsorBtn.textContent = isVerified ? '✓ راعٍ موثَّق' : '○ تحقّق راعٍ';
+    sponsorBtn.onclick = async () => {
+      const next = !isVerified;
+      if (!confirm(next ? 'وضع علامة الراعي الموثَّق على هذا المشروع؟' : 'إزالة علامة التحقّق؟')) return;
+      try {
+        await App.api('PATCH', '/app/admin/projects/' + encodeURIComponent(project.id), { sponsorVerified: next });
+        App.toast && App.toast(next ? '✓ تم التحقّق' : 'تمت الإزالة', 'success');
+        loadProjectsForDocs();
+      } catch (e) { alert(e.message || 'فشل'); }
+    };
+    e.target.after(cloneBtn, archBtn, imgBtn, faqBtn, sponsorBtn);
   });
 
   async function openProjectFaqEditor(project) {

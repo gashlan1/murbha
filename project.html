@@ -980,6 +980,9 @@
     <button class="share-btn copy" id="shareCopyBtn" type="button" aria-label="نسخ الرابط">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </button>
+    <button class="share-btn follow" id="followBtn" type="button" aria-label="متابعة" title="متابعة المشروع" style="display:none;">
+      <svg id="followIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </button>
     <button class="share-btn fav" id="favBtn" type="button" aria-label="حفظ" title="حفظ" style="display:none;">
       <svg id="favIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </button>
@@ -1800,6 +1803,14 @@
         tagsContainer.innerHTML += '<span class="hero-tag">⬢ عقاري</span>';
       }
       tagsContainer.innerHTML += '<span class="hero-tag shariah">☪ شرعي</span>';
+      if (p.sponsorVerified || p.sponsor?.verified) {
+        const verified = document.createElement('span');
+        verified.className = 'hero-tag';
+        verified.title = 'الراعي تحقّقت منه إدارة مُرابحة وفق سياسة التحقّق المنشورة.';
+        verified.style.cssText = 'background:rgba(15,159,94,0.18);color:#0f9f5e;border:1px solid rgba(15,159,94,0.35);font-weight:800;display:inline-flex;align-items:center;gap:4px;cursor:help;';
+        verified.textContent = '✓ راعٍ موثَّق';
+        tagsContainer.appendChild(verified);
+      }
     }
 
     // dynamic notice banner
@@ -2199,6 +2210,34 @@
           });
           const d = await r.json();
           if (r.ok) { setSaved(!!d.saved); App.toast && App.toast(d.saved ? 'تمت إضافة الفرصة إلى المحفوظات' : 'تم الحذف من المحفوظات', 'success'); }
+        } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
+      };
+    }
+
+    // Follow (auth users only)
+    const followBtn = document.getElementById('followBtn');
+    if (followBtn && me && me.id) {
+      followBtn.style.display = 'inline-flex';
+      const setFollowed = (on) => {
+        followBtn.title = on ? 'تتابع — اضغط لإلغاء المتابعة' : 'متابعة المشروع';
+        followBtn.setAttribute('aria-label', followBtn.title);
+        followBtn.style.background = on ? '#eaf3ee' : '';
+        followBtn.style.borderColor = on ? '#0a4d36' : '';
+        followBtn.style.color = on ? '#0a4d36' : '';
+      };
+      fetch('/app/me/follows', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : { ids: [] })
+        .then(d => setFollowed((d.ids || []).includes(p.id)))
+        .catch(() => {});
+      followBtn.onclick = async () => {
+        try {
+          const r = await App.csrfFetch('/app/me/follows/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId: p.id })
+          });
+          const d = await r.json();
+          if (r.ok) { setFollowed(!!d.following); App.toast && App.toast(d.following ? 'ستصلك تحديثات هذا المشروع' : 'لن تصلك تحديثات هذا المشروع', 'success'); }
         } catch (e) { App.toast && App.toast('تعذّر الحفظ', 'error'); }
       };
     }
