@@ -1367,6 +1367,12 @@
   <div id="projectDocsList" style="display:flex;flex-direction:column;gap:8px;"></div>
 </div>
 
+<!-- Project Updates Feed -->
+<div class="card-section" id="updatesCard" style="display:none;">
+  <h2 class="section-h">📣 آخر التحديثات</h2>
+  <div id="projectUpdatesList" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
 <!-- Community Q&A -->
 <div class="card-section">
   <h2 class="section-h">اسأل وأجب</h2>
@@ -2056,6 +2062,36 @@
         const amt = Number(d.last24h.totalAmount).toLocaleString('ar-SA');
         badge.textContent = '🔥 ' + d.last24h.count + ' استثمار جديد · ' + amt + ' ر.س في آخر ٢٤ ساعة';
         badge.style.display = 'inline-block';
+      } catch (e) {}
+    })();
+
+    // Project updates feed
+    (async () => {
+      try {
+        const r = await fetch('/app/projects/' + encodeURIComponent(p.slug || p.id) + '/updates');
+        if (!r.ok) return;
+        const { updates = [] } = await r.json();
+        if (!updates.length) return;
+        const card = document.getElementById('updatesCard');
+        const list = document.getElementById('projectUpdatesList');
+        if (!card || !list) return;
+        card.style.display = '';
+        list.replaceChildren();
+        updates.forEach(u => {
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;';
+          const t = document.createElement('div');
+          t.style.cssText = 'font:800 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+          t.textContent = u.title;
+          const body = document.createElement('div');
+          body.style.cssText = 'font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.8;white-space:pre-wrap;';
+          body.textContent = u.text;
+          const meta = document.createElement('div');
+          meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:8px;';
+          meta.textContent = new Date(u.createdAt).toLocaleString('ar-SA') + ' · ' + (u.authorName || 'الإدارة');
+          row.append(t, body, meta);
+          list.appendChild(row);
+        });
       } catch (e) {}
     })();
 
