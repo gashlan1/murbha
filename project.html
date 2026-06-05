@@ -2648,6 +2648,21 @@
       window.addEventListener('pagehide', () => clearInterval(iv), { once: true });
     })();
 
+    // Project age badge
+    if ((p.openedAt || p.createdAt) && p.status === 'open') {
+      const opened = new Date(p.openedAt || p.createdAt).getTime();
+      const daysOpen = Math.floor((Date.now() - opened) / (24 * 60 * 60 * 1000));
+      if (daysOpen >= 0 && daysOpen <= 90) {
+        const wrap = document.querySelector('#scarcityBadge')?.parentElement;
+        if (wrap) {
+          const ab = document.createElement('span');
+          ab.style.cssText = 'display:inline-block;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.10);padding:5px 12px;border-radius:999px;';
+          ab.textContent = '📅 معروض منذ ' + (daysOpen === 0 ? 'اليوم' : daysOpen + ' يوماً');
+          wrap.appendChild(ab);
+        }
+      }
+    }
+
     // Funding velocity badge (ر.س / يوم)
     if (p.status === 'open' && p.raised > 0 && (p.openedAt || p.createdAt)) {
       const opened = new Date(p.openedAt || p.createdAt).getTime();

@@ -691,6 +691,20 @@
     </div>
   </div>
 
+  <!-- BALANCE SUMMARY -->
+  <div class="admin-card" id="balSummaryCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>💰 ملخّص الأرصدة</span>
+      <span class="card-h-sub" id="balSummaryBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="balSummaryTop" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;grid-column:1/-1;">جاري التحميل…</div>
+      </div>
+      <div id="balSummaryDist" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- STUCK SIGNUPS -->
   <div class="admin-card" id="stuckSignupsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2682,6 +2696,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadBalSummary() {
+    const top = document.getElementById('balSummaryTop');
+    const dist = document.getElementById('balSummaryDist');
+    const badge = document.getElementById('balSummaryBadge');
+    if (!top || !dist) return;
+    try {
+      const r = await App.api('GET', '/app/admin/balance-summary');
+      const fmt = (n) => Number(n).toLocaleString('ar-SA');
+      if (badge) badge.textContent = (r.usersWithBalance || 0) + ' من ' + (r.totalUsers || 0) + ' مستخدم لديه رصيد';
+      const tiles = [
+        { v: fmt(r.totalBalance), l: 'إجمالي الأرصدة (ر.س)', c: '#0a4d36' },
+        { v: fmt(r.avgBalance), l: 'متوسط الرصيد (ر.س)', c: '#b08840' },
+        { v: (r.usersWithBalance || 0).toLocaleString('ar-SA'), l: 'مستخدمون لديهم رصيد', c: '#062b1e' },
+        { v: ((r.usersWithBalance || 0) / (r.totalUsers || 1) * 100).toFixed(0) + '٪', l: 'نسبة مع رصيد', c: '#0f6e3a' },
+      ];
+      top.replaceChildren();
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;border-top:3px solid ' + t.c + ';';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);';
+        v.textContent = t.v;
+        const l = document.createElement('div'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;';
+        l.textContent = t.l;
+        tile.append(v, l);
+        top.appendChild(tile);
+      });
+      dist.replaceChildren();
+      const max = Math.max(...(r.distribution || []).map(d => d.sum), 1);
+      (r.distribution || []).forEach(b => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:160px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = b.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:18px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + Math.round((b.sum / max) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#062b1e);border-radius:4px;';
+        bar.appendChild(fill);
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:700 11px Tajawal,sans-serif;color:var(--muted);text-align:end;min-width:120px;';
+        cnt.textContent = b.count.toLocaleString('ar-SA') + ' مستخدم · ' + fmt(b.sum) + ' ر.س';
+        row.append(lbl, bar, cnt);
+        dist.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadStuckSignups() {
     const list = document.getElementById('stuckSignupsList');
     const badge = document.getElementById('stuckSignupsBadge');
@@ -5909,7 +5968,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
