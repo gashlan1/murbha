@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Income projection -->
+  <div class="settings-group" id="incomeProjSec" style="display:none;">
+    <div class="settings-h">📈 توقّعات دخلك (١٢ شهر)</div>
+    <div style="padding:14px 18px;">
+      <div id="incomeProjHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="incomeProjChart" style="display:flex;align-items:flex-end;gap:4px;height:120px;margin-bottom:8px;"></div>
+      <div id="incomeProjLegend" style="display:flex;justify-content:space-between;font:600 9px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- Next payouts -->
   <div class="settings-group" id="nextPaySec" style="display:none;">
     <div class="settings-h">💸 توزيعاتك القادمة</div>
@@ -3092,6 +3102,43 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Income projection
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/income-projection');
+      if (!r.hasData) return;
+      const sec = document.getElementById('incomeProjSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('incomeProjHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '📈';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 28px Cairo,sans-serif;color:#d4ac6e;margin:6px 0 4px;';
+      big.textContent = fmt(r.annualTotal) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fff;margin-bottom:4px;';
+      sub.textContent = 'متوقّع خلال ١٢ شهر · متوسّط ' + fmt(r.avgMonthly) + ' ر.س/شهر';
+      const desc = document.createElement('div'); desc.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;';
+      desc.textContent = 'أعلى شهر: ' + r.peakMonth + ' (' + fmt(r.peakAmount) + ' ر.س)';
+      hero.append(ic, big, sub, desc);
+      const chart = document.getElementById('incomeProjChart');
+      const legend = document.getElementById('incomeProjLegend');
+      chart.replaceChildren();
+      legend.replaceChildren();
+      const max = Math.max(1, ...r.months.map(m => m.amount));
+      r.months.forEach(m => {
+        const col = document.createElement('div'); col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;';
+        const bar = document.createElement('div');
+        bar.style.cssText = 'width:100%;height:' + Math.max(4, (m.amount / max) * 100) + '%;background:linear-gradient(180deg,#0f6e3a,#0a4d36);border-radius:3px 3px 0 0;';
+        bar.title = m.month + ' — ' + fmt(m.amount) + ' ر.س (' + m.deals + ' صفقة)';
+        col.appendChild(bar);
+        chart.appendChild(col);
+        const lb = document.createElement('div'); lb.style.cssText = 'flex:1;text-align:center;'; lb.textContent = m.month.slice(5);
+        legend.appendChild(lb);
       });
     } catch (e) {}
   })();
