@@ -334,8 +334,32 @@
     document.querySelectorAll('[data-bind="user.initial"]').forEach(el => {
       if (user) el.textContent = (user.name || '?').trim().charAt(0);
     });
-    if (user) _installNotifBell();
-    else { document.getElementById('mrbNotifBell')?.remove(); }
+    if (user) { _installNotifBell(); _installAvatarBadge(user); }
+    else { document.getElementById('mrbNotifBell')?.remove(); document.getElementById('mrbAvatar')?.remove(); }
+  };
+
+  // ─── Header avatar (initial or uploaded image) ───────────────
+  const _installAvatarBadge = (user) => {
+    if (location.pathname.includes('admin')) return;
+    if (document.getElementById('mrbAvatar')) return;
+    const header = document.querySelector('header .nav, header nav, header');
+    if (!header) return;
+    const a = document.createElement('a');
+    a.id = 'mrbAvatar';
+    a.href = '/profile.html';
+    a.setAttribute('aria-label', 'الحساب');
+    a.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;font:900 14px Cairo,sans-serif;text-decoration:none;overflow:hidden;margin-inline-end:4px;';
+    if (user.avatarPath) {
+      const img = new Image();
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      img.onload = () => { a.textContent = ''; a.appendChild(img); };
+      img.onerror = () => { a.textContent = (user.name || '?').trim().charAt(0); };
+      img.src = '/app/me/avatar?t=' + Date.now();
+    } else {
+      a.textContent = (user.name || '?').trim().charAt(0);
+    }
+    const bell = document.getElementById('mrbNotifBell');
+    if (bell) bell.before(a); else header.prepend(a);
   };
 
   // ─── Header notification bell (unread count) ─────────────────

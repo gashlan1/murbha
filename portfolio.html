@@ -587,6 +587,20 @@
   </a>
 </div>
 
+<!-- Onboarding Checklist (only renders when user hasn't completed all steps) -->
+<div class="section" id="onboardingChecklistSection" style="display:none;margin-top:14px;margin-bottom:14px;">
+  <div style="background:linear-gradient(135deg,#fff8e6,#fff);border:1px solid rgba(176,136,64,0.25);border-radius:18px;padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+      <div>
+        <div style="font:800 14px Cairo,sans-serif;color:var(--green-dark);">🚀 ابدأ رحلتك في ٥ خطوات</div>
+        <div id="ocProgress" style="font:600 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">0 من 5 مكتمل</div>
+      </div>
+      <button type="button" id="ocHideBtn" style="background:transparent;border:0;color:var(--muted);font:700 11px Cairo,sans-serif;cursor:pointer;">إخفاء</button>
+    </div>
+    <div id="ocList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
 <!-- SAMA Limit Meter -->
 <div class="section" id="samaLimitSection" style="margin-top: 14px; margin-bottom: 14px;">
   <div style="background:#fff; border:0.5px solid var(--line); border-radius:18px; padding:16px; text-align: start;">
@@ -763,6 +777,49 @@
   const bcMeta = document.querySelectorAll('.bc-meta-item');
   if (bcMeta[0]) bcMeta[0].innerHTML = 'الرصيد المتاح<b>' + App.fmt.sar(data.balance) + '</b>';
   if (bcMeta[1]) bcMeta[1].innerHTML = 'مبلغ مستثمر<b>' + App.fmt.sar(data.invested) + '</b>';
+
+  // ── Onboarding checklist (hides itself when complete or dismissed) ──
+  (() => {
+    if (localStorage.getItem('mrb_onboarding_hide') === '1') return;
+    const steps = [
+      { id: 'email', label: 'تأكيد البريد الإلكتروني', href: '/profile.html', done: !!user.emailVerifiedAt },
+      { id: 'mobile', label: 'تأكيد رقم الجوال', href: '/profile.html', done: !!user.mobileVerifiedAt },
+      { id: 'kyc', label: 'إكمال التحقق من الهوية (KYC)', href: '/kyc.html', done: user.kycStatus === 'verified' },
+      { id: 'payment', label: 'إضافة طريقة دفع', href: '/payment-methods.html', done: (data.paymentMethods || []).length > 0 },
+      { id: 'first-invest', label: 'أول استثمار', href: '/projects.html', done: (data.investments || []).length > 0 },
+    ];
+    const done = steps.filter(s => s.done).length;
+    if (done === steps.length) return;
+    const sec = document.getElementById('onboardingChecklistSection');
+    const list = document.getElementById('ocList');
+    if (!sec || !list) return;
+    sec.style.display = '';
+    document.getElementById('ocProgress').textContent = done + ' من ' + steps.length + ' مكتمل';
+    list.replaceChildren();
+    steps.forEach(s => {
+      const row = document.createElement(s.done ? 'div' : 'a');
+      if (!s.done) { row.href = s.href; row.style.textDecoration = 'none'; }
+      row.style.cssText = (row.style.cssText || '') + 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + (s.done ? '#f0f5f0' : '#fff') + ';border:1px solid ' + (s.done ? 'rgba(15,110,58,0.20)' : 'rgba(13,22,18,0.08)') + ';border-radius:10px;color:inherit;';
+      const circ = document.createElement('span');
+      circ.style.cssText = 'width:22px;height:22px;border-radius:50%;background:' + (s.done ? '#0a4d36' : '#fff') + ';color:' + (s.done ? '#fff' : 'var(--muted)') + ';display:flex;align-items:center;justify-content:center;font:900 12px Cairo,sans-serif;border:1px solid ' + (s.done ? '#0a4d36' : 'var(--line)') + ';flex-shrink:0;';
+      circ.textContent = s.done ? '✓' : '○';
+      const txt = document.createElement('span');
+      txt.style.cssText = 'flex:1;font:700 13px Cairo,sans-serif;color:' + (s.done ? '#0a4d36' : 'var(--ink)') + ';' + (s.done ? 'text-decoration:line-through;' : '');
+      txt.textContent = s.label;
+      row.append(circ, txt);
+      if (!s.done) {
+        const arrow = document.createElement('span');
+        arrow.style.cssText = 'color:var(--gold);font:900 14px Cairo,sans-serif;';
+        arrow.textContent = '‹';
+        row.appendChild(arrow);
+      }
+      list.appendChild(row);
+    });
+    document.getElementById('ocHideBtn').onclick = () => {
+      try { localStorage.setItem('mrb_onboarding_hide', '1'); } catch {}
+      sec.remove();
+    };
+  })();
 
   // ── Competitor Enhancement: SAMA limit meter ──
   const totalInvestedThisYear = (data.investments || []).reduce((acc, i) => i.status === 'active' || i.status === 'completed' ? acc + i.amount : acc, 0);
