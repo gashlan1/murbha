@@ -851,18 +851,41 @@
         // Wire chip filtering on category contains
         const chips = document.querySelectorAll('.chips-row .chip');
         const search = document.querySelector('.search-input');
+        chips.forEach(c => c.addEventListener('click', () => {
+          chips.forEach(x => x.classList.remove('active'));
+          c.classList.add('active');
+        }));
         const apply = () => {
           const activeChip = document.querySelector('.chips-row .chip.active');
           const filter = activeChip ? activeChip.textContent.trim() : 'الكل';
-          const term = (search.value || '').trim();
+          const term = (search.value || '').trim().toLowerCase();
+          let shownLive = 0;
 
           document.querySelectorAll('.lp-card').forEach((card, i) => {
             const p = liveProjects[i];
             if (!p) return;
             const okCat  = filter === 'الكل' || (p.category || '').includes(filter.split(' ')[0]);
-            const okTerm = !term || (p.name + ' ' + p.summary + ' ' + p.city + ' ' + p.category).includes(term);
-            card.style.display = (okCat && okTerm) ? '' : 'none';
+            const haystack = [p.name, p.summary, p.city, p.category].filter(Boolean).join(' ').toLowerCase();
+            const okTerm = !term || haystack.includes(term);
+            const show = okCat && okTerm;
+            card.style.display = show ? '' : 'none';
+            if (show) shownLive++;
           });
+          // No-results message
+          let empty = document.getElementById('searchNoResults');
+          const grid = document.getElementById('liveProjects');
+          if (!shownLive && grid) {
+            if (!empty) {
+              empty = document.createElement('div');
+              empty.id = 'searchNoResults';
+              empty.style.cssText = 'padding:30px 18px;text-align:center;color:var(--muted);font:600 13px Tajawal,sans-serif;';
+              empty.textContent = 'لا توجد فرص مطابقة. جرّب كلمة أخرى أو "الكل".';
+              grid.parentNode.insertBefore(empty, grid.nextSibling);
+            }
+          } else if (empty) {
+            empty.remove();
+          }
+          if (cnt) cnt.textContent = App.fmt.arNum(shownLive) + ' فرصة';
 
           document.querySelectorAll('.cp-card').forEach((card, i) => {
             const p = completedProjects[i];
@@ -873,7 +896,10 @@
           });
         };
         chips.forEach(c => c.addEventListener('click', apply));
-        search.addEventListener('input', apply);
+        if (search) {
+          search.addEventListener('input', apply);
+          search.addEventListener('search', apply);
+        }
       } catch (e) {
         ld.textContent = 'تعذّر تحميل الفرص.';
       }

@@ -1959,6 +1959,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       card.appendChild(summary);
 
+      // Admin note (editable)
+      const noteWrap = document.createElement('div');
+      noteWrap.style.cssText = 'margin-bottom:10px;background:#fff8e6;border:1px dashed #b08840;border-radius:10px;padding:10px 12px;';
+      const noteH = document.createElement('div');
+      noteH.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+      const noteLbl = document.createElement('div');
+      noteLbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:#7a5a10;';
+      noteLbl.textContent = '🗒 ملاحظة إدارية (خاصة)';
+      const noteSaved = document.createElement('span');
+      noteSaved.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);';
+      if (d.user.adminNoteAt) noteSaved.textContent = 'آخر تحديث: ' + new Date(d.user.adminNoteAt).toLocaleString('ar-SA');
+      noteH.append(noteLbl, noteSaved);
+      const noteTa = document.createElement('textarea');
+      noteTa.rows = 3;
+      noteTa.placeholder = 'تلميح: تستطيع تدوين سياق المكالمة، مخاوف KYC، أو أي معلومة لا تظهر للمستخدم.';
+      noteTa.value = d.user.adminNote || '';
+      noteTa.style.cssText = 'width:100%;padding:8px 10px;border:1px solid #d4ac6e;border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;resize:vertical;direction:rtl;';
+      const noteBtn = document.createElement('button');
+      noteBtn.type = 'button';
+      noteBtn.textContent = 'حفظ الملاحظة';
+      noteBtn.style.cssText = 'margin-top:6px;background:#0a4d36;color:#fff;border:0;border-radius:8px;padding:6px 16px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+      noteBtn.onclick = async () => {
+        try {
+          await App.api('PUT', '/app/admin/users/' + encodeURIComponent(d.user.id) + '/note', { note: noteTa.value });
+          noteSaved.textContent = '✓ مُحفَظ ' + new Date().toLocaleTimeString('ar-SA');
+        } catch (e) { alert(e.message || 'فشل الحفظ'); }
+      };
+      noteWrap.append(noteH, noteTa, noteBtn);
+      card.appendChild(noteWrap);
+
       const section = (label) => {
         const s = document.createElement('div');
         const sh = document.createElement('div');

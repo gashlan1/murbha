@@ -640,6 +640,79 @@
     document.body.appendChild(banner);
   };
 
+  // ─── PWA install prompt ────────────────────────────────────────
+  const PWA_DISMISS_KEY = 'mrb_pwa_dismissed_at';
+  let _deferredInstall = null;
+
+  const _isStandalone = () =>
+    window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  const _isiOSSafari = () => {
+    const ua = navigator.userAgent || '';
+    return /iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS/.test(ua);
+  };
+
+  const _renderInstallBanner = (mode) => {
+    if (document.getElementById('pwaInstall')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwaInstall';
+    banner.style.cssText = 'position:fixed;bottom:14px;inset-inline-end:14px;max-width:340px;background:#062b1e;color:#fbf6ea;border-radius:14px;padding:14px 16px;font-family:Tajawal,system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.25);z-index:9997;font-size:13px;line-height:1.6;';
+    const t = document.createElement('div');
+    t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#d4ac6e;margin-bottom:4px;';
+    t.textContent = '⬇ ثبّت تطبيق مُرابحة';
+    const p = document.createElement('div');
+    p.textContent = mode === 'ios'
+      ? 'لتثبيت التطبيق على iPhone: اضغط زر المشاركة ⤴ ثم اختر "إضافة إلى الشاشة الرئيسية".'
+      : 'استثمر بسرعة أكبر وتلقّى الإشعارات الفورية. التثبيت لا يأخذ ثانية.';
+    p.style.marginBottom = '10px';
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;';
+    const dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.textContent = 'لاحقاً';
+    dismissBtn.style.cssText = 'flex:1;padding:9px 12px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:#fbf6ea;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+    dismissBtn.onclick = () => {
+      try { localStorage.setItem(PWA_DISMISS_KEY, String(Date.now())); } catch {}
+      banner.remove();
+    };
+    row.appendChild(dismissBtn);
+    if (mode === 'native' && _deferredInstall) {
+      const installBtn = document.createElement('button');
+      installBtn.type = 'button';
+      installBtn.textContent = 'تثبيت الآن';
+      installBtn.style.cssText = 'flex:1;padding:9px 12px;background:#d4ac6e;color:#062b1e;border:0;border-radius:999px;font:800 12px Cairo,sans-serif;cursor:pointer;';
+      installBtn.onclick = async () => {
+        try {
+          await _deferredInstall.prompt();
+          await _deferredInstall.userChoice;
+          _deferredInstall = null;
+          banner.remove();
+        } catch (e) { banner.remove(); }
+      };
+      row.appendChild(installBtn);
+    }
+    banner.append(t, p, row);
+    document.body.appendChild(banner);
+  };
+
+  const _maybeShowInstallPrompt = () => {
+    if (_isStandalone()) return;
+    let dismissedAt = 0;
+    try { dismissedAt = +localStorage.getItem(PWA_DISMISS_KEY) || 0; } catch {}
+    // Don't nag within 7 days of dismiss
+    if (dismissedAt && (Date.now() - dismissedAt) < 7 * 24 * 60 * 60 * 1000) return;
+    if (_deferredInstall) _renderInstallBanner('native');
+    else if (_isiOSSafari()) _renderInstallBanner('ios');
+  };
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredInstall = e;
+    // Delay so it doesn't appear instantly on cold load
+    setTimeout(_maybeShowInstallPrompt, 8000);
+  });
+
   // ─── Maintenance banner (poll once on load) ────────────────────
   const _checkMaintenance = async () => {
     try {
@@ -671,6 +744,8 @@
     _injectSupportFab();
     if (!location.pathname.includes('cookies.html')) _renderConsent();
     if (!location.pathname.includes('admin')) _checkMaintenance();
+    // iOS Safari has no beforeinstallprompt; show its hint after delay.
+    if (_isiOSSafari() && !location.pathname.includes('admin')) setTimeout(_maybeShowInstallPrompt, 12000);
   });
 
   window.App = {
