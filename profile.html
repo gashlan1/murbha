@@ -945,9 +945,10 @@
   <div class="settings-group" id="accountStatsSection" style="display:none;">
     <div class="settings-h">ملخّص حسابي</div>
     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
-      <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;padding:14px;border-radius:12px;text-align:center;">
+      <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;padding:14px;border-radius:12px;text-align:center;position:relative;">
         <div id="statMemberSince" style="font:900 14px Cairo,sans-serif;color:#fbf6ea;">—</div>
         <div style="font:600 10px Tajawal,sans-serif;margin-top:4px;">عضو منذ</div>
+        <span id="loyaltyTierBadge" style="display:none;position:absolute;top:-8px;inset-inline-start:-8px;font:800 10px Cairo,sans-serif;color:#fff;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,0.2);align-items:center;gap:4px;"></span>
       </div>
       <div style="background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;">
         <div id="statInvested" style="font:900 16px Cairo,sans-serif;color:var(--green-dark);">٠</div>
@@ -2284,6 +2285,21 @@
       document.getElementById('statInvested').textContent = fmt(totalInv);
       document.getElementById('statDeals').textContent = invs.length.toLocaleString('ar-SA');
       document.getElementById('statReturns').textContent = fmt(returns);
+      // Loyalty tier badge
+      const tierEl = document.getElementById('loyaltyTierBadge');
+      if (tierEl) {
+        let tier, icon, color;
+        if (totalInv >= 500000) { tier = 'بلاتيني'; icon = '💎'; color = 'linear-gradient(135deg,#062b1e,#0a4d36)'; }
+        else if (totalInv >= 100000) { tier = 'ذهبي'; icon = '🥇'; color = 'linear-gradient(135deg,#d4ac6e,#b08840)'; }
+        else if (totalInv >= 25000) { tier = 'فضي'; icon = '🥈'; color = 'linear-gradient(135deg,#9da5a0,#6b7268)'; }
+        else if (totalInv >= 1000) { tier = 'برونزي'; icon = '🥉'; color = 'linear-gradient(135deg,#b08840,#8a6a30)'; }
+        else { tier = null; }
+        if (tier) {
+          tierEl.style.display = 'inline-flex';
+          tierEl.style.background = color;
+          tierEl.textContent = icon + ' ' + tier;
+        }
+      }
       // Build 30-day sparkline of cumulative invested
       try {
         const days = 30;
