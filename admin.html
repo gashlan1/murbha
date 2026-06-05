@@ -691,6 +691,28 @@
     </div>
   </div>
 
+  <!-- CONVERSION FUNNEL -->
+  <div class="admin-card" id="funnelCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔻 قمع التحويل</span>
+      <span class="card-h-sub" id="funnelBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+        <button type="button" id="funnelRefresh" style="padding:7px 14px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">↻ تحديث</button>
+        <select id="funnelDays" style="padding:7px 12px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+          <option value="7">آخر ٧ أيام</option>
+          <option value="30" selected>آخر ٣٠ يوماً</option>
+          <option value="90">آخر ٩٠ يوماً</option>
+          <option value="365">آخر سنة</option>
+        </select>
+      </div>
+      <div id="funnelList" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- PAYMENT METHOD STATS -->
   <div class="admin-card" id="paymStatsCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2502,6 +2524,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadFunnel() {
+    const list = document.getElementById('funnelList');
+    const badge = document.getElementById('funnelBadge');
+    if (!list) return;
+    const days = document.getElementById('funnelDays')?.value || '30';
+    try {
+      const r = await App.api('GET', '/app/admin/conversion-funnel?days=' + days);
+      const steps = r.steps || [];
+      if (badge) badge.textContent = (r.registered || 0).toLocaleString('ar-SA') + ' مسجّل · ' + (steps.find(s => s.key === 'invested')?.count || 0).toLocaleString('ar-SA') + ' مستثمر فعلي';
+      list.replaceChildren();
+      if (!steps.length) { list.appendChild(_emptyNode('لا بيانات')); return; }
+      steps.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = (i + 1) + '. ' + s.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:24px;background:var(--paper);border-radius:6px;overflow:hidden;position:relative;';
+        const fill = document.createElement('div');
+        const c1 = '#0a4d36', c2 = '#062b1e';
+        fill.style.cssText = 'height:100%;width:' + s.pct + '%;background:linear-gradient(90deg,' + c1 + ',' + c2 + ');border-radius:6px;transition:width 0.5s;';
+        bar.appendChild(fill);
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:end;min-width:90px;';
+        cnt.textContent = s.count.toLocaleString('ar-SA') + ' · ' + s.pct + '٪';
+        row.append(lbl, bar, cnt);
+        list.appendChild(row);
+      });
+    } catch (e) {
+      list.replaceChildren();
+      list.appendChild(_emptyNode('تعذّر التحميل'));
+    }
+  }
+  document.getElementById('funnelRefresh')?.addEventListener('click', loadFunnel);
+  document.getElementById('funnelDays')?.addEventListener('change', loadFunnel);
+
   async function loadPaymStats() {
     const list = document.getElementById('paymStatsList');
     const badge = document.getElementById('paymStatsBadge');
@@ -5379,7 +5435,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

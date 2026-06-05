@@ -1035,6 +1035,9 @@
     <button class="share-btn" id="printBtn" type="button" aria-label="طباعة / حفظ PDF" title="طباعة / حفظ PDF">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     </button>
+    <button class="share-btn" id="qrBtn" type="button" aria-label="رمز QR" title="رمز QR للمشاركة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="17"/><line x1="14" y1="20" x2="14" y2="21"/><line x1="17" y1="14" x2="17" y2="14"/><line x1="20" y1="14" x2="21" y2="14"/><line x1="17" y1="17" x2="21" y2="17"/><line x1="17" y1="21" x2="21" y2="21"/></svg>
+    </button>
   </div>
 </div>
 
@@ -3014,6 +3017,33 @@
     const nv = document.getElementById('shareNativeBtn');
     const pr = document.getElementById('printBtn');
     if (pr) pr.onclick = () => window.print();
+    const qr = document.getElementById('qrBtn');
+    if (qr) qr.onclick = () => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center;';
+      const t = document.createElement('div'); t.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      t.textContent = 'مشاركة المشروع برمز QR';
+      const s = document.createElement('div'); s.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:14px;line-height:1.7;';
+      s.textContent = 'وجّه كاميرا جوّالك للرمز للوصول السريع.';
+      const img = document.createElement('img');
+      img.alt = 'QR code';
+      img.width = 220; img.height = 220;
+      img.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff;';
+      // QR via api.qrserver.com (no auth, plain GET image)
+      img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url) + '&margin=2&color=062b1e&bgcolor=ffffff';
+      const u = document.createElement('div'); u.style.cssText = 'font:600 11px monospace;color:var(--muted);margin-top:12px;direction:ltr;word-break:break-all;';
+      u.textContent = url;
+      const close = document.createElement('button'); close.type='button'; close.textContent = '✕ إغلاق';
+      close.style.cssText = 'margin-top:14px;background:var(--green-dark);color:#d4ac6e;border:0;border-radius:10px;padding:10px 22px;font:800 13px Cairo,sans-serif;cursor:pointer;';
+      close.onclick = () => overlay.remove();
+      card.append(t, s, img, u, close);
+      overlay.appendChild(card);
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+      _trackShare('qr');
+    };
 
     if (wa) wa.onclick = () => { window.open('https://wa.me/?text=' + encodeURIComponent(waMsg), '_blank', 'noopener'); _trackShare('whatsapp'); };
     if (tw) tw.onclick = () => { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText), '_blank', 'noopener'); _trackShare('twitter'); };

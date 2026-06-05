@@ -811,6 +811,28 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- Counters row -->
+  <div class="settings-group" id="countersRow" style="display:none;">
+    <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
+      <a href="/notifications.html" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;text-decoration:none;color:inherit;">
+        <div id="cntNotif" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">🔔 إشعارات</div>
+      </a>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;">
+        <div id="cntFollows" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">📡 متابَع</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;">
+        <div id="cntFavs" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">★ مفضّلة</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;">
+        <div id="cntDevices" style="font:900 18px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">📱 أجهزة</div>
+      </div>
+    </div>
+  </div>
+
   <!-- 2FA quick card -->
   <div class="settings-group" id="twofaQuickCard" style="display:none;">
     <div class="settings-h">المصادقة الثنائية</div>
@@ -1875,6 +1897,26 @@
         row.append(k, v);
         list.appendChild(row);
       });
+    } catch (e) {}
+  })();
+
+  // Counters row at top
+  (async () => {
+    try {
+      const sec = document.getElementById('countersRow');
+      if (!sec) return;
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      const [notif, follows, favs, sess] = await Promise.all([
+        App.api('GET', '/app/notifications').catch(() => ({ unread: 0 })),
+        App.api('GET', '/app/me/follows').catch(() => ({ ids: [] })),
+        App.api('GET', '/app/me/favorites').catch(() => ({ ids: [] })),
+        App.api('GET', '/app/me/sessions').catch(() => ({ devices: [] })),
+      ]);
+      document.getElementById('cntNotif').textContent = fmt(notif.unread || 0);
+      document.getElementById('cntFollows').textContent = fmt((follows.ids || []).length);
+      document.getElementById('cntFavs').textContent = fmt((favs.ids || []).length);
+      document.getElementById('cntDevices').textContent = fmt((sess.devices || []).length);
+      sec.style.display = '';
     } catch (e) {}
   })();
 
