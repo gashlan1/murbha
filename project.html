@@ -802,6 +802,7 @@
     .card-section, .funding-card, .stats-grid, .sticky-cta { max-width: 760px; margin-left: auto; margin-right: auto; }
     .sticky-cta { left: 50%; transform: translateX(-50%); right: auto; width: 100%; max-width: 760px; border-radius: 16px 16px 0 0; }
   }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(1.25); } }
 </style>
     <!-- BEGIN: managed-seo-meta (do not edit by hand) -->
     <meta name="description" content="فرصة استثمار على منصّة مُرابحة: العائد المتوقّع، المدة، الضمانات، والفتوى الشرعية. عقد مرابحة موثّق متوافق مع الشريعة." />
@@ -966,6 +967,7 @@
     <span id="remainingBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#eaf3ee,#fff);border:1px solid #0a4d36;padding:5px 12px;border-radius:999px;"></span>
     <span id="minTicketBadge" style="display:none;font:800 11px Cairo,sans-serif;color:#062b1e;background:linear-gradient(90deg,#fff8e6,#fff3cd);border:1px solid #b08840;padding:5px 12px;border-radius:999px;"></span>
     <span id="recentActivityBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#0f6e3a;background:rgba(15,110,58,0.10);padding:5px 12px;border-radius:999px;"></span>
+    <span id="viewerCountBadge" style="display:none;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;"><span style="display:inline-block;width:7px;height:7px;background:#0f6e3a;border-radius:50%;margin-inline-end:6px;vertical-align:middle;animation:pulse 1.6s infinite;"></span><span id="viewerCountText">—</span></span>
     <a id="addToCalendarLink" href="#" style="display:none;font:700 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">📅 أضف تاريخ الإقفال إلى تقويمك</a>
     <label id="closingReminderToggle" style="display:none;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:#062b1e;background:#fff;border:1px solid rgba(13,22,18,0.18);padding:5px 12px;border-radius:999px;cursor:pointer;">
       <input id="closingReminderCb" type="checkbox" style="margin:0;accent-color:#0a4d36;" />
@@ -2125,6 +2127,38 @@
         badge.textContent = '🔥 ' + d.last24h.count + ' استثمار جديد · ' + amt + ' ر.س في آخر ٢٤ ساعة';
         badge.style.display = 'inline-block';
       } catch (e) {}
+    })();
+
+    // Live viewer count
+    (() => {
+      const badge = document.getElementById('viewerCountBadge');
+      const txt = document.getElementById('viewerCountText');
+      if (!badge || !txt) return;
+      let viewerId = sessionStorage.getItem('mrb_viewer_id');
+      if (!viewerId) {
+        viewerId = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random().toString(36).slice(2));
+        try { sessionStorage.setItem('mrb_viewer_id', viewerId); } catch {}
+      }
+      const slug = p.slug || p.id;
+      const ping = async () => {
+        try {
+          const r = await fetch('/app/projects/' + encodeURIComponent(slug) + '/viewing', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ viewerId }),
+          });
+          if (!r.ok) return;
+          const { count } = await r.json();
+          if (count >= 2) {
+            txt.textContent = '👁 ' + count + ' يشاهدون الآن';
+            badge.style.display = 'inline-block';
+          } else {
+            badge.style.display = 'none';
+          }
+        } catch {}
+      };
+      ping();
+      const iv = setInterval(ping, 30000);
+      window.addEventListener('pagehide', () => clearInterval(iv), { once: true });
     })();
 
     // Project updates feed

@@ -811,6 +811,29 @@
     <div id="privacyDashboardList" style="padding:14px 18px;"></div>
   </div>
 
+  <!-- Account stats card -->
+  <div class="settings-group" id="accountStatsSection" style="display:none;">
+    <div class="settings-h">ملخّص حسابي</div>
+    <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+      <div style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;padding:14px;border-radius:12px;text-align:center;">
+        <div id="statMemberSince" style="font:900 14px Cairo,sans-serif;color:#fbf6ea;">—</div>
+        <div style="font:600 10px Tajawal,sans-serif;margin-top:4px;">عضو منذ</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;">
+        <div id="statInvested" style="font:900 16px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">إجمالي مُستثمَر (ر.س)</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;">
+        <div id="statDeals" style="font:900 16px Cairo,sans-serif;color:var(--green-dark);">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">عدد الصفقات</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;text-align:center;">
+        <div id="statReturns" style="font:900 16px Cairo,sans-serif;color:#0f6e3a;">٠</div>
+        <div style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">الأرباح المحقّقة (ر.س)</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Profile completeness -->
   <div class="settings-group" id="profileCompletenessSection" style="display:none;">
     <div class="settings-h">إكمال الملف الشخصي</div>
@@ -1761,6 +1784,32 @@
         row.append(k, v);
         list.appendChild(row);
       });
+    } catch (e) {}
+  })();
+
+  // Account stats card
+  (async () => {
+    try {
+      const [me, port] = await Promise.all([
+        App.api('GET', '/app/me'),
+        App.api('GET', '/app/portfolio').catch(() => ({ investments: [], deposits: [] })),
+      ]);
+      const u = me.user || {};
+      const sec = document.getElementById('accountStatsSection');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      const since = u.createdAt ? new Date(u.createdAt) : null;
+      const months = since ? Math.max(1, Math.round((Date.now() - since.getTime()) / (30 * 24 * 60 * 60 * 1000))) : 0;
+      document.getElementById('statMemberSince').textContent = since
+        ? (months >= 12 ? Math.floor(months / 12) + ' سنة' : months + ' شهر')
+        : '—';
+      const invs = (port.investments || []).filter(i => i.status !== 'canceled');
+      const totalInv = invs.reduce((s, i) => s + Number(i.amount || 0), 0);
+      const returns = port.totalReturns || port.returns || invs.reduce((s, i) => s + Number(i.returns || 0), 0);
+      document.getElementById('statInvested').textContent = fmt(totalInv);
+      document.getElementById('statDeals').textContent = invs.length.toLocaleString('ar-SA');
+      document.getElementById('statReturns').textContent = fmt(returns);
     } catch (e) {}
   })();
 
