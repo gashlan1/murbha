@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- WEEKLY TREND -->
+  <div class="admin-card" id="weeklyTrendCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📈 الاتجاه الأسبوعي</span>
+      <span class="card-h-sub">٨ أسابيع · تسجيلات / إيداعات / استثمارات</span>
+    </div>
+    <div class="card-body">
+      <div id="weeklyTrendList" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="empty-state" style="text-align:center;color:var(--muted);padding:24px;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- KYC PROCESSING TIME -->
   <div class="admin-card" id="kycTimeCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -2833,6 +2846,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadWeeklyTrend() {
+    const list = document.getElementById('weeklyTrendList');
+    if (!list) return;
+    try {
+      const r = await App.api('GET', '/app/admin/weekly-trend');
+      const weeks = r.weeks || [];
+      const fmt = (n) => {
+        const x = Number(n) || 0;
+        if (x >= 1e6) return (x / 1e6).toFixed(1) + 'م';
+        if (x >= 1e3) return (x / 1e3).toFixed(0) + 'ك';
+        return x.toLocaleString('ar-SA');
+      };
+      list.replaceChildren();
+      const maxInv = Math.max(...weeks.map(w => w.investments), 1);
+      weeks.forEach(w => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = 'أسبوع ' + w.label;
+        const stats = document.createElement('div'); stats.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;';
+        stats.innerHTML = '<span style="color:#0a4d36;">👥 ' + w.signups + '</span> <span style="color:#b08840;">↓ ' + fmt(w.deposits) + '</span> <span style="color:#062b1e;">💎 ' + fmt(w.investments) + '</span>';
+        head.append(lbl, stats);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:8px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div');
+        fill.style.cssText = 'height:100%;width:' + ((w.investments / maxInv) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#062b1e);border-radius:4px;';
+        bar.appendChild(fill);
+        row.append(head, bar);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadKycTime() {
     const list = document.getElementById('kycTimeStats');
     const badge = document.getElementById('kycTimeBadge');
@@ -6486,7 +6532,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

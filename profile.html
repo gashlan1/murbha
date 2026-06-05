@@ -836,6 +836,14 @@
     </div>
   </div>
 
+  <!-- Bank transfer info -->
+  <div class="settings-group" id="bankInfoSec">
+    <div class="settings-h" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🏦 الإيداع عبر تحويل بنكي</span>
+      <button type="button" id="showBankBtn" style="background:#fff;border:1px solid var(--line);color:var(--green-dark);padding:6px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">عرض IBAN</button>
+    </div>
+  </div>
+
   <!-- Birthday wish opt-in -->
   <div class="settings-group" id="birthdaySec" style="display:none;">
     <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -2175,6 +2183,59 @@
       });
       sec.style.display = '';
     } catch (e) {}
+  })();
+
+  // Bank transfer info modal
+  (() => {
+    const btn = document.getElementById('showBankBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      let wireRef = '—';
+      try {
+        const w = await App.api('GET', '/app/me/wire-reference').catch(() => null);
+        wireRef = w?.reference || '—';
+      } catch {}
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,22,18,0.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;';
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:520px;width:100%;';
+      const t = document.createElement('div'); t.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;';
+      t.textContent = '🏦 معلومات الحوالة البنكية';
+      const s = document.createElement('div'); s.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#6b7268;margin-bottom:14px;line-height:1.7;';
+      s.textContent = 'حوّل المبلغ إلى الحساب التالي. اذكر مرجع المستثمر ليُربط بحسابك تلقائياً.';
+      const items = [
+        { k: 'اسم المستفيد', v: 'منصة مُرابحة' },
+        { k: 'البنك', v: 'البنك الأهلي السعودي' },
+        { k: 'رقم IBAN', v: 'SA03 8000 0000 0008 0801 0710' },
+        { k: 'SWIFT/BIC', v: 'NCBKSAJE' },
+        { k: 'العملة', v: 'ر.س' },
+        { k: 'مرجعك الشخصي', v: wireRef, gold: true },
+      ];
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--paper);border-radius:8px;margin-bottom:6px;gap:10px;';
+        const lbl = document.createElement('span'); lbl.style.cssText = 'font:700 12px Tajawal,sans-serif;color:#6b7268;'; lbl.textContent = it.k;
+        const val = document.createElement('code'); val.style.cssText = 'font:700 12px monospace;color:' + (it.gold ? 'var(--gold)' : 'var(--green-dark)') + ';direction:ltr;cursor:pointer;'; val.textContent = it.v;
+        val.title = 'انقر للنسخ';
+        val.onclick = () => navigator.clipboard.writeText(it.v).then(() => App.toast && App.toast('تم النسخ', 'success'));
+        row.append(lbl, val);
+        card.appendChild(row);
+      });
+      const note = document.createElement('div'); note.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#c54a3a;margin-top:10px;line-height:1.7;';
+      note.textContent = '⚠ تذكير: ضع مرجعك الشخصي في خانة "السبب" أو "وصف العملية" — وإلا قد يتأخر الربط ٢-٣ أيام عمل.';
+      const close = document.createElement('button'); close.type='button'; close.textContent='إغلاق';
+      close.style.cssText = 'margin-top:14px;background:var(--green-dark);color:#d4ac6e;border:0;padding:10px 22px;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;width:100%;';
+      close.onclick = () => overlay.remove();
+      card.append(t, s);
+      // Re-order: items were appended above to card directly; replace with proper sequence
+      const fragment = document.createDocumentFragment();
+      while (card.children.length > 2) fragment.appendChild(card.children[2]);
+      card.appendChild(fragment);
+      card.append(note, close);
+      overlay.appendChild(card);
+      overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    });
   })();
 
   // Birthday opt-in
