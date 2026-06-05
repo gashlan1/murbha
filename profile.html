@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Weekly retrospective -->
+  <div class="settings-group" id="weeklySec" style="display:none;">
+    <div class="settings-h">📅 جردة أسبوعك</div>
+    <div style="padding:14px 18px;">
+      <div id="weeklyHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;"></div>
+      <div id="weeklyKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px;"></div>
+      <div id="weeklyTopInv" style="background:var(--paper);border-radius:10px;padding:12px;display:none;"></div>
+    </div>
+  </div>
+
   <!-- Returns by category -->
   <div class="settings-group" id="retCatSec" style="display:none;">
     <div class="settings-h">📊 عوائدك حسب الفئة</div>
@@ -2983,6 +2993,60 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Weekly retrospective
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/weekly-retro');
+      if (!r.hasData) return;
+      const sec = document.getElementById('weeklySec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('weeklyHero');
+      hero.replaceChildren();
+      const wowColor = (r.wowChange || 0) >= 0 ? '#fbf6ea' : '#d4ac6e';
+      const wowIcon = (r.wowChange || 0) >= 25 ? '🚀' : ((r.wowChange || 0) >= 0 ? '📈' : '📉');
+      const big = document.createElement('div'); big.style.cssText = 'font:900 32px Cairo,sans-serif;color:#fbf6ea;';
+      big.textContent = wowIcon + ' ' + fmt(r.lastInvAmount) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.9;margin-top:6px;';
+      sub.textContent = 'مُستثمَر هذا الأسبوع · ' + ((r.wowChange || 0) >= 0 ? '+' : '') + r.wowChange + '٪ مقابل الأسبوع السابق';
+      hero.append(big, sub);
+      const kpis = document.getElementById('weeklyKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll);
+        return w;
+      };
+      if (r.lastInvCount > 0) kpis.appendChild(mk('💼 استثمارات', fmt(r.lastInvCount), '#0a4d36'));
+      if (r.lastProfitCount > 0) kpis.appendChild(mk('💰 دفعات', fmt(r.lastProfitCount), '#0f6e3a'));
+      if (r.lastProfitAmount > 0) kpis.appendChild(mk('قيمة الأرباح', fmt(r.lastProfitAmount) + ' ر.س', '#b08840'));
+      if (r.lastDepositCount > 0) kpis.appendChild(mk('💳 إيداعات', fmt(r.lastDepositCount), '#5c2418'));
+      if (r.lastDepositAmount > 0) kpis.appendChild(mk('قيمة الإيداعات', fmt(r.lastDepositAmount) + ' ر.س', '#062b1e'));
+      const topInv = document.getElementById('weeklyTopInv');
+      if (r.topInvestment) {
+        topInv.style.display = '';
+        topInv.replaceChildren();
+        const link = document.createElement('a');
+        link.href = '/project.html?slug=' + encodeURIComponent(r.topInvestment.projectSlug);
+        link.style.cssText = 'text-decoration:none;color:inherit;display:block;';
+        const head = document.createElement('div'); head.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--gold);margin-bottom:4px;';
+        head.textContent = '🏆 أكبر استثمار لأسبوعك';
+        const nm = document.createElement('div'); nm.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);';
+        nm.textContent = r.topInvestment.projectName;
+        const amt = document.createElement('div'); amt.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-top:4px;';
+        amt.textContent = fmt(r.topInvestment.amount) + ' ر.س';
+        link.append(head, nm, amt);
+        topInv.appendChild(link);
+      } else {
+        topInv.style.display = 'none';
+      }
     } catch (e) {}
   })();
 
