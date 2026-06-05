@@ -859,6 +859,14 @@
     </div>
   </div>
 
+  <!-- Bookmarked deals -->
+  <div class="settings-group" id="bmSec" style="display:none;">
+    <div class="settings-h">⭐ صفقات محفوظة</div>
+    <div style="padding:14px 18px;">
+      <div id="bmList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Support tickets -->
   <div class="settings-group" id="suppSec" style="display:none;">
     <div class="settings-h">🎫 تذاكر الدعم والملاحظات</div>
@@ -2825,6 +2833,38 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Bookmarked deals
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/bookmarks');
+      if (!r.hasBookmarks) return;
+      const sec = document.getElementById('bmSec');
+      const list = document.getElementById('bmList');
+      if (!sec || !list) return;
+      sec.style.display = '';
+      list.replaceChildren();
+      (r.projects || []).forEach(p => {
+        const row = document.createElement('a');
+        row.href = '/project.html?slug=' + encodeURIComponent(p.slug);
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,#fbf6ea,#fff);border:1px solid var(--gold);border-radius:10px;text-decoration:none;color:inherit;';
+        const left = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        t.textContent = '⭐ ' + p.name;
+        const sub = document.createElement('div'); sub.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;line-height:1.7;';
+        sub.textContent = [p.category, p.city].filter(Boolean).join(' · ');
+        left.append(t, sub);
+        const ret = document.createElement('div'); ret.style.cssText = 'font:700 11px Cairo,sans-serif;color:#0f6e3a;min-width:60px;text-align:end;';
+        ret.textContent = p.expectedReturn ? '📈 ' + p.expectedReturn + '٪' : '—';
+        const dur = document.createElement('div'); dur.style.cssText = 'font:700 11px Cairo,sans-serif;color:#b08840;min-width:60px;text-align:end;';
+        dur.textContent = p.durationMonths ? '⏳ ' + p.durationMonths + 'ش' : '—';
+        const pc = document.createElement('div'); pc.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);min-width:50px;text-align:end;';
+        pc.textContent = p.fundedPct + '٪';
+        row.append(left, ret, dur, pc);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
