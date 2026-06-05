@@ -1051,6 +1051,26 @@
 
 <div id="project-notice-banner"></div>
 
+<!-- RISK RATING -->
+<div class="card-section" id="riskRatingCard" style="padding:18px 22px;display:none;">
+  <h2 class="section-h" style="margin-bottom:14px;">⚖ تقدير المخاطر</h2>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div id="riskBadge" style="font:900 14px Cairo,sans-serif;padding:8px 18px;border-radius:999px;flex-shrink:0;">—</div>
+    <div style="flex:1;min-width:160px;">
+      <div style="display:flex;height:10px;border-radius:6px;overflow:hidden;background:#fff;border:1px solid rgba(13,22,18,0.10);">
+        <div style="flex:1;background:#0f6e3a;" title="منخفض"></div>
+        <div style="flex:1;background:#b08840;" title="متوسط"></div>
+        <div style="flex:1;background:#c54a3a;" title="مرتفع"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font:600 10px Tajawal,sans-serif;color:#6b7268;margin-top:4px;">
+        <span>منخفض</span><span>متوسط</span><span>مرتفع</span>
+      </div>
+    </div>
+  </div>
+  <p id="riskExplain" style="font:500 12px Tajawal,sans-serif;color:#6b7268;line-height:1.85;margin-top:12px;">—</p>
+  <a href="/risks.html" style="font:800 11px Cairo,sans-serif;color:var(--gold);text-decoration:none;display:inline-block;margin-top:6px;">اقرأ كيف نقدّر المخاطر ←</a>
+</div>
+
 <!-- TRUST BADGES ROW -->
 <div class="card-section" id="trustBadgesCard" style="padding:18px 22px;">
   <h2 class="section-h" style="margin-bottom:14px;">🛡 ضمانات الثقة</h2>
@@ -2147,6 +2167,33 @@
       const min = p.minTicket || p.minAmount || 1000;
       const el = document.getElementById('ctaMinTicket');
       if (el) el.textContent = Number(min).toLocaleString('ar-SA') + ' ر.س';
+    })();
+
+    // Risk rating
+    (() => {
+      const card = document.getElementById('riskRatingCard');
+      if (!card) return;
+      let level = p.riskLevel;
+      if (!level) {
+        const rate = p.rate || p.expectedReturn || 9;
+        if (rate <= 7) level = 'low';
+        else if (rate <= 10) level = 'medium';
+        else level = 'high';
+        if (p.sponsorVerified) level = level === 'high' ? 'medium' : level;
+      }
+      const map = {
+        low: { label: '🟢 منخفض', bg: 'rgba(15,110,58,0.10)', color: '#0f6e3a', explain: 'صفقة محافِظة: عائد متوقّع منخفض-معتدل، أصل جاهز/مكتمل، أو ضمانات قويّة. الاستثمار الأنسب للحفاظ على رأس المال.' },
+        medium: { label: '🟡 متوسط', bg: 'rgba(176,136,64,0.10)', color: '#b08840', explain: 'صفقة متوازنة: عائد متوقّع جيّد مع مخاطر تشغيلية معتدلة (مثل مشاريع تطوير قائمة). الأنسب لمستثمر متوسط الخبرة.' },
+        high: { label: '🔴 مرتفع', bg: 'rgba(197,74,58,0.10)', color: '#c54a3a', explain: 'صفقة طموحة: عائد متوقّع مرتفع مع مخاطر تنفيذ أعلى (مثل تطوير من الصفر). تتطلّب فهماً واضحاً للمخاطر وتنوّعاً في المحفظة.' },
+      };
+      const spec = map[level] || map.medium;
+      const badge = document.getElementById('riskBadge');
+      const explain = document.getElementById('riskExplain');
+      badge.textContent = spec.label;
+      badge.style.background = spec.bg;
+      badge.style.color = spec.color;
+      explain.textContent = spec.explain;
+      card.style.display = '';
     })();
 
     // Sponsor card
