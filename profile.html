@@ -859,6 +859,29 @@
     </div>
   </div>
 
+  <!-- Portfolio worth over time -->
+  <div class="settings-group" id="worthSec" style="display:none;">
+    <div class="settings-h">💎 قيمة محفظتك عبر الزمن</div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;justify-content:space-around;text-align:center;margin-bottom:14px;padding:18px;background:linear-gradient(135deg,#0a4d36,#062b1e);border-radius:14px;color:#d4ac6e;">
+        <div>
+          <div id="worthCurrent" style="font:900 26px Cairo,sans-serif;color:#fbf6ea;">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:2px;">قيمة المحفظة الحاليّة</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
+        <div>
+          <div id="worthPeak" style="font:900 26px Cairo,sans-serif;color:#d4ac6e;">—</div>
+          <div style="font:600 10px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:2px;">أعلى ذروة</div>
+        </div>
+      </div>
+      <svg id="worthChart" width="100%" height="140" viewBox="0 0 320 140" preserveAspectRatio="none" style="display:block;background:var(--paper);border-radius:10px;"></svg>
+      <div style="display:flex;justify-content:space-around;margin-top:12px;font:700 10px Cairo,sans-serif;color:var(--muted);">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#0a4d36;border-radius:2px;margin-inline-end:4px;"></span>إجمالي مستثمر</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#b08840;border-radius:2px;margin-inline-end:4px;"></span>أرباح مُحقَّقة</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Top categories & cities -->
   <div class="settings-group" id="topCatsSec" style="display:none;">
     <div class="settings-h">📊 محفظتك حسب القطاع والمدينة</div>
@@ -2891,6 +2914,65 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Portfolio worth over time
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/portfolio-worth');
+      if (!r.hasData) return;
+      const sec = document.getElementById('worthSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      document.getElementById('worthCurrent').textContent = fmt(r.currentWorth) + ' ر.س';
+      document.getElementById('worthPeak').textContent = fmt(r.peakWorth) + ' ر.س';
+      const svg = document.getElementById('worthChart');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const months = r.months || [];
+      if (months.length < 2) return;
+      const max = Math.max(...months.map(m => m.worth), 1);
+      const W = 320, H = 140, P = 8;
+      const xs = months.map((m, i) => P + (i / (months.length - 1)) * (W - 2 * P));
+      const NS = 'http://www.w3.org/2000/svg';
+      const investedFill = document.createElementNS(NS, 'path');
+      let invPath = '';
+      months.forEach((m, i) => {
+        const y = H - P - (m.invested / max) * (H - 2 * P);
+        invPath += (i === 0 ? 'M ' : ' L ') + xs[i] + ' ' + y;
+      });
+      invPath += ' L ' + xs[xs.length - 1] + ' ' + (H - P) + ' L ' + xs[0] + ' ' + (H - P) + ' Z';
+      investedFill.setAttribute('d', invPath);
+      investedFill.setAttribute('fill', 'rgba(10,77,54,0.30)');
+      svg.appendChild(investedFill);
+      const profitFill = document.createElementNS(NS, 'path');
+      let proPath = '';
+      months.forEach((m, i) => {
+        const ybase = H - P - (m.invested / max) * (H - 2 * P);
+        const ytop = H - P - (m.worth / max) * (H - 2 * P);
+        proPath += (i === 0 ? 'M ' : ' L ') + xs[i] + ' ' + ytop;
+      });
+      for (let i = months.length - 1; i >= 0; i--) {
+        const ybase = H - P - (months[i].invested / max) * (H - 2 * P);
+        proPath += ' L ' + xs[i] + ' ' + ybase;
+      }
+      proPath += ' Z';
+      profitFill.setAttribute('d', proPath);
+      profitFill.setAttribute('fill', 'rgba(176,136,64,0.50)');
+      svg.appendChild(profitFill);
+      const worthLine = document.createElementNS(NS, 'path');
+      let lp = '';
+      months.forEach((m, i) => {
+        const y = H - P - (m.worth / max) * (H - 2 * P);
+        lp += (i === 0 ? 'M ' : ' L ') + xs[i] + ' ' + y;
+      });
+      worthLine.setAttribute('d', lp);
+      worthLine.setAttribute('fill', 'none');
+      worthLine.setAttribute('stroke', '#062b1e');
+      worthLine.setAttribute('stroke-width', '2');
+      worthLine.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(worthLine);
     } catch (e) {}
   })();
 
