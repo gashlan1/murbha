@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Investment notes -->
+  <div class="settings-group" id="invNotesSec" style="display:none;">
+    <div class="settings-h">📝 ملاحظاتك على استثماراتك</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احفظ ملاحظات شخصيّة على كلّ صفقة (سبب الاختيار، النتائج، التعلّمات).</p>
+      <div id="invNotesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Data export -->
   <div class="settings-group" id="dataExpSec">
     <div class="settings-h">📦 تصدير بياناتك</div>
@@ -3465,6 +3474,45 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investment notes
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/investment-notes');
+      if (!r.hasData) return;
+      const sec = document.getElementById('invNotesSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('invNotesList');
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      r.items.forEach(it => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const title = document.createElement('div'); title.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; title.textContent = it.projectTitle;
+        const amt = document.createElement('div'); amt.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--gold);'; amt.textContent = fmt(it.amount) + ' ر.س';
+        head.append(title, amt);
+        const ta = document.createElement('textarea');
+        ta.value = it.note || '';
+        ta.placeholder = 'اكتب ملاحظتك هنا...';
+        ta.rows = 2;
+        ta.maxLength = 1000;
+        ta.style.cssText = 'width:100%;padding:8px;border:1px solid rgba(13,22,18,0.1);border-radius:6px;font:500 11px Tajawal,sans-serif;resize:vertical;';
+        let saveTimer = null;
+        ta.addEventListener('input', () => {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(async () => {
+            try {
+              await App.api('PUT', '/app/me/investment-notes/' + encodeURIComponent(it.investmentId), { note: ta.value });
+            } catch (e) {}
+          }, 600);
+        });
+        card.append(head, ta);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
