@@ -859,6 +859,64 @@
     </div>
   </div>
 
+  <!-- Equity comp plan -->
+  <div class="settings-group" id="equityCompSec">
+    <div class="settings-h">📊 خطّة الأسهم التعويضيّة (RSU/ESOP)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إذا كنت تتلقّى أسهم شركتك كجزء من راتبك، أدِر التركيز قبل أن يديرك.</p>
+      <div id="equityCompDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="equityCompRisk" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecActive" /> فعّل خطّة الأسهم التعويضيّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نوع المنحة
+          <select id="ecType" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="rsu">📈 RSU (وحدات أسهم مقيّدة)</option>
+            <option value="esop">📜 ESOP (خيارات أسهم)</option>
+            <option value="espp">🛒 ESPP (شراء بخصم)</option>
+            <option value="phantom">👻 Phantom Shares</option>
+            <option value="mixed">🎯 مختلط</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">اسم الشركة المُمنِحة (اختياري)
+          <input type="text" id="ecEmployer" maxlength="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة سهم الشركة من صافي ثروتك (٪)
+          <input type="number" id="ecConc" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">السقف المستهدف للتركيز (٪)
+          <input type="number" id="ecCapPct" min="1" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecSellOnVest" /> قاعدة: بِع فور التحرّر (sell-on-vest)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecAnnual" /> مراجعة سنويّة لخطّة الأسهم
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecSharia" /> فحصت توافق نشاط الشركة شرعيًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecZakat" /> أتتبّع زكاة المحرّر من المنح
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecCapSet" /> حدّدت سقفًا قاطعًا للتركيز
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecExtraEmer" /> صندوق طوارئ مضاعف (١٢+ شهر)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ecSector" /> أستثمر التدفّق في قطاعات مختلفة عن شركتي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="ecNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="ecSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الأسهم</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Lifestyle creep guard -->
   <div class="settings-group" id="creepSec">
     <div class="settings-h">🚧 حارس تضخّم نمط الحياة</div>
@@ -8618,6 +8676,86 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Equity comp plan
+  (async () => {
+    try {
+      const active = document.getElementById('ecActive');
+      const type = document.getElementById('ecType');
+      const employer = document.getElementById('ecEmployer');
+      const conc = document.getElementById('ecConc');
+      const capPct = document.getElementById('ecCapPct');
+      const sellOnVest = document.getElementById('ecSellOnVest');
+      const annual = document.getElementById('ecAnnual');
+      const sharia = document.getElementById('ecSharia');
+      const zakat = document.getElementById('ecZakat');
+      const capSet = document.getElementById('ecCapSet');
+      const extraEmer = document.getElementById('ecExtraEmer');
+      const sector = document.getElementById('ecSector');
+      const notes = document.getElementById('ecNotes');
+      const discEl = document.getElementById('equityCompDisc');
+      const riskEl = document.getElementById('equityCompRisk');
+      const btn = document.getElementById('ecSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        mastered: '🏆 متقن',
+        disciplined: '🎯 منضبط',
+        learning: '📘 يتعلّم',
+        risky: '🚨 محفوف',
+      };
+      const riskLabels = {
+        safe: '✅ تركيز آمن (≤ ١٠٪)',
+        moderate: '🟡 تركيز معتدل (١٠-٢٠٪)',
+        high: '🟠 تركيز مرتفع (٢٠-٣٠٪)',
+        critical: '🔴 تركيز حرج (> ٣٠٪)',
+      };
+      const r = await App.api('GET', '/app/me/equity-comp');
+      active.checked = !!r.active;
+      type.value = r.compType || 'rsu';
+      employer.value = r.employerName || '';
+      conc.value = Number(r.concentrationPct || 0);
+      capPct.value = Number(r.concentrationCapPct || 20);
+      sellOnVest.checked = !!r.sellOnVestRule;
+      annual.checked = !!r.annualReview;
+      sharia.checked = !!r.shariaScreened;
+      zakat.checked = !!r.zakatTracked;
+      capSet.checked = !!r.concentrationCapSet;
+      extraEmer.checked = !!r.extraEmergencyFund;
+      sector.checked = !!r.sectorDiversification;
+      notes.value = r.notes || '';
+      if (discEl) discEl.textContent = (levelLabels[r.disciplineLevel] || '—') + ' · ' + r.disciplineScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (riskEl) riskEl.textContent = riskLabels[r.concentrationRisk] || '—';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/equity-comp', {
+            active: active.checked,
+            compType: type.value,
+            employerName: employer.value || '',
+            concentrationPct: Number(conc.value || 0),
+            concentrationCapPct: Number(capPct.value || 20),
+            sellOnVestRule: sellOnVest.checked,
+            annualReview: annual.checked,
+            shariaScreened: sharia.checked,
+            zakatTracked: zakat.checked,
+            concentrationCapSet: capSet.checked,
+            extraEmergencyFund: extraEmer.checked,
+            sectorDiversification: sector.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الأسهم', 'success');
+            const r2 = await App.api('GET', '/app/me/equity-comp');
+            if (discEl) discEl.textContent = (levelLabels[r2.disciplineLevel] || '—') + ' · ' + r2.disciplineScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (riskEl) riskEl.textContent = riskLabels[r2.concentrationRisk] || '—';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
