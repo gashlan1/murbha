@@ -859,6 +859,61 @@
     </div>
   </div>
 
+  <!-- Strategic giving -->
+  <div class="settings-group" id="strgSec">
+    <div class="settings-h">🌱 خطّة العطاء الاستراتيجي والصدقة الجارية</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">العطاء ليس مصاريف عشوائيّة، بل استراتيجيّة تجمع الأثر بالأجر المستمرّ.</p>
+      <div id="strgMaturity" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="strgTier" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgActive" /> فعّل خطّة العطاء الاستراتيجي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">العطاء السنوي / الدخل (٪)
+          <input type="number" id="strgPct" min="0" max="100" step="0.5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي العطاء السنوي (ر.س)
+          <input type="number" id="strgAmt" min="0" max="10000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgZakat" /> الزكاة المستحقّة مسدّدة هذه السنة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgMonthly" /> صدقة شهريّة تلقائيّة فعّالة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgWaqf" /> ملتزم بوقف (صدقة جارية)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">قيمة الوقف الملتزم بها (ر.س)
+          <input type="number" id="strgWaqfAmt" min="0" max="100000000" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgOrphan" /> أكفل يتيمًا/أيتامًا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد الأيتام المكفولين
+          <input type="number" id="strgOrphanCount" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgRamadan" /> صدقات مضاعفة في رمضان/العشر الأواخر
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgVerified" /> أتبرّع لجمعيّات معتمدة فقط (مرخّصة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgFamily" /> أُشرك أسرتي في قرارات العطاء
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="strgImpact" /> أتتبّع أثر تبرّعاتي (تقارير من الجهة)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="strgNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="strgSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة العطاء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Sandwich generation -->
   <div class="settings-group" id="sandwichSec">
     <div class="settings-h">🥪 جيل الساندويتش (الأبناء والوالدان)</div>
@@ -8854,6 +8909,90 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Strategic giving
+  (async () => {
+    try {
+      const active = document.getElementById('strgActive');
+      const pct = document.getElementById('strgPct');
+      const amt = document.getElementById('strgAmt');
+      const zakat = document.getElementById('strgZakat');
+      const monthly = document.getElementById('strgMonthly');
+      const waqf = document.getElementById('strgWaqf');
+      const waqfAmt = document.getElementById('strgWaqfAmt');
+      const orphan = document.getElementById('strgOrphan');
+      const orphanCount = document.getElementById('strgOrphanCount');
+      const ramadan = document.getElementById('strgRamadan');
+      const verified = document.getElementById('strgVerified');
+      const family = document.getElementById('strgFamily');
+      const impact = document.getElementById('strgImpact');
+      const notes = document.getElementById('strgNotes');
+      const matEl = document.getElementById('strgMaturity');
+      const tierEl = document.getElementById('strgTier');
+      const btn = document.getElementById('strgSave');
+      if (!active || !btn) return;
+      const matLabels = {
+        master: '🏆 متقن',
+        practiced: '🌟 مارس',
+        learning: '🌿 يتعلّم',
+        starter: '🌱 مبتدئ',
+      };
+      const tierLabels = {
+        exceptional: '🏆 استثنائي (≥ ٢٠٪ من الدخل)',
+        generous: '🌟 كريم (١٠-٢٠٪)',
+        balanced: '🌳 متوازن (٥-١٠٪)',
+        modest: '🌿 معتدل (٢٫٥-٥٪)',
+        starter: '🌱 مبتدئ (< ٢٫٥٪)',
+      };
+      const r = await App.api('GET', '/app/me/strategic-giving');
+      active.checked = !!r.active;
+      pct.value = Number(r.annualGivingPctOfIncome || 0);
+      amt.value = Number(r.annualGivingAmount || 0);
+      zakat.checked = !!r.zakatPaid;
+      monthly.checked = !!r.monthlyAuto;
+      waqf.checked = !!r.waqfCommitted;
+      waqfAmt.value = Number(r.waqfAmount || 0);
+      orphan.checked = !!r.orphanSponsorship;
+      orphanCount.value = Number(r.orphansCount || 0);
+      ramadan.checked = !!r.ramadanBoost;
+      verified.checked = !!r.verifiedCharitiesOnly;
+      family.checked = !!r.familyInvolved;
+      impact.checked = !!r.impactTracked;
+      notes.value = r.notes || '';
+      if (matEl) matEl.textContent = (matLabels[r.maturityLevel] || '—') + ' · ' + r.maturityScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (tierEl) tierEl.textContent = tierLabels[r.tier] || '—';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/strategic-giving', {
+            active: active.checked,
+            annualGivingPctOfIncome: Number(pct.value || 0),
+            annualGivingAmount: Number(amt.value || 0),
+            zakatPaid: zakat.checked,
+            monthlyAuto: monthly.checked,
+            waqfCommitted: waqf.checked,
+            waqfAmount: Number(waqfAmt.value || 0),
+            orphanSponsorship: orphan.checked,
+            orphansCount: Number(orphanCount.value || 0),
+            ramadanBoost: ramadan.checked,
+            verifiedCharitiesOnly: verified.checked,
+            familyInvolved: family.checked,
+            impactTracked: impact.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة العطاء', 'success');
+            const r2 = await App.api('GET', '/app/me/strategic-giving');
+            if (matEl) matEl.textContent = (matLabels[r2.maturityLevel] || '—') + ' · ' + r2.maturityScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (tierEl) tierEl.textContent = tierLabels[r2.tier] || '—';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
