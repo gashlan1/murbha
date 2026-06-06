@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Annual statements -->
+  <div class="settings-group" id="annStmtSec" style="display:none;">
+    <div class="settings-h">📑 كشوف الحساب السنويّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حمّل كشف كامل بكلّ سنة لاستخدامه في الإقرار الضريبي أو الزكاة.</p>
+      <div id="annStmtList" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Recent receipts -->
   <div class="settings-group" id="receiptsSec" style="display:none;">
     <div class="settings-h">🧾 آخر الإيصالات</div>
@@ -3436,6 +3445,43 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Annual statements
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/annual-statements');
+      if (!r.hasData) return;
+      const sec = document.getElementById('annStmtSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('annStmtList');
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      r.years.forEach(y => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const yr = document.createElement('div'); yr.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);'; yr.textContent = '📆 سنة ' + y.year;
+        const net = document.createElement('div'); net.style.cssText = 'font:900 13px Cairo,sans-serif;color:#0f6e3a;'; net.textContent = 'صافي ' + fmt(y.net) + ' ر.س';
+        head.append(yr, net);
+        const kpis = document.createElement('div'); kpis.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font:600 10px Tajawal,sans-serif;color:var(--muted);margin-bottom:10px;';
+        const k1 = document.createElement('div'); k1.innerHTML = 'استثمر <strong style="color:var(--green-dark);">' + fmt(y.invested) + '</strong>';
+        const k2 = document.createElement('div'); k2.innerHTML = 'ربح <strong style="color:#0a4d36;">' + fmt(y.profit) + '</strong>';
+        const k3 = document.createElement('div'); k3.innerHTML = 'رسوم <strong style="color:#c54a3a;">' + fmt(y.fees) + '</strong>';
+        kpis.append(k1, k2, k3);
+        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:8px;';
+        const pdf = document.createElement('a'); pdf.href = y.pdfUrl; pdf.target = '_blank'; pdf.rel = 'noopener';
+        pdf.style.cssText = 'flex:1;padding:8px;background:var(--green-dark);color:#d4ac6e;border-radius:6px;font:800 11px Cairo,sans-serif;text-align:center;text-decoration:none;';
+        pdf.textContent = '⬇ PDF';
+        const csv = document.createElement('a'); csv.href = y.csvUrl; csv.target = '_blank'; csv.rel = 'noopener';
+        csv.style.cssText = 'flex:1;padding:8px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:6px;font:800 11px Cairo,sans-serif;text-align:center;text-decoration:none;';
+        csv.textContent = '⬇ CSV';
+        btns.append(pdf, csv);
+        card.append(head, kpis, btns);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
