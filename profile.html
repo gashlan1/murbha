@@ -859,6 +859,55 @@
     </div>
   </div>
 
+  <!-- Locale & tax -->
+  <div class="settings-group" id="locTaxSec">
+    <div class="settings-h">🌍 اللغة والإقامة الضريبيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إقامتك الضريبيّة تساعدنا في تقديم التقارير المناسبة لك (CRS, FATCA).</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="locLang" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">لغة الواجهة</label>
+          <select id="locLang" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="ar">🇸🇦 العربيّة</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="ur">🇵🇰 اردو</option>
+          </select>
+        </div>
+        <div>
+          <label for="locTax" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">دولة الإقامة الضريبيّة</label>
+          <select id="locTax" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="SA">🇸🇦 السعوديّة</option>
+            <option value="AE">🇦🇪 الإمارات</option>
+            <option value="KW">🇰🇼 الكويت</option>
+            <option value="QA">🇶🇦 قطر</option>
+            <option value="BH">🇧🇭 البحرين</option>
+            <option value="OM">🇴🇲 عُمان</option>
+            <option value="EG">🇪🇬 مصر</option>
+            <option value="JO">🇯🇴 الأردن</option>
+            <option value="UK">🇬🇧 المملكة المتّحدة</option>
+            <option value="US">🇺🇸 الولايات المتّحدة</option>
+            <option value="CA">🇨🇦 كندا</option>
+            <option value="DE">🇩🇪 ألمانيا</option>
+            <option value="FR">🇫🇷 فرنسا</option>
+            <option value="AU">🇦🇺 أستراليا</option>
+            <option value="MY">🇲🇾 ماليزيا</option>
+            <option value="OTHER">🌐 أخرى</option>
+          </select>
+        </div>
+        <div>
+          <label for="locTaxId" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الرقم الضريبي (اختياريّ)</label>
+          <input type="text" id="locTaxId" maxlength="30" placeholder="مثلاً: 310123456700003" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="locCrs" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="locCrs" style="font:600 11px Tajawal,sans-serif;color:var(--green-dark);line-height:1.5;">أوافق على مشاركة بياناتي الضريبيّة وفق متطلّبات CRS عند الطلب</label>
+        </div>
+        <button type="button" id="locSave" style="padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Self-imposed cap -->
   <div class="settings-group" id="selfCapSec">
     <div class="settings-h">🛡 سقف استثمارك الذاتي</div>
@@ -3347,6 +3396,40 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Locale & tax
+  (async () => {
+    const lang = document.getElementById('locLang');
+    const tax = document.getElementById('locTax');
+    const taxId = document.getElementById('locTaxId');
+    const crs = document.getElementById('locCrs');
+    const saveBtn = document.getElementById('locSave');
+    if (!lang || !tax) return;
+    try {
+      const r = await App.api('GET', '/app/me/locale-tax');
+      if (!r.hasData) return;
+      lang.value = r.language || 'ar';
+      tax.value = r.taxResidency || 'SA';
+      taxId.value = r.taxId || '';
+      crs.checked = !!r.crsConsent;
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/locale-tax', {
+            language: lang.value,
+            taxResidency: tax.value,
+            taxId: taxId.value.trim(),
+            crsConsent: crs.checked,
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل الحفظ', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
