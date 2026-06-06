@@ -859,6 +859,56 @@
     </div>
   </div>
 
+  <!-- Time budget -->
+  <div class="settings-group" id="timeBudgetSec">
+    <div class="settings-h">⏰ ميزانيّة وقتي للاستثمار</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد كم تخصّص للاستثمار شهريًّا. نُفعّل أتمتة تناسب وقتك حتى لا تضيع.</p>
+      <div id="tbAutomation" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbActive" /> فعّل ميزانيّة وقت الاستثمار
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">دقائق تخصّصها شهريًّا للاستثمار
+          <input type="number" id="tbMinutes" min="0" max="1000" step="5" placeholder="مثال: 30" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تواتر تسجيل الدخول
+          <select id="tbFreq" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="monthly">📅 شهري (مرّة)</option>
+            <option value="weekly">📆 أسبوعي</option>
+            <option value="twice_weekly">⏰ مرّتان أسبوعيًّا</option>
+            <option value="daily">🚨 يومي (غير منصوح به)</option>
+          </select>
+        </label>
+        <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-top:8px;">إعدادات الأتمتة:</div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbAutoInvest" /> 🔁 استثمار تلقائي شهري (DCA)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbAutoRenewal" /> ♻️ تجديد تلقائي للصفقات المنتهية
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbAutoWithdraw" /> 💸 سحب أرباح تلقائي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbSimple" /> ✨ وضع "بسيط" (يُخفي التفاصيل المتقدّمة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbMinimal" /> 🔕 إشعارات الحرجة فقط
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbMonthlySum" /> 📊 ملخّص شهري واحد (لا تقارير يوميّة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="tbIgnoreNews" /> 📰 تجاهل الأخبار اليوميّة
+        </label>
+        <textarea id="tbNotes" placeholder="ملاحظات (تأكيد روتين شهري، وقت محدّد)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="tbSaveBtn" style="background:#15803d;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ ميزانيّة الوقت</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="weekend-investor.html" style="color:var(--green);">المستثمر في وقته المحدود</a>.</p>
+    </div>
+  </div>
+
   <!-- Digital nomad -->
   <div class="settings-group" id="nomadSec">
     <div class="settings-h">✈️ الرحّالة الرقمي</div>
@@ -7308,6 +7358,73 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Time budget
+  (async () => {
+    try {
+      const active = document.getElementById('tbActive');
+      const minutes = document.getElementById('tbMinutes');
+      const freq = document.getElementById('tbFreq');
+      const autoInvest = document.getElementById('tbAutoInvest');
+      const autoRenewal = document.getElementById('tbAutoRenewal');
+      const autoWithdraw = document.getElementById('tbAutoWithdraw');
+      const simple = document.getElementById('tbSimple');
+      const minimal = document.getElementById('tbMinimal');
+      const monthlySum = document.getElementById('tbMonthlySum');
+      const ignoreNews = document.getElementById('tbIgnoreNews');
+      const notes = document.getElementById('tbNotes');
+      const automation = document.getElementById('tbAutomation');
+      const btn = document.getElementById('tbSaveBtn');
+      if (!active || !btn) return;
+      const dedicationLabels = {
+        lazy: { txt: '😴 كسول — أتمتة مكتملة موصى بها', color: '#15803d' },
+        casual: { txt: '🌱 معتدل', color: '#0a4d36' },
+        engaged: { txt: '📊 منخرط', color: '#b08840' },
+        obsessive: { txt: '🔥 مهووس — قلّل من المتابعة', color: '#c54a3a' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/time-budget');
+        active.checked = !!r.active;
+        minutes.value = r.monthlyMinutesSpent || '';
+        freq.value = r.checkInFrequency || 'monthly';
+        autoInvest.checked = !!r.autoInvestEnabled;
+        autoRenewal.checked = !!r.autoRenewalEnabled;
+        autoWithdraw.checked = !!r.autoWithdrawEnabled;
+        simple.checked = !!r.simpleModeEnabled;
+        minimal.checked = !!r.minimalNotifications;
+        monthlySum.checked = !!r.monthlySummaryOnly;
+        ignoreNews.checked = !!r.ignoreDailyNews;
+        notes.value = r.notes || '';
+        const l = dedicationLabels[r.dedicationLevel] || dedicationLabels.casual;
+        automation.style.color = l.color;
+        automation.textContent = '🎯 الأتمتة ' + r.automationScore + '/١٠٠ · ' + r.enabledCount + ' من ' + r.maxOptions + ' · ' + l.txt;
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/time-budget', {
+            active: active.checked,
+            monthlyMinutesSpent: Number(minutes.value || 0),
+            checkInFrequency: freq.value,
+            autoInvestEnabled: autoInvest.checked,
+            autoRenewalEnabled: autoRenewal.checked,
+            autoWithdrawEnabled: autoWithdraw.checked,
+            simpleModeEnabled: simple.checked,
+            minimalNotifications: minimal.checked,
+            monthlySummaryOnly: monthlySum.checked,
+            ignoreDailyNews: ignoreNews.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ ميزانيّة الوقت', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
