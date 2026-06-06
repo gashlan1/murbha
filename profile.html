@@ -859,6 +859,25 @@
     </div>
   </div>
 
+  <!-- Quarterly journal -->
+  <div class="settings-group" id="jrnlSec">
+    <div class="settings-h">📓 يوميّاتك الاستثماريّة الرُّبعيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل تأمّلاتك الفصليّة، ما تعلّمته، وأهدافك للربع القادم. (شخصيّة فقط، لا تظهر لأحد).</p>
+      <div id="jrnlList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:14px;">
+        <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">➕ أضف مدخلاً جديداً</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="jrnlQ" maxlength="10" placeholder="الربع (مثلاً 2026 Q2)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <textarea id="jrnlRef" maxlength="2000" rows="3" placeholder="تأمّلاتك على هذا الربع..." style="padding:10px;border:1px solid var(--line);border-radius:8px;font:500 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+          <input type="text" id="jrnlLearn" maxlength="500" placeholder="درس مستفاد" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="jrnlGoal" maxlength="300" placeholder="هدف للربع القادم" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <button type="button" id="jrnlAddBtn" style="padding:10px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 12px Cairo,sans-serif;cursor:pointer;">حفظ المدخل</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Referral rank -->
   <div class="settings-group" id="refRankSec" style="display:none;">
     <div class="settings-h">🏆 ترتيبك في قائمة المُحيلين</div>
@@ -3548,6 +3567,71 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Quarterly journal
+  (async () => {
+    const list = document.getElementById('jrnlList');
+    const qIn = document.getElementById('jrnlQ');
+    const refIn = document.getElementById('jrnlRef');
+    const learnIn = document.getElementById('jrnlLearn');
+    const goalIn = document.getElementById('jrnlGoal');
+    const addBtn = document.getElementById('jrnlAddBtn');
+    if (!list || !addBtn) return;
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/quarterly-journal');
+        list.replaceChildren();
+        if (!r.hasData || !r.entries.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا مدخلات بعد. ابدأ بربع هذا العام.';
+          list.appendChild(empty);
+          return;
+        }
+        r.entries.forEach(e => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid var(--gold);';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+          const q = document.createElement('div'); q.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; q.textContent = '📓 ' + e.quarter;
+          const del = document.createElement('button'); del.type = 'button';
+          del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 11px Cairo,sans-serif;'; del.textContent = '✕';
+          del.onclick = async () => {
+            await App.api('DELETE', '/app/me/quarterly-journal/' + encodeURIComponent(e.id));
+            refresh();
+          };
+          head.append(q, del);
+          const ref = document.createElement('div'); ref.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.7;margin-bottom:6px;white-space:pre-wrap;'; ref.textContent = e.reflection;
+          card.append(head, ref);
+          if (e.learning) {
+            const learn = document.createElement('div'); learn.style.cssText = 'font:700 11px Cairo,sans-serif;color:#0a4d36;margin-top:4px;'; learn.textContent = '💡 درس: ' + e.learning;
+            card.appendChild(learn);
+          }
+          if (e.goalNext) {
+            const g = document.createElement('div'); g.style.cssText = 'font:700 11px Cairo,sans-serif;color:#b08840;margin-top:4px;'; g.textContent = '🎯 الهدف القادم: ' + e.goalNext;
+            card.appendChild(g);
+          }
+          list.appendChild(card);
+        });
+      } catch (e) {}
+    }
+    addBtn.addEventListener('click', async () => {
+      addBtn.disabled = true;
+      try {
+        await App.api('POST', '/app/me/quarterly-journal', {
+          quarter: qIn.value.trim(),
+          reflection: refIn.value.trim(),
+          learning: learnIn.value.trim(),
+          goalNext: goalIn.value.trim(),
+        });
+        if (App.toast) App.toast('تمّ حفظ المدخل', 'success');
+        qIn.value = ''; refIn.value = ''; learnIn.value = ''; goalIn.value = '';
+        refresh();
+      } catch (e) {
+        if (App.toast) App.toast('فشل — تحقّق من تنسيق الربع (2026 Q2) والتأمّلات', 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+    refresh();
   })();
 
   // Referral rank
