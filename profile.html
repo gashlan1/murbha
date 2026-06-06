@@ -859,6 +859,28 @@
     </div>
   </div>
 
+  <!-- Real estate holdings -->
+  <div class="settings-group" id="reHoldingsSec">
+    <div class="settings-h">🏘 عقاراتي المباشرة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل عقاراتك (للسكن أو الاستثمار) لرؤية صورة كاملة لثروتك.</p>
+      <div id="reHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;font:800 13px Cairo,sans-serif;"></div>
+      <div id="rePropertyList" style="display:grid;gap:8px;margin-bottom:10px;"></div>
+      <button type="button" id="reAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة عقار</button>
+      <div style="display:grid;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="reNotifyMaint" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 نبّهني بتوقّعات الصيانة (سنوياً ٢٪ من القيمة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="reIncludeWealth" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          💼 ضمّ عقاراتي لرؤية صافي ثروتي الكاملة
+        </label>
+      </div>
+      <button type="button" id="reSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ العقارات</button>
+    </div>
+  </div>
+
   <!-- Fixed income (sukuk) preferences -->
   <div class="settings-group" id="fixedIncSec">
     <div class="settings-h">📜 تفضيلات الدخل الثابت (الصكوك)</div>
@@ -5611,6 +5633,91 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Real estate holdings
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/real-estate-holdings');
+      if (!r.hasData) return;
+      const hero = document.getElementById('reHero');
+      const list = document.getElementById('rePropertyList');
+      const addBtn = document.getElementById('reAddBtn');
+      const notifyMaint = document.getElementById('reNotifyMaint');
+      const includeWealth = document.getElementById('reIncludeWealth');
+      const btn = document.getElementById('reSaveBtn');
+      if (!list || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const updateHero = () => {
+        if (r.totalValue === 0) { hero.style.display = 'none'; return; }
+        hero.style.display = '';
+        hero.textContent = '🏘 صافي قيمة عقاراتك: ' + fmt(r.netEquity) + ' ر.س · إيجار سنوي ' + fmt(r.totalRentalIncome) + ' · عائد إجمالي ' + r.grossYieldPct + '٪';
+      };
+      updateHero();
+      const types = [['residential_own', '🏠 سكني (للسكن)'], ['residential_rental', '🏘 سكني مؤجّر'], ['commercial', '🏢 تجاري'], ['land', '🏞 أرض'], ['mixed', '🔀 مختلط']];
+      const addRow = (p) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;display:grid;gap:6px;';
+        row.dataset.role = 'prop-row';
+        if (p?.id) row.dataset.pid = p.id;
+        const grid1 = document.createElement('div'); grid1.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;';
+        const lblIn = document.createElement('input'); lblIn.type = 'text'; lblIn.placeholder = 'اسم/عنوان'; lblIn.dataset.key = 'label'; lblIn.maxLength = 100;
+        lblIn.value = p?.label || '';
+        lblIn.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const typeSel = document.createElement('select');
+        typeSel.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        typeSel.dataset.key = 'type';
+        types.forEach(([v, t]) => { const opt = document.createElement('option'); opt.value = v; opt.textContent = t; if (p?.type === v) opt.selected = true; typeSel.appendChild(opt); });
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        grid1.append(lblIn, typeSel, del);
+        const grid2 = document.createElement('div'); grid2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 80px;gap:6px;';
+        const city = document.createElement('input'); city.type = 'text'; city.placeholder = 'المدينة'; city.dataset.key = 'city'; city.maxLength = 50;
+        city.value = p?.city || '';
+        city.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const val = document.createElement('input'); val.type = 'number'; val.placeholder = 'القيمة'; val.dataset.key = 'valueSar'; val.min = '0'; val.step = '10000';
+        val.value = p?.valueSar || '';
+        val.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const rent = document.createElement('input'); rent.type = 'number'; rent.placeholder = 'إيجار شهري'; rent.dataset.key = 'monthlyRentSar'; rent.min = '0';
+        rent.value = p?.monthlyRentSar || '';
+        rent.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const loan = document.createElement('input'); loan.type = 'number'; loan.placeholder = 'قرض متبقّي'; loan.dataset.key = 'outstandingLoanSar'; loan.min = '0';
+        loan.value = p?.outstandingLoanSar || '';
+        loan.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;color:#c54a3a;';
+        grid2.append(city, val, rent, loan);
+        row.append(grid1, grid2);
+        list.appendChild(row);
+      };
+      (r.properties || []).forEach(addRow);
+      addBtn.addEventListener('click', () => {
+        if (list.querySelectorAll('[data-role="prop-row"]').length >= 15) {
+          App.toast && App.toast('الحدّ الأقصى ١٥ عقاراً', 'error');
+          return;
+        }
+        addRow(null);
+      });
+      notifyMaint.checked = r.notifyOnMaintenanceCosts !== false;
+      includeWealth.checked = r.includeInWealthView !== false;
+      btn.addEventListener('click', async () => {
+        const rows = list.querySelectorAll('[data-role="prop-row"]');
+        const properties = [];
+        rows.forEach(row => {
+          const p = {};
+          if (row.dataset.pid) p.id = row.dataset.pid;
+          row.querySelectorAll('select, input').forEach(el => { p[el.dataset.key] = el.type === 'number' ? Number(el.value) : el.value; });
+          if (p.label && p.valueSar > 0) properties.push(p);
+        });
+        try {
+          await App.api('PUT', '/app/me/real-estate-holdings', {
+            properties,
+            notifyOnMaintenanceCosts: notifyMaint.checked,
+            includeInWealthView: includeWealth.checked,
+          });
+          App.toast && App.toast('تم حفظ العقارات', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
