@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Tax plan -->
+  <div class="settings-group" id="taxSec">
+    <div class="settings-h">📊 التخطيط الضريبي والزكوي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">"السعوديّة بلا ضرائب" خرافة. خطّة ضريبيّة ذكيّة توفّر آلاف الريالات.</p>
+      <div id="taxDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نوع الإقامة
+          <select id="taxResidency" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="">—</option>
+            <option value="saudi_resident">سعودي مقيم</option>
+            <option value="gcc_resident">خليجي مقيم</option>
+            <option value="expat_resident">وافد مقيم</option>
+            <option value="non_resident">غير مقيم</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxBusinessOwner" /> صاحب عمل/منشأة تجاريّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxVatReg" /> مسجَّل في ضريبة القيمة المضافة (VAT)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxZakatEntity" /> منشأة دافعة للزكاة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxAdvisor" /> لديّ مستشار ضريبي/زكوي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxGosi" /> أتتبّع اشتراكات التأمينات (GOSI)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxRett" /> واعٍ بضريبة التصرّفات العقاريّة (RETT)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="taxWht" /> واعٍ بضريبة الاستقطاع للمدفوعات الأجنبيّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ميزانيّة ضريبيّة شهريّة (ر.س)
+          <input type="number" id="taxBudget" min="0" step="50" placeholder="٠" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <button type="button" id="taxSaveBtn" style="margin-top:6px;background:var(--ink);color:#fff;border:none;padding:10px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ESG plan -->
   <div class="settings-group" id="esgSec">
     <div class="settings-h">🌱 الاستثمار المسؤول (ESG) والإسلامي</div>
@@ -10912,6 +10957,64 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Tax plan
+  (async () => {
+    try {
+      const residency = document.getElementById('taxResidency');
+      const biz = document.getElementById('taxBusinessOwner');
+      const vat = document.getElementById('taxVatReg');
+      const zakat = document.getElementById('taxZakatEntity');
+      const advisor = document.getElementById('taxAdvisor');
+      const gosi = document.getElementById('taxGosi');
+      const rett = document.getElementById('taxRett');
+      const wht = document.getElementById('taxWht');
+      const budget = document.getElementById('taxBudget');
+      const disc = document.getElementById('taxDisc');
+      const saveBtn = document.getElementById('taxSaveBtn');
+      if (!saveBtn) return;
+      const render = (p) => {
+        if (!p || !disc) return;
+        const level = p.level || 'starter';
+        const labels = { master: '🏆 محترف ضريبي', practiced: '🎯 ممارس', learning: '🌱 يتعلّم', starter: '🆕 مبتدئ' };
+        disc.textContent = (labels[level] || level) + ' · ' + (p.disciplineScore || 0) + '/١٠٠';
+      };
+      try {
+        const r = await App.api('GET', '/app/me/tax-plan');
+        const p = r.plan || {};
+        if (residency) residency.value = p.residencyType || '';
+        if (biz) biz.checked = !!p.isBusinessOwner;
+        if (vat) vat.checked = !!p.vatRegistered;
+        if (zakat) zakat.checked = !!p.zakatPayingEntity;
+        if (advisor) advisor.checked = !!p.hasTaxAdvisor;
+        if (gosi) gosi.checked = !!p.gosiTracked;
+        if (rett) rett.checked = !!p.rettAware;
+        if (wht) wht.checked = !!p.withholdingAware;
+        if (budget) budget.value = p.monthlyTaxBudget || 0;
+        render(p);
+      } catch (e) {}
+      saveBtn.addEventListener('click', async () => {
+        try {
+          const body = {
+            residencyType: residency?.value || '',
+            isBusinessOwner: !!biz?.checked,
+            vatRegistered: !!vat?.checked,
+            zakatPayingEntity: !!zakat?.checked,
+            hasTaxAdvisor: !!advisor?.checked,
+            gosiTracked: !!gosi?.checked,
+            rettAware: !!rett?.checked,
+            withholdingAware: !!wht?.checked,
+            monthlyTaxBudget: Number(budget?.value || 0)
+          };
+          const r = await App.api('PUT', '/app/me/tax-plan', body);
+          render(r.plan);
+          App.toast('تمّ حفظ خطّتك الضريبيّة', 'success');
+        } catch (e) {
+          App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
