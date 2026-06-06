@@ -859,6 +859,59 @@
     </div>
   </div>
 
+  <!-- Fee awareness -->
+  <div class="settings-group" id="faSec">
+    <div class="settings-h">💸 الوعي بالرسوم في الاستثمار</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">١٪ زائدة سنويًّا = ٢٥٪ من ثروتك بعد ٣٠ سنة. اعرف ما تدفعه.</p>
+      <div id="faAware" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="faBurden" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="faNet" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faActive" /> فعّل خطّة الوعي بالرسوم
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">حجم محفظتك (ر.س)
+          <input type="number" id="faSize" min="0" max="1000000000" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">متوسّط الرسوم السنويّة (٪)
+          <input type="number" id="faPct" min="0" max="20" step="0.1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي ما دفعته رسومًا هذه السنة (ر.س)
+          <input type="number" id="faAmt" min="0" max="10000000" step="50" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">العائد الإجمالي المتوقّع (٪)
+          <input type="number" id="faYield" min="0" max="50" step="0.1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faTER" /> أقرأ TER (إجمالي نسبة الرسوم) قبل كلّ استثمار
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faCmp" /> أقارن رسوم مماثلة من جهات مختلفة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faNeg" /> أتفاوض على الرسوم للمحافظ الكبيرة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faTrack" /> أتتبّع العائد الصافي (بعد الرسوم والزكاة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faAvoid" /> أتجنّب الصناديق النشطة عالية الرسوم
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faLimit" /> أحدّ من تكرار التداول (يقلّل الرسوم)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faReview" /> مراجعة سنويّة لإجمالي الرسوم المدفوعة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="faNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="faSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الرسوم</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Cybersec plan -->
   <div class="settings-group" id="cySec">
     <div class="settings-h">🔐 الأمن السيبراني (حماية حسابك)</div>
@@ -9815,6 +9868,98 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Fee awareness
+  (async () => {
+    try {
+      const active = document.getElementById('faActive');
+      const size = document.getElementById('faSize');
+      const pct = document.getElementById('faPct');
+      const amt = document.getElementById('faAmt');
+      const yld = document.getElementById('faYield');
+      const ter = document.getElementById('faTER');
+      const cmp = document.getElementById('faCmp');
+      const neg = document.getElementById('faNeg');
+      const track = document.getElementById('faTrack');
+      const avoid = document.getElementById('faAvoid');
+      const limit = document.getElementById('faLimit');
+      const review = document.getElementById('faReview');
+      const notes = document.getElementById('faNotes');
+      const awareEl = document.getElementById('faAware');
+      const burdenEl = document.getElementById('faBurden');
+      const netEl = document.getElementById('faNet');
+      const btn = document.getElementById('faSave');
+      if (!active || !btn) return;
+      const awareLabels = {
+        mastered: '🏆 متقن',
+        disciplined: '🎯 منضبط',
+        learning: '📘 يتعلّم',
+        unaware: '🚨 غير واعٍ',
+      };
+      const burdenLabels = {
+        low: '✅ رسوم منخفضة (< ٠٫٥٪)',
+        moderate: '🟢 معتدلة (٠٫٥-١٫٥٪)',
+        high: '🟠 مرتفعة (١٫٥-٢٫٥٪)',
+        very_high: '🔴 مرتفعة جدًّا (> ٢٫٥٪)',
+        unknown: '❔ لم تُحدّد',
+      };
+      const r = await App.api('GET', '/app/me/fee-awareness');
+      active.checked = !!r.active;
+      size.value = Number(r.portfolioSize || 0);
+      pct.value = Number(r.avgAnnualFeesPct || 0);
+      amt.value = Number(r.annualFeesAmount || 0);
+      yld.value = Number(r.expectedYieldPct || 0);
+      ter.checked = !!r.readsTER;
+      cmp.checked = !!r.comparesFees;
+      neg.checked = !!r.negotiatesFees;
+      track.checked = !!r.tracksNetReturn;
+      avoid.checked = !!r.avoidsHighFeeActive;
+      limit.checked = !!r.limitsTradingFreq;
+      review.checked = !!r.annualFeeReview;
+      notes.value = r.notes || '';
+      if (awareEl) awareEl.textContent = (awareLabels[r.awarenessLevel] || '—') + ' · ' + r.awarenessScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (burdenEl) burdenEl.textContent = burdenLabels[r.feeBurden] || '—';
+      if (netEl) {
+        const net = r.netYieldPct;
+        const icon = net > 5 ? '✅' : (net > 2 ? '🟡' : '🚨');
+        netEl.textContent = icon + ' عائد صافي تقديري: ' + net.toFixed(1) + '٪ (إجمالي ' + r.expectedYieldPct + '٪ - رسوم ' + r.avgAnnualFeesPct + '٪)';
+      }
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/fee-awareness', {
+            active: active.checked,
+            avgAnnualFeesPct: Number(pct.value || 0),
+            annualFeesAmount: Number(amt.value || 0),
+            portfolioSize: Number(size.value || 0),
+            expectedYieldPct: Number(yld.value || 0),
+            readsTER: ter.checked,
+            comparesFees: cmp.checked,
+            negotiatesFees: neg.checked,
+            tracksNetReturn: track.checked,
+            avoidsHighFeeActive: avoid.checked,
+            limitsTradingFreq: limit.checked,
+            annualFeeReview: review.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الرسوم', 'success');
+            const r2 = await App.api('GET', '/app/me/fee-awareness');
+            if (awareEl) awareEl.textContent = (awareLabels[r2.awarenessLevel] || '—') + ' · ' + r2.awarenessScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (burdenEl) burdenEl.textContent = burdenLabels[r2.feeBurden] || '—';
+            if (netEl) {
+              const net = r2.netYieldPct;
+              const icon = net > 5 ? '✅' : (net > 2 ? '🟡' : '🚨');
+              netEl.textContent = icon + ' عائد صافي تقديري: ' + net.toFixed(1) + '٪ (إجمالي ' + r2.expectedYieldPct + '٪ - رسوم ' + r2.avgAnnualFeesPct + '٪)';
+            }
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
