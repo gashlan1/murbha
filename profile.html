@@ -859,6 +859,48 @@
     </div>
   </div>
 
+  <!-- Crypto sharia screen -->
+  <div class="settings-group" id="crySec">
+    <div class="settings-h">🔐 الفرز الشرعي للأصول الرقميّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">الكرپتو ليست شرعيّة بشكل عامّ ولا حرامًا بشكل عامّ. كلّ عملة لها حكمها.</p>
+      <div id="cryDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryHolds" /> أملك أصولًا رقميّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryCold" /> أستخدم Cold Wallet للمبالغ الكبيرة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryFatwa" /> أتابع مصدر فتاوى موثوق
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cry2fa" /> 2FA مفعّل على كلّ المنصّات
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryMargin" /> أتجنّب Margin Trading
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryLending" /> أتجنّب Lending/Yield ربوي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryZakat" /> أخرج زكاة الكرپتو سنويًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryWill" /> Seed phrase backup مع الوصيّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cryRwa" /> أفضّل tokens مدعومة بأصول حقيقيّة (RWA)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة الكرپتو من محفظتك (٪)
+          <input type="number" id="cryAlloc" min="0" max="100" step="0.5" placeholder="٥" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <button type="button" id="crySaveBtn" style="margin-top:6px;background:var(--ink);color:#fff;border:none;padding:10px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Flip vs Hold -->
   <div class="settings-group" id="fhSec">
     <div class="settings-h">🏠 التقليب مقابل الاحتفاظ</div>
@@ -11049,6 +11091,66 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Crypto sharia screen
+  (async () => {
+    try {
+      const holds = document.getElementById('cryHolds');
+      const cold = document.getElementById('cryCold');
+      const fatwa = document.getElementById('cryFatwa');
+      const twofa = document.getElementById('cry2fa');
+      const margin = document.getElementById('cryMargin');
+      const lending = document.getElementById('cryLending');
+      const zakat = document.getElementById('cryZakat');
+      const will = document.getElementById('cryWill');
+      const rwa = document.getElementById('cryRwa');
+      const alloc = document.getElementById('cryAlloc');
+      const disc = document.getElementById('cryDisc');
+      const saveBtn = document.getElementById('crySaveBtn');
+      if (!saveBtn) return;
+      const render = (p) => {
+        if (!p || !disc) return;
+        const labels = { master: '🏆 مفروز ومنضبط', practiced: '🎯 ممارس', learning: '🌱 يتعلّم', starter: '🆕 مبتدئ' };
+        disc.textContent = (labels[p.level] || p.level || '') + ' · ' + (p.disciplineScore || 0) + '/١٠٠';
+      };
+      try {
+        const r = await App.api('GET', '/app/me/crypto-screen');
+        const p = r.plan || {};
+        if (holds) holds.checked = !!p.holdsCrypto;
+        if (cold) cold.checked = !!p.usesColdWallet;
+        if (fatwa) fatwa.checked = !!p.hasFatwaSource;
+        if (twofa) twofa.checked = !!p.has2fa;
+        if (margin) margin.checked = !!p.avoidsMargin;
+        if (lending) lending.checked = !!p.avoidsLending;
+        if (zakat) zakat.checked = !!p.zakatPaying;
+        if (will) will.checked = !!p.willBackup;
+        if (rwa) rwa.checked = !!p.rwaPreference;
+        if (alloc) alloc.value = p.allocationPct || 0;
+        render(p);
+      } catch (e) {}
+      saveBtn.addEventListener('click', async () => {
+        try {
+          const body = {
+            holdsCrypto: !!holds?.checked,
+            usesColdWallet: !!cold?.checked,
+            hasFatwaSource: !!fatwa?.checked,
+            has2fa: !!twofa?.checked,
+            avoidsMargin: !!margin?.checked,
+            avoidsLending: !!lending?.checked,
+            zakatPaying: !!zakat?.checked,
+            willBackup: !!will?.checked,
+            rwaPreference: !!rwa?.checked,
+            allocationPct: Number(alloc?.value || 0)
+          };
+          const r = await App.api('PUT', '/app/me/crypto-screen', body);
+          render(r.plan);
+          App.toast('تمّ حفظ فرزك الرقمي', 'success');
+        } catch (e) {
+          App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
