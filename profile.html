@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Side hustle -->
+  <div class="settings-group" id="shSec">
+    <div class="settings-h">💼 إدارة دخل العمل الجانبي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">دخل غير منتظم لا يعني فوضى. نظام ٤ حسابات + راتب ذاتي = ثروة.</p>
+      <div id="shDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shIncome" /> لديّ دخل جانبي/متغيّر
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shSalary" /> أدفع لنفسي راتبًا ثابتًا شهريًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sh4Acc" /> أستخدم نظام ٤ حسابات (شخصي + ضرائب + استثمار في العمل + ادّخار)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shBank" /> حساب بنكي منفصل للعمل الجانبي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shContract" /> أستخدم عقودًا مكتوبة لكلّ عمل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shTax" /> أقتطع ضريبة/زكاة فورًا من كلّ دخل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shBooks" /> مراجعة دفاتر أسبوعيّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shFull" /> أخطّط للتفرّغ الكامل قريبًا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">متوسّط دخل جانبي شهري (ر.س)
+          <input type="number" id="shInc" min="0" step="100" placeholder="٥٬٠٠٠" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة الادّخار من الدخل الجانبي (٪)
+          <input type="number" id="shSv" min="0" max="100" step="0.5" placeholder="٢٠" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد العملاء النشطين
+          <input type="number" id="shCli" min="0" step="1" placeholder="٥" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <button type="button" id="shSaveBtn" style="margin-top:6px;background:var(--ink);color:#fff;border:none;padding:10px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Crypto sharia screen -->
   <div class="settings-group" id="crySec">
     <div class="settings-h">🔐 الفرز الشرعي للأصول الرقميّة</div>
@@ -11091,6 +11136,69 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Side hustle
+  (async () => {
+    try {
+      const inc = document.getElementById('shIncome');
+      const sal = document.getElementById('shSalary');
+      const acc = document.getElementById('sh4Acc');
+      const bank = document.getElementById('shBank');
+      const con = document.getElementById('shContract');
+      const tax = document.getElementById('shTax');
+      const books = document.getElementById('shBooks');
+      const full = document.getElementById('shFull');
+      const monthly = document.getElementById('shInc');
+      const sv = document.getElementById('shSv');
+      const cli = document.getElementById('shCli');
+      const disc = document.getElementById('shDisc');
+      const saveBtn = document.getElementById('shSaveBtn');
+      if (!saveBtn) return;
+      const render = (p) => {
+        if (!p || !disc) return;
+        const labels = { master: '🏆 صاحب دخل منضبط', practiced: '🎯 ممارس', learning: '🌱 يتعلّم', starter: '🆕 مبتدئ' };
+        disc.textContent = (labels[p.level] || p.level || '') + ' · ' + (p.disciplineScore || 0) + '/١٠٠';
+      };
+      try {
+        const r = await App.api('GET', '/app/me/side-hustle');
+        const p = r.plan || {};
+        if (inc) inc.checked = !!p.hasSideIncome;
+        if (sal) sal.checked = !!p.paysSelfFixedSalary;
+        if (acc) acc.checked = !!p.uses4AccountSystem;
+        if (bank) bank.checked = !!p.separateBankAccount;
+        if (con) con.checked = !!p.usesWrittenContracts;
+        if (tax) tax.checked = !!p.taxBufferEnabled;
+        if (books) books.checked = !!p.weeklyBookkeeping;
+        if (full) full.checked = !!p.readyForFullTime;
+        if (monthly) monthly.value = p.avgMonthlyIncome || 0;
+        if (sv) sv.value = p.savingsPct || 0;
+        if (cli) cli.value = p.clientCount || 0;
+        render(p);
+      } catch (e) {}
+      saveBtn.addEventListener('click', async () => {
+        try {
+          const body = {
+            hasSideIncome: !!inc?.checked,
+            paysSelfFixedSalary: !!sal?.checked,
+            uses4AccountSystem: !!acc?.checked,
+            separateBankAccount: !!bank?.checked,
+            usesWrittenContracts: !!con?.checked,
+            taxBufferEnabled: !!tax?.checked,
+            weeklyBookkeeping: !!books?.checked,
+            readyForFullTime: !!full?.checked,
+            avgMonthlyIncome: Number(monthly?.value || 0),
+            savingsPct: Number(sv?.value || 0),
+            clientCount: Number(cli?.value || 0)
+          };
+          const r = await App.api('PUT', '/app/me/side-hustle', body);
+          render(r.plan);
+          App.toast('تمّ حفظ خطّتك', 'success');
+        } catch (e) {
+          App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();

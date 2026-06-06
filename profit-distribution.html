@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>توزيع الأرباح — مُرابحة</title>
+<meta name="description" content="تقويم توزيعات الأرباح القادمة وسجل المدفوعات السابقة. خيار إعادة الاستثمار التلقائي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;flex:1;min-width:140px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .kpi.gold .kpi-val{color:var(--gold);}
+  .reinvest-bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+  .reinvest-text{flex:1;}
+  .reinvest-title{font:700 13px Cairo,sans-serif;color:var(--green-dark);}
+  .reinvest-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .toggle{position:relative;width:46px;height:26px;cursor:pointer;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;position:absolute;}
+  .toggle-track{position:absolute;inset:0;background:#ccc;border-radius:99px;transition:.3s;}
+  .toggle input:checked+.toggle-track{background:var(--green);}
+  .toggle-thumb{position:absolute;top:3px;right:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;}
+  .toggle input:checked~.toggle-thumb{right:23px;}
+  .section-title{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;}
+  .upcoming-list{display:grid;gap:10px;margin-bottom:22px;}
+  .upcoming-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  .upcoming-deal{font:700 13px Cairo,sans-serif;color:var(--green-dark);}
+  .upcoming-date{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .upcoming-amount{font:900 16px Cairo,sans-serif;color:var(--gold);text-align:end;}
+  .upcoming-type{font:500 10px Tajawal,sans-serif;color:var(--muted);text-align:end;margin-top:2px;}
+  .history-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .history-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .history-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .history-table tr:last-child td{border-bottom:none;}
+  .badge-paid{background:#e8f5e9;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;color:#2e7d32;}
+  .badge-reinvested{background:#e3f2fd;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;color:#1565c0;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>💰 توزيع الأرباح</h1>
+    <p>تقويم الدفعات القادمة وسجل المدفوعات. فعّل إعادة الاستثمار التلقائي لتنمية محفظتك.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">إجمالي الأرباح المدفوعة (ر.س)</div></div>
+    <div class="kpi gold"><div class="kpi-val">—</div><div class="kpi-lbl">الدفعة القادمة (ر.س)</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">تاريخ الدفعة القادمة</div></div>
+  </div>
+
+  <div class="reinvest-bar">
+    <div class="reinvest-text">
+      <div class="reinvest-title">♻️ إعادة الاستثمار التلقائي</div>
+      <div class="reinvest-desc">إعادة استثمار الأرباح تلقائياً في أفضل الصفقات المتاحة</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="reinvestToggle" />
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+  </div>
+
+  <div class="section-title">📅 الدفعات القادمة</div>
+  <div class="upcoming-list" id="upcomingList"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="section-title">📋 سجل الدفعات السابقة</div>
+  <div id="historyArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function renderKPIs(d){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    const items=[
+      {val:fmt(d.totalPaid||0)+' ر.س',lbl:'إجمالي الأرباح المدفوعة',gold:false},
+      {val:fmt(d.nextAmount||0)+' ر.س',lbl:'الدفعة القادمة',gold:true},
+      {val:d.nextDate||'—',lbl:'تاريخ الدفعة القادمة',gold:false},
+    ];
+    items.forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi'+(it.gold?' gold':'');
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); row.appendChild(k);
+    });
+  }
+
+  function renderUpcoming(payments){
+    const list=document.getElementById('upcomingList'); list.textContent='';
+    if(!payments.length){ const m=document.createElement('p'); m.className='empty-msg'; m.textContent='لا توجد دفعات قادمة.'; list.appendChild(m); return; }
+    payments.forEach(p=>{
+      const card=document.createElement('div'); card.className='upcoming-card';
+      const info=document.createElement('div');
+      const deal=document.createElement('div'); deal.className='upcoming-deal'; deal.textContent=p.dealTitle||'—';
+      const date=document.createElement('div'); date.className='upcoming-date'; date.textContent=p.date||'—';
+      info.appendChild(deal); info.appendChild(date);
+      const amtBlock=document.createElement('div');
+      const amt=document.createElement('div'); amt.className='upcoming-amount'; amt.textContent='+'+fmt(p.amount||0)+' ر.س';
+      const type=document.createElement('div'); type.className='upcoming-type'; type.textContent=p.type||'ربح دوري';
+      amtBlock.appendChild(amt); amtBlock.appendChild(type);
+      card.appendChild(info); card.appendChild(amtBlock);
+      list.appendChild(card);
+    });
+  }
+
+  function renderHistory(payments){
+    const area=document.getElementById('historyArea'); area.textContent='';
+    if(!payments.length){ const m=document.createElement('p'); m.className='empty-msg'; m.textContent='لا توجد مدفوعات سابقة.'; area.appendChild(m); return; }
+    const table=document.createElement('table'); table.className='history-table';
+    const thead=document.createElement('thead'); const hr=document.createElement('tr');
+    ['الصفقة','التاريخ','المبلغ (ر.س)','النوع','الحالة'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    payments.forEach(p=>{
+      const tr=document.createElement('tr');
+      [p.dealTitle||'—',p.date||'—',fmt(p.amount||0),p.type||'ربح دوري'].forEach(val=>{ const td=document.createElement('td'); td.textContent=val; tr.appendChild(td); });
+      const tdS=document.createElement('td');
+      const badge=document.createElement('span'); badge.className=p.reinvested?'badge-reinvested':'badge-paid';
+      badge.textContent=p.reinvested?'أُعيد استثماره':'مدفوع'; tdS.appendChild(badge); tr.appendChild(tdS);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); area.appendChild(table);
+  }
+
+  document.getElementById('reinvestToggle').addEventListener('change', async function(){
+    const enabled=this.checked;
+    try{
+      const r=await fetch('/app/me/profit-distribution/reinvest',{method:'PUT',headers:{'X-CSRF-Token':csrf()},body:JSON.stringify({enabled})});
+      if(!r.ok){ this.checked=!enabled; showToast('تعذّر التحديث.'); return; }
+      showToast(enabled?'تم تفعيل إعادة الاستثمار التلقائي ✅':'تم إيقاف إعادة الاستثمار التلقائي');
+    }catch{ this.checked=!enabled; showToast('خطأ في الاتصال.'); }
+  });
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/profit-distribution');
+      if(!r.ok){
+        ['upcomingList','historyArea'].forEach(id=>{ const el=document.getElementById(id); el.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; el.appendChild(m); });
+        return;
+      }
+      const d=await r.json();
+      renderKPIs(d);
+      document.getElementById('reinvestToggle').checked=!!d.reinvestEnabled;
+      renderUpcoming(d.upcoming||[]);
+      renderHistory(d.history||[]);
+    }catch{
+      ['upcomingList','historyArea'].forEach(id=>{ const el=document.getElementById(id); el.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; el.appendChild(m); });
+    }
+  }());
+}());
+</script>
+</body>
+</html>
