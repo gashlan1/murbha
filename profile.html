@@ -859,6 +859,56 @@
     </div>
   </div>
 
+  <!-- Spouse link -->
+  <div class="settings-group" id="spouseSec">
+    <div class="settings-h">💑 ربط حساب شريك الحياة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">شفافيّة، صندوق مشترك، أهداف موحّدة، موافقة ثنائيّة على القرارات الكبرى.</p>
+      <div id="spouseStatus" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;font:700 12px Cairo,sans-serif;color:var(--green-dark);"></div>
+      <div id="spouseInviteForm" style="display:none;">
+        <div style="display:grid;gap:8px;">
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);">بريد شريك حياتك (مسجّل في مُرابحة)</label>
+          <input type="email" id="spInviteEmail" placeholder="spouse@example.com" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+          <button type="button" id="spInviteBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إرسال طلب الربط</button>
+        </div>
+      </div>
+      <div id="spouseControls" style="display:none;">
+        <div style="display:grid;gap:10px;">
+          <label style="display:flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="spDual" style="transform:scale(1.3);accent-color:#0a4d36;" />
+            👥 موافقة ثنائيّة على الاستثمارات الكبيرة
+          </label>
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حدّ الموافقة الثنائيّة (ر.س)</label>
+            <input type="number" id="spDualThr" min="0" step="500" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="spJointFund" style="transform:scale(1.3);accent-color:#0a4d36;" />
+            🏦 فعّل الصندوق المشترك
+          </label>
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نسبتي في الصندوق (٪)</label>
+            <input type="number" id="spMyPct" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="spReview" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+            📅 مراجعة ماليّة شهريّة مشتركة (تذكير)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="spShare" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+            🔄 شارك قراراتي الاستثماريّة مع شريك حياتي
+          </label>
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الأهداف المشتركة (افصل بفاصلة)</label>
+            <input type="text" id="spGoals" placeholder="دفعة بيت، تعليم الأبناء، حجّ، تقاعد" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 11px Cairo,sans-serif;" />
+          </div>
+        </div>
+        <button type="button" id="spSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ إعدادات الربط</button>
+        <button type="button" id="spUnlinkBtn" style="margin-top:12px;margin-inline-start:8px;background:#fff;color:#c54a3a;border:1px solid #c54a3a;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إلغاء الربط</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Horizon style (endowment model) -->
   <div class="settings-group" id="horizonStyleSec">
     <div class="settings-h">🏛 أسلوب الأفق (نموذج الوقف)</div>
@@ -5311,6 +5361,78 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Spouse link
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/spouse-link');
+      if (!r.hasData) return;
+      const statusBox = document.getElementById('spouseStatus');
+      const inviteForm = document.getElementById('spouseInviteForm');
+      const controls = document.getElementById('spouseControls');
+      const inviteEmail = document.getElementById('spInviteEmail');
+      const inviteBtn = document.getElementById('spInviteBtn');
+      const dual = document.getElementById('spDual');
+      const dualThr = document.getElementById('spDualThr');
+      const jointFund = document.getElementById('spJointFund');
+      const myPct = document.getElementById('spMyPct');
+      const review = document.getElementById('spReview');
+      const share = document.getElementById('spShare');
+      const goals = document.getElementById('spGoals');
+      const saveBtn = document.getElementById('spSaveBtn');
+      const unlinkBtn = document.getElementById('spUnlinkBtn');
+      if (!statusBox) return;
+      if (r.linked) {
+        statusBox.textContent = '✓ مرتبط مع ' + r.spouse.name + ' (' + r.spouse.email + ')';
+        inviteForm.style.display = 'none';
+        controls.style.display = '';
+        dual.checked = !!r.dualApprovalEnabled;
+        dualThr.value = r.dualApprovalThreshold;
+        jointFund.checked = !!r.jointFundEnabled;
+        myPct.value = r.myContributionPct;
+        review.checked = r.monthlyMutualReview !== false;
+        share.checked = r.shareInvestmentDecisions !== false;
+        goals.value = (r.sharedGoals || []).join('، ');
+      } else {
+        statusBox.textContent = '🔗 لم تربط حساب شريك حياتك بعد. أدخل بريده/ها لإرسال الطلب.';
+        inviteForm.style.display = '';
+        controls.style.display = 'none';
+      }
+      inviteBtn?.addEventListener('click', async () => {
+        if (!inviteEmail.value) { App.toast && App.toast('أدخل البريد', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/spouse-link', { spouseEmail: inviteEmail.value });
+          App.toast && App.toast('تم الربط بنجاح', 'success');
+          setTimeout(() => location.reload(), 800);
+        } catch (e) {
+          App.toast && App.toast(e?.error === 'spouse_not_found' ? 'البريد غير مسجّل في مُرابحة' : 'فشل', 'error');
+        }
+      });
+      saveBtn?.addEventListener('click', async () => {
+        const goalsArr = (goals.value || '').split('،').map(s => s.trim()).filter(Boolean);
+        try {
+          await App.api('PUT', '/app/me/spouse-link', {
+            dualApprovalEnabled: dual.checked,
+            dualApprovalThreshold: Number(dualThr.value),
+            jointFundEnabled: jointFund.checked,
+            myContributionPct: Number(myPct.value),
+            monthlyMutualReview: review.checked,
+            shareInvestmentDecisions: share.checked,
+            sharedGoals: goalsArr,
+          });
+          App.toast && App.toast('تم حفظ إعدادات الربط', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
+      });
+      unlinkBtn?.addEventListener('click', async () => {
+        if (!confirm('هل أنت متأكّد من إلغاء الربط؟')) return;
+        try {
+          await App.api('DELETE', '/app/me/spouse-link');
+          App.toast && App.toast('تم إلغاء الربط', 'success');
+          setTimeout(() => location.reload(), 800);
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
