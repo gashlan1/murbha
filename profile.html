@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Active sessions -->
+  <div class="settings-group" id="sessSec" style="display:none;">
+    <div class="settings-h">🔐 الأجهزة المتّصلة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">آخر دخولات حسابك. إذا رأيت دخولاً غير معروف، اضغط "تسجيل خروج من كلّ الأجهزة".</p>
+      <div id="sessList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+      <button type="button" id="sessRevokeBtn" style="width:100%;padding:12px;background:#c54a3a;color:#fff;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">🚪 تسجيل الخروج من جميع الأجهزة</button>
+    </div>
+  </div>
+
   <!-- Annual statements -->
   <div class="settings-group" id="annStmtSec" style="display:none;">
     <div class="settings-h">📑 كشوف الحساب السنويّة</div>
@@ -3445,6 +3455,46 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Active sessions
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/sessions');
+      if (!r.hasData) return;
+      const sec = document.getElementById('sessSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('sessList');
+      const revokeBtn = document.getElementById('sessRevokeBtn');
+      list.replaceChildren();
+      r.sessions.forEach(s => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;background:' + (s.isCurrent ? '#eaf6ee' : 'var(--paper)') + ';border:1px solid ' + (s.isCurrent ? '#0f6e3a' : 'rgba(13,22,18,0.08)') + ';border-radius:8px;padding:10px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:18px;text-align:center;'; ic.textContent = s.isCurrent ? '✅' : '🖥';
+        const txt = document.createElement('div');
+        const t1 = document.createElement('div'); t1.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+        t1.textContent = (s.isCurrent ? 'هذه الجلسة الحاليّة' : 'جلسة سابقة') + (s.location ? ' · ' + s.location : '');
+        const t2 = document.createElement('div'); t2.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        t2.textContent = (s.at ? new Date(s.at).toLocaleString('ar-SA') : '—') + ' · ' + s.ip;
+        const t3 = document.createElement('div'); t3.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; t3.textContent = s.userAgent;
+        txt.append(t1, t2, t3);
+        row.append(ic, txt);
+        list.appendChild(row);
+      });
+      revokeBtn.addEventListener('click', async () => {
+        if (!confirm('سيتم تسجيل خروجك من جميع الأجهزة بما فيها هذا. متابعة؟')) return;
+        revokeBtn.disabled = true;
+        try {
+          await App.api('POST', '/app/me/sessions/revoke-all', {});
+          if (App.toast) App.toast('تمّ تسجيل الخروج من جميع الأجهزة', 'success');
+          setTimeout(() => location.href = '/login', 1500);
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+          revokeBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
