@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Cash rules -->
+  <div class="settings-group" id="cashRulesSec">
+    <div class="settings-h">💧 قواعد إدارة السيولة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اضبط حدود السيولة وأتمت توزيع الفائض على الاستثمار.</p>
+      <div id="cashRulesHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;font:800 13px Cairo,sans-serif;"></div>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مصاريفك الشهريّة (ر.س)</label>
+          <input type="number" id="crMonthly" min="0" step="500" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">صندوق طوارئ (شهر معيشة)</label>
+          <input type="number" id="crMonths" min="0" max="24" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">سيولة الفرص (٪ من المحفظة)</label>
+          <input type="number" id="crOpp" min="0" max="50" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="crAutoSweep" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔁 جرّف الفائض تلقائياً للاستثمار
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حدّ الجرف (ر.س)</label>
+          <input type="number" id="crThreshold" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">أيّ مبلغ فوق هذا الحدّ سيُستثمر آلياً</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="crAlertHigh" checked style="transform:scale(1.3);accent-color:#c54a3a;" />
+          🔔 نبّهني عند السيولة العالية
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="crAlertLow" checked style="transform:scale(1.3);accent-color:#c54a3a;" />
+          🔔 نبّهني عند السيولة المنخفضة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="crReview" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📅 ذكّرني بمراجعة السيولة شهرياً
+        </label>
+      </div>
+      <button type="button" id="crSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ قواعد السيولة</button>
+    </div>
+  </div>
+
   <!-- Seasonal preferences -->
   <div class="settings-group" id="seasonPrefSec">
     <div class="settings-h">📅 تفضيلات الموسميّة</div>
@@ -5192,6 +5237,56 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Cash rules
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/cash-rules');
+      if (!r.hasData) return;
+      const monthly = document.getElementById('crMonthly');
+      const months = document.getElementById('crMonths');
+      const opp = document.getElementById('crOpp');
+      const autoSweep = document.getElementById('crAutoSweep');
+      const threshold = document.getElementById('crThreshold');
+      const alertHigh = document.getElementById('crAlertHigh');
+      const alertLow = document.getElementById('crAlertLow');
+      const review = document.getElementById('crReview');
+      const hero = document.getElementById('cashRulesHero');
+      const btn = document.getElementById('crSaveBtn');
+      if (!btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      monthly.value = r.monthlyExpenses;
+      months.value = r.emergencyMonths;
+      opp.value = r.opportunityCashPct;
+      autoSweep.checked = !!r.autoSweepEnabled;
+      threshold.value = r.sweepThreshold;
+      alertHigh.checked = r.alertHigh !== false;
+      alertLow.checked = r.alertLow !== false;
+      review.checked = r.monthlyReviewReminder !== false;
+      const emergencyTarget = r.monthlyExpenses * r.emergencyMonths;
+      const balance = r.currentIdleCash || 0;
+      const status = balance < emergencyTarget * 0.5 ? 'منخفضة' : (balance > emergencyTarget * 1.5 ? 'عالية (استثمر الفائض)' : 'في الحدّ');
+      const color = balance < emergencyTarget * 0.5 ? '#c54a3a' : (balance > emergencyTarget * 1.5 ? '#b08840' : '#0a4d36');
+      hero.style.display = '';
+      hero.style.background = 'linear-gradient(135deg,' + color + ',#062b1e)';
+      hero.textContent = '💧 رصيدك ' + fmt(balance) + ' ر.س · المستهدف ' + fmt(emergencyTarget) + ' · ' + status;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/cash-rules', {
+            monthlyExpenses: Number(monthly.value),
+            emergencyMonths: Number(months.value),
+            opportunityCashPct: Number(opp.value),
+            autoSweepEnabled: autoSweep.checked,
+            sweepThreshold: Number(threshold.value),
+            alertHigh: alertHigh.checked,
+            alertLow: alertLow.checked,
+            monthlyReviewReminder: review.checked,
+          });
+          App.toast && App.toast('تم حفظ قواعد السيولة', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
