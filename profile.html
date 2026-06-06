@@ -859,6 +859,44 @@
     </div>
   </div>
 
+  <!-- Qualified investor progress -->
+  <div class="settings-group" id="qualProgSec">
+    <div class="settings-h">🎖 الترقية لمستثمر مؤهّل</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اختر مساراً، استكمل المتطلّبات، احصل على الصفة. المسار ٤ آلي.</p>
+      <div id="qualStatusBox" style="display:none;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;font:800 13px Cairo,sans-serif;"></div>
+      <div id="qualPathway4" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">المسار ٤ — الاستثمار النشط (تلقائي)</div>
+        <div id="qualP4Progress" style="display:grid;gap:6px;"></div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">إقرار الذاتي للمسارات ١–٣</div>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">صافي ثروتك (ر.س — مسار ١)</label>
+          <input type="number" id="qpNetWorth" min="0" step="100000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">المطلوب: ٥ ملايين ر.س</div>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">دخلك السنوي (ر.س — مسار ٢)</label>
+          <input type="number" id="qpIncome" min="0" step="50000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">المطلوب: ١ مليون ر.س</div>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">سنوات الخبرة الماليّة (مسار ٣)</label>
+          <input type="number" id="qpExp" min="0" max="50" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">المطلوب: ٣ سنوات</div>
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">قدّم لمسار محدّد</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="qpApplyBtn" data-pw="net_worth" style="background:#0a4d36;color:#fff;border:none;padding:8px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">قدّم لـ مسار ١ (ثروة)</button>
+        <button type="button" class="qpApplyBtn" data-pw="income" style="background:#0a4d36;color:#fff;border:none;padding:8px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">قدّم لـ مسار ٢ (دخل)</button>
+        <button type="button" class="qpApplyBtn" data-pw="professional" style="background:#0a4d36;color:#fff;border:none;padding:8px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">قدّم لـ مسار ٣ (خبرة)</button>
+        <button type="button" class="qpApplyBtn" data-pw="active_investor" style="background:#b08840;color:#fff;border:none;padding:8px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">قدّم لـ مسار ٤ (آلي)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Beginner mode -->
   <div class="settings-group" id="beginnerSec">
     <div class="settings-h">🌱 وضع المبتدئ</div>
@@ -4906,6 +4944,72 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Qualified investor progress
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/qualification-progress');
+      if (!r.hasData) return;
+      const statusBox = document.getElementById('qualStatusBox');
+      const p4Wrap = document.getElementById('qualP4Progress');
+      const nw = document.getElementById('qpNetWorth');
+      const income = document.getElementById('qpIncome');
+      const exp = document.getElementById('qpExp');
+      if (!p4Wrap) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      if (r.qualified) {
+        statusBox.style.display = '';
+        statusBox.textContent = '🎖 أنت مستثمر مؤهّل · المسار: ' + (r.pathway || '—') + (r.qualifiedSince ? ' · منذ ' + new Date(r.qualifiedSince).toLocaleDateString('ar-SA') : '');
+      } else if (r.applicationStatus) {
+        statusBox.style.display = '';
+        statusBox.style.background = 'linear-gradient(135deg,#b08840,#062b1e)';
+        statusBox.textContent = '◷ طلبك ' + r.applicationStatus;
+      }
+      p4Wrap.replaceChildren();
+      const p4 = r.pathway4;
+      const items = [
+        { lbl: 'أشهر الاستثمار', current: p4.months, required: p4.monthsRequired, met: p4.monthsMet },
+        { lbl: 'عدد الصفقات', current: p4.deals, required: p4.dealsRequired, met: p4.dealsMet },
+        { lbl: 'حجم المحفظة', current: fmt(p4.portfolio) + ' ر.س', required: fmt(p4.portfolioRequired) + ' ر.س', met: p4.portfolioMet },
+      ];
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:8px 10px;';
+        const lbl = document.createElement('span'); lbl.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--green-dark);';
+        lbl.textContent = (it.met ? '✓ ' : '○ ') + it.lbl;
+        const v = document.createElement('span'); v.style.cssText = 'font:800 11px Cairo,sans-serif;color:' + (it.met ? '#0a4d36' : 'var(--muted)') + ';';
+        v.textContent = it.current + ' / ' + it.required;
+        row.append(lbl, v);
+        p4Wrap.appendChild(row);
+      });
+      if (p4.allMet && !r.qualified) {
+        const note = document.createElement('div');
+        note.style.cssText = 'margin-top:8px;font:800 11px Cairo,sans-serif;color:#0a4d36;text-align:center;';
+        note.textContent = '✓ تستوفي شروط المسار ٤ — قدّم الطلب وستُمنح فوراً';
+        p4Wrap.appendChild(note);
+      }
+      nw.value = r.pathway1NetWorth;
+      income.value = r.pathway2Income;
+      exp.value = r.pathway3Experience;
+      document.querySelectorAll('.qpApplyBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try {
+            const out = await App.api('POST', '/app/me/qualification-apply', {
+              pathway: btn.dataset.pw,
+              netWorth: Number(nw.value),
+              annualIncome: Number(income.value),
+              experienceYears: Number(exp.value),
+            });
+            if (out.autoApproved) {
+              App.toast && App.toast('🎖 تمّت ترقيتك تلقائياً!', 'success');
+            } else {
+              App.toast && App.toast('تم استلام طلبك للمراجعة', 'success');
+            }
+          } catch { App.toast && App.toast('فشل', 'error'); }
+        });
       });
     } catch (e) {}
   })();
