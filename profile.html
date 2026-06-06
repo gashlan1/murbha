@@ -859,6 +859,21 @@
     </div>
   </div>
 
+  <!-- Financial goals -->
+  <div class="settings-group" id="goalsSec">
+    <div class="settings-h">🎯 أهدافي الماليّة (دلاء الاستثمار)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">عرّف أهدافك (طوارئ، حجّ، بيت، تعليم، تقاعد). سنوصي بصفقات تناسب كلّ هدف.</p>
+      <div id="goalsList" style="display:grid;gap:10px;margin-bottom:10px;"></div>
+      <button type="button" id="goalsAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة هدف</button>
+      <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;">
+        <input type="checkbox" id="goalsAuto" style="transform:scale(1.3);accent-color:#0a4d36;" />
+        🤖 وزّع التوزيعات تلقائياً بحسب أولويّة الأهداف
+      </label>
+      <button type="button" id="goalsSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الأهداف</button>
+    </div>
+  </div>
+
   <!-- DD checklist progress -->
   <div class="settings-group" id="ddCheckSec">
     <div class="settings-h">📋 قائمة العناية الواجبة الشخصيّة</div>
@@ -4582,6 +4597,102 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Financial goals
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/financial-goals');
+      if (!r.hasData) return;
+      const list = document.getElementById('goalsList');
+      const addBtn = document.getElementById('goalsAddBtn');
+      const auto = document.getElementById('goalsAuto');
+      const saveBtn = document.getElementById('goalsSaveBtn');
+      if (!list || !saveBtn) return;
+      auto.checked = !!r.autoAllocate;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const goalTypes = [
+        ['emergency', '🆘 طوارئ'],
+        ['hajj', '🕋 الحجّ'],
+        ['home', '🏠 المنزل'],
+        ['education', '🎓 التعليم'],
+        ['marriage', '💍 الزواج'],
+        ['retirement', '🏖 التقاعد'],
+        ['big_purchase', '🚗 شراء كبير'],
+        ['business', '💼 مشروع'],
+        ['other', '📌 آخر'],
+      ];
+      const addRow = (g) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;';
+        card.dataset.role = 'goal-row';
+        const head = document.createElement('div'); head.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 30px;gap:6px;margin-bottom:8px;';
+        const type = document.createElement('select');
+        type.dataset.key = 'type';
+        type.style.cssText = 'padding:8px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        goalTypes.forEach(([v, t]) => {
+          const opt = document.createElement('option'); opt.value = v; opt.textContent = t;
+          if (g?.type === v) opt.selected = true;
+          type.appendChild(opt);
+        });
+        const name = document.createElement('input'); name.type = 'text'; name.placeholder = 'اسم الهدف'; name.dataset.key = 'name'; name.maxLength = 100;
+        name.value = g?.name || '';
+        name.style.cssText = 'padding:8px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => card.remove());
+        head.append(type, name, del);
+        const fields = document.createElement('div'); fields.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 60px;gap:6px;';
+        const target = document.createElement('input'); target.type = 'number'; target.placeholder = 'المستهدف (ر.س)'; target.dataset.key = 'targetAmount'; target.min = '0'; target.step = '1000';
+        target.value = g?.targetAmount || '';
+        target.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const current = document.createElement('input'); current.type = 'number'; current.placeholder = 'المُدّخر الآن'; current.dataset.key = 'currentAmount'; current.min = '0';
+        current.value = g?.currentAmount || 0;
+        current.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const date = document.createElement('input'); date.type = 'date'; date.dataset.key = 'targetDate';
+        if (g?.targetDate) { try { date.value = new Date(g.targetDate).toISOString().slice(0, 10); } catch {} }
+        date.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const prio = document.createElement('input'); prio.type = 'number'; prio.placeholder = 'أولويّة'; prio.dataset.key = 'priority'; prio.min = '1'; prio.max = '10';
+        prio.value = g?.priority || 5;
+        prio.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;';
+        fields.append(target, current, date, prio);
+        card.append(head, fields);
+        if (g?.id) card.dataset.gid = g.id;
+        if (g?.targetAmount > 0) {
+          const pct = Math.round((Number(g.currentAmount || 0) / Number(g.targetAmount)) * 100);
+          const progress = document.createElement('div');
+          progress.style.cssText = 'margin-top:8px;font:800 11px Cairo,sans-serif;color:' + (g.onTrack === true ? '#0a4d36' : (g.onTrack === false ? '#c54a3a' : 'var(--gold)')) + ';';
+          progress.textContent = '📊 ' + pct + '٪ من الهدف · ' + (g.onTrack === true ? '✓ في المسار' : (g.onTrack === false ? '⚠ متأخّر' : '—'));
+          card.appendChild(progress);
+        }
+        list.appendChild(card);
+      };
+      (r.goals || []).forEach(addRow);
+      addBtn.addEventListener('click', () => {
+        if (list.querySelectorAll('[data-role="goal-row"]').length >= 12) {
+          App.toast && App.toast('الحدّ الأقصى ١٢ هدفاً', 'error');
+          return;
+        }
+        addRow(null);
+      });
+      saveBtn.addEventListener('click', async () => {
+        const cards = list.querySelectorAll('[data-role="goal-row"]');
+        const goals = [];
+        cards.forEach(card => {
+          const g = {};
+          if (card.dataset.gid) g.id = card.dataset.gid;
+          card.querySelectorAll('select, input').forEach(el => {
+            const v = el.type === 'number' ? Number(el.value) : el.value;
+            g[el.dataset.key] = v;
+          });
+          if (g.name && g.targetAmount > 0) goals.push(g);
+        });
+        try {
+          await App.api('PUT', '/app/me/financial-goals', { goals, autoAllocate: auto.checked });
+          App.toast && App.toast('تم حفظ الأهداف', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
