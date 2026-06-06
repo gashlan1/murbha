@@ -859,6 +859,57 @@
     </div>
   </div>
 
+  <!-- Currency & number display -->
+  <div class="settings-group" id="currSec">
+    <div class="settings-h">💱 العملة والأرقام</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اختر العملة المعروضة وتنسيق الأرقام والتواريخ.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="currMain" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">العملة الأساسيّة</label>
+          <select id="currMain" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="SAR">🇸🇦 ر.س (ريال سعودي)</option>
+            <option value="USD">🇺🇸 USD (دولار)</option>
+            <option value="EUR">🇪🇺 EUR (يورو)</option>
+            <option value="GBP">🇬🇧 GBP (جنيه استرليني)</option>
+            <option value="AED">🇦🇪 د.إ (درهم إماراتي)</option>
+            <option value="KWD">🇰🇼 د.ك (دينار كويتي)</option>
+            <option value="BHD">🇧🇭 د.ب (دينار بحريني)</option>
+            <option value="QAR">🇶🇦 ر.ق (ريال قطري)</option>
+            <option value="OMR">🇴🇲 ر.ع (ريال عُماني)</option>
+            <option value="JOD">🇯🇴 د.أ (دينار أردني)</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="currDual" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="currDual" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);">إظهار عملة ثانية بجانب الأساسيّة</label>
+        </div>
+        <div id="currSecondaryBox" style="display:none;">
+          <label for="currSecondary" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">العملة الثانية</label>
+          <select id="currSecondary" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="GBP">🇬🇧 GBP</option>
+            <option value="SAR">🇸🇦 ر.س</option>
+            <option value="AED">🇦🇪 د.إ</option>
+          </select>
+        </div>
+        <div>
+          <label for="currFormat" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">تنسيق الأرقام</label>
+          <select id="currFormat" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="arabic">١٢٣٬٤٥٦٫٧٨ (أرقام عربيّة)</option>
+            <option value="western">123,456.78 (أرقام غربيّة)</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="currGreg" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="currGreg" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);">📅 استخدم التقويم الميلادي (افتراضي: هجري)</label>
+        </div>
+        <button type="button" id="currSave" style="padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Net worth investment limit -->
   <div class="settings-group" id="netWorthSec">
     <div class="settings-h">📐 سقف استثمارك حسب صافي ثروتك</div>
@@ -3882,6 +3933,46 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Currency & number display
+  (async () => {
+    const main = document.getElementById('currMain');
+    const dual = document.getElementById('currDual');
+    const secondaryBox = document.getElementById('currSecondaryBox');
+    const secondary = document.getElementById('currSecondary');
+    const fmt = document.getElementById('currFormat');
+    const greg = document.getElementById('currGreg');
+    const saveBtn = document.getElementById('currSave');
+    if (!main || !saveBtn) return;
+    try {
+      const r = await App.api('GET', '/app/me/currency-display');
+      if (!r.hasData) return;
+      main.value = r.displayCurrency;
+      dual.checked = r.showDualCurrency;
+      secondary.value = r.secondaryCurrency;
+      fmt.value = r.numberFormat;
+      greg.checked = r.useGregorianDates;
+      secondaryBox.style.display = dual.checked ? '' : 'none';
+      dual.addEventListener('change', () => { secondaryBox.style.display = dual.checked ? '' : 'none'; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/currency-display', {
+            displayCurrency: main.value,
+            showDualCurrency: dual.checked,
+            secondaryCurrency: secondary.value,
+            numberFormat: fmt.value,
+            useGregorianDates: greg.checked,
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
