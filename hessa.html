@@ -1310,9 +1310,37 @@
     margin-bottom: 22px;
   }
   .foot-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-weight: 500; font-size: 11px; }
-  .foot-bottom {
+
+  .foot-social {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 20px;
     padding-top: 18px;
     border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .foot-social a {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.65);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, color .2s, transform .12s, border-color .2s;
+    text-decoration: none;
+  }
+  .foot-social a:hover { transform: translateY(-1px); color: #fff; }
+  .foot-social a.tw:hover { background: #0d1612; border-color: #0d1612; }
+  .foot-social a.li:hover { background: #0a66c2; border-color: #0a66c2; }
+  .foot-social a.wa:hover { background: #25D366; border-color: #25D366; }
+  .foot-social a.ig:hover { background: linear-gradient(135deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888); border-color: transparent; }
+  .foot-social a.yt:hover { background: #ff0000; border-color: #ff0000; }
+  .foot-social svg { width: 18px; height: 18px; }
+
+  .foot-bottom {
+    padding-top: 0;
     color: rgba(255,255,255,0.4);
     font-size: 11px;
   }
@@ -1784,6 +1812,10 @@
 </header>
 
 <main id="main">
+
+<!-- ANNOUNCEMENT BANNER -->
+<div id="annBanner" style="display:none;"></div>
+
 <!-- HERO -->
 <section class="hero">
   <canvas id="higgs-field-canvas" aria-hidden="true"></canvas>
@@ -1833,6 +1865,49 @@
   </div>
 </section>
 
+<!-- LIVE HIGHLIGHTS STRIP -->
+<section id="liveHighlights" style="background:linear-gradient(135deg,#062b1e,#0a4d36);padding:14px 22px;display:none;">
+  <div style="max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;text-align:center;">
+    <div>
+      <div id="lhDeals" style="font:900 18px Cairo,sans-serif;color:#d4ac6e;">—</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:rgba(251,246,234,0.7);letter-spacing:1px;" data-en="Deals">صفقة</div>
+    </div>
+    <div>
+      <div id="lhInvestors" style="font:900 18px Cairo,sans-serif;color:#d4ac6e;">—</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:rgba(251,246,234,0.7);letter-spacing:1px;" data-en="Investors">مستثمر</div>
+    </div>
+    <div>
+      <div id="lhInvested" style="font:900 18px Cairo,sans-serif;color:#d4ac6e;">—</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:rgba(251,246,234,0.7);letter-spacing:1px;" data-en="SAR invested">ر.س مُستثمَر</div>
+    </div>
+    <div>
+      <div id="lhPaid" style="font:900 18px Cairo,sans-serif;color:#d4ac6e;">—</div>
+      <div style="font:600 10px Tajawal,sans-serif;color:rgba(251,246,234,0.7);letter-spacing:1px;" data-en="SAR paid out">ر.س مُوزَّعة</div>
+    </div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/platform-stats').then(x => x.json());
+    if (!r) return;
+    const sec = document.getElementById('liveHighlights');
+    const fmt = (n) => {
+      const x = Number(n) || 0;
+      if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'م';
+      if (x >= 1e3) return (x / 1e3).toFixed(0) + 'ك';
+      return x.toLocaleString('ar-SA');
+    };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('lhDeals', fmt(r.totalDeals || r.deals || 0));
+    set('lhInvestors', fmt(r.investors || r.totalInvestors || 0));
+    set('lhInvested', fmt(r.totalInvested || r.invested || 0));
+    set('lhPaid', fmt(r.deliveredToInvestors || r.paid || 0));
+    if (sec && (r.totalDeals || r.investors || r.totalInvested)) sec.style.display = '';
+  } catch {}
+})();
+</script>
+
 <!-- TRUST BAR -->
 <div class="trust-bar">
   <div class="trust-marquee">
@@ -1858,6 +1933,463 @@
     </div>
   </div>
 </div>
+
+<!-- INVESTOR STORIES CAROUSEL -->
+<section style="padding:36px 22px;background:#fbf6ea;border-top:1px solid rgba(13,22,18,0.05);">
+  <div style="max-width:980px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="REAL VOICES">قصص حقيقية</span>
+      <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="From investors who joined us">من مستثمرين انضمّوا إلينا</h2>
+    </div>
+    <div id="storyCarousel" style="position:relative;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:18px;padding:28px 24px;min-height:200px;">
+      <div id="storyContent" style="text-align:center;">
+        <div style="font:600 16px Cairo,sans-serif;color:#062b1e;line-height:1.8;margin-bottom:14px;" id="storyQuote">"…"</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <div id="storyAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;display:flex;align-items:center;justify-content:center;font:900 18px Cairo,sans-serif;">س</div>
+          <div style="text-align:start;">
+            <div id="storyName" style="font:800 13px Cairo,sans-serif;color:#062b1e;">—</div>
+            <div id="storyRole" style="font:500 11px Tajawal,sans-serif;color:#6b7268;">—</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:6px;margin-top:18px;" id="storyDots"></div>
+    </div>
+    <div style="text-align:center;margin-top:14px;">
+      <a href="/stories.html" style="font:800 12px Cairo,sans-serif;color:#b08840;text-decoration:none;padding:7px 16px;border:1px solid #b08840;border-radius:999px;" data-en="All stories">كل القصص ←</a>
+    </div>
+  </div>
+</section>
+<script>
+(() => {
+  const STORIES = [
+    { initial: 'س', name: 'سلطان ع.', role: 'مهندس مدني — الرياض', quote: 'ما أبي شيء معقّد. أدخل، أختار صفقة فيها بائع وأصل واضح، أحطّ المبلغ، وأتابع.' },
+    { initial: 'ن', name: 'نور ف.', role: 'معلّمة — جدة', quote: 'أوّل مبلغ دخلت فيه كان ١٠٠٠ ر.س فقط. الفرق إن المنصة شرحت لي كل خطوة بالعربي.' },
+    { initial: 'ع', name: 'عبدالعزيز م.', role: 'مالك مؤسسة مقاولات — الدمام', quote: 'منصّة مُرابحة فاحصة، وعقودها واضحة، والمستشار الشرعي يردّ على أسئلتي خلال يوم.' },
+    { initial: 'ر', name: 'ريم س.', role: 'طبيبة أسنان — أبها', quote: 'الإشعارات السريعة ساعدتني أحجز مكاني في صفقتين كان عليهما طلب عالٍ.' },
+  ];
+  let idx = 0;
+  const $ = (id) => document.getElementById(id);
+  const dots = $('storyDots');
+  STORIES.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.setAttribute('aria-label', 'القصة ' + (i + 1));
+    d.style.cssText = 'width:8px;height:8px;border-radius:50%;background:rgba(13,22,18,0.18);border:0;cursor:pointer;padding:0;';
+    d.onclick = () => render(i, true);
+    dots.appendChild(d);
+  });
+  function render(i, fromClick) {
+    idx = i;
+    const s = STORIES[i];
+    $('storyQuote').textContent = '"' + s.quote + '"';
+    $('storyAvatar').textContent = s.initial;
+    $('storyName').textContent = s.name;
+    $('storyRole').textContent = s.role;
+    dots.querySelectorAll('button').forEach((b, j) => {
+      b.style.background = j === i ? '#062b1e' : 'rgba(13,22,18,0.18)';
+      b.style.transform = j === i ? 'scale(1.4)' : 'scale(1)';
+    });
+    if (fromClick) {
+      clearInterval(window._storyInterval);
+      window._storyInterval = setInterval(() => render((idx + 1) % STORIES.length), 6000);
+    }
+  }
+  render(0);
+  window._storyInterval = setInterval(() => render((idx + 1) % STORIES.length), 6000);
+})();
+</script>
+
+<!-- TRUST SEALS -->
+<section style="background:#fbf6ea;padding:36px 22px;border-top:1px solid rgba(13,22,18,0.06);">
+  <div style="max-width:1080px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;" data-en="REGULATORY & SHARIA SEALS">الأختام النظامية والشرعية</span>
+      <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;margin-top:10px;" data-en="Independently certified. Locally regulated.">معتمَدون بشكل مستقل. مرخّصون محلياً.</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <a href="/legal.html#license" style="text-decoration:none;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px 14px;text-align:center;color:#062b1e;transition:transform .15s;display:block;">
+        <div style="font:900 32px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;">⚖</div>
+        <div style="font:800 13px Cairo,sans-serif;color:#062b1e;" data-en="SAMA Crowdfunding">ترخيص ساما لتمويل الجموع</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:4px;" data-en="License #FCA-2024-09">رخصة #FCA-2024-09</div>
+      </a>
+      <a href="/sharia.html" style="text-decoration:none;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px 14px;text-align:center;color:#062b1e;display:block;">
+        <div style="font:900 32px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;">☪</div>
+        <div style="font:800 13px Cairo,sans-serif;color:#062b1e;" data-en="Independent Sharia Board">هيئة شرعية مستقلة</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:4px;" data-en="4 certified scholars">٤ علماء معتمَدين</div>
+      </a>
+      <a href="/legal.html#standards" style="text-decoration:none;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px 14px;text-align:center;color:#062b1e;display:block;">
+        <div style="font:900 32px Cairo,sans-serif;color:#b08840;margin-bottom:6px;">★</div>
+        <div style="font:800 13px Cairo,sans-serif;color:#062b1e;">AAOIFI</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:4px;" data-en="Compliant standards">معايير متوافقة</div>
+      </a>
+      <a href="/partners.html" style="text-decoration:none;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px 14px;text-align:center;color:#062b1e;display:block;">
+        <div style="font:900 32px Cairo,sans-serif;color:#0a4d36;margin-bottom:6px;">⚒</div>
+        <div style="font:800 13px Cairo,sans-serif;color:#062b1e;" data-en="AGLC Legal">شركة العنقري للمحاماة</div>
+        <div style="font:500 11px Tajawal,sans-serif;color:#6b7268;margin-top:4px;" data-en="Legal counsel">المستشار القانوني</div>
+      </a>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#6b7268;margin-top:18px;line-height:1.7;" data-en="All seals reference public registries. Click any seal to view the underlying document.">جميع الأختام مرجعها سجلات عامة قابلة للتحقّق. اضغط أي ختم لمشاهدة المستند الأصلي.</p>
+  </div>
+</section>
+<style>
+  @media (max-width: 720px) {
+    section[style*="TRUST SEALS"] [style*="grid-template-columns"],
+    .trust-seals-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+</style>
+
+<!-- LIVE PLATFORM STATS -->
+<section style="background:#fbf6ea;padding:32px 22px;border-top:1px solid rgba(13,22,18,0.06);">
+  <div style="max-width:1080px;margin:0 auto;text-align:center;">
+    <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;margin-bottom:14px;" data-en="ON MURBHA — RIGHT NOW">على مُرابحة — الآن</span>
+    <div id="liveStatsGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px;">
+      <div class="lstat"><div class="v" id="lst-investors">0</div><div class="l" data-en="investors">مستثمر</div></div>
+      <div class="lstat"><div class="v" id="lst-deals">0</div><div class="l" data-en="completed deals">صفقة منفّذة</div></div>
+      <div class="lstat"><div class="v" id="lst-projects">0</div><div class="l" data-en="open projects">فرصة مفتوحة</div></div>
+      <div class="lstat"><div class="v" id="lst-capital">0</div><div class="l" data-en="SAR deployed">ر.س مُوظَّفة</div></div>
+      <div class="lstat" style="background:linear-gradient(135deg,#fff8e6,#fff);border-color:#d4ac6e;">
+        <div class="v" id="lst-delivered" style="color:#7a5a10;">0</div>
+        <div class="l" data-en="SAR delivered to investors">ر.س وُزِّعت للمستثمرين</div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .lstat { background:#fff; border:1px solid rgba(13,22,18,0.08); border-radius:14px; padding:18px 12px; }
+  .lstat .v { font:900 28px Cairo,sans-serif; color:#062b1e; font-variant-numeric:tabular-nums; }
+  .lstat .l { font:700 11px Cairo,sans-serif; color:#6b7268; margin-top:4px; }
+  @media (max-width:900px) { #liveStatsGrid { grid-template-columns:1fr 1fr 1fr !important; } }
+  @media (max-width:720px) { #liveStatsGrid { grid-template-columns:1fr 1fr !important; gap:8px; } .lstat .v { font-size:22px; } }
+</style>
+<script>
+(() => {
+  const animate = (el, to, duration) => {
+    const start = Date.now();
+    const from = 0;
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const step = () => {
+      const p = Math.min(1, (Date.now() - start) / duration);
+      const v = Math.round(from + (to - from) * ease(p));
+      el.textContent = v.toLocaleString('ar-SA');
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const fmtBig = (n) => {
+    if (n >= 1_000_000) return (Math.round(n / 100_000) / 10).toLocaleString('ar-SA') + 'M';
+    if (n >= 1_000) return Math.round(n / 1000).toLocaleString('ar-SA') + 'K';
+    return n.toLocaleString('ar-SA');
+  };
+  const load = async () => {
+    try {
+      const r = await fetch('/app/public/platform-stats');
+      if (!r.ok) return;
+      const d = await r.json();
+      const grid = document.getElementById('liveStatsGrid');
+      if (!grid) return;
+      // Only animate on first paint; on revisits just snap to value.
+      const first = !grid.dataset.populated;
+      grid.dataset.populated = '1';
+      if (first) {
+        animate(document.getElementById('lst-investors'), d.investors || 0, 1200);
+        animate(document.getElementById('lst-deals'), d.deals || 0, 1200);
+        animate(document.getElementById('lst-projects'), d.openProjects || 0, 900);
+      } else {
+        document.getElementById('lst-investors').textContent = (d.investors || 0).toLocaleString('ar-SA');
+        document.getElementById('lst-deals').textContent = (d.deals || 0).toLocaleString('ar-SA');
+        document.getElementById('lst-projects').textContent = (d.openProjects || 0).toLocaleString('ar-SA');
+      }
+      document.getElementById('lst-capital').textContent = fmtBig(d.totalCapital || 0);
+      const delivered = document.getElementById('lst-delivered');
+      if (delivered) delivered.textContent = fmtBig(d.deliveredToInvestors || 0);
+    } catch (e) {}
+  };
+  load();
+  setInterval(load, 60000); // refresh every minute
+})();
+</script>
+
+<!-- COMPLETED DEALS SHOWCASE -->
+<section id="completedDealsSection" style="padding:30px 22px;background:#fbf6ea;display:none;border-top:1px solid rgba(13,22,18,0.05);">
+  <div style="max-width:1080px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#0f6e3a;letter-spacing:2px;background:rgba(15,110,58,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="DELIVERED">صفقات أكملت</span>
+        <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="Deals we already closed">صفقات أنجزناها فعلاً</h2>
+      </div>
+      <a href="/projects.html#completed" style="font:800 13px Cairo,sans-serif;color:#0f6e3a;text-decoration:none;padding:8px 16px;border:1px solid #0f6e3a;border-radius:999px;" data-en="See all">عرض الكل ←</a>
+    </div>
+    <div id="completedDealsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/completed-deals?limit=3');
+    if (!r.ok) return;
+    const { projects } = await r.json();
+    if (!projects.length) return;
+    const sec = document.getElementById('completedDealsSection');
+    const grid = document.getElementById('completedDealsGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+    projects.forEach(p => {
+      const card = document.createElement('a');
+      card.href = '/project.html?id=' + encodeURIComponent(p.slug || p.id);
+      card.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:16px;padding:18px;text-decoration:none;color:inherit;transition:transform .15s;position:relative;overflow:hidden;';
+      card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+      card.onmouseleave = () => card.style.transform = 'translateY(0)';
+      const badge = document.createElement('span');
+      badge.style.cssText = 'position:absolute;top:14px;inset-inline-end:14px;background:rgba(15,110,58,0.12);color:#0f6e3a;padding:4px 10px;border-radius:999px;font:800 11px Cairo,sans-serif;';
+      badge.textContent = '✓ مكتمل';
+      card.appendChild(badge);
+      const head = document.createElement('div'); head.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-inline-end:80px;';
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:28px;'; ic.textContent = p.image || '✓';
+      const right = document.createElement('div'); right.style.flex = '1';
+      const nm = document.createElement('div'); nm.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;line-height:1.3;'; nm.textContent = p.name;
+      const cat = document.createElement('div'); cat.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:2px;'; cat.textContent = p.category || '';
+      right.append(nm, cat);
+      head.append(ic, right);
+      const stats = document.createElement('div'); stats.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#fbf8ee;border-radius:10px;padding:10px;';
+      [
+        ['إجمالي رأس المال', fmt(p.totalRaised) + ' ر.س'],
+        ['الأرباح الموزَّعة', (p.totalProfitDistributed != null ? fmt(p.totalProfitDistributed) + ' ر.س' : '—')],
+        ['المستثمرون', fmt(p.investorCount)],
+        ['العائد السنوي', ((p.profitRate || 0) * 100).toFixed(1) + '٪'],
+      ].forEach(([l, v]) => {
+        const cell = document.createElement('div'); cell.style.cssText = 'text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:#062b1e;'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:#6b7268;margin-top:2px;'; ll.textContent = l;
+        cell.append(vv, ll); stats.appendChild(cell);
+      });
+      card.append(head, stats);
+      grid.appendChild(card);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<!-- TOP INVESTORS -->
+<section id="topInvestorsSection" style="padding:30px 22px;background:#fbf6ea;display:none;">
+  <div style="max-width:880px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:18px;">
+      <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;background:rgba(176,136,64,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="TOP INVESTORS">أبرز المستثمرين</span>
+      <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="The people who built their portfolio with us">من بنوا محفظتهم معنا</h2>
+      <p style="color:#6b7268;font-size:13px;margin-top:6px;" data-en="Voluntary list of investors who chose to be visible." >قائمة اختيارية لمن سمحوا بإظهار حسابهم.</p>
+    </div>
+    <div id="topInvestorsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;"></div>
+    <div style="text-align:center;">
+      <a href="/leaderboard.html" style="font:800 13px Cairo,sans-serif;color:#b08840;text-decoration:none;padding:8px 16px;border:1px solid #b08840;border-radius:999px;" data-en="See full leaderboard">عرض اللوحة الكاملة ←</a>
+    </div>
+  </div>
+</section>
+<style>
+  @media (max-width:560px) { #topInvestorsGrid { grid-template-columns:1fr !important; } }
+</style>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/leaderboard');
+    if (!r.ok) return;
+    const d = await r.json();
+    const top = (d.leaderboard || []).slice(0, 3);
+    if (!top.length) return;
+    const sec = document.getElementById('topInvestorsSection');
+    const grid = document.getElementById('topInvestorsGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const medals = ['🥇', '🥈', '🥉'];
+    top.forEach((row, i) => {
+      const a = document.createElement('a');
+      a.href = '/investor.html?id=' + encodeURIComponent(row.userId);
+      a.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px;text-decoration:none;color:inherit;text-align:center;transition:transform .15s;' + (i === 0 ? 'border-color:#d4ac6e;background:linear-gradient(180deg,#fff8e6,#fff);' : '');
+      a.onmouseenter = () => a.style.transform = 'translateY(-2px)';
+      a.onmouseleave = () => a.style.transform = 'translateY(0)';
+      const m = document.createElement('div');
+      m.style.cssText = 'font:900 32px Cairo,sans-serif;color:#062b1e;line-height:1;margin-bottom:4px;';
+      m.textContent = medals[i] || '';
+      const n = document.createElement('div');
+      n.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;margin-bottom:6px;';
+      n.textContent = row.display;
+      const amt = document.createElement('div');
+      amt.style.cssText = 'font:900 17px Cairo,sans-serif;color:#b08840;';
+      amt.textContent = Number(row.invested || 0).toLocaleString('ar-SA') + ' ر.س';
+      const deals = document.createElement('div');
+      deals.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-top:3px;';
+      deals.textContent = row.deals + ' صفقة';
+      a.append(m, n, amt, deals);
+      grid.appendChild(a);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<!-- CLOSING SOON -->
+<section id="closingSoonSection" style="padding:36px 22px;background:#fbf6ea;display:none;">
+  <div style="max-width:1080px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px;flex-wrap:wrap;">
+      <div>
+        <span style="display:inline-block;font:800 11px Cairo,sans-serif;color:#c54a3a;letter-spacing:2px;background:rgba(197,74,58,0.10);padding:5px 14px;border-radius:999px;margin-bottom:8px;" data-en="ENDING SOON">تنتهي قريباً</span>
+        <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;" data-en="Don't miss these opportunities">لا تفوّت هذه الفرص</h2>
+      </div>
+      <a href="/projects.html" style="font:800 13px Cairo,sans-serif;color:#b08840;text-decoration:none;padding:8px 16px;border:1px solid #b08840;border-radius:999px;" data-en="See all">عرض الكل ←</a>
+    </div>
+    <div id="closingSoonGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/closing-soon?days=14');
+    if (!r.ok) return;
+    const { projects } = await r.json();
+    if (!projects.length) return;
+    const sec = document.getElementById('closingSoonSection');
+    const grid = document.getElementById('closingSoonGrid');
+    if (!sec || !grid) return;
+    sec.style.display = 'block';
+    const fmtRem = (ms) => {
+      const d = Math.floor(ms / 86400000);
+      const h = Math.floor((ms % 86400000) / 3600000);
+      if (d >= 1) return d + ' يوم' + (h > 0 ? ' و' + h + ' س' : '');
+      return h + ' ساعة';
+    };
+    projects.forEach(p => {
+      const card = document.createElement('a');
+      card.href = '/project.html?id=' + encodeURIComponent(p.slug);
+      card.style.cssText = 'display:block;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:transform .15s;';
+      card.onmouseenter = () => card.style.transform = 'translateY(-2px)';
+      card.onmouseleave = () => card.style.transform = 'translateY(0)';
+      const head = document.createElement('div');
+      head.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;';
+      const ico = document.createElement('div');
+      ico.style.cssText = 'font-size:24px;';
+      ico.textContent = p.image || '📦';
+      const remain = document.createElement('div');
+      remain.style.cssText = 'background:rgba(197,74,58,0.10);color:#c54a3a;border-radius:999px;padding:4px 10px;font:800 11px Cairo,sans-serif;';
+      remain.textContent = '⏱ ' + fmtRem(p.remainingMs);
+      head.append(ico, remain);
+      const name = document.createElement('div');
+      name.style.cssText = 'font:800 14px Cairo,sans-serif;color:#062b1e;margin-bottom:6px;line-height:1.4;';
+      name.textContent = p.name;
+      const meta = document.createElement('div');
+      meta.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#6b7268;margin-bottom:10px;';
+      meta.textContent = (p.category || '') + ' · ' + ((p.profitRate || 0) * 100).toFixed(1) + '٪ سنوياً';
+      const barWrap = document.createElement('div');
+      barWrap.style.cssText = 'height:6px;background:#fbf8ee;border-radius:6px;overflow:hidden;margin-bottom:6px;';
+      const bar = document.createElement('div');
+      bar.style.cssText = 'height:100%;background:linear-gradient(90deg,#0a4d36,#0f6e3a);border-radius:6px;width:' + (p.fundedPct || 0) + '%;';
+      barWrap.appendChild(bar);
+      const footer = document.createElement('div');
+      footer.style.cssText = 'display:flex;justify-content:space-between;font:700 11px Tajawal,sans-serif;color:#6b7268;';
+      const fp = document.createElement('span'); fp.textContent = (p.fundedPct || 0) + '٪ مكتمل';
+      const ma = document.createElement('span'); ma.textContent = 'من ' + (p.minAmount || 0).toLocaleString('ar-SA') + ' ر.س';
+      footer.append(fp, ma);
+      card.append(head, name, meta, barWrap, footer);
+      grid.appendChild(card);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<!-- LIVE DEAL TICKER -->
+<section style="background:#062b1e;color:#fbf6ea;padding:14px 0;overflow:hidden;border-top:1px solid rgba(212,172,110,0.18);border-bottom:1px solid rgba(212,172,110,0.18);">
+  <div style="display:flex;align-items:center;gap:18px;padding:0 22px;">
+    <span style="flex-shrink:0;display:inline-flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:#d4ac6e;">
+      <span style="width:8px;height:8px;background:#16a34a;border-radius:50%;animation:tickerPulse 1.4s ease-in-out infinite;"></span>
+      <span data-en="LIVE">مباشر</span>
+    </span>
+    <div style="flex:1;overflow:hidden;mask-image:linear-gradient(to left,transparent,#000 8%,#000 92%,transparent);">
+      <div id="tickerStrip" style="display:flex;gap:42px;white-space:nowrap;animation:tickerScroll 60s linear infinite;font:600 13px Tajawal,sans-serif;color:rgba(251,246,234,0.85);">
+        <span style="opacity:.6;" data-en="Loading recent activity…">جارٍ تحميل النشاط…</span>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes tickerPulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  html[dir="rtl"] @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(50%); } }
+</style>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/ticker');
+    if (!r.ok) return;
+    const { ticker = [] } = await r.json();
+    if (!ticker.length) return;
+    const strip = document.getElementById('tickerStrip');
+    if (!strip) return;
+    strip.textContent = '';
+    const render = (parent) => ticker.forEach(t => {
+      const sp = document.createElement('span');
+      sp.style.cssText = 'display:inline-flex;gap:8px;align-items:center;';
+      const dot = document.createElement('span'); dot.textContent = '•'; dot.style.color = '#d4ac6e'; sp.appendChild(dot);
+      const text = document.createElement('span');
+      const amt = Number(t.amount).toLocaleString('ar-SA');
+      text.textContent = `${t.investor} استثمر ${amt} ر.س في ${t.project}`;
+      sp.appendChild(text);
+      parent.appendChild(sp);
+    });
+    render(strip);
+    render(strip); // duplicate for seamless scroll
+  } catch (e) {}
+})();
+</script>
+
+<!-- RECENT ACTIVITY -->
+<section style="padding:36px 22px;background:linear-gradient(180deg,#fbf6ea,#efe8d6);">
+  <div style="max-width:920px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:22px;">
+      <span style="font:800 11px Cairo,sans-serif;color:#b08840;letter-spacing:2px;" data-en="WHAT'S HAPPENING">آخر النشاط</span>
+      <h2 style="font:900 22px Cairo,sans-serif;color:#062b1e;margin-top:8px;" data-en="See what investors are doing right now">شاهد ما يفعله المستثمرون الآن</h2>
+    </div>
+    <div id="activityFeed" style="display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;">
+      <div style="text-align:center;color:#6b7268;padding:24px;font-size:13px;" data-en="Loading recent activity…">جارٍ تحميل النشاط…</div>
+    </div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/activity');
+    if (!r.ok) return;
+    const { events = [] } = await r.json();
+    const feed = document.getElementById('activityFeed');
+    if (!feed) return;
+    feed.textContent = '';
+    if (!events.length) {
+      const e = document.createElement('div');
+      e.style.cssText = 'text-align:center;color:#6b7268;padding:24px;font-size:13px;';
+      e.textContent = 'لا يوجد نشاط بعد. كن أول المستثمرين.';
+      feed.appendChild(e); return;
+    }
+    const fmtAgo = (iso) => {
+      const m = Math.max(1, Math.floor((Date.now() - new Date(iso)) / 60000));
+      if (m < 60) return 'قبل ' + m + ' د';
+      const h = Math.floor(m / 60); if (h < 24) return 'قبل ' + h + ' س';
+      return 'قبل ' + Math.floor(h / 24) + ' ي';
+    };
+    events.slice(0, 8).forEach(e => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:12px;align-items:center;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:12px 14px;';
+      const av = document.createElement('div');
+      av.style.cssText = 'width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0a4d36,#062b1e);color:#d4ac6e;display:flex;align-items:center;justify-content:center;font:900 14px Cairo,sans-serif;flex-shrink:0;';
+      av.textContent = e.initial || 'م';
+      const mid = document.createElement('div'); mid.style.cssText = 'flex:1;min-width:0;';
+      const t = document.createElement('div'); t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#062b1e;'; t.textContent = e.title;
+      const d = document.createElement('div'); d.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#6b7268;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; d.textContent = e.detail || '';
+      mid.append(t, d);
+      const ago = document.createElement('div');
+      ago.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#b08840;flex-shrink:0;';
+      ago.textContent = fmtAgo(e.at);
+      row.append(av, mid, ago);
+      feed.appendChild(row);
+    });
+  } catch (e) {}
+})();
+</script>
 
 <!-- HOW IT WORKS — explains the actual contract-execution Murabaha model -->
 <section class="how section-pad" id="how">
@@ -2083,11 +2615,31 @@
   </style>
 </section>
 
+<!-- LIVE ACTIVITY (social proof) -->
+<section class="section-pad" id="live-activity-sec" style="padding-block:16px 0;">
+  <div id="liveActivityFeed" style="background:linear-gradient(135deg,#062b1e,#051a12);color:#fff;border-radius:18px;padding:18px 20px;display:none;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4ac6e;animation:pulse 1.8s ease-out infinite;"></span>
+      <span style="font:800 12px Cairo,sans-serif;color:#d4ac6e;letter-spacing:0.5px;">نشاط مباشر</span>
+    </div>
+    <div id="liveActivityList" style="flex:1;min-width:200px;font:600 13px Tajawal,sans-serif;color:rgba(251,246,234,0.9);line-height:1.7;"></div>
+  </div>
+  <style>@keyframes pulse{0%{transform:scale(1);opacity:1}70%{transform:scale(2);opacity:0}100%{transform:scale(2);opacity:0}}</style>
+</section>
+
 <!-- PROJECTS SECTION (DYNAMIC) -->
 <section class="section-pad" id="projects">
-  <div class="projects-head" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+  <div class="projects-head" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
     <h2 class="section-title" style="margin: 0;" data-en="Current investment opportunities">الفرص الاستثمارية الحالية</h2>
     <a href="projects.html" class="btn btn-ghost btn-sm" style="font-weight: 700;" data-en="View all →">عرض الكل ←</a>
+  </div>
+  <div id="categoryChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;">
+    <a href="/search.html" class="catChip" data-cat="all" style="padding:6px 14px;border:1px solid var(--green-dark);background:var(--green-dark);color:#d4ac6e;border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">الكل</a>
+    <a href="/search.html?cat=residential" class="catChip" data-cat="residential" style="padding:6px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">🏠 سكني</a>
+    <a href="/search.html?cat=commercial" class="catChip" data-cat="commercial" style="padding:6px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">🏢 تجاري</a>
+    <a href="/search.html?cat=industrial" class="catChip" data-cat="industrial" style="padding:6px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">🏭 صناعي</a>
+    <a href="/search.html?cat=land" class="catChip" data-cat="land" style="padding:6px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">🌾 أراضٍ</a>
+    <a href="/search.html?cat=trade" class="catChip" data-cat="trade" style="padding:6px 14px;border:1px solid var(--line);background:#fff;color:var(--green-dark);border-radius:999px;font:800 11px Cairo,sans-serif;text-decoration:none;">📦 سلع وتجارة</a>
   </div>
 
   <!-- Active Projects Container -->
@@ -2467,6 +3019,129 @@
 
 </main>
 
+<!-- DEAL ALERTS -->
+<section style="padding:32px 22px;background:linear-gradient(135deg,#fbf6ea,#efe8d6);">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid rgba(13,22,18,0.10);border-radius:18px;padding:24px;">
+    <div style="font:900 17px Cairo,sans-serif;color:#062b1e;margin-bottom:4px;text-align:center;" data-en="Get deal alerts">تنبيهات الصفقات</div>
+    <p style="font:500 12px Tajawal,sans-serif;color:#6b7268;text-align:center;line-height:1.7;margin-bottom:14px;" data-en="Be the first to know when a deal that matches your preference opens.">كن أوّل من يعلم بافتتاح صفقة تطابق تفضيلك.</p>
+    <form id="dealAlertForm" style="display:flex;gap:6px;flex-wrap:wrap;">
+      <select id="dealAlertCat" style="flex:1;min-width:140px;padding:10px 12px;border:1px solid rgba(13,22,18,0.18);border-radius:10px;background:#fff;font:700 13px Cairo,sans-serif;">
+        <option value="all">كل الصفقات</option>
+        <option value="residential">سكني</option>
+        <option value="commercial">تجاري</option>
+        <option value="industrial">صناعي</option>
+        <option value="trade">سلع وتجارة</option>
+      </select>
+      <input id="dealAlertEmail" type="email" required placeholder="بريدك الإلكتروني" style="flex:2;min-width:180px;padding:10px 12px;border:1px solid rgba(13,22,18,0.18);border-radius:10px;font:600 13px Tajawal,sans-serif;direction:ltr;" />
+      <button type="submit" style="padding:10px 18px;background:#062b1e;color:#d4ac6e;border:0;border-radius:10px;font:800 13px Cairo,sans-serif;cursor:pointer;" data-en="Notify me">نبّهني</button>
+    </form>
+    <div id="dealAlertMsg" style="margin-top:10px;font:600 11px Tajawal,sans-serif;color:#0f6e3a;min-height:16px;text-align:center;"></div>
+  </div>
+</section>
+<script>
+(() => {
+  const form = document.getElementById('dealAlertForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('dealAlertEmail').value.trim();
+    const category = document.getElementById('dealAlertCat').value;
+    const msg = document.getElementById('dealAlertMsg');
+    msg.textContent = '';
+    try {
+      const r = await fetch('/app/public/deal-alerts/subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, category }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        msg.textContent = d.already ? 'مشترك بالفعل ✓' : '✓ تم — سنخبرك عند توفّر صفقة';
+        msg.style.color = '#0f6e3a';
+        document.getElementById('dealAlertEmail').value = '';
+      } else {
+        msg.textContent = d.error === 'invalid_email' ? 'بريد غير صالح' : 'فشل';
+        msg.style.color = '#c54a3a';
+      }
+    } catch {
+      msg.textContent = 'فشل الاتصال';
+      msg.style.color = '#c54a3a';
+    }
+  });
+})();
+</script>
+
+<!-- NEWSLETTER -->
+<section style="padding:36px 22px;background:#062b1e;color:#fbf6ea;text-align:center;">
+  <div style="max-width:480px;margin:0 auto;">
+    <div style="font:900 18px Cairo,sans-serif;color:#d4ac6e;margin-bottom:6px;" data-en="Stay informed">ابقَ على اطّلاع</div>
+    <p style="font-size:14px;line-height:1.7;color:rgba(251,246,234,0.7);margin-bottom:16px;" data-en="One monthly recap: new opportunities, completed deals, and platform updates. No spam.">ملخّص شهري واحد: فرص جديدة، صفقات مكتملة، تحديثات المنصة. بدون إزعاج.</p>
+    <form id="nlForm" style="display:flex;gap:6px;background:#fff;border-radius:999px;padding:5px;align-items:center;">
+      <input id="nlEmail" type="email" required placeholder="بريدك الإلكتروني" style="flex:1;padding:10px 16px;border:0;background:transparent;font:600 14px Tajawal,sans-serif;color:#0d1612;direction:ltr;text-align:start;outline:none;" />
+      <button type="submit" style="padding:10px 22px;background:#0a4d36;color:#fff;border:0;border-radius:999px;font:800 13px Cairo,sans-serif;cursor:pointer;" data-en="Subscribe">اشترك</button>
+    </form>
+    <div id="nlMsg" style="margin-top:10px;font-size:12px;color:#d4ac6e;min-height:18px;"></div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const form = document.getElementById('nlForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('nlEmail').value.trim();
+    const msg = document.getElementById('nlMsg');
+    msg.textContent = '';
+    if (!email) { msg.textContent = 'الرجاء إدخال البريد'; return; }
+    try {
+      const r = await fetch('/app/newsletter/subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'hessa_footer' }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) {
+        msg.textContent = d.already ? 'مشترك بالفعل — شكراً' : '✓ تم الاشتراك — تحقّق من بريدك';
+        msg.style.color = '#e8d3a8';
+        document.getElementById('nlEmail').value = '';
+      } else {
+        msg.textContent = d.error === 'invalid_email' ? 'البريد غير صحيح' : 'تعذّر الاشتراك';
+        msg.style.color = '#fca5a5';
+      }
+    } catch (err) {
+      msg.textContent = 'تعذّر الاتصال — حاول لاحقاً';
+      msg.style.color = '#fca5a5';
+    }
+  });
+})();
+</script>
+
+<!-- COMPACT FOOTER STATS -->
+<section id="footerStats" style="background:#062b1e;color:#d4ac6e;padding:18px 22px;border-top:1px solid rgba(212,172,110,0.15);">
+  <div style="max-width:980px;margin:0 auto;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-around;align-items:center;text-align:center;font:600 12px Tajawal,sans-serif;">
+    <div><b id="fsDeals" style="font:900 16px Cairo,sans-serif;color:#fbf6ea;display:block;">—</b>صفقة منذ ٢٠٢٣</div>
+    <div><b id="fsInvestors" style="font:900 16px Cairo,sans-serif;color:#fbf6ea;display:block;">—</b>مستثمر سعودي</div>
+    <div><b id="fsVolume" style="font:900 16px Cairo,sans-serif;color:#fbf6ea;display:block;">—</b>ر.س حجم استثمارات</div>
+    <div><b style="font:900 16px Cairo,sans-serif;color:#fbf6ea;display:block;">٤٫٨ / ٥</b>تقييم المستثمرين</div>
+  </div>
+</section>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/platform-stats').then(x => x.json());
+    const fmt = (n) => {
+      const x = Number(n) || 0;
+      if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'م';
+      if (x >= 1e3) return (x / 1e3).toFixed(0) + 'ك+';
+      return x.toLocaleString('ar-SA');
+    };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('fsDeals', fmt(r.totalDeals || r.deals || 0));
+    set('fsInvestors', fmt(r.investors || r.totalInvestors || 0));
+    set('fsVolume', fmt(r.totalInvested || r.invested || 0));
+  } catch {}
+})();
+</script>
+
 <!-- FOOTER -->
 <footer>
   <div class="logo">
@@ -2489,14 +3164,224 @@
   <div class="foot-links">
     <a href="calculator.html" data-en="Returns calculator">حاسبة العوائد</a>
     <a href="statistics.html" data-en="Platform statistics">إحصائيات المنصة</a>
+    <a href="roadmap.html" data-en="Roadmap">خارطة الطريق</a>
+    <a href="status.html" data-en="Status">حالة الخدمة</a>
+    <a href="changelog.html" data-en="Changelog">سجل التحديثات</a>
+    <a href="glossary.html" data-en="Glossary">قاموس المصطلحات</a>
+    <a href="newsletter-archive.html" data-en="Newsletter">أرشيف النشرة</a>
+    <a href="leaderboard.html" data-en="Leaderboard">لوحة المستثمرين</a>
+    <a href="stories.html" data-en="Investor stories">قصص المستثمرين</a>
+    <a href="press.html" data-en="Press kit">حزمة الإعلام</a>
+    <a href="team.html" data-en="Team & advisors">الفريق والمستشارون</a>
+    <a href="trust.html" data-en="Trust center">مركز الثقة</a>
+    <a href="timeline.html" data-en="Our story">قصّتنا</a>
+    <a href="investor-guide.html" data-en="Investor guide">دليل المستثمر</a>
+    <a href="accessibility.html" data-en="Accessibility">إمكانية الوصول</a>
+    <a href="how-it-works.html" data-en="How it works">كيف تعمل المنصة</a>
+    <a href="fees.html" data-en="Fees">الرسوم</a>
+    <a href="careers.html" data-en="Careers">الوظائف</a>
+    <a href="partners.html" data-en="Partners">الشركاء</a>
+    <a href="api.html" data-en="API">واجهة المطوّرين</a>
+    <a href="feedback.html" data-en="Feedback">ملاحظاتك</a>
+    <a href="cookie-preferences.html" data-en="Cookie prefs">تفضيلات الكوكيز</a>
     <a href="legal.html#terms" data-en="Terms & conditions">الشروط والأحكام</a>
     <a href="legal.html#privacy" data-en="Privacy policy">سياسة الخصوصية</a>
     <a href="legal.html#risk" data-en="Risk disclosure">الإفصاح عن المخاطر</a>
+    <a href="risks.html" data-en="Risks (plain)">المخاطر (بلغة بسيطة)</a>
+    <a href="contact.html" data-en="Contact">تواصل معنا</a>
+    <a href="investor-types.html" data-en="Investor types">أنواع المستثمرين</a>
+    <a href="reviews.html" data-en="Reviews">تقييمات المستثمرين</a>
+    <a href="vs-traditional.html" data-en="vs traditional">مُرابحة vs التقليدي</a>
+    <a href="support.html" data-en="Support center">مركز الدعم</a>
+    <a href="apps.html" data-en="Mobile app">تطبيق الجوال</a>
+    <a href="demo.html" data-en="Try demo">جرّب بدون حساب</a>
+    <a href="community.html" data-en="Community">المجتمع</a>
+    <a href="education.html" data-en="Academy">الأكاديمية</a>
+    <a href="esg.html" data-en="ESG">الاستدامة (ESG)</a>
+    <a href="press-releases.html" data-en="Press releases">البيانات الصحفية</a>
+    <a href="downloads.html" data-en="Downloads">التحميلات</a>
+    <a href="fairness.html" data-en="Fairness">سياسة الإنصاف</a>
+    <a href="governance.html" data-en="Governance">الحوكمة</a>
+    <a href="awards.html" data-en="Awards">الجوائز والشهادات</a>
+    <a href="charity.html" data-en="Zakat & charity">الزكاة والعطاء</a>
+    <a href="sample-deal.html" data-en="Sample deal">صفقة نموذجية</a>
+    <a href="open-data.html" data-en="Open data">البيانات المفتوحة</a>
+    <a href="commitments.html" data-en="Commitments">التزاماتنا</a>
+    <a href="diversification.html" data-en="Diversification">دليل التنويع</a>
+    <a href="benchmarks.html" data-en="Benchmarks">معايير الأداء</a>
+    <a href="why-saudi.html" data-en="Why Saudi">لماذا السعودية؟</a>
+    <a href="code-of-conduct.html" data-en="Code of conduct">ميثاق السلوك</a>
+    <a href="innovation.html" data-en="Innovation">الابتكار</a>
+    <a href="case-studies.html" data-en="Case studies">دراسات حالة</a>
+    <a href="rewards.html" data-en="Rewards">المكافآت والولاء</a>
+    <a href="family.html" data-en="Family">الاستثمار العائلي</a>
+    <a href="research.html" data-en="Research method">منهجية البحث</a>
+    <a href="tax.html" data-en="Tax treatment">المعاملة الضريبية</a>
+    <a href="retirement.html" data-en="Retirement plan">التخطيط للتقاعد</a>
+    <a href="revenue-model.html" data-en="Revenue model">كيف نحقّق دخلنا</a>
+    <a href="first-investment.html" data-en="First investment">أوّل استثمار</a>
+    <a href="risk-assessment.html" data-en="Risk assessment">تقييم مخاطرتك</a>
+    <a href="financial-wellness.html" data-en="Financial wellness">الوعي المالي</a>
+    <a href="sukuk-comparison.html" data-en="Sukuk vs murabaha">المرابحة vs الصكوك</a>
+    <a href="islamic-finance.html" data-en="Islamic finance">التمويل الإسلامي</a>
+    <a href="sustainable-investing.html" data-en="Sustainable investing">الاستثمار المستدام</a>
+    <a href="property-types.html" data-en="Property types">أنواع العقارات</a>
+    <a href="zakat-calculator.html" data-en="Zakat calculator">حاسبة الزكاة</a>
+    <a href="partnerships.html" data-en="Partnerships">الشراكات</a>
+    <a href="ramadan.html" data-en="Ramadan investing">رمضان مبارك</a>
+    <a href="investor-quiz.html" data-en="Investor quiz">اختبار شخصيّتك</a>
+    <a href="press-kit.html" data-en="Press kit">الملف الإعلامي</a>
+    <a href="accessibility-shortcuts.html" data-en="Keyboard shortcuts">اختصارات لوحة المفاتيح</a>
+    <a href="giveaways.html" data-en="Giveaways">الجوائز الشهرية</a>
+    <a href="portfolio-analyzer.html" data-en="Portfolio analyzer">محلّل المحفظة</a>
+    <a href="investor-survey.html" data-en="Annual survey">الاستبيان السنوي</a>
+    <a href="cancellation.html" data-en="Cancellation policy">سياسة الإلغاء</a>
+    <a href="investor-readiness.html" data-en="Investor readiness">جاهزيّتك للاستثمار</a>
+    <a href="security-faq.html" data-en="Security FAQ">أسئلة الأمان</a>
+    <a href="diaspora.html" data-en="Saudi diaspora">المغتربون</a>
+    <a href="sukuk-vs-shares.html" data-en="Murabaha vs Sukuk vs Stocks">مرابحة vs صكوك vs أسهم</a>
+    <a href="first-100-days.html" data-en="First 100 days">أوّل ١٠٠ يوم</a>
+    <a href="secondary.html" data-en="Secondary market">السوق الثانوي</a>
+    <a href="youth-investing.html" data-en="Youth investing">الشباب</a>
+    <a href="for-women.html" data-en="For women">للمستثمرات</a>
+    <a href="new-graduates.html" data-en="New graduates">الخريجون الجدد</a>
+    <a href="business-investing.html" data-en="Business investing">للأعمال</a>
+    <a href="mosque-investing.html" data-en="Mosques & waqf">المساجد والأوقاف</a>
+    <a href="seniors.html" data-en="For seniors">للمتقاعدين</a>
+    <a href="caregivers.html" data-en="Caregivers">للوصاية والإدارة</a>
+    <a href="agritech.html" data-en="Agritech">الزراعي والأمن الغذائي</a>
+    <a href="healthcare.html" data-en="Healthcare">القطاع الصحّي</a>
+    <a href="alumni.html" data-en="Alumni network">برنامج الخرّيجين</a>
+    <a href="education-investing.html" data-en="Education sector">القطاع التعليمي</a>
+    <a href="logistics-investing.html" data-en="Logistics">القطاع اللوجستي</a>
+    <a href="tourism-investing.html" data-en="Tourism">السياحة والضيافة</a>
+    <a href="entertainment-investing.html" data-en="Entertainment">الترفيه والرياضة</a>
+    <a href="mining-investing.html" data-en="Mining">التعدين</a>
+    <a href="renewables-investing.html" data-en="Renewables">الطاقة المتجدّدة</a>
+    <a href="defense-investing.html" data-en="Defense">القطاع الدفاعي</a>
+    <a href="water-investing.html" data-en="Water sector">قطاع المياه</a>
+    <a href="telecom-investing.html" data-en="Telecom">قطاع الاتصالات</a>
+    <a href="aviation-investing.html" data-en="Aviation">قطاع الطيران</a>
+    <a href="maritime-investing.html" data-en="Maritime">القطاع البحري</a>
+    <a href="smart-cities-investing.html" data-en="Smart cities">المدن العملاقة</a>
+    <a href="space-investing.html" data-en="Space sector">قطاع الفضاء</a>
+    <a href="biotech-investing.html" data-en="Biotech">التكنولوجيا الحيويّة</a>
+    <a href="fintech-investing.html" data-en="Fintech">التقنيّة المالية</a>
+    <a href="esports-investing.html" data-en="Esports">الرياضات الإلكترونيّة</a>
+    <a href="ai-investing.html" data-en="AI sector">الذكاء الاصطناعي</a>
+    <a href="robotics-investing.html" data-en="Robotics">الروبوتات والأتمتة</a>
+    <a href="quantum-investing.html" data-en="Quantum">الحوسبة الكمّيّة</a>
+    <a href="3d-printing-investing.html" data-en="3D Printing">الطباعة 3D</a>
+    <a href="vr-ar-investing.html" data-en="VR/AR">الواقع الافتراضي</a>
+    <a href="ev-investing.html" data-en="Electric vehicles">السيّارات الكهربائيّة</a>
+    <a href="hydrogen-investing.html" data-en="Hydrogen energy">الهيدروجين الأخضر</a>
+    <a href="nuclear-investing.html" data-en="Nuclear energy">الطاقة النوويّة</a>
+    <a href="waqf-investing.html" data-en="Endowment investing">الوقف الاستثماري</a>
+    <a href="family-office.html" data-en="Family office">مكاتب العائلة</a>
+    <a href="banking-vs-murabaha.html" data-en="Banks vs Murabaha">المرابحة مقابل البنوك</a>
+    <a href="gulf-expat.html" data-en="Gulf expats">المغتربون الخليجيّون</a>
+    <a href="monthly-income.html" data-en="Monthly income">الدخل الشهري</a>
+    <a href="emergency-fund.html" data-en="Emergency fund">صندوق الطوارئ</a>
+    <a href="sukuk-laddering.html" data-en="Sukuk laddering">سلّم الصكوك</a>
+    <a href="dollar-cost-averaging.html" data-en="DCA">متوسّط التكلفة</a>
+    <a href="hajj-savings.html" data-en="Hajj savings">الادّخار للحجّ</a>
+    <a href="marriage-savings.html" data-en="Marriage savings">الادّخار للزواج</a>
+    <a href="home-down-payment.html" data-en="Home down payment">الدفعة الأولى للمنزل</a>
+    <a href="abroad-education-savings.html" data-en="Study abroad">الدراسة بالخارج</a>
+    <a href="car-savings.html" data-en="Car savings">الادّخار للسيّارة</a>
+    <a href="maternity-savings.html" data-en="Maternity savings">الادّخار للمولود</a>
+    <a href="startup-savings.html" data-en="Startup savings">الادّخار للمشروع</a>
+    <a href="travel-savings.html" data-en="Travel savings">الادّخار للسفر</a>
+    <a href="gold-vs-murabaha.html" data-en="Gold vs Murabaha">الذهب مقابل المرابحة</a>
+    <a href="stocks-vs-murabaha.html" data-en="Stocks vs Murabaha">الأسهم مقابل المرابحة</a>
+    <a href="real-estate-vs-murabaha.html" data-en="Real estate vs Murabaha">العقار مقابل المرابحة</a>
+    <a href="pension-savings.html" data-en="Pension savings">الادّخار للتقاعد</a>
+    <a href="renovation-savings.html" data-en="Renovation">ترميم البيت</a>
+    <a href="pet-fund.html" data-en="Pet fund">صندوق الحيوانات الأليفة</a>
+    <a href="charity-investing.html" data-en="Charity investing">الاستثمار الخيري</a>
+    <a href="financial-restart.html" data-en="Financial restart">إعادة البناء المالي</a>
+    <a href="how-we-vet-deals.html" data-en="How we vet">كيف ندقّق الصفقات</a>
+    <a href="risk-disclaimer.html" data-en="Risk disclosure">إفصاحات المخاطر</a>
+    <a href="gen-z-investing.html" data-en="Gen Z investing">الاستثمار للجيل Z</a>
+    <a href="esg-investing.html" data-en="ESG investing">الاستثمار المستدام</a>
+    <a href="crypto-vs-murabaha.html" data-en="Crypto vs Murabaha">الكريبتو مقابل المرابحة</a>
+    <a href="financial-literacy.html" data-en="Financial literacy">الثقافة الماليّة</a>
+    <a href="couples-budget.html" data-en="Couples budget">ميزانيّة الزوجين</a>
+    <a href="side-hustle-savings.html" data-en="Side hustle">الدخل الإضافي</a>
+    <a href="zero-debt.html" data-en="Zero debt">صفر ديون</a>
+    <a href="insurance-essentials.html" data-en="Insurance basics">أساسيّات التأمين</a>
+    <a href="success-stories.html" data-en="Success stories">قصص النجاح</a>
+    <a href="newsletter.html" data-en="Newsletter">النشرة الأسبوعيّة</a>
+    <a href="media-mentions.html" data-en="Media">مرابحة في الإعلام</a>
+    <a href="money-mindset.html" data-en="Money mindset">عقليّة المال</a>
+    <a href="open-banking.html" data-en="Open banking">الصيرفة المفتوحة</a>
+    <a href="refer-and-earn.html" data-en="Refer and earn">أحِل واربح</a>
+    <a href="platform-status.html" data-en="Status">حالة المنصّة</a>
+    <a href="deal-walkthroughs.html" data-en="Deal walkthroughs">جولة في صفقات</a>
+    <a href="youth-camp.html" data-en="Youth camp">معسكر الناشئة</a>
+    <a href="ai-assistant.html" data-en="AI assistant">المساعد الذكي</a>
+    <a href="wealth-snapshot.html" data-en="Wealth snapshot">سنويّتك الماليّة</a>
+    <a href="deal-of-the-week.html" data-en="Deal of the week">صفقة الأسبوع</a>
+    <a href="investor-club.html" data-en="Investor club">نادي المستثمرين</a>
+    <a href="budgeting-apps.html" data-en="Budgeting apps">تطبيقات الميزانيّة</a>
+    <a href="internal-controls.html" data-en="Internal controls">الضوابط الداخليّة</a>
+    <a href="no-refinancing.html" data-en="No refinancing">سياسة رفض إعادة التمويل</a>
+    <a href="whistleblower.html" data-en="Whistleblower channels">قنوات الإبلاغ السرّيّة</a>
+    <a href="dispute-resolution.html" data-en="Dispute resolution">حلّ النزاعات</a>
+    <a href="early-exit.html" data-en="Early exit">الخروج المبكّر</a>
+    <a href="family-investing.html" data-en="Family investing">الاستثمار العائلي</a>
+    <a href="accessibility-charter.html" data-en="Accessibility charter">ميثاق الوصول الشامل</a>
+    <a href="behavioral-pitfalls.html" data-en="Behavioral pitfalls">الفخاخ السلوكيّة</a>
+    <a href="vat-treatment.html" data-en="VAT treatment">معالجة ضريبة القيمة المضافة</a>
+    <a href="retirement-planning.html" data-en="Retirement planning">التخطيط للتقاعد</a>
+    <a href="inflation-hedge.html" data-en="Inflation hedge">الحماية من التضخّم</a>
+    <a href="green-investing.html" data-en="Green investing">الاستثمار الأخضر</a>
+    <a href="referral.html" data-en="Referral program">برنامج الإحالة</a>
+    <a href="watchlist.html" data-en="Watchlist">قائمة المتابعة</a>
+    <a href="earnings-calendar.html" data-en="Earnings calendar">تقويم التوزيعات</a>
+    <a href="investment-certificate.html" data-en="Investment certificate">شهادة الاستثمار</a>
+    <a href="compare-deals.html" data-en="Compare deals">مقارنة الصفقات</a>
+    <a href="portfolio-analytics.html" data-en="Portfolio analytics">تحليلات المحفظة</a>
+    <a href="secondary-market.html" data-en="Secondary market">السوق الثانوي</a>
+    <a href="investor-scorecard.html" data-en="Investor scorecard">بطاقة المستثمر</a>
+    <a href="sponsors.html" data-en="Sponsor directory">دليل الرعاة</a>
+    <a href="tax-certificate.html" data-en="Tax certificate">الشهادة الضريبيّة</a>
+    <a href="community-impact.html" data-en="Community impact">الأثر المجتمعي</a>
+    <a href="crisis-management.html" data-en="Crisis management">إدارة الأزمات</a>
+    <a href="currency-risk.html" data-en="Currency risk">إدارة مخاطر العملة</a>
+    <a href="market-cycles.html" data-en="Market cycles">دورات السوق</a>
+    <a href="concentration-risk.html" data-en="Concentration risk">مخاطر التركّز</a>
+    <a href="liquidity-tiers.html" data-en="Liquidity tiers">طبقات السيولة</a>
+    <a href="pricing-power.html" data-en="Pricing power">قوّة التسعير والخنادق</a>
+    <a href="due-diligence-checklist.html" data-en="DD checklist">قائمة التحقّق قبل الاستثمار</a>
+    <a href="onboarding-tour.html" data-en="Onboarding tour">جولة الترحيب</a>
+    <a href="revenue-dashboard.html" data-en="Revenue dashboard">لوحة الإيرادات</a>
+    <a href="platform-benchmarks.html" data-en="Platform benchmarks">مقاييس الأداء</a>
+    <a href="document-vault.html" data-en="Document vault">خزانة الوثائق</a>
+    <a href="goal-based-investing.html" data-en="Goal-based investing">الاستثمار بحسب الأهداف</a>
     <a href="legal.html#aml" data-en="Anti-money laundering">مكافحة غسل الأموال</a>
     <a href="legal.html#sharia" data-en="Sharia fatwa">الفتوى الشرعية</a>
     <a href="legal.html#complaints" data-en="Complaints">الشكاوى</a>
     <a href="contract.html" data-en="Murabaha contract">عقد المرابحة</a>
     <a href="help.html" data-en="Help">المساعدة</a>
+  </div>
+
+  <div class="foot-social" id="footSocial" role="group" aria-label="منصة مُرابحة على الشبكات الاجتماعية">
+    <a class="tw" id="socialTwitter" href="https://x.com/murbha_sa" target="_blank" rel="noopener" aria-label="X (تويتر)">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a class="li" id="socialLinkedin" href="https://www.linkedin.com/company/murbha" target="_blank" rel="noopener" aria-label="LinkedIn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.86-3.04-1.86 0-2.15 1.45-2.15 2.95v5.66H9.34V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.59 0 4.25 2.37 4.25 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+    </a>
+    <a class="wa" id="socialWhatsapp" href="https://wa.me/966500000000" target="_blank" rel="noopener" aria-label="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24z"/></svg>
+    </a>
+    <a class="ig" id="socialInstagram" href="https://instagram.com/murbha.sa" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58 0 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38a3.7 3.7 0 0 1-1.38.9c-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.18 15.58 2.16 15.2 2.16 12s0-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.18 8.8 2.16 12 2.16zM12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.34 4.14.63 3.36.94 2.7 1.34 2.04 2c-.66.66-1.06 1.32-1.37 2.1-.3.76-.5 1.64-.56 2.91C.01 8.33 0 8.74 0 12c0 3.26.01 3.67.07 4.95.06 1.27.27 2.15.56 2.91.31.78.71 1.44 1.37 2.1.66.66 1.32 1.06 2.1 1.37.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.27 2.91-.56a5.86 5.86 0 0 0 2.1-1.37c.66-.66 1.06-1.32 1.37-2.1.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.27-2.15-.56-2.91a5.86 5.86 0 0 0-1.37-2.1A5.86 5.86 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.41-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg>
+    </a>
+    <a class="yt" id="socialYoutube" href="https://youtube.com/@murbha_sa" target="_blank" rel="noopener" aria-label="YouTube">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.8.5-5.8.5-5.8s0-4-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+    </a>
   </div>
 
   <div class="foot-bottom" data-en-html="© 2026 Murbha Platform — operated by <b>Al-Anqary Co.</b> • Unified Number 7XXXXXXXXX<br/>Made in the Kingdom of Saudi Arabia 🇸🇦">
@@ -3195,6 +4080,117 @@
   window.MurbhaLang = window.MurbhaLang || {};
   window.MurbhaLang.rerenderProjects = loadHomeProjects;
   window.addEventListener('DOMContentLoaded', loadHomeProjects);
+
+  // ── Announcement banner + dynamic social links ───────────────
+  const ANN_LEVEL_BG = { info: '#0a4d36', success: '#0f6e3a', warning: '#b08840', urgent: '#c54a3a' };
+  function _showBanner(a) {
+    const wrap = document.getElementById('annBanner');
+    if (!wrap || !a) return;
+    if (sessionStorage.getItem('murbha_dismissed_ann_' + a.id)) return;
+    wrap.replaceChildren();
+    const bar = document.createElement('div');
+    const bg = ANN_LEVEL_BG[a.level] || '#0a4d36';
+    bar.style.cssText = 'background:' + bg + ';color:#fbf6ea;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font:600 13px Tajawal,sans-serif;';
+    const dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4ac6e;flex-shrink:0;';
+    const t = document.createElement('strong');
+    t.style.cssText = 'font:800 13px Cairo,sans-serif;color:#fff;';
+    t.textContent = a.title;
+    const body = document.createElement('span');
+    body.style.cssText = 'opacity:0.9;';
+    // Use App.mdInline when available — falls back to plain text otherwise.
+    if (window.App && typeof App.mdInline === 'function') {
+      App.mdInline(a.body || '', body);
+      // links inside the banner should be light-on-dark
+      body.querySelectorAll('a').forEach(el => { el.style.color = '#fff'; el.style.textDecoration = 'underline'; });
+    } else {
+      body.textContent = a.body || '';
+    }
+    bar.append(dot, t, body);
+    if (a.cta && a.ctaUrl) {
+      const cta = document.createElement('a');
+      cta.href = a.ctaUrl;
+      cta.style.cssText = 'background:rgba(255,255,255,0.18);color:#fff;padding:6px 14px;border-radius:999px;text-decoration:none;font:800 12px Cairo,sans-serif;margin-inline-start:auto;';
+      cta.textContent = a.cta;
+      bar.appendChild(cta);
+    }
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'إغلاق الإعلان');
+    close.style.cssText = 'background:none;border:0;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0 6px;margin-inline-start:' + (a.cta ? '8px' : 'auto');
+    close.textContent = '✕';
+    close.onclick = () => { sessionStorage.setItem('murbha_dismissed_ann_' + a.id, '1'); wrap.style.display = 'none'; };
+    bar.appendChild(close);
+    wrap.appendChild(bar);
+    wrap.style.display = 'block';
+  }
+  async function loadHessaExtras() {
+    try {
+      const annRes = await fetch('/app/announcements');
+      if (annRes.ok) {
+        const { announcements } = await annRes.json();
+        if (announcements && announcements[0]) _showBanner(announcements[0]);
+      }
+    } catch (e) {}
+    try {
+      const setRes = await fetch('/app/settings');
+      if (setRes.ok) {
+        const s = await setRes.json();
+        const map = { socialTwitter:'twitter', socialLinkedin:'linkedin', socialWhatsapp:'whatsapp', socialInstagram:'instagram', socialYoutube:'youtube' };
+        Object.entries(map).forEach(([id, key]) => {
+          const el = document.getElementById(id);
+          if (el && s.social && s.social[key]) el.href = s.social[key];
+        });
+      }
+    } catch (e) {}
+  }
+  window.addEventListener('DOMContentLoaded', loadHessaExtras);
+
+  // Live activity rotator
+  async function loadLiveActivity() {
+    const wrap = document.getElementById('liveActivityFeed');
+    const list = document.getElementById('liveActivityList');
+    if (!wrap || !list) return;
+    let items = [];
+    try {
+      const r = await fetch('/app/activity-public?limit=10');
+      if (r.ok) items = (await r.json()).activity || [];
+    } catch (e) {}
+    if (!items.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    let idx = 0;
+    function tick() {
+      const it = items[idx % items.length];
+      const ago = (() => {
+        const m = Math.floor((Date.now() - new Date(it.at).getTime()) / 60000);
+        if (m < 1) return 'الآن';
+        if (m < 60) return 'قبل ' + m + ' دقيقة';
+        const h = Math.floor(m / 60);
+        if (h < 24) return 'قبل ' + h + ' ساعة';
+        return 'قبل ' + Math.floor(h / 24) + ' يوم';
+      })();
+      list.replaceChildren();
+      const span1 = document.createElement('span');
+      span1.style.cssText='color:#d4ac6e;font-weight:800;';
+      span1.textContent = it.name;
+      const span2 = document.createTextNode(' استثمر ');
+      const span3 = document.createElement('span');
+      span3.style.cssText='color:#fff;font-weight:800;';
+      span3.textContent = it.amount.toLocaleString('ar-SA') + ' ر.س';
+      const span4 = document.createTextNode(' في ');
+      const span5 = document.createElement('span');
+      span5.style.cssText='color:#fff;font-weight:800;';
+      span5.textContent = it.projectName;
+      const span6 = document.createElement('span');
+      span6.style.cssText='color:rgba(251,246,234,0.5);font-weight:500;margin-inline-start:8px;font-size:11px;';
+      span6.textContent = '· ' + ago;
+      list.append(span1, span2, span3, span4, span5, span6);
+      idx++;
+    }
+    tick();
+    setInterval(tick, 4500);
+  }
+  window.addEventListener('DOMContentLoaded', loadLiveActivity);
 
 </script>
 </body>
