@@ -859,6 +859,52 @@
     </div>
   </div>
 
+  <!-- Behavior profile -->
+  <div class="settings-group" id="behavSec">
+    <div class="settings-h">🧠 الانضباط السلوكي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">فعّل الضوابط التي تحميك من قرارات متسرّعة. كل ضابط يرفع نقاطك على مقياس الانضباط.</p>
+      <div id="behavScore" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">أكثر التحيّزات لديك (اختر حتى ٥):</div>
+      <div id="behavBiasGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;"></div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhActive" /> فعّل ملفّي السلوكي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhCool" /> ⏱ فترة تروٍّ إلزاميّة (١٢ ساعة قبل الاستثمار)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bh48" /> 🕒 قاعدة ٤٨ ساعة لأيّ قرار جديد
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhExit" /> 🛑 شرط بيع تلقائي عند خسارة محدّدة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عتبة الخسارة (٪)
+          <input type="number" id="bhExitPct" min="5" max="50" step="5" value="20" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhJournal" /> 📓 مذكّرة قرار (سجّل سبب كل استثمار)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhWeekly" /> 📅 مراجعة المحفظة أسبوعيًّا فقط
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhDivers" /> 🎯 التزام بالتنويع
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الحد الأدنى لعدد الصفقات
+          <input type="number" id="bhDiversMin" min="2" max="20" step="1" value="4" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bhChecklist" /> ✅ قائمة فحص قبل أيّ استثمار
+        </label>
+        <textarea id="bhNotes" placeholder="ملاحظات (قواعد إضافيّة)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="bhSaveBtn" style="background:#0891b2;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الانضباط السلوكي</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="behavioral-finance.html" style="color:var(--green);">التمويل السلوكي</a>.</p>
+    </div>
+  </div>
+
   <!-- Business cashflow -->
   <div class="settings-group" id="bizSec">
     <div class="settings-h">🏢 إدارة تدفّقات الشركة</div>
@@ -6618,6 +6664,111 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Behavior profile
+  (async () => {
+    try {
+      const active = document.getElementById('bhActive');
+      const cool = document.getElementById('bhCool');
+      const fortyEight = document.getElementById('bh48');
+      const exit = document.getElementById('bhExit');
+      const exitPct = document.getElementById('bhExitPct');
+      const journal = document.getElementById('bhJournal');
+      const weekly = document.getElementById('bhWeekly');
+      const divers = document.getElementById('bhDivers');
+      const diversMin = document.getElementById('bhDiversMin');
+      const checklist = document.getElementById('bhChecklist');
+      const notes = document.getElementById('bhNotes');
+      const score = document.getElementById('behavScore');
+      const biasGrid = document.getElementById('behavBiasGrid');
+      const btn = document.getElementById('bhSaveBtn');
+      if (!active || !btn) return;
+      const biasOptions = [
+        { key: 'fomo', label: '😰 خوف الفوات' },
+        { key: 'herd', label: '🐑 القطيع' },
+        { key: 'loss_aversion', label: '😱 نفور الخسارة' },
+        { key: 'confirmation', label: '🔁 التأكيد' },
+        { key: 'overconfidence', label: '💪 الإفراط بالثقة' },
+        { key: 'recency', label: '⏩ الإنجرار اللحظي' },
+        { key: 'home', label: '🏠 التحيّز للوطن' },
+        { key: 'sunk_cost', label: '💸 الإلتزام الباطل' },
+        { key: 'framing', label: '🖼 الإطار' },
+        { key: 'selective_memory', label: '🧠 الذاكرة الانتقائيّة' },
+      ];
+      let selectedBiases = [];
+      const renderBiases = () => {
+        biasGrid.replaceChildren();
+        biasOptions.forEach(opt => {
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:var(--ink);background:var(--paper);padding:6px 8px;border-radius:8px;cursor:pointer;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = selectedBiases.includes(opt.key);
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              if (selectedBiases.length >= 5) { cb.checked = false; App.toast && App.toast('حد أقصى ٥', 'error'); return; }
+              if (!selectedBiases.includes(opt.key)) selectedBiases.push(opt.key);
+            } else {
+              selectedBiases = selectedBiases.filter(b => b !== opt.key);
+            }
+          });
+          const txt = document.createElement('span'); txt.textContent = opt.label;
+          label.append(cb, txt);
+          biasGrid.appendChild(label);
+        });
+      };
+      const levelLabels = {
+        master: { txt: '🧘 ماهر — انضباط ممتاز', color: '#0a4d36' },
+        disciplined: { txt: '✅ منضبط', color: '#0a4d36' },
+        learning: { txt: '◷ في طور التعلّم', color: '#b08840' },
+        impulsive: { txt: '⚠ متسرّع — فعّل ضوابط أكثر', color: '#c54a3a' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/behavior-profile');
+        active.checked = !!r.active;
+        cool.checked = !!r.coolingOff;
+        fortyEight.checked = !!r.fortyEightHourRule;
+        exit.checked = !!r.lossExitRule;
+        exitPct.value = r.lossExitThresholdPct || 20;
+        journal.checked = !!r.decisionJournal;
+        weekly.checked = !!r.weeklyReviewOnly;
+        divers.checked = !!r.diversificationCommit;
+        diversMin.value = r.diversificationMinDeals || 4;
+        checklist.checked = !!r.checklistBeforeInvest;
+        notes.value = r.notes || '';
+        selectedBiases = [...(r.topBiases || [])];
+        renderBiases();
+        const l = levelLabels[r.level] || levelLabels.impulsive;
+        score.style.color = l.color;
+        score.textContent = '🎯 الانضباط ' + r.disciplineScore + '/١٠٠ · ' + r.enabledCount + ' من ' + r.maxOptions + ' ضوابط · ' + l.txt;
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/behavior-profile', {
+            active: active.checked,
+            topBiases: selectedBiases,
+            coolingOff: cool.checked,
+            fortyEightHourRule: fortyEight.checked,
+            lossExitRule: exit.checked,
+            lossExitThresholdPct: Number(exitPct.value || 20),
+            decisionJournal: journal.checked,
+            weeklyReviewOnly: weekly.checked,
+            diversificationCommit: divers.checked,
+            diversificationMinDeals: Number(diversMin.value || 4),
+            checklistBeforeInvest: checklist.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ ضوابطك السلوكيّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
