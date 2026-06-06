@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Plan templates -->
+  <div class="settings-group" id="planTplSec">
+    <div class="settings-h">🎯 قوالب الخطط الاستثماريّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اختر قالباً جاهزاً يناسب أهدافك. سيُستخدم كاقتراح للتوزيع التلقائي.</p>
+      <div id="planTplActive" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:12px 14px;margin-bottom:12px;font:800 12px Cairo,sans-serif;"></div>
+      <div id="planTplList" style="display:grid;gap:10px;"></div>
+    </div>
+  </div>
+
   <!-- Goals timeline -->
   <div class="settings-group" id="goalTimelineSec" style="display:none;">
     <div class="settings-h">📅 الخطّ الزمني لأهدافك</div>
@@ -3992,6 +4002,59 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Plan templates
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/plan-templates');
+      if (!r.hasData) return;
+      const list = document.getElementById('planTplList');
+      if (!list) return;
+      const active = document.getElementById('planTplActive');
+      let me = null;
+      try { me = await App.api('GET', '/app/me'); } catch {}
+      if (me && me.activeTemplate) {
+        const tpl = r.templates.find(t => t.key === me.activeTemplate);
+        if (tpl) {
+          active.textContent = '✓ المُفعّل حالياً: ' + tpl.label;
+          active.style.display = '';
+        }
+      }
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      r.templates.forEach(tpl => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:12px;padding:14px;border:2px solid ' + (me && me.activeTemplate === tpl.key ? '#0a4d36' : 'transparent') + ';';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = tpl.label;
+        const btn = document.createElement('button'); btn.type = 'button';
+        btn.style.cssText = 'background:#0a4d36;color:#fff;border:none;padding:6px 14px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;';
+        btn.textContent = (me && me.activeTemplate === tpl.key) ? 'مُفعّل' : 'تفعيل';
+        btn.disabled = me && me.activeTemplate === tpl.key;
+        btn.onclick = async () => {
+          try {
+            await App.api('POST', '/app/me/plan-templates/apply', { templateKey: tpl.key });
+            App.toast && App.toast('تمّ تفعيل القالب', 'success');
+            setTimeout(() => location.reload(), 600);
+          } catch { App.toast && App.toast('فشل', 'error'); }
+        };
+        head.append(lbl, btn);
+        const desc = document.createElement('div'); desc.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:8px;'; desc.textContent = tpl.desc;
+        const meta = document.createElement('div'); meta.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--gold);';
+        const monthly = tpl.monthlyAmount > 0 ? fmt(tpl.monthlyAmount) + ' ر.س/شهر · ' : '';
+        meta.textContent = monthly + tpl.durationMonths + ' شهر';
+        const alloc = document.createElement('div'); alloc.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;';
+        Object.entries(tpl.allocation).forEach(([k, v]) => {
+          const chip = document.createElement('span');
+          chip.style.cssText = 'background:#fff;color:var(--green-dark);font:700 10px Cairo,sans-serif;padding:3px 8px;border-radius:99px;';
+          chip.textContent = k + ' ' + v + '٪';
+          alloc.appendChild(chip);
+        });
+        card.append(head, desc, meta, alloc);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
