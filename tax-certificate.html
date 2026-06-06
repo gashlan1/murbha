@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>شهادة ضريبيّة — مُرابحة</title>
+<meta name="description" content="احصل على شهادتك الضريبيّة السنويّة لتقديمها لهيئة الزكاة والضريبة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:880px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:620px;margin:0 auto;line-height:1.85;}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:14px;}
+  section h2{font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed var(--line);}
+  .year-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .year-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:7px 18px;font:700 12px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .year-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .cert-doc{border:3px double var(--gold);border-radius:16px;padding:32px 28px;background:linear-gradient(160deg,#fff 70%,#fdf5e4);position:relative;margin-top:14px;}
+  .cert-wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);font:900 64px Cairo,sans-serif;color:rgba(10,77,54,.04);pointer-events:none;white-space:nowrap;}
+  .cert-logo{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .cert-title{font:900 20px Cairo,sans-serif;color:var(--gold);margin-bottom:6px;}
+  .cert-sub{font:500 12px Tajawal,sans-serif;color:var(--muted);margin-bottom:18px;}
+  .cert-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;margin-bottom:16px;}
+  .cert-table th,.cert-table td{padding:10px;border-bottom:1px solid var(--line);text-align:start;}
+  .cert-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .cert-table tfoot td{font:900 12px Cairo,sans-serif;color:var(--green-dark);border-top:2px solid var(--gold);}
+  .cert-seal{text-align:center;margin-top:14px;font-size:32px;}
+  .cert-ref{font:500 9px Tajawal,sans-serif;color:var(--muted);text-align:center;margin-top:8px;}
+  .cert-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+  .btn-print{background:var(--green);color:#fbf6ea;border:none;border-radius:8px;padding:10px 22px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-dl{background:var(--paper);color:var(--green);border:1px solid var(--green);border-radius:8px;padding:10px 22px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:28px 0;}
+  @media print{.hero,section:not(#certSection),.cert-actions,.year-row{display:none!important;}body{background:#fff;}.cert-doc{border-color:#b08840;}}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📄 الشهادة الضريبيّة السنويّة</h1>
+    <p>وثيقة رسميّة تُلخّص دخلك الاستثماري وضريبة القيمة المضافة المسدّدة لكلّ سنة ميلاديّة.</p>
+  </div>
+
+  <section>
+    <h2>📅 اختر السنة</h2>
+    <div class="year-row" id="yearRow">
+      <p class="placeholder-msg">جارٍ التحميل…</p>
+    </div>
+  </section>
+
+  <section id="certSection">
+    <h2>📜 الشهادة</h2>
+    <div id="certArea">
+      <p class="placeholder-msg">اختر سنة من الأعلى لإنشاء الشهادة.</p>
+    </div>
+  </section>
+</main>
+<script>
+(function(){
+  function fmt(n){return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function fmtDate(s){return s?new Date(s).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'}):'—';}
+
+  async function loadCert(year){
+    const area=document.getElementById('certArea');
+    area.textContent='';
+    const msg=document.createElement('p');
+    msg.className='placeholder-msg';
+    msg.textContent='جارٍ إنشاء الشهادة…';
+    area.appendChild(msg);
+    try{
+      const r=await fetch('/app/me/tax-certificate?year='+encodeURIComponent(year));
+      if(!r.ok){
+        msg.textContent=r.status===401?'يجب تسجيل الدخول.':'لا توجد بيانات لهذه السنة.';
+        return;
+      }
+      const d=await r.json();
+      area.textContent='';
+      renderCert(area,d,year);
+    }catch{
+      msg.textContent='تعذّر إنشاء الشهادة. حاول لاحقاً.';
+    }
+  }
+
+  function renderCert(area,d,year){
+    const doc=document.createElement('div');
+    doc.className='cert-doc';
+
+    const wm=document.createElement('div');
+    wm.className='cert-wm';
+    wm.textContent='مُرابحة';
+
+    const logo=document.createElement('div');
+    logo.className='cert-logo';
+    logo.textContent='🌿 مُرابحة للتمويل الإسلامي';
+
+    const title=document.createElement('div');
+    title.className='cert-title';
+    title.textContent='شهادة الدخل الاستثماري والضريبة — '+year;
+
+    const sub=document.createElement('div');
+    sub.className='cert-sub';
+    sub.textContent='صادرة بتاريخ '+fmtDate(new Date().toISOString())+' · للمستثمر: '+(d.investorName||'—');
+
+    const table=document.createElement('table');
+    table.className='cert-table';
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    ['الصفقة','المبلغ المستثمر (ر.س)','الدخل المُستلم (ر.س)','ضريبة القيمة المضافة (ر.س)'].forEach(h=>{
+      const th=document.createElement('th');
+      th.textContent=h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    const tbody=document.createElement('tbody');
+    let totInv=0,totInc=0,totVat=0;
+    (d.rows||[]).forEach(row=>{
+      const tr=document.createElement('tr');
+      [row.projectName,fmt(row.invested),fmt(row.income),fmt(row.vat)].forEach(v=>{
+        const td=document.createElement('td');
+        td.textContent=v;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      totInv+=row.invested||0;
+      totInc+=row.income||0;
+      totVat+=row.vat||0;
+    });
+    table.appendChild(tbody);
+
+    const tfoot=document.createElement('tfoot');
+    const fr=document.createElement('tr');
+    ['الإجمالي',fmt(totInv),fmt(totInc),fmt(totVat)].forEach(v=>{
+      const td=document.createElement('td');
+      td.textContent=v;
+      fr.appendChild(td);
+    });
+    tfoot.appendChild(fr);
+    table.appendChild(tfoot);
+
+    const seal=document.createElement('div');
+    seal.className='cert-seal';
+    seal.textContent='🕌';
+
+    const ref=document.createElement('div');
+    ref.className='cert-ref';
+    ref.textContent='رقم الشهادة: TAX-'+year+'-'+(d.userId||'').slice(0,8).toUpperCase()+' · يُرجى الاحتفاظ بهذه الشهادة لأغراض إقرار الزكاة والضريبة.';
+
+    doc.appendChild(wm);
+    doc.appendChild(logo);
+    doc.appendChild(title);
+    doc.appendChild(sub);
+    doc.appendChild(table);
+    doc.appendChild(seal);
+    doc.appendChild(ref);
+
+    const actions=document.createElement('div');
+    actions.className='cert-actions';
+    const printBtn=document.createElement('button');
+    printBtn.className='btn-print';
+    printBtn.textContent='🖨️ طباعة';
+    printBtn.addEventListener('click',()=>window.print());
+    const dlBtn=document.createElement('button');
+    dlBtn.className='btn-dl';
+    dlBtn.textContent='⬇️ تحميل PDF';
+    dlBtn.addEventListener('click',()=>window.print());
+    actions.appendChild(printBtn);
+    actions.appendChild(dlBtn);
+
+    area.appendChild(doc);
+    area.appendChild(actions);
+  }
+
+  (async function init(){
+    const yearRow=document.getElementById('yearRow');
+    try{
+      const r=await fetch('/app/me/tax-certificate/years');
+      yearRow.textContent='';
+      if(!r.ok){
+        const m=document.createElement('p');
+        m.className='placeholder-msg';
+        m.textContent=r.status===401?'يجب تسجيل الدخول.':'لا توجد سنوات متاحة.';
+        yearRow.appendChild(m);
+        return;
+      }
+      const d=await r.json();
+      const years=d.years||[];
+      if(!years.length){
+        const m=document.createElement('p');
+        m.className='placeholder-msg';
+        m.textContent='لا توجد بيانات ضريبيّة بعد. استثمر وانتظر أوّل توزيع.';
+        yearRow.appendChild(m);
+        return;
+      }
+      years.forEach((yr,i)=>{
+        const btn=document.createElement('button');
+        btn.className='year-btn'+(i===0?' active':'');
+        btn.textContent=yr;
+        btn.addEventListener('click',()=>{
+          document.querySelectorAll('.year-btn').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active');
+          loadCert(yr);
+        });
+        yearRow.appendChild(btn);
+      });
+      loadCert(years[0]);
+    }catch{
+      yearRow.textContent='';
+      const m=document.createElement('p');
+      m.className='placeholder-msg';
+      m.textContent='تعذّر التحميل. حاول لاحقاً.';
+      yearRow.appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

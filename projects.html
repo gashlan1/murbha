@@ -508,10 +508,19 @@
 
   <div class="search-row">
     <input class="search-input" type="search" placeholder="ابحث عن مشروع، قطاع، أو مدينة..." />
-    <button class="filter-btn">
+    <button class="filter-btn" id="advFilterBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/></svg>
       تصفية
     </button>
+  </div>
+  <div id="advFilters" style="display:none;padding:0 18px 10px;gap:8px;flex-wrap:wrap;">
+    <select id="filterCity" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:600 12px Tajawal,sans-serif;color:var(--ink);">
+      <option value="">كل المدن</option>
+    </select>
+    <select id="filterCategory" style="flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font:600 12px Tajawal,sans-serif;color:var(--ink);">
+      <option value="">كل القطاعات</option>
+    </select>
+    <button type="button" id="resetFiltersBtn" style="padding:8px 14px;background:transparent;border:1px solid var(--line);border-radius:8px;font:800 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;">إعادة تعيين</button>
   </div>
 
   <div class="chips-row">
@@ -687,7 +696,20 @@
   <section class="projects-live" aria-labelledby="live-title">
     <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;padding:0 14px;margin:8px 0 12px">
       <h3 id="live-title">الفرص المتاحة الآن</h3>
+      <a href="/compare.html" style="font:800 12px Cairo,sans-serif;color:var(--gold);text-decoration:none;padding:6px 12px;border:1px solid var(--gold);border-radius:999px;">⇆ مقارنة الفرص</a>
+    </div>
+    <div style="padding:0 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
       <span class="live-count" id="liveCount" style="font:700 12px 'Tajawal';color:var(--muted)"></span>
+      <label style="display:flex;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:var(--muted);">
+        ترتيب حسب
+        <select id="liveSort" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:700 12px Tajawal,sans-serif;color:var(--ink);cursor:pointer;">
+          <option value="newest">الأحدث</option>
+          <option value="ending">ينتهي قريباً</option>
+          <option value="return">أعلى عائد</option>
+          <option value="funded">الأكثر تمويلاً</option>
+          <option value="min">الحد الأدنى الأقل</option>
+        </select>
+      </label>
     </div>
     <div id="liveProjects" class="live-projects" style="display:grid;gap:12px;padding:0 14px 18px"></div>
     <div id="liveLoading" style="padding:24px;text-align:center;color:var(--muted);font:600 13px 'Tajawal'">…جارٍ تحميل الفرص</div>
@@ -751,18 +773,35 @@
         ld.style.display = 'none';
         const q = (s) => App.escapeHtml(s);
 
-        const liveProjects = projects.filter(p => p.status !== 'completed');
+        let liveProjects = projects.filter(p => p.status !== 'completed');
         const completedProjects = projects.filter(p => p.status === 'completed');
+
+        const sortSel = document.getElementById('liveSort');
+        const applySort = () => {
+          const mode = sortSel?.value || 'newest';
+          const sorted = liveProjects.slice();
+          if (mode === 'newest')      sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          else if (mode === 'ending') sorted.sort((a, b) => new Date(a.closesAt || 0) - new Date(b.closesAt || 0));
+          else if (mode === 'return') sorted.sort((a, b) => (b.profitRate || 0) - (a.profitRate || 0));
+          else if (mode === 'funded') sorted.sort((a, b) => (b.fundedPct || 0) - (a.fundedPct || 0));
+          else if (mode === 'min')    sorted.sort((a, b) => (a.minTicket || Infinity) - (b.minTicket || Infinity));
+          // Featured items always bubble to the top regardless of sort
+          sorted.sort((a, b) => Number(b.featured ? 1 : 0) - Number(a.featured ? 1 : 0));
+          liveProjects = sorted;
+        };
+        applySort();
+        if (sortSel) sortSel.addEventListener('change', () => { applySort(); window.loadProjects(); });
 
         cnt.textContent = App.fmt.arNum(liveProjects.length) + ' فرصة';
         compCnt.textContent = App.fmt.arNum(completedProjects.length) + ' مشروع';
 
         // Render Live Projects
         grid.innerHTML = liveProjects.map(p => `
-          <a class="lp-card" href="project.html?id=${q(p.slug)}">
+          <a class="lp-card${p.featured ? ' featured' : ''}" href="project.html?id=${q(p.slug)}" style="${p.featured ? 'border:2px solid var(--gold);box-shadow:0 6px 20px rgba(176,136,64,0.18);' : ''}">
             <div class="lp-head">
               <div class="lp-emoji">${q(p.image || '📦')}</div>
               <div class="lp-name">${q(p.name)}</div>
+              ${p.featured ? '<span class="lp-status" style="background:linear-gradient(90deg,#b08840,#d4ac6e);color:#fff;font-weight:800;">★ مميّز</span>' : ''}
               ${p.inviteOnly ? '<span class="lp-status invite-only">🔒 دعوة خاصة</span>' : ''}
               <span class="lp-status ${q(p.status)}">${p.status === 'open' ? 'مفتوحة' : 'مكتملة التمويل'}</span>
             </div>
@@ -824,18 +863,79 @@
         // Wire chip filtering on category contains
         const chips = document.querySelectorAll('.chips-row .chip');
         const search = document.querySelector('.search-input');
+        chips.forEach(c => c.addEventListener('click', () => {
+          chips.forEach(x => x.classList.remove('active'));
+          c.classList.add('active');
+        }));
+        // Populate advanced filter selects from unique values
+        const cityCounts = new Map();
+        const catCounts = new Map();
+        liveProjects.forEach(p => {
+          if (p.city) cityCounts.set(p.city, (cityCounts.get(p.city) || 0) + 1);
+          if (p.category) catCounts.set(p.category, (catCounts.get(p.category) || 0) + 1);
+        });
+        const citySel = document.getElementById('filterCity');
+        const catSel = document.getElementById('filterCategory');
+        if (citySel && citySel.children.length === 1) {
+          [...cityCounts.entries()].sort().forEach(([city, count]) => {
+            const o = document.createElement('option'); o.value = city; o.textContent = city + ' (' + count + ')';
+            citySel.appendChild(o);
+          });
+        }
+        if (catSel && catSel.children.length === 1) {
+          [...catCounts.entries()].sort().forEach(([cat, count]) => {
+            const o = document.createElement('option'); o.value = cat; o.textContent = cat + ' (' + count + ')';
+            catSel.appendChild(o);
+          });
+        }
+        document.getElementById('advFilterBtn')?.addEventListener('click', () => {
+          const f = document.getElementById('advFilters');
+          if (f) f.style.display = f.style.display === 'flex' ? 'none' : 'flex';
+        });
+        document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+          if (citySel) citySel.value = '';
+          if (catSel) catSel.value = '';
+          if (search) search.value = '';
+          chips.forEach(x => x.classList.remove('active'));
+          chips[0]?.classList.add('active');
+          apply();
+        });
+
         const apply = () => {
           const activeChip = document.querySelector('.chips-row .chip.active');
           const filter = activeChip ? activeChip.textContent.trim() : 'الكل';
-          const term = (search.value || '').trim();
+          const term = (search.value || '').trim().toLowerCase();
+          const advCity = citySel?.value || '';
+          const advCat = catSel?.value || '';
+          let shownLive = 0;
 
           document.querySelectorAll('.lp-card').forEach((card, i) => {
             const p = liveProjects[i];
             if (!p) return;
             const okCat  = filter === 'الكل' || (p.category || '').includes(filter.split(' ')[0]);
-            const okTerm = !term || (p.name + ' ' + p.summary + ' ' + p.city + ' ' + p.category).includes(term);
-            card.style.display = (okCat && okTerm) ? '' : 'none';
+            const okAdvCity = !advCity || p.city === advCity;
+            const okAdvCat  = !advCat || p.category === advCat;
+            const haystack = [p.name, p.summary, p.city, p.category].filter(Boolean).join(' ').toLowerCase();
+            const okTerm = !term || haystack.includes(term);
+            const show = okCat && okTerm && okAdvCity && okAdvCat;
+            card.style.display = show ? '' : 'none';
+            if (show) shownLive++;
           });
+          // No-results message
+          let empty = document.getElementById('searchNoResults');
+          const grid = document.getElementById('liveProjects');
+          if (!shownLive && grid) {
+            if (!empty) {
+              empty = document.createElement('div');
+              empty.id = 'searchNoResults';
+              empty.style.cssText = 'padding:30px 18px;text-align:center;color:var(--muted);font:600 13px Tajawal,sans-serif;';
+              empty.textContent = 'لا توجد فرص مطابقة. جرّب كلمة أخرى أو "الكل".';
+              grid.parentNode.insertBefore(empty, grid.nextSibling);
+            }
+          } else if (empty) {
+            empty.remove();
+          }
+          if (cnt) cnt.textContent = App.fmt.arNum(shownLive) + ' فرصة';
 
           document.querySelectorAll('.cp-card').forEach((card, i) => {
             const p = completedProjects[i];
@@ -846,7 +946,12 @@
           });
         };
         chips.forEach(c => c.addEventListener('click', apply));
-        search.addEventListener('input', apply);
+        if (search) {
+          search.addEventListener('input', apply);
+          search.addEventListener('search', apply);
+        }
+        citySel?.addEventListener('change', apply);
+        catSel?.addEventListener('change', apply);
       } catch (e) {
         ld.textContent = 'تعذّر تحميل الفرص.';
       }
