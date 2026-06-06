@@ -859,6 +859,19 @@
     </div>
   </div>
 
+  <!-- Investor ID card -->
+  <div class="settings-group" id="idCardSec" style="display:none;">
+    <div class="settings-h">🪪 بطاقتك التعريفيّة كمستثمر</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">بطاقة رقميّة لإثبات هويّتك كمستثمر مرابحة. تستطيع طباعتها أو حفظها على الجوّال.</p>
+      <div id="idCardPreview" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:14px;padding:20px;margin-bottom:14px;display:grid;grid-template-columns:1fr 100px;gap:12px;align-items:center;"></div>
+      <div style="display:flex;gap:8px;">
+        <a id="idCardPdf" href="#" target="_blank" rel="noopener" style="flex:1;padding:10px;background:var(--green-dark);color:#d4ac6e;border-radius:8px;font:800 12px Cairo,sans-serif;text-align:center;text-decoration:none;">⬇ PDF</a>
+        <a id="idCardPng" href="#" target="_blank" rel="noopener" style="flex:1;padding:10px;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);border-radius:8px;font:800 12px Cairo,sans-serif;text-align:center;text-decoration:none;">⬇ PNG</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Category limits -->
   <div class="settings-group" id="catLimSec">
     <div class="settings-h">🎚 سقف الاستثمار لكلّ قطاع</div>
@@ -3944,6 +3957,33 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Investor ID card
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/investor-id-card');
+      if (!r.hasData) return;
+      const sec = document.getElementById('idCardSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const tierMap = { qualified: '💎 مستثمر مؤهّل', platinum: '💎 بلاتيني', gold: '🥇 ذهبي', silver: '🥈 فضّيّ', bronze: '🥉 برونزي', guest: '✨ ضيف' };
+      const preview = document.getElementById('idCardPreview');
+      preview.replaceChildren();
+      const left = document.createElement('div');
+      const name = document.createElement('div'); name.style.cssText = 'font:900 16px Cairo,sans-serif;color:#fff;margin-bottom:2px;'; name.textContent = r.displayName;
+      const tier = document.createElement('div'); tier.style.cssText = 'font:700 13px Cairo,sans-serif;color:#d4ac6e;margin-bottom:8px;'; tier.textContent = tierMap[r.tier] || r.tier;
+      const id = document.createElement('div'); id.style.cssText = 'font:600 11px Tajawal,sans-serif;opacity:0.9;'; id.textContent = '🪪 الرقم: ' + r.memberId;
+      const since = document.createElement('div'); since.style.cssText = 'font:600 10px Tajawal,sans-serif;opacity:0.8;'; since.textContent = '📅 عضو منذ: ' + (r.memberSince ? new Date(r.memberSince).toLocaleDateString('ar-SA') : '—');
+      const deals = document.createElement('div'); deals.style.cssText = 'font:600 10px Tajawal,sans-serif;opacity:0.8;'; deals.textContent = '📊 الصفقات: ' + fmt(r.totalDeals);
+      const kyc = document.createElement('div'); kyc.style.cssText = 'font:700 10px Cairo,sans-serif;margin-top:4px;color:' + (r.kycVerified ? '#d4ac6e' : '#fff'); kyc.textContent = r.kycVerified ? '✓ KYC موثّق' : '⚠ KYC غير مكتمل';
+      left.append(name, tier, id, since, deals, kyc);
+      const qr = document.createElement('img'); qr.src = r.qrUrl; qr.alt = 'QR Code'; qr.style.cssText = 'width:100px;height:100px;background:#fff;border-radius:8px;padding:6px;';
+      preview.append(left, qr);
+      document.getElementById('idCardPdf').href = r.pdfUrl;
+      document.getElementById('idCardPng').href = r.pngUrl;
     } catch (e) {}
   })();
 
