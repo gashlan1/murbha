@@ -859,6 +859,34 @@
     </div>
   </div>
 
+  <!-- Tax residency -->
+  <div class="settings-group" id="taxResSec">
+    <div class="settings-h">🌍 الإقامة الضريبيّة (FATCA/CRS)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إقرار مطلوب لساما ومتطلّبات الإفصاح الدولي. ستُستخدم فقط للامتثال.</p>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <div>
+          <label for="txCountry" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">دولة الإقامة الضريبيّة (رمز ISO، مثل SA)</label>
+          <input type="text" id="txCountry" maxlength="2" placeholder="SA" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:700 13px Cairo,sans-serif;text-transform:uppercase;" />
+        </div>
+        <div>
+          <label for="txTin" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الرقم الضريبي (TIN) — اختياري</label>
+          <input type="text" id="txTin" maxlength="32" placeholder="اتركه فارغاً إن لم يتوفّر" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="txUs" style="transform:scale(1.3);accent-color:#c54a3a;" />
+          أنا شخص أمريكي (مواطن/مقيم — FATCA)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="txCrs" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          أوافق على مشاركة بياناتي مع جهات الإفصاح الدولي (CRS) عند الطلب
+        </label>
+      </div>
+      <button type="button" id="txSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الإقرار</button>
+      <div id="txStatus" style="margin-top:8px;font:600 11px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- Plan templates -->
   <div class="settings-group" id="planTplSec">
     <div class="settings-h">🎯 قوالب الخطط الاستثماريّة</div>
@@ -4002,6 +4030,37 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Tax residency
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/tax-residency');
+      if (!r.hasData) return;
+      const country = document.getElementById('txCountry');
+      const tin = document.getElementById('txTin');
+      const us = document.getElementById('txUs');
+      const crs = document.getElementById('txCrs');
+      const btn = document.getElementById('txSaveBtn');
+      const status = document.getElementById('txStatus');
+      if (country) country.value = r.country || 'SA';
+      if (us) us.checked = !!r.isUsPerson;
+      if (crs) crs.checked = r.crsConsent !== false;
+      if (tin && r.tinPresent) tin.placeholder = 'محفوظ — اتركه فارغاً للإبقاء';
+      if (status && r.declaredAt) status.textContent = '✓ آخر إقرار: ' + new Date(r.declaredAt).toLocaleDateString('ar-SA');
+      btn?.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/tax-residency', {
+            country: country.value.toUpperCase(),
+            tin: tin.value || undefined,
+            isUsPerson: us.checked,
+            crsConsent: crs.checked,
+          });
+          App.toast && App.toast('تم حفظ إقرار الإقامة الضريبيّة', 'success');
+          if (status) status.textContent = '✓ آخر إقرار: ' + new Date().toLocaleDateString('ar-SA');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
