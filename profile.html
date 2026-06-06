@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- FX alerts -->
+  <div class="settings-group" id="fxAlertSec">
+    <div class="settings-h">💱 تنبيهات سعر الصرف</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احصل على إشعار عند بلوغ سعر صرف معيّن. مفيد لصفقات بعملات خارجيّة.</p>
+      <div id="fxAlertList" style="display:grid;gap:8px;margin-bottom:10px;"></div>
+      <button type="button" id="fxAlertAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة تنبيه</button>
+      <div style="display:grid;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="fxMonthly" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          أرسل لي تقرير تعرّض FX شهرياً
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">عرض تحوّط آليّاً عند تعرّض يتجاوز (ر.س)</label>
+          <input type="number" id="fxAutoHedge" min="0" step="10000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="fxSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تنبيهات FX</button>
+    </div>
+  </div>
+
   <!-- Emergency contacts -->
   <div class="settings-group" id="emerSec">
     <div class="settings-h">🆘 جهات اتّصال الطوارئ</div>
@@ -4388,6 +4409,88 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // FX alerts
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/fx-alerts');
+      if (!r.hasData) return;
+      const list = document.getElementById('fxAlertList');
+      const addBtn = document.getElementById('fxAlertAddBtn');
+      const monthly = document.getElementById('fxMonthly');
+      const autoHedge = document.getElementById('fxAutoHedge');
+      const saveBtn = document.getElementById('fxSaveBtn');
+      if (!list || !saveBtn) return;
+      monthly.checked = r.monthlyExposureReport !== false;
+      autoHedge.value = r.autoHedgeAbove;
+      const currencies = ['USD', 'EUR', 'GBP', 'AED', 'EGP', 'TRY', 'JOD', 'KWD'];
+      const addRow = (a) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:80px 90px 1fr 110px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        row.dataset.role = 'fx-row';
+        const cur = document.createElement('select');
+        cur.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:800 11px Cairo,sans-serif;';
+        cur.dataset.key = 'currency';
+        currencies.forEach(c => {
+          const opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+          if (a?.currency === c) opt.selected = true;
+          cur.appendChild(opt);
+        });
+        const dir = document.createElement('select');
+        dir.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        dir.dataset.key = 'direction';
+        ['above', 'below'].forEach(d => {
+          const opt = document.createElement('option'); opt.value = d; opt.textContent = d === 'above' ? 'أعلى من' : 'أقلّ من';
+          if (a?.direction === d) opt.selected = true;
+          dir.appendChild(opt);
+        });
+        const thr = document.createElement('input'); thr.type = 'number'; thr.placeholder = 'السعر (ر.س)'; thr.step = '0.0001'; thr.min = '0';
+        thr.value = a?.threshold || '';
+        thr.dataset.key = 'threshold';
+        thr.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const nv = document.createElement('select');
+        nv.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        nv.dataset.key = 'notifyVia';
+        [['all', 'كلّ القنوات'], ['email', 'بريد'], ['sms', 'نصّي'], ['push', 'دفع']].forEach(([v, t]) => {
+          const opt = document.createElement('option'); opt.value = v; opt.textContent = t;
+          if (a?.notifyVia === v) opt.selected = true;
+          nv.appendChild(opt);
+        });
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        row.append(cur, dir, thr, nv, del);
+        list.appendChild(row);
+      };
+      (r.alerts || []).forEach(addRow);
+      addBtn.addEventListener('click', () => {
+        if (list.querySelectorAll('[data-role="fx-row"]').length >= 10) {
+          App.toast && App.toast('الحدّ الأقصى ١٠ تنبيهات', 'error');
+          return;
+        }
+        addRow(null);
+      });
+      saveBtn.addEventListener('click', async () => {
+        const rows = list.querySelectorAll('[data-role="fx-row"]');
+        const alerts = [];
+        rows.forEach(row => {
+          const a = {};
+          row.querySelectorAll('select, input').forEach(el => {
+            a[el.dataset.key] = el.type === 'number' ? Number(el.value) : el.value;
+          });
+          if (a.currency && a.threshold > 0) alerts.push(a);
+        });
+        try {
+          await App.api('PUT', '/app/me/fx-alerts', {
+            alerts,
+            monthlyExposureReport: monthly.checked,
+            autoHedgeAbove: Number(autoHedge.value),
+          });
+          App.toast && App.toast('تم حفظ تنبيهات FX', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
