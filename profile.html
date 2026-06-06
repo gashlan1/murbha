@@ -859,6 +859,44 @@
     </div>
   </div>
 
+  <!-- Mistake journal -->
+  <div class="settings-group" id="mistakeSec">
+    <div class="settings-h">📔 سجلّ الدروس من الأخطاء</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">دوّن الأخطاء التي وقعت فيها والدروس المستفادة. شاركها مجهولاً لتفيد آخرين.</p>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">درس جديد</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="mjTitle" placeholder="عنوان مختصر للدرس" maxlength="120" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <select id="mjCategory" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="concentration">🎯 تركّز زائد</option>
+            <option value="leverage">💸 اقتراض للاستثمار</option>
+            <option value="panic">😱 بيع ذعر</option>
+            <option value="emotional">❤ قرار عاطفي</option>
+            <option value="speculation">🎲 مضاربة</option>
+            <option value="fraud">🚨 احتيال</option>
+            <option value="other">📌 آخر</option>
+          </select>
+          <select id="mjSeverity" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="minor">خسارة بسيطة</option>
+            <option value="moderate" selected>خسارة متوسّطة</option>
+            <option value="severe">خسارة شديدة</option>
+            <option value="catastrophic">كارثيّة</option>
+          </select>
+          <input type="number" id="mjLoss" placeholder="مبلغ الخسارة (ر.س — اختياري)" min="0" step="1000" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <textarea id="mjLesson" rows="3" placeholder="ما الدرس المستفاد؟ ماذا ستفعل بشكل مختلف؟" maxlength="2000" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;resize:vertical;"></textarea>
+          <label style="display:flex;align-items:center;gap:8px;font:700 11px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="mjShare" style="transform:scale(1.3);accent-color:#0a4d36;" />
+            🤝 شارك الدرس مجهولاً لمساعدة آخرين
+          </label>
+          <button type="button" id="mjAddBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إضافة للسجلّ</button>
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">دروسي السابقة</div>
+      <div id="mjList" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Tax calendar -->
   <div class="settings-group" id="taxCalSec">
     <div class="settings-h">📅 تقويم الزكاة والضرائب</div>
@@ -5416,6 +5454,88 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Mistake journal
+  (async () => {
+    try {
+      const title = document.getElementById('mjTitle');
+      const category = document.getElementById('mjCategory');
+      const severity = document.getElementById('mjSeverity');
+      const loss = document.getElementById('mjLoss');
+      const lesson = document.getElementById('mjLesson');
+      const share = document.getElementById('mjShare');
+      const addBtn = document.getElementById('mjAddBtn');
+      const list = document.getElementById('mjList');
+      if (!list || !addBtn) return;
+      const catLabels = {
+        concentration: '🎯 تركّز زائد',
+        leverage: '💸 اقتراض',
+        panic: '😱 بيع ذعر',
+        emotional: '❤ عاطفي',
+        speculation: '🎲 مضاربة',
+        fraud: '🚨 احتيال',
+        other: '📌 آخر',
+      };
+      const sevLabels = {
+        minor: { txt: 'بسيطة', color: '#0a4d36' },
+        moderate: { txt: 'متوسّطة', color: '#b08840' },
+        severe: { txt: 'شديدة', color: '#c54a3a' },
+        catastrophic: { txt: 'كارثيّة', color: '#5c2418' },
+      };
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/mistake-journal');
+        if (!r.hasData) return;
+        list.replaceChildren();
+        if (!r.entries.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;font:500 11px Tajawal,sans-serif;color:var(--muted);text-align:center;';
+          empty.textContent = 'لم تدوّن أيّ درس بعد. ابدأ بأوّل تجربة تعلّمت منها.';
+          list.appendChild(empty);
+          return;
+        }
+        r.entries.forEach(e => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid ' + (sevLabels[e.severity]?.color || '#b08840') + ';';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = e.title;
+          const date = document.createElement('div'); date.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);'; date.textContent = new Date(e.createdAt).toLocaleDateString('ar-SA');
+          head.append(lbl, date);
+          card.appendChild(head);
+          const meta = document.createElement('div'); meta.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;';
+          meta.textContent = (catLabels[e.category] || e.category) + ' · ' + (sevLabels[e.severity]?.txt || '') + (e.lossAmount ? ' · خسارة ' + fmt(e.lossAmount) + ' ر.س' : '') + (e.sharedAnonymously ? ' · مشارَك' : '');
+          card.appendChild(meta);
+          const lsn = document.createElement('div'); lsn.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.6;background:#fff;border-radius:6px;padding:8px;';
+          lsn.textContent = '💡 ' + e.lesson;
+          card.appendChild(lsn);
+          const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '🗑 حذف';
+          delBtn.style.cssText = 'margin-top:6px;background:none;border:none;color:#c54a3a;cursor:pointer;font:700 10px Cairo,sans-serif;';
+          delBtn.addEventListener('click', async () => {
+            try { await App.api('DELETE', '/app/me/mistake-journal/' + encodeURIComponent(e.id)); render(); } catch {}
+          });
+          card.appendChild(delBtn);
+          list.appendChild(card);
+        });
+      };
+      render();
+      addBtn.addEventListener('click', async () => {
+        if (!title.value.trim() || !lesson.value.trim()) { App.toast && App.toast('أكمل العنوان والدرس', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/mistake-journal', {
+            title: title.value,
+            category: category.value,
+            severity: severity.value,
+            lossAmount: Number(loss.value) || 0,
+            lesson: lesson.value,
+            sharedAnonymously: share.checked,
+          });
+          App.toast && App.toast('تم تسجيل الدرس', 'success');
+          title.value = ''; loss.value = ''; lesson.value = ''; share.checked = false;
+          render();
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
