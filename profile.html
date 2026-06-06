@@ -859,6 +859,54 @@
     </div>
   </div>
 
+  <!-- Home purchase -->
+  <div class="settings-group" id="homeSec">
+    <div class="settings-h">🏠 خطّة شراء المنزل</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد السعر المستهدف لنحسب لك الدفعة الأولى المطلوبة والقسط الشهري المتوقّع — مع تنبيه إذا تجاوزت قاعدة ٢٨/٣٦.</p>
+      <div id="homeStatus" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">غير مفعَّل</div>
+      <div id="homeAfford" style="background:#eff6ff;border-radius:10px;padding:10px;margin-bottom:12px;font:700 12px Cairo,sans-serif;color:#1e40af;display:none;text-align:center;"></div>
+      <div id="homeProgress" style="background:#f0fdf4;border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px;">
+          <div id="homeBar" style="height:100%;background:linear-gradient(90deg,#0a4d36,#2563eb);width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="homeProgTxt" style="font:700 11px Cairo,sans-serif;color:var(--muted);text-align:center;"></div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="homeActive" /> أخطّط لشراء منزل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="homeFirst" /> أوّل تملّك
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="homeSubsidy" /> أستفيد من الدعم السكني
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">سعر العقار المستهدف (ر.س)
+          <input type="number" id="homePrice" min="0" step="10000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة الدفعة الأولى (٪)
+          <input type="number" id="homeDownPct" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الراتب الشهري (لحساب القسط) (ر.س)
+          <input type="number" id="homeIncome" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُدّخر حتى الآن (ر.س)
+          <input type="number" id="homeSaved" min="0" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الشهور المتبقّية
+          <input type="number" id="homeMonths" min="0" max="120" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الإيداع الشهري (ر.س)
+          <input type="number" id="homeMonthly" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <textarea id="homeNotes" placeholder="ملاحظات (الحي، نوع العقار، شركاء)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="homeSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الخطّة</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="house-down-payment.html" style="color:var(--green);">دفعة المنزل الأولى</a>.</p>
+    </div>
+  </div>
+
   <!-- Health fund -->
   <div class="settings-group" id="healthSec">
     <div class="settings-h">🏥 صندوق الصحّة</div>
@@ -5944,6 +5992,101 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Home purchase
+  (async () => {
+    try {
+      const active = document.getElementById('homeActive');
+      const first = document.getElementById('homeFirst');
+      const subsidy = document.getElementById('homeSubsidy');
+      const price = document.getElementById('homePrice');
+      const downPct = document.getElementById('homeDownPct');
+      const income = document.getElementById('homeIncome');
+      const saved = document.getElementById('homeSaved');
+      const months = document.getElementById('homeMonths');
+      const monthly = document.getElementById('homeMonthly');
+      const notes = document.getElementById('homeNotes');
+      const status = document.getElementById('homeStatus');
+      const afford = document.getElementById('homeAfford');
+      const prog = document.getElementById('homeProgress');
+      const bar = document.getElementById('homeBar');
+      const progTxt = document.getElementById('homeProgTxt');
+      const btn = document.getElementById('homeSaveBtn');
+      if (!active || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const statusLabels = {
+        'on-track': { txt: '✅ في المسار الصحيح', color: '#0a4d36' },
+        'behind': { txt: '⚠️ متأخّر — ارفع الإيداع الشهري', color: '#b08840' },
+        'funded': { txt: '🎉 الدفعة جاهزة', color: '#0a4d36' },
+        'unconfigured': { txt: 'أكمل السعر والشهور للمتابعة', color: 'var(--muted)' },
+        'inactive': { txt: 'غير مفعَّل', color: 'var(--muted)' },
+      };
+      const affordColors = {
+        safe: { txt: '✅ آمن — ضمن قاعدة ٢٨٪', color: '#0a4d36' },
+        tight: { txt: '⚠️ ضيّق — بين ٢٨–٣٦٪', color: '#b08840' },
+        overstretched: { txt: '⛔ القسط يتجاوز ٣٦٪ من الدخل', color: '#c54a3a' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/home-purchase');
+        active.checked = !!r.active;
+        first.checked = !!r.firstTime;
+        subsidy.checked = !!r.usesSubsidy;
+        price.value = r.propertyPriceSar || '';
+        downPct.value = r.downPaymentPct || '';
+        income.value = r.monthlyIncomeSar || '';
+        saved.value = r.savedSar || '';
+        months.value = r.monthsRemaining || '';
+        monthly.value = r.monthlyContribSar || '';
+        notes.value = r.notes || '';
+        const l = statusLabels[r.status] || statusLabels.inactive;
+        status.style.color = l.color;
+        let txt = l.txt;
+        if (r.targetDownSar > 0) txt += ' · مستهدف: ' + fmt(r.targetDownSar) + ' ر.س';
+        if (r.requiredMonthly > 0) txt += ' · مطلوب شهريًّا: ' + fmt(r.requiredMonthly) + ' ر.س';
+        status.textContent = txt;
+        if (r.estimatedMonthlyPayment > 0) {
+          const a = affordColors[r.affordabilityFlag];
+          if (a) {
+            afford.style.display = '';
+            afford.style.color = a.color;
+            afford.textContent = '💳 قسط شهري تقديري ' + fmt(r.estimatedMonthlyPayment) + ' ر.س · ' + a.txt;
+          }
+        } else {
+          afford.style.display = 'none';
+        }
+        if (r.active && r.targetDownSar > 0) {
+          prog.style.display = '';
+          bar.style.width = Math.min(100, r.progressPct) + '%';
+          progTxt.textContent = r.progressPct + '٪ · ' + fmt(r.savedSar) + ' / ' + fmt(r.targetDownSar) + ' ر.س';
+        } else {
+          prog.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/home-purchase', {
+            active: active.checked,
+            firstTime: first.checked,
+            usesSubsidy: subsidy.checked,
+            propertyPriceSar: Number(price.value || 0),
+            downPaymentPct: Number(downPct.value || 20),
+            monthlyIncomeSar: Number(income.value || 0),
+            savedSar: Number(saved.value || 0),
+            monthsRemaining: Number(months.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ الخطّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
