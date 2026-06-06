@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>برنامج الولاء — مُرابحة</title>
+<meta name="description" content="اكسب نقاط على كل استثمار واستبدلها بمزايا حصرية. تعرّف على مستويات الولاء الأربعة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  /* Status card */
+  .status-card{background:#fff;border:2px solid var(--gold);border-radius:18px;padding:26px;margin-bottom:20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .tier-badge{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;}
+  .tier-bronze{background:#fbe9d0;}
+  .tier-silver{background:#eceff1;}
+  .tier-gold{background:#fff8e1;}
+  .tier-diamond{background:#e8eaf6;}
+  .status-info{flex:1;}
+  .status-tier{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .status-points{font:500 13px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .status-points strong{font:900 16px Cairo,sans-serif;color:var(--gold);}
+  .progress-wrap{margin-top:12px;}
+  .progress-label{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .progress-label span{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .progress-track{background:var(--paper);border-radius:99px;height:8px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:99px;background:var(--gold);transition:width .5s;}
+  /* Tiers */
+  .tiers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
+  .tier-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;}
+  .tier-card.current{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,136,64,.15);}
+  .tier-emoji{font-size:30px;margin-bottom:8px;}
+  .tier-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .tier-req{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .tier-perks{list-style:none;margin-top:10px;text-align:start;}
+  .tier-perks li{font:500 10px Tajawal,sans-serif;color:var(--ink);padding:3px 0;border-bottom:1px solid var(--line);}
+  .tier-perks li:last-child{border-bottom:none;}
+  .tier-perks li::before{content:'✓ ';color:var(--green);}
+  /* Rewards */
+  .section-title{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;}
+  .rewards-grid{display:grid;gap:12px;margin-bottom:22px;}
+  .reward-row{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;}
+  .reward-icon{font-size:24px;flex-shrink:0;}
+  .reward-info{flex:1;}
+  .reward-title{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .reward-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .reward-cost{font:900 14px Cairo,sans-serif;color:var(--gold);white-space:nowrap;}
+  .btn-redeem{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:8px;padding:7px 16px;font:700 10px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-redeem:disabled{opacity:.5;cursor:default;}
+  /* History */
+  .history-table{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .history-table th{background:var(--paper);font:900 10px Cairo,sans-serif;color:var(--green-dark);padding:9px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .history-table td{padding:9px 12px;border-bottom:1px solid var(--line);}
+  .history-table tr:last-child td{border-bottom:none;}
+  .pts-earn{color:#2e7d32;font-weight:700;}
+  .pts-spend{color:#c54a3a;font-weight:700;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🏆 برنامج الولاء</h1>
+    <p>اكسب نقاط على كل استثمار واستبدلها بمزايا حصرية — رسوم مخفّضة، أولوية في الصفقات، وأكثر.</p>
+  </div>
+
+  <div id="statusArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="section-title">🎖️ مستويات الولاء</div>
+  <div class="tiers-grid" id="tiersGrid"></div>
+
+  <div class="section-title">🎁 مكافآت قابلة للاستبدال</div>
+  <div class="rewards-grid" id="rewardsGrid"></div>
+
+  <div class="section-title">📋 سجل النقاط</div>
+  <div id="historyArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+  const TIERS=[
+    {key:'bronze',emoji:'🥉',name:'برونزي',req:'0 – 4,999 نقطة',perks:['وصول للصفقات العامة','كشف شهري','دعم بريد إلكتروني'],cls:'tier-bronze'},
+    {key:'silver',emoji:'🥈',name:'فضي',req:'5,000 – 24,999 نقطة',perks:['خصم 10% على رسوم الإدارة','أولوية في الاكتتاب','دعم هاتفي'],cls:'tier-silver'},
+    {key:'gold',emoji:'🥇',name:'ذهبي',req:'25,000 – 99,999 نقطة',perks:['خصم 20% على الرسوم','وصول مبكر للصفقات','مدير علاقات مخصص'],cls:'tier-gold'},
+    {key:'diamond',emoji:'💎',name:'ماسي',req:'100,000+ نقطة',perks:['خصم 30% على الرسوم','صفقات حصرية فقط للأعضاء','نائب رئيس علاقات'],cls:'tier-diamond'},
+  ];
+
+  const REWARDS=[
+    {id:'fee_discount_10',icon:'💸',title:'خصم 10% على رسوم الصفقة القادمة',desc:'يُطبَّق تلقائياً على أول صفقة تستثمر بها',cost:500},
+    {id:'priority_access',icon:'🚀',title:'وصول مبكر حصري لصفقة جديدة',desc:'استثمر قبل فتح الصفقة للعموم بـ 48 ساعة',cost:1200},
+    {id:'gift_card',icon:'🎁',title:'قسيمة هدية بقيمة 100 ر.س',desc:'قابلة للاستخدام في أي منصة شريكة',cost:2000},
+    {id:'report_premium',icon:'📊',title:'تقرير تحليلي مميّز',desc:'تقرير معمّق عن أداء محفظتك ومقارنة بالسوق',cost:800},
+  ];
+
+  function renderStatus(d){
+    const area=document.getElementById('statusArea'); area.textContent='';
+    const tier=TIERS.find(t=>t.key===d.tier)||TIERS[0];
+    const card=document.createElement('div'); card.className='status-card';
+    const badge=document.createElement('div'); badge.className='tier-badge '+tier.cls; badge.textContent=tier.emoji;
+    const info=document.createElement('div'); info.className='status-info';
+    const tierName=document.createElement('div'); tierName.className='status-tier'; tierName.textContent='المستوى: '+tier.name;
+    const pts=document.createElement('div'); pts.className='status-points';
+    pts.appendChild(document.createTextNode('رصيدك: '));
+    const strong=document.createElement('strong'); strong.textContent=Number(d.points||0).toLocaleString('ar-SA')+' نقطة';
+    pts.appendChild(strong);
+    const pw=document.createElement('div'); pw.className='progress-wrap';
+    const pl=document.createElement('div'); pl.className='progress-label';
+    const plL=document.createElement('span'); plL.textContent='التقدم نحو '+d.nextTierName;
+    const plR=document.createElement('span'); plR.textContent=Math.round(d.progress||0)+'٪';
+    pl.appendChild(plL); pl.appendChild(plR);
+    const pt=document.createElement('div'); pt.className='progress-track';
+    const pf=document.createElement('div'); pf.className='progress-fill'; pf.style.width=(d.progress||0)+'%';
+    pt.appendChild(pf); pw.appendChild(pl); pw.appendChild(pt);
+    info.appendChild(tierName); info.appendChild(pts); info.appendChild(pw);
+    card.appendChild(badge); card.appendChild(info); area.appendChild(card);
+
+    const tiersGrid=document.getElementById('tiersGrid'); tiersGrid.textContent='';
+    TIERS.forEach(t=>{
+      const tc=document.createElement('div'); tc.className='tier-card'+(t.key===d.tier?' current':'');
+      const em=document.createElement('div'); em.className='tier-emoji'; em.textContent=t.emoji;
+      const nm=document.createElement('div'); nm.className='tier-name'; nm.textContent=t.name;
+      const rq=document.createElement('div'); rq.className='tier-req'; rq.textContent=t.req;
+      const ul=document.createElement('ul'); ul.className='tier-perks';
+      t.perks.forEach(p=>{ const li=document.createElement('li'); li.textContent=p; ul.appendChild(li); });
+      tc.appendChild(em); tc.appendChild(nm); tc.appendChild(rq); tc.appendChild(ul); tiersGrid.appendChild(tc);
+    });
+
+    const rGrid=document.getElementById('rewardsGrid'); rGrid.textContent='';
+    REWARDS.forEach(rw=>{
+      const row=document.createElement('div'); row.className='reward-row';
+      const icon=document.createElement('div'); icon.className='reward-icon'; icon.textContent=rw.icon;
+      const ri=document.createElement('div'); ri.className='reward-info';
+      const rt=document.createElement('div'); rt.className='reward-title'; rt.textContent=rw.title;
+      const rd=document.createElement('div'); rd.className='reward-desc'; rd.textContent=rw.desc;
+      ri.appendChild(rt); ri.appendChild(rd);
+      const cost=document.createElement('div'); cost.className='reward-cost'; cost.textContent=rw.cost.toLocaleString('ar-SA')+' نقطة';
+      const btn=document.createElement('button'); btn.className='btn-redeem';
+      btn.textContent='استبدل'; btn.disabled=(d.points||0)<rw.cost;
+      btn.addEventListener('click',()=>redeem(rw.id, rw.cost, rw.title));
+      row.appendChild(icon); row.appendChild(ri); row.appendChild(cost); row.appendChild(btn); rGrid.appendChild(row);
+    });
+  }
+
+  async function redeem(rewardId, cost, title){
+    try{
+      const r=await fetch('/app/me/loyalty/redeem',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({rewardId,cost})});
+      if(!r.ok){ showToast('تعذّر الاستبدال.'); return; }
+      showToast('تم استبدال "'+title+'" بنجاح ✅'); loadData();
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  function renderHistory(history){
+    const area=document.getElementById('historyArea'); area.textContent='';
+    if(!history.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='لا يوجد سجل نقاط.'; area.appendChild(m); return; }
+    const table=document.createElement('table'); table.className='history-table';
+    const thead=document.createElement('thead'); const hr=document.createElement('tr');
+    ['الحدث','التاريخ','النقاط','الرصيد'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    history.forEach(row=>{
+      const tr=document.createElement('tr');
+      [row.label||'—',row.date||'—'].forEach(v=>{ const td=document.createElement('td'); td.textContent=v; tr.appendChild(td); });
+      const tdP=document.createElement('td'); tdP.className=row.points>0?'pts-earn':'pts-spend'; tdP.textContent=(row.points>0?'+':'')+row.points; tr.appendChild(tdP);
+      const tdB=document.createElement('td'); tdB.textContent=Number(row.balance||0).toLocaleString('ar-SA'); tr.appendChild(tdB);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); area.appendChild(table);
+  }
+
+  async function loadData(){
+    try{
+      const r=await fetch('/app/me/loyalty');
+      if(!r.ok){ document.getElementById('statusArea').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; document.getElementById('statusArea').appendChild(m); return; }
+      const d=await r.json();
+      renderStatus(d);
+      renderHistory(d.history||[]);
+    }catch{ document.getElementById('statusArea').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; document.getElementById('statusArea').appendChild(m); }
+  }
+
+  loadData();
+}());
+</script>
+</body>
+</html>
