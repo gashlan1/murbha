@@ -859,6 +859,53 @@
     </div>
   </div>
 
+  <!-- Foreign allocation -->
+  <div class="settings-group" id="xBorderSec">
+    <div class="settings-h">🌍 التوزيع الجغرافي للمحفظة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد نسب المحلّي / الخليجي / الدولي لنُقترح عليك صفقات تتوافق مع هدفك الجغرافي.</p>
+      <div id="xbStyleBadge" style="background:#ecfdf5;border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:#0a4d36;text-align:center;">—</div>
+      <div id="xbBudget" style="background:var(--paper);border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;font:700 10px Cairo,sans-serif;">
+          <div><div style="color:#0a4d36;" id="xbDom">—</div>محلّي</div>
+          <div><div style="color:#b08840;" id="xbGcc">—</div>خليجي</div>
+          <div><div style="color:#7c3aed;" id="xbIntl">—</div>دولي</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faActive" /> فعّل خطّة التوزيع الجغرافي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي محفظتك (ر.س)
+          <input type="number" id="faTotal" min="0" step="5000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">٪ محلّي (السعوديّة)
+          <input type="number" id="faDom" min="0" max="100" step="5" value="70" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">٪ خليجي وعربي
+          <input type="number" id="faGcc" min="0" max="100" step="5" value="20" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-top:8px;">المناطق المهتمّ بها (اختر):</div>
+        <div id="xbRegionsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);margin-top:8px;">
+          <input type="checkbox" id="faWahed" /> 🪐 أستخدم Wahed أو وسيطًا إسلاميًّا دوليًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faDirect" /> 🏦 لديّ حساب وسيط أجنبي مباشر
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faRealEst" /> 🏠 أملك عقارًا في الخارج
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="faQualified" /> 💎 مستثمر مؤهَّل (حسب CMA)
+        </label>
+        <textarea id="faNotes" placeholder="ملاحظات (أهدافك، شركاء، تخصّصات)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="faSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ خطّة التوزيع</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="cross-border-investing.html" style="color:var(--green);">الاستثمار العابر للحدود</a>.</p>
+    </div>
+  </div>
+
   <!-- Disability plan -->
   <div class="settings-group" id="disabSec">
     <div class="settings-h">♿ صندوق العجز</div>
@@ -6783,6 +6830,110 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Foreign allocation
+  (async () => {
+    try {
+      const active = document.getElementById('faActive');
+      const total = document.getElementById('faTotal');
+      const dom = document.getElementById('faDom');
+      const gcc = document.getElementById('faGcc');
+      const wahed = document.getElementById('faWahed');
+      const direct = document.getElementById('faDirect');
+      const realEst = document.getElementById('faRealEst');
+      const qualified = document.getElementById('faQualified');
+      const notes = document.getElementById('faNotes');
+      const styleBadge = document.getElementById('xbStyleBadge');
+      const budget = document.getElementById('xbBudget');
+      const domSpan = document.getElementById('xbDom');
+      const gccSpan = document.getElementById('xbGcc');
+      const intlSpan = document.getElementById('xbIntl');
+      const regionsGrid = document.getElementById('xbRegionsGrid');
+      const btn = document.getElementById('faSaveBtn');
+      if (!active || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const regionOptions = [
+        { key: 'gcc', label: '🇸🇦 دول الخليج' },
+        { key: 'turkey', label: '🇹🇷 تركيا' },
+        { key: 'asia', label: '🌏 آسيا' },
+        { key: 'india', label: '🇮🇳 الهند' },
+        { key: 'usa', label: '🇺🇸 الولايات المتحدة' },
+        { key: 'europe', label: '🇪🇺 أوروبا' },
+      ];
+      let selectedRegions = [];
+      const renderRegions = () => {
+        regionsGrid.replaceChildren();
+        regionOptions.forEach(opt => {
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:var(--ink);background:var(--paper);padding:6px 8px;border-radius:8px;cursor:pointer;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = selectedRegions.includes(opt.key);
+          cb.addEventListener('change', () => {
+            if (cb.checked) selectedRegions = [...new Set([...selectedRegions, opt.key])];
+            else selectedRegions = selectedRegions.filter(r => r !== opt.key);
+          });
+          const txt = document.createElement('span'); txt.textContent = opt.label;
+          label.append(cb, txt);
+          regionsGrid.appendChild(label);
+        });
+      };
+      const styleLabels = {
+        conservative: { txt: '🏠 محافظ — تركيز محلّي', color: '#0a4d36' },
+        balanced: { txt: '⚖️ متوازن — تنويع معتدل', color: '#0a4d36' },
+        growth: { txt: '📈 نموّ — تنويع كبير', color: '#b08840' },
+        qualified: { txt: '💎 مؤهَّل — توزيع متقدّم', color: '#7c3aed' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/foreign-allocation');
+        active.checked = !!r.active;
+        total.value = r.totalPortfolioSar || '';
+        dom.value = r.domesticPct;
+        gcc.value = r.gccPct;
+        wahed.checked = !!r.usesWahedOrSimilar;
+        direct.checked = !!r.usesDirectBroker;
+        realEst.checked = !!r.includesForeignRealEstate;
+        qualified.checked = !!r.isQualifiedInvestor;
+        notes.value = r.notes || '';
+        selectedRegions = [...(r.interestedRegions || [])];
+        renderRegions();
+        const sl = styleLabels[r.style] || styleLabels.conservative;
+        styleBadge.style.color = sl.color;
+        styleBadge.textContent = sl.txt + ' · ' + r.domesticPct + '/' + r.gccPct + '/' + r.internationalPct + '٪';
+        if (r.totalPortfolioSar > 0) {
+          budget.style.display = '';
+          domSpan.textContent = fmt(r.domesticBudget);
+          gccSpan.textContent = fmt(r.gccBudget);
+          intlSpan.textContent = fmt(r.internationalBudget);
+        } else {
+          budget.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/foreign-allocation', {
+            active: active.checked,
+            totalPortfolioSar: Number(total.value || 0),
+            domesticPct: Number(dom.value || 70),
+            gccPct: Number(gcc.value || 20),
+            interestedRegions: selectedRegions,
+            usesWahedOrSimilar: wahed.checked,
+            usesDirectBroker: direct.checked,
+            includesForeignRealEstate: realEst.checked,
+            isQualifiedInvestor: qualified.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ خطّة التوزيع', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
