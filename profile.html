@@ -859,6 +859,55 @@
     </div>
   </div>
 
+  <!-- Engagement style -->
+  <div class="settings-group" id="engStyleSec">
+    <div class="settings-h">⚖ أسلوب المشاركة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اختر مستوى مشاركتك. سنخصّص المنصّة لك.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">النمط</label>
+          <select id="esStyle" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="passive">🛋 سلبي كامل (دقائق شهرياً)</option>
+            <option value="hybrid">⚖ هجين ذكيّ (٣٠–٦٠ دقيقة شهرياً)</option>
+            <option value="active">🎯 نشط متفانٍ (ساعات أسبوعياً)</option>
+            <option value="specialist">🔬 متخصّص في قطاع</option>
+          </select>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نسبة الإدارة الآليّة (٪)</label>
+          <input type="number" id="esAuto" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;">الباقي = اختياراتك الشخصيّة</div>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الوقت المتاح أسبوعياً (ساعة)</label>
+          <input type="number" id="esHours" min="0" max="80" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">قطاع التخصّص (للمتخصّصين)</label>
+          <input type="text" id="esSector" maxlength="40" placeholder="مثل: عقار الرياض، صيدلة، طاقة شمسيّة" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="esSuggest" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          💡 فعّل الاقتراحات الآليّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="esReports" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📊 أظهر التقارير المعمّقة (للنشط)
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">إعادة التوازن</label>
+          <select id="esConsent" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="auto">🤖 آليّاً بدون استئذان</option>
+            <option value="ask">❓ استأذنّي قبل التنفيذ</option>
+            <option value="manual">✋ يدوي فقط</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" id="esSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ أسلوب المشاركة</button>
+    </div>
+  </div>
+
   <!-- Mistake journal -->
   <div class="settings-group" id="mistakeSec">
     <div class="settings-h">📔 سجلّ الدروس من الأخطاء</div>
@@ -5454,6 +5503,44 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Engagement style
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/engagement-style');
+      if (!r.hasData) return;
+      const style = document.getElementById('esStyle');
+      const auto = document.getElementById('esAuto');
+      const hours = document.getElementById('esHours');
+      const sector = document.getElementById('esSector');
+      const suggest = document.getElementById('esSuggest');
+      const reports = document.getElementById('esReports');
+      const consent = document.getElementById('esConsent');
+      const btn = document.getElementById('esSaveBtn');
+      if (!btn) return;
+      style.value = r.style || 'hybrid';
+      auto.value = r.autoAllocationPct;
+      hours.value = r.timeAvailableHours;
+      sector.value = r.specialistSector || '';
+      suggest.checked = r.enableAutoSuggestions !== false;
+      reports.checked = !!r.enableInDepthReports;
+      consent.value = r.rebalanceConsent || 'ask';
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/engagement-style', {
+            style: style.value,
+            autoAllocationPct: Number(auto.value),
+            timeAvailableHours: Number(hours.value),
+            specialistSector: sector.value || null,
+            enableAutoSuggestions: suggest.checked,
+            enableInDepthReports: reports.checked,
+            rebalanceConsent: consent.value,
+          });
+          App.toast && App.toast('تم حفظ أسلوب المشاركة', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
