@@ -859,6 +859,37 @@
     </div>
   </div>
 
+  <!-- Beginner mode -->
+  <div class="settings-group" id="beginnerSec">
+    <div class="settings-h">🌱 وضع المبتدئ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">جديد على الاستثمار؟ فعّل وضع المبتدئ — يحميك، يعلّمك، ويرشدك.</p>
+      <label style="display:flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;">
+        <input type="checkbox" id="bmEnabled" style="transform:scale(1.4);accent-color:#0a4d36;" />
+        🌱 تفعيل وضع المبتدئ
+      </label>
+      <div style="display:grid;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="bmOnly" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔍 أظهر فقط الصفقات المناسبة للمبتدئ
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="bmTut" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🎓 اعرض دروساً تعليميّة عند الحاجة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="bmPaper" style="transform:scale(1.3);accent-color:#b08840;" />
+          🎮 محفظة افتراضيّة (تجريب بدون أموال حقيقيّة)
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حدّ أقصى لكلّ صفقة (٪ من محفظتك)</label>
+          <input type="number" id="bmMax" min="1" max="50" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="bmSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ وضع المبتدئ</button>
+    </div>
+  </div>
+
   <!-- Income profile -->
   <div class="settings-group" id="incProfSec">
     <div class="settings-h">💼 ملفّ الدخل</div>
@@ -4875,6 +4906,39 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Beginner mode
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/beginner-mode');
+      if (!r.hasData) return;
+      const enabled = document.getElementById('bmEnabled');
+      const only = document.getElementById('bmOnly');
+      const tut = document.getElementById('bmTut');
+      const paper = document.getElementById('bmPaper');
+      const max = document.getElementById('bmMax');
+      const btn = document.getElementById('bmSaveBtn');
+      if (!btn) return;
+      enabled.checked = !!r.enabled;
+      only.checked = !!r.showOnlyBeginnerFriendly;
+      tut.checked = r.showTutorials !== false;
+      paper.checked = !!r.paperTradingMode;
+      max.value = r.maxPerDealPct;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/beginner-mode', {
+            enabled: enabled.checked,
+            showOnlyBeginnerFriendly: only.checked,
+            showTutorials: tut.checked,
+            paperTradingMode: paper.checked,
+            maxPerDealPct: Number(max.value),
+            progressTrack: r.progressTrack || {},
+          });
+          App.toast && App.toast('تم حفظ وضع المبتدئ', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
