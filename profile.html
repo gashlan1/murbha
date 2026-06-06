@@ -859,6 +859,63 @@
     </div>
   </div>
 
+  <!-- ESG plan -->
+  <div class="settings-group" id="esgSec">
+    <div class="settings-h">🌱 الاستثمار المسؤول (ESG) والإسلامي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">القيم + المال = إمكانيّة. ٧ ضوابط لتجنّب "الغسل الأخضر".</p>
+      <div id="esgDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgActive" /> فعّل خطّة ESG-إسلامي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">التركيز الأساسي
+          <select id="esgFocus" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="balanced">🎯 متوازن (E+S+G)</option>
+            <option value="environmental">🌍 بيئي (E)</option>
+            <option value="social">🤝 اجتماعي (S)</option>
+            <option value="governance">⚖️ حوكمة (G)</option>
+            <option value="mixed">🔀 مختلط حسب الفرصة</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة التخصيص ESG من المحفظة (٪)
+          <input type="number" id="esgPct" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد أهداف الأثر المُتتبَّعة
+          <input type="number" id="esgGoals" min="0" max="50" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد المقتنيات ESG
+          <input type="number" id="esgHoldings" min="0" max="1000" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgGreen" /> أحتفظ بصكوك خضراء (Green Sukuk)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgImpact" /> أتتبّع تقارير الأثر السنويّة بأرقام
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgRated" /> أعتمد تقييمًا من طرف ثالث (MSCI/Sustainalytics)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgSharia" /> أجمع بين الشهادة الشرعيّة وتقييم ESG
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgWash" /> أفحص ضدّ "الغسل الأخضر" (Greenwashing)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgCarbon" /> أتتبّع البصمة الكربونيّة لمحفظتي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="esgReport" /> أقرأ تقارير الأثر السنويّة قبل التجديد
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="esgNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="esgSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ الخطّة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Medical fund -->
   <div class="settings-group" id="mfdSec">
     <div class="settings-h">🏥 صندوق الطوارئ الصحّيّة</div>
@@ -10855,6 +10912,77 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // ESG plan
+  (async () => {
+    try {
+      const active = document.getElementById('esgActive');
+      const focus = document.getElementById('esgFocus');
+      const pct = document.getElementById('esgPct');
+      const goals = document.getElementById('esgGoals');
+      const holdings = document.getElementById('esgHoldings');
+      const green = document.getElementById('esgGreen');
+      const impact = document.getElementById('esgImpact');
+      const rated = document.getElementById('esgRated');
+      const sharia = document.getElementById('esgSharia');
+      const wash = document.getElementById('esgWash');
+      const carbon = document.getElementById('esgCarbon');
+      const report = document.getElementById('esgReport');
+      const notes = document.getElementById('esgNotes');
+      const discEl = document.getElementById('esgDisc');
+      const btn = document.getElementById('esgSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        committed: '🏆 ملتزم',
+        engaged: '🎯 منخرط',
+        exploring: '🌿 يستكشف',
+        curious: '🌱 فضولي',
+      };
+      const r = await App.api('GET', '/app/me/esg-plan');
+      active.checked = !!r.active;
+      focus.value = r.primaryFocus || 'balanced';
+      pct.value = Number(r.allocationPct || 0);
+      goals.value = Number(r.impactGoalsCount || 0);
+      holdings.value = Number(r.holdings || 0);
+      green.checked = !!r.greenSukukHeld;
+      impact.checked = !!r.impactTracked;
+      rated.checked = !!r.thirdPartyRated;
+      sharia.checked = !!r.shariaCombined;
+      wash.checked = !!r.greenwashingScreen;
+      carbon.checked = !!r.carbonTracked;
+      report.checked = !!r.annualReportRead;
+      notes.value = r.notes || '';
+      if (discEl) discEl.textContent = (levelLabels[r.disciplineLevel] || '—') + ' · ' + r.disciplineScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/esg-plan', {
+            active: active.checked,
+            primaryFocus: focus.value,
+            allocationPct: Number(pct.value || 0),
+            impactGoalsCount: Number(goals.value || 0),
+            holdings: Number(holdings.value || 0),
+            greenSukukHeld: green.checked,
+            impactTracked: impact.checked,
+            thirdPartyRated: rated.checked,
+            shariaCombined: sharia.checked,
+            greenwashingScreen: wash.checked,
+            carbonTracked: carbon.checked,
+            annualReportRead: report.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت الخطّة', 'success');
+            const r2 = await App.api('GET', '/app/me/esg-plan');
+            if (discEl) discEl.textContent = (levelLabels[r2.disciplineLevel] || '—') + ' · ' + r2.disciplineScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
