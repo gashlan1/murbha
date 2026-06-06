@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مقاييس الأداء — مُرابحة</title>
+<meta name="description" content="مؤشرات أداء المنصّة: معدّلات السداد، متوسّط العائد، سرعة التمويل، ومقارنة بالسوق." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:620px;margin:0 auto;line-height:1.85;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;}
+  .kpi-ico{font-size:28px;margin-bottom:8px;}
+  .kpi-val{font:900 28px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .kpi-note{font:700 10px Cairo,sans-serif;color:var(--gold);margin-top:4px;}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:14px;}
+  section h2{font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed var(--line);}
+  .bench-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .bench-table th,.bench-table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .bench-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .bench-table .highlight{color:var(--green);font-weight:900;}
+  .bar-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .bar-label{font:700 11px Cairo,sans-serif;color:var(--green-dark);width:160px;flex-shrink:0;}
+  .bar-track{flex:1;background:var(--paper);border-radius:99px;height:12px;overflow:hidden;}
+  .bar-fill-g{height:100%;border-radius:99px;background:var(--green);}
+  .bar-fill-b{height:100%;border-radius:99px;background:#90caf9;}
+  .bar-val{font:900 11px Cairo,sans-serif;color:var(--muted);width:60px;text-align:start;}
+  .legend{display:flex;gap:16px;margin-bottom:14px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .legend-dot{width:10px;height:10px;border-radius:50%;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:28px 0;}
+  .updated-at{font:500 10px Tajawal,sans-serif;color:var(--muted);text-align:center;margin-top:8px;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📊 مقاييس الأداء</h1>
+    <p>بيانات حيّة تعكس أداء منصّة مُرابحة: معدّلات السداد، متوسّط العائد، وسرعة التمويل.</p>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <p class="placeholder-msg">جارٍ التحميل…</p>
+  </div>
+
+  <section>
+    <h2>⚡ سرعة التمويل حسب القطاع</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span>مُرابحة</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#90caf9"></div><span>متوسط السوق</span></div>
+    </div>
+    <div id="speedArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </section>
+
+  <section>
+    <h2>📈 معدّلات السداد التاريخيّة</h2>
+    <div id="repayArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </section>
+
+  <section>
+    <h2>🏆 مقارنة بالمنافسين</h2>
+    <div id="compArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </section>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function renderKPIs(d){
+    const grid = document.getElementById('kpiGrid');
+    grid.textContent = '';
+    const items = [
+      {ico:'✅',val:(d.repaymentRate||0)+'٪',lbl:'معدّل السداد الكلّي',note:'منذ التأسيس'},
+      {ico:'💰',val:(d.avgYield||0)+'٪',lbl:'متوسّط العائد السنوي',note:'على الصفقات المكتملة'},
+      {ico:'⚡',val:(d.avgFundingDays||0)+' يوم',lbl:'متوسّط أيام التمويل',note:'من الطرح إلى الاكتمال'},
+      {ico:'🏗️',val:String(d.totalDeals||0),lbl:'صفقات أُغلقت منذ التأسيس',note:''},
+      {ico:'👥',val:String(d.totalInvestors||0),lbl:'مستثمرون نشطون',note:''},
+      {ico:'💼',val:'SAR '+fmt(d.totalFunded||0),lbl:'إجمالي التمويل',note:'ريال سعودي'},
+    ];
+    items.forEach(it=>{
+      const card = document.createElement('div');
+      card.className = 'kpi';
+      const ico = document.createElement('div'); ico.className='kpi-ico'; ico.textContent=it.ico;
+      const val = document.createElement('div'); val.className='kpi-val'; val.textContent=it.val;
+      const lbl = document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=it.lbl;
+      card.appendChild(ico); card.appendChild(val); card.appendChild(lbl);
+      if(it.note){ const note=document.createElement('div');note.className='kpi-note';note.textContent=it.note;card.appendChild(note); }
+      grid.appendChild(card);
+    });
+  }
+
+  function renderSpeed(d){
+    const area = document.getElementById('speedArea');
+    area.textContent = '';
+    const rows = d.sectorSpeed || [];
+    const max = Math.max(...rows.map(r=>Math.max(r.platform||0,r.market||0)),1);
+    rows.forEach(r=>{
+      const wrap = document.createElement('div');
+
+      const lbl = document.createElement('div');
+      lbl.className='bar-label';
+      lbl.textContent = r.sector;
+
+      const pfill = document.createElement('div');
+      pfill.className = 'bar-fill-g';
+      pfill.style.width = Math.round((r.platform/max)*100)+'%';
+      const pTrack = document.createElement('div'); pTrack.className='bar-track'; pTrack.appendChild(pfill);
+      const pRow = document.createElement('div'); pRow.className='bar-row';
+      pRow.appendChild(lbl.cloneNode(true)); pRow.appendChild(pTrack);
+      const pVal = document.createElement('div'); pVal.className='bar-val'; pVal.textContent=r.platform+' يوم';
+      pRow.appendChild(pVal);
+
+      const mfill = document.createElement('div');
+      mfill.className='bar-fill-b';
+      mfill.style.width = Math.round((r.market/max)*100)+'%';
+      const mTrack = document.createElement('div'); mTrack.className='bar-track'; mTrack.appendChild(mfill);
+      const mRow = document.createElement('div'); mRow.className='bar-row';
+      const mLbl = document.createElement('div'); mLbl.className='bar-label'; mLbl.textContent='';
+      mRow.appendChild(mLbl); mRow.appendChild(mTrack);
+      const mVal = document.createElement('div'); mVal.className='bar-val'; mVal.textContent=r.market+' يوم';
+      mRow.appendChild(mVal);
+
+      wrap.appendChild(pRow);
+      wrap.appendChild(mRow);
+      area.appendChild(wrap);
+    });
+    if(!rows.length){ const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';area.appendChild(m); }
+  }
+
+  function renderRepay(d){
+    const area = document.getElementById('repayArea');
+    area.textContent = '';
+    const rows = d.repayHistory || [];
+    if(!rows.length){ const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';area.appendChild(m);return; }
+    const table = document.createElement('table');
+    table.className = 'bench-table';
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['السنة','صفقات منتهية','معدّل السداد','متوسّط التأخّر (أيام)','صفقات بمشاكل'].forEach(h=>{
+      const th=document.createElement('th');th.textContent=h;hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    rows.forEach(row=>{
+      const tr=document.createElement('tr');
+      [row.year,row.closed,row.repayRate+'٪',row.avgDelay,row.issues].forEach((v,i)=>{
+        const td=document.createElement('td');
+        td.textContent=v;
+        if(i===2 && parseFloat(row.repayRate)>=95) td.className='highlight';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    area.appendChild(table);
+  }
+
+  function renderComp(d){
+    const area = document.getElementById('compArea');
+    area.textContent = '';
+    const rows = d.competitors || [];
+    if(!rows.length){ const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';area.appendChild(m);return; }
+    const table = document.createElement('table');
+    table.className = 'bench-table';
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    ['المنصّة','متوسّط العائد','معدّل السداد','متوسّط التمويل (أيام)','مرخّص SAMA'].forEach(h=>{
+      const th=document.createElement('th');th.textContent=h;hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    rows.forEach(row=>{
+      const tr=document.createElement('tr');
+      const isSelf = row.name === 'مُرابحة';
+      [row.name,row.yield+'٪',row.repayRate+'٪',row.fundingDays+' يوم',row.licensed?'✅':'—'].forEach((v,i)=>{
+        const td=document.createElement('td');
+        td.textContent=v;
+        if(isSelf) td.className='highlight';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    area.appendChild(table);
+  }
+
+  (async function load(){
+    try{
+      const r = await fetch('/app/public/platform-benchmarks');
+      if(!r.ok){
+        ['kpiGrid','speedArea','repayArea','compArea'].forEach(id=>{
+          const el=document.getElementById(id);el.textContent='';
+          const m=document.createElement('p');m.className='placeholder-msg';m.textContent='تعذّر التحميل.';el.appendChild(m);
+        });
+        return;
+      }
+      const d = await r.json();
+      renderKPIs(d);
+      renderSpeed(d);
+      renderRepay(d);
+      renderComp(d);
+      const up=document.createElement('p');up.className='updated-at';
+      up.textContent='آخر تحديث: '+new Date(d.updatedAt||Date.now()).toLocaleDateString('ar-SA');
+      document.querySelector('main').appendChild(up);
+    }catch{
+      ['kpiGrid','speedArea','repayArea','compArea'].forEach(id=>{
+        const el=document.getElementById(id);el.textContent='';
+        const m=document.createElement('p');m.className='placeholder-msg';m.textContent='تعذّر التحميل. حاول لاحقاً.';el.appendChild(m);
+      });
+    }
+  }());
+}());
+</script>
+</body>
+</html>
