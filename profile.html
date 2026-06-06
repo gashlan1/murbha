@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Followed sponsors -->
+  <div class="settings-group" id="follSpSec">
+    <div class="settings-h">🤝 الجهات الراعية التي تتابعها</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">تابع الجهات الراعية لتصلك تنبيهات بصفقاتها الجديدة.</p>
+      <div id="follSpList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+      <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">مقترحات</div>
+      <div id="follSpSugg" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Payout preferences -->
   <div class="settings-group" id="payPrefSec">
     <div class="settings-h">💸 تفضيلات استلام التوزيعات</div>
@@ -3693,6 +3704,52 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Followed sponsors
+  (async () => {
+    const list = document.getElementById('follSpList');
+    const sugg = document.getElementById('follSpSugg');
+    if (!list || !sugg) return;
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/followed-sponsors');
+        list.replaceChildren();
+        if (!r.followed.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا تتابع جهات راعية بعد.';
+          list.appendChild(empty);
+        }
+        r.followed.forEach(f => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+          const left = document.createElement('div');
+          const n = document.createElement('div'); n.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; n.textContent = '🤝 ' + f.sponsorName;
+          const stat = document.createElement('div'); stat.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);'; stat.textContent = f.stats.dealCount + ' صفقة · ' + f.stats.activeDeals + ' نشطة';
+          left.append(n, stat);
+          const bell = document.createElement('div'); bell.style.cssText = 'font:700 11px Cairo,sans-serif;color:' + (f.notifyOnNewDeal ? '#0a4d36' : 'var(--muted)') + ';';
+          bell.textContent = f.notifyOnNewDeal ? '🔔' : '🔕';
+          const del = document.createElement('button'); del.type = 'button'; del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 11px Cairo,sans-serif;'; del.textContent = '✕';
+          del.onclick = async () => { await App.api('DELETE', '/app/me/followed-sponsors/' + encodeURIComponent(f.sponsorName)); refresh(); };
+          row.append(left, bell, del);
+          list.appendChild(row);
+        });
+        sugg.replaceChildren();
+        r.suggestedSponsors.forEach(s => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:8px;padding:10px;';
+          const left = document.createElement('div');
+          const n = document.createElement('div'); n.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; n.textContent = '⭐ ' + s.name;
+          const stat = document.createElement('div'); stat.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);'; stat.textContent = s.dealCount + ' صفقة · ' + s.activeDeals + ' نشطة';
+          left.append(n, stat);
+          const add = document.createElement('button'); add.type = 'button';
+          add.style.cssText = 'background:var(--green-dark);color:#d4ac6e;border:none;border-radius:6px;padding:6px 12px;font:800 11px Cairo,sans-serif;cursor:pointer;'; add.textContent = '+ متابعة';
+          add.onclick = async () => { await App.api('POST', '/app/me/followed-sponsors', { sponsorName: s.name }); refresh(); };
+          row.append(left, add);
+          sugg.appendChild(row);
+        });
+      } catch (e) {}
+    }
+    refresh();
   })();
 
   // Payout preferences

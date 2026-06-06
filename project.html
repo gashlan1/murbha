@@ -1709,6 +1709,14 @@
   <div id="invShareLegend" style="display:grid;gap:6px;"></div>
 </div>
 
+<!-- Factsheet -->
+<div class="card-section" id="factsheetCard" style="display:none;">
+  <h2 class="section-h">📄 ورقة بيانات الصفقة</h2>
+  <p id="factsheetSummary" style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;"></p>
+  <div id="factsheetKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px;"></div>
+  <a id="factsheetDownload" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:14px;background:var(--green-dark);color:#d4ac6e;border-radius:10px;font:900 13px Cairo,sans-serif;text-decoration:none;">⬇ تنزيل PDF كامل</a>
+</div>
+
 <!-- Completion guarantees -->
 <div class="card-section" id="guarCard" style="display:none;">
   <h2 class="section-h">🛡 ضمانات الصفقة</h2>
@@ -5317,6 +5325,36 @@
     } catch (e) {}
   }
 
+  async function _loadFactsheet(slug) {
+    const card = document.getElementById('factsheetCard');
+    const sum = document.getElementById('factsheetSummary');
+    const kpis = document.getElementById('factsheetKpis');
+    const dl = document.getElementById('factsheetDownload');
+    if (!card || !dl) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/factsheet');
+      if (!r.hasData) return;
+      card.style.display = '';
+      sum.textContent = r.summary || 'ورقة بيانات شاملة بكلّ تفاصيل الصفقة الماليّة والقانونيّة.';
+      kpis.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const k = r.keyFigures;
+      const mk = (l, v, color) => {
+        const w = document.createElement('div'); w.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; ll.textContent = l;
+        w.append(vv, ll); return w;
+      };
+      kpis.append(
+        mk('الهدف', fmt(k.goalAmount), '#0a4d36'),
+        mk('عائد متوقّع', k.expectedReturn + '٪', '#0f6e3a'),
+        mk('المدّة', k.durationMonths + ' شهر', '#b08840'),
+        mk('الحدّ الأدنى', fmt(k.minTicket), '#062b1e'),
+      );
+      dl.href = r.pdfUrl;
+    } catch (e) {}
+  }
+
   async function _loadGuar(slug) {
     const card = document.getElementById('guarCard');
     const intro = document.getElementById('guarIntro');
@@ -6360,7 +6398,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _setVintage(p); } catch (e) {} try { _setDocLang(p); } catch (e) {} try { _setSponTrack(p.slug || p.id); } catch (e) {} try { _setTicketTrend(p.slug || p.id); } catch (e) {} try { _setSubVel(p.slug || p.id); } catch (e) {} try { _setPayoutCd(p.slug || p.id); } catch (e) {} try { _setVerifiedBadge(p.slug || p.id); } catch (e) {} try { _setCxlWindow(p.slug || p.id); } catch (e) {} try { _setSecMkt(p.slug || p.id); } catch (e) {} try { _setShariaCert(p.slug || p.id); } catch (e) {} try { _setIrr(p.slug || p.id); } catch (e) {} try { _setMinCtx(p.slug || p.id); } catch (e) {} try { _setFirstPay(p.slug || p.id); } catch (e) {} try { _setConc(p.slug || p.id); } catch (e) {} try { _setRegBadge(p.slug || p.id); } catch (e) {} try { _setVerInv(p.slug || p.id); } catch (e) {} try { _setMatch(p.slug || p.id); } catch (e) {} try { _setPer10k(p.slug || p.id); } catch (e) {} try { _setSectorTrend(p.slug || p.id); } catch (e) {} try { _setAvgTicket(p.slug || p.id); } catch (e) {} try { _setLockup(p.slug || p.id); } catch (e) {} try { _setLaunch(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _initReferFriend(p); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadRepInv(p.slug || p.id); } catch (e) {} try { _loadCityDiv(p.slug || p.id); } catch (e) {} try { _loadTotRet(p.slug || p.id); } catch (e) {} try { _loadPayoutSched(p.slug || p.id); } catch (e) {} try { _loadFeeDisc(p.slug || p.id); } catch (e) {} try { _loadLiveFeed(p.slug || p.id); } catch (e) {} try { _loadWaitlist(p.slug || p.id); } catch (e) {} try { _loadTickRange(p.slug || p.id); } catch (e) {} try { _loadClubTier(p.slug || p.id); } catch (e) {} try { _loadAltDeals(p.slug || p.id); } catch (e) {} try { _loadShareQr(p.slug || p.id); } catch (e) {} try { _loadSpMsg(p.slug || p.id); } catch (e) {} try { _loadSpSoc(p.slug || p.id); } catch (e) {} try { _loadWhyThis(p.slug || p.id); } catch (e) {} try { _loadGuar(p.slug || p.id); } catch (e) {} try { _loadInvShare(p.slug || p.id); } catch (e) {} try { _loadDealTeam(p.slug || p.id); } catch (e) {} try { _loadMvf(p.slug || p.id); } catch (e) {} try { _loadGallery(p.slug || p.id); } catch (e) {} try { _loadDealUpdates(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initPriceCheck(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _setVintage(p); } catch (e) {} try { _setDocLang(p); } catch (e) {} try { _setSponTrack(p.slug || p.id); } catch (e) {} try { _setTicketTrend(p.slug || p.id); } catch (e) {} try { _setSubVel(p.slug || p.id); } catch (e) {} try { _setPayoutCd(p.slug || p.id); } catch (e) {} try { _setVerifiedBadge(p.slug || p.id); } catch (e) {} try { _setCxlWindow(p.slug || p.id); } catch (e) {} try { _setSecMkt(p.slug || p.id); } catch (e) {} try { _setShariaCert(p.slug || p.id); } catch (e) {} try { _setIrr(p.slug || p.id); } catch (e) {} try { _setMinCtx(p.slug || p.id); } catch (e) {} try { _setFirstPay(p.slug || p.id); } catch (e) {} try { _setConc(p.slug || p.id); } catch (e) {} try { _setRegBadge(p.slug || p.id); } catch (e) {} try { _setVerInv(p.slug || p.id); } catch (e) {} try { _setMatch(p.slug || p.id); } catch (e) {} try { _setPer10k(p.slug || p.id); } catch (e) {} try { _setSectorTrend(p.slug || p.id); } catch (e) {} try { _setAvgTicket(p.slug || p.id); } catch (e) {} try { _setLockup(p.slug || p.id); } catch (e) {} try { _setLaunch(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _initReferFriend(p); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadRepInv(p.slug || p.id); } catch (e) {} try { _loadCityDiv(p.slug || p.id); } catch (e) {} try { _loadTotRet(p.slug || p.id); } catch (e) {} try { _loadPayoutSched(p.slug || p.id); } catch (e) {} try { _loadFeeDisc(p.slug || p.id); } catch (e) {} try { _loadLiveFeed(p.slug || p.id); } catch (e) {} try { _loadWaitlist(p.slug || p.id); } catch (e) {} try { _loadTickRange(p.slug || p.id); } catch (e) {} try { _loadClubTier(p.slug || p.id); } catch (e) {} try { _loadAltDeals(p.slug || p.id); } catch (e) {} try { _loadShareQr(p.slug || p.id); } catch (e) {} try { _loadSpMsg(p.slug || p.id); } catch (e) {} try { _loadSpSoc(p.slug || p.id); } catch (e) {} try { _loadWhyThis(p.slug || p.id); } catch (e) {} try { _loadGuar(p.slug || p.id); } catch (e) {} try { _loadFactsheet(p.slug || p.id); } catch (e) {} try { _loadInvShare(p.slug || p.id); } catch (e) {} try { _loadDealTeam(p.slug || p.id); } catch (e) {} try { _loadMvf(p.slug || p.id); } catch (e) {} try { _loadGallery(p.slug || p.id); } catch (e) {} try { _loadDealUpdates(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initPriceCheck(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setLaunch(slug) {
     const badge = document.getElementById('launchBadge');
