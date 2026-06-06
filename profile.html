@@ -859,6 +859,62 @@
     </div>
   </div>
 
+  <!-- Rebalance plan -->
+  <div class="settings-group" id="rebalSec">
+    <div class="settings-h">⚖️ خطّة إعادة موازنة المحفظة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد كيف ومتى ستعيد ضبط نسب أصولك للحفاظ على ملف المخاطر المستهدف.</p>
+      <div id="rebalDiscipline" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalActive" /> فعّل خطّة إعادة الموازنة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تواتر الموازنة
+          <select id="rebalCadence" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="calendar_yearly">📅 سنوي (الأبسط)</option>
+            <option value="calendar_semiannual">📅 نصف سنوي</option>
+            <option value="threshold">📊 عتبي (عند تجاوز الانحراف)</option>
+            <option value="hybrid">🎯 هجين (سنوي + تنبيه عتبة)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عتبة الانحراف المسموح (٪)
+          <input type="number" id="rebalThreshold" min="3" max="30" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد فئات الأصول في محفظتك
+          <input type="number" id="rebalAssets" min="2" max="15" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">آخر مراجعة/موازنة
+          <input type="date" id="rebalLast" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalTargets" /> حدّدت نسبًا مستهدفة لكلّ أصل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalAlerts" /> فعّل تنبيهات تجاوز العتبة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalAuto" /> فعّل إعادة الموازنة التلقائيّة (عند الاستحقاق)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalInflow" /> وجّه التدفّقات الجديدة للأصل الأقلّ من المستهدف
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalObjective" /> كتبت هدف التخصيص (مستوى المخاطر المستهدف)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalZakat" /> استخدم دفعات الزكاة كأداة موازنة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rebalReview" /> راجعتُ الخطّة في موعد محدّد (مجدول)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="rebalNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="rebalSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الموازنة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Single parent plan -->
   <div class="settings-group" id="spSec">
     <div class="settings-h">🌟 خطّة الوالد/الوالدة المنفرد/ة</div>
@@ -8282,6 +8338,77 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Rebalance plan
+  (async () => {
+    try {
+      const active = document.getElementById('rebalActive');
+      const cadence = document.getElementById('rebalCadence');
+      const threshold = document.getElementById('rebalThreshold');
+      const assets = document.getElementById('rebalAssets');
+      const last = document.getElementById('rebalLast');
+      const targets = document.getElementById('rebalTargets');
+      const alerts = document.getElementById('rebalAlerts');
+      const auto = document.getElementById('rebalAuto');
+      const inflow = document.getElementById('rebalInflow');
+      const objective = document.getElementById('rebalObjective');
+      const zakat = document.getElementById('rebalZakat');
+      const review = document.getElementById('rebalReview');
+      const notes = document.getElementById('rebalNotes');
+      const disciplineEl = document.getElementById('rebalDiscipline');
+      const btn = document.getElementById('rebalSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        master: '🏆 منضبط (متمكّن)',
+        practiced: '👍 ممارس',
+        learning: '📘 يتعلّم',
+        starter: '🌱 مبتدئ',
+      };
+      const r = await App.api('GET', '/app/me/rebalance-plan');
+      active.checked = !!r.active;
+      cadence.value = r.cadence || 'calendar_yearly';
+      threshold.value = Number(r.thresholdPct || 10);
+      assets.value = Number(r.assetClassesCount || 3);
+      if (r.lastRebalanceDate) last.value = String(r.lastRebalanceDate).slice(0, 10);
+      targets.checked = !!r.targetsSet;
+      alerts.checked = !!r.thresholdAlertsEnabled;
+      auto.checked = !!r.autoRebalanceEnabled;
+      inflow.checked = !!r.inflowDirectedToUnder;
+      objective.checked = !!r.writtenObjective;
+      zakat.checked = !!r.useZakatForRebalance;
+      review.checked = !!r.annualReviewScheduled;
+      notes.value = r.notes || '';
+      if (disciplineEl) disciplineEl.textContent = (levelLabels[r.disciplineLevel] || '—') + ' · ' + r.disciplineScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/rebalance-plan', {
+            active: active.checked,
+            cadence: cadence.value,
+            thresholdPct: Number(threshold.value || 10),
+            assetClassesCount: Number(assets.value || 3),
+            lastRebalanceDate: last.value || null,
+            targetsSet: targets.checked,
+            thresholdAlertsEnabled: alerts.checked,
+            autoRebalanceEnabled: auto.checked,
+            inflowDirectedToUnder: inflow.checked,
+            writtenObjective: objective.checked,
+            useZakatForRebalance: zakat.checked,
+            annualReviewScheduled: review.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة إعادة الموازنة', 'success');
+            const r2 = await App.api('GET', '/app/me/rebalance-plan');
+            if (disciplineEl) disciplineEl.textContent = (levelLabels[r2.disciplineLevel] || '—') + ' · ' + r2.disciplineScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
