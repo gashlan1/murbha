@@ -859,6 +859,66 @@
     </div>
   </div>
 
+  <!-- Inheritance prep -->
+  <div class="settings-group" id="ipSec">
+    <div class="settings-h">📜 الميراث والوصيّة (التحضير)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">السنّة المهجورة: وصيّة مكتوبة. ٩ ضوابط لتحضير ميراثك شرعيًّا.</p>
+      <div id="ipPrep" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipActive" /> فعّل تحضير الميراث
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المرحلة العائليّة
+          <select id="ipStage" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="single">🌱 أعزب</option>
+            <option value="married_no_kids">💍 متزوّج بلا أبناء</option>
+            <option value="married_with_kids">👨‍👩‍👧 متزوّج وأبناء</option>
+            <option value="parents_alive_only">👴 الوالدان فقط</option>
+            <option value="complex">🔀 حالة معقّدة (طلاق/تعدّد/زواج مختلط)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تاريخ آخر مراجعة
+          <input type="date" id="ipLast" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تاريخ المراجعة القادمة
+          <input type="date" id="ipNext" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipWritten" /> وصيّة مكتوبة كاملة موثَّقة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipNajiz" /> مسجَّلة في منصّة "ناجز" (رسمي)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipExec" /> الوصيّ/المنفّذ محدّد بموافقته الكتابيّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipDebts" /> قائمة بكلّ ديوني المعلّقة مع وثائقها
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipAssets" /> قائمة بكلّ أصولي (عقار/حسابات/صفقات/ذهب)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipDigital" /> الأصول الرقميّة (كلمات سرّ، محافظ) موثَّقة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipFam" /> الأسرة تعرف موقع الوصيّة والوثائق
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipAnnual" /> مراجعة سنويّة منتظمة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipThird" /> الوصايا الخيريّة ضمن الثلث الشرعي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="ipNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="ipSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ تحضير الميراث</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Real estate plan -->
   <div class="settings-group" id="reSec">
     <div class="settings-h">🏘️ خطّة الاستثمار العقاري</div>
@@ -9632,6 +9692,81 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Inheritance prep
+  (async () => {
+    try {
+      const active = document.getElementById('ipActive');
+      const stage = document.getElementById('ipStage');
+      const last = document.getElementById('ipLast');
+      const next = document.getElementById('ipNext');
+      const written = document.getElementById('ipWritten');
+      const najiz = document.getElementById('ipNajiz');
+      const exec = document.getElementById('ipExec');
+      const debts = document.getElementById('ipDebts');
+      const assets = document.getElementById('ipAssets');
+      const digital = document.getElementById('ipDigital');
+      const fam = document.getElementById('ipFam');
+      const annual = document.getElementById('ipAnnual');
+      const third = document.getElementById('ipThird');
+      const notes = document.getElementById('ipNotes');
+      const prepEl = document.getElementById('ipPrep');
+      const btn = document.getElementById('ipSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        comprehensive: '🏆 شامل ومحكم',
+        solid: '🛡️ متين',
+        developing: '🌿 يتطوّر',
+        starting: '🌱 يبدأ',
+        unprepared: '🚨 غير محضّر',
+      };
+      const r = await App.api('GET', '/app/me/inheritance-prep');
+      active.checked = !!r.active;
+      stage.value = r.lifeStage || 'single';
+      if (r.lastReviewDate) last.value = String(r.lastReviewDate).slice(0, 10);
+      if (r.nextReviewDate) next.value = String(r.nextReviewDate).slice(0, 10);
+      written.checked = !!r.writtenWill;
+      najiz.checked = !!r.najizRegistered;
+      exec.checked = !!r.executorNamed;
+      debts.checked = !!r.debtsListed;
+      assets.checked = !!r.assetsListed;
+      digital.checked = !!r.digitalAssetsCovered;
+      fam.checked = !!r.familyInformed;
+      annual.checked = !!r.annualReview;
+      third.checked = !!r.withinThirdLimit;
+      notes.value = r.notes || '';
+      if (prepEl) prepEl.textContent = (levelLabels[r.preparednessLevel] || '—') + ' · ' + r.preparednessScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/inheritance-prep', {
+            active: active.checked,
+            lifeStage: stage.value,
+            lastReviewDate: last.value || null,
+            nextReviewDate: next.value || null,
+            writtenWill: written.checked,
+            najizRegistered: najiz.checked,
+            executorNamed: exec.checked,
+            debtsListed: debts.checked,
+            assetsListed: assets.checked,
+            digitalAssetsCovered: digital.checked,
+            familyInformed: fam.checked,
+            annualReview: annual.checked,
+            withinThirdLimit: third.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظ تحضير الميراث', 'success');
+            const r2 = await App.api('GET', '/app/me/inheritance-prep');
+            if (prepEl) prepEl.textContent = (levelLabels[r2.preparednessLevel] || '—') + ' · ' + r2.preparednessScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
