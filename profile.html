@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Goals timeline -->
+  <div class="settings-group" id="goalTimelineSec" style="display:none;">
+    <div class="settings-h">📅 الخطّ الزمني لأهدافك</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إسقاط متى ستحقّق كلّ هدف بناءً على وتيرة استثمارك الحاليّة.</p>
+      <div id="goalTimelineList" style="display:grid;gap:10px;"></div>
+    </div>
+  </div>
+
   <!-- Calendar sync -->
   <div class="settings-group" id="calSyncSec">
     <div class="settings-h">📅 مزامنة التقويم</div>
@@ -3983,6 +3992,40 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Goals timeline
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/goals-timeline');
+      if (!r.hasData) return;
+      const sec = document.getElementById('goalTimelineSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('goalTimelineList');
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      r.timeline.forEach(g => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:12px;padding:14px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const left = document.createElement('div'); left.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; left.textContent = (g.icon || '🎯') + ' ' + g.name;
+        const right = document.createElement('div'); right.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--gold);'; right.textContent = fmt(g.saved) + ' / ' + fmt(g.target);
+        head.append(left, right);
+        const bar = document.createElement('div'); bar.style.cssText = 'height:10px;background:#fff;border-radius:99px;overflow:hidden;margin-bottom:6px;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + g.pct + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const meta = document.createElement('div'); meta.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        const parts = [g.pct + '٪ مكتمل'];
+        if (g.monthsToTarget !== null) parts.push('متوقّع خلال ' + g.monthsToTarget + ' شهر');
+        if (g.deadline) parts.push('الموعد المستهدف: ' + new Date(g.deadline).toLocaleDateString('ar-SA'));
+        if (g.onTrack === true) parts.push('✓ في المسار');
+        else if (g.onTrack === false) parts.push('⚠ متأخّر');
+        meta.textContent = parts.join(' · ');
+        card.append(head, bar, meta);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
