@@ -859,6 +859,14 @@
     </div>
   </div>
 
+  <!-- Personalized insights -->
+  <div class="settings-group" id="insightsSec" style="display:none;">
+    <div class="settings-h">💡 رؤى شخصيّة</div>
+    <div style="padding:14px 18px;">
+      <div id="insightsList" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Trust score -->
   <div class="settings-group" id="trustSec" style="display:none;">
     <div class="settings-h">🛡 درجة الثقة في حسابك</div>
@@ -3583,6 +3591,30 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Personalized insights
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/personalized-insights');
+      if (!r.hasData) return;
+      const sec = document.getElementById('insightsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('insightsList');
+      list.replaceChildren();
+      r.insights.forEach(ins => {
+        const card = document.createElement('div');
+        card.style.cssText = 'display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid var(--gold);';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:22px;line-height:1;'; ic.textContent = ins.icon;
+        const txt = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:2px;'; t.textContent = ins.title;
+        const b = document.createElement('div'); b.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.7;'; b.textContent = ins.body;
+        txt.append(t, b);
+        card.append(ic, txt);
+        list.appendChild(card);
       });
     } catch (e) {}
   })();
