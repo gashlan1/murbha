@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقرير الامتثال التنظيمي — مُرابحة</title>
+<meta name="description" content="لوحة تتبّع الامتثال لمتطلبات هيئة السوق المالية وسما. للمشرفين فقط." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:18px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.8;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:10px;}
+  .period-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .period-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:7px 16px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .period-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .kpi-val{font:900 26px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .kpi.ok .kpi-val{color:#2e7d32;}
+  .kpi.warn .kpi-val{color:#f9a825;}
+  .kpi.bad .kpi-val{color:#c54a3a;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:640px){.grid-2{grid-template-columns:1fr;}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .card h2{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed var(--line);}
+  .check-list{display:grid;gap:8px;}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;background:var(--paper);}
+  .check-status{font-size:16px;flex-shrink:0;margin-top:1px;}
+  .check-body{flex:1;}
+  .check-title{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .check-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .check-item.fail{background:#fdecea;}
+  .check-item.warn{background:#fff8e1;}
+  .filings-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .filings-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .filings-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .filings-table tr:last-child td{border-bottom:none;}
+  .badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-filed{background:#e8f5e9;color:#2e7d32;}
+  .badge-pending{background:#fff8e1;color:#a07020;}
+  .badge-overdue{background:#fdecea;color:#c54a3a;}
+  .btn-export{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:9px 20px;font:700 12px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>📋 تقرير الامتثال التنظيمي</h1>
+    <p>تتبّع متطلبات هيئة السوق المالية وسما وحالة التقارير الإلزامية.</p>
+  </div>
+
+  <div class="period-row">
+    <button class="period-btn active" data-period="Q1">الربع الأول</button>
+    <button class="period-btn" data-period="Q2">الربع الثاني</button>
+    <button class="period-btn" data-period="Q3">الربع الثالث</button>
+    <button class="period-btn" data-period="Q4">الربع الرابع</button>
+  </div>
+
+  <button class="btn-export" id="exportBtn">⬇ تصدير التقرير PDF</button>
+
+  <div class="kpi-grid" id="kpiGrid"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>✅ قائمة الامتثال</h2>
+      <div class="check-list" id="checkList"><p class="placeholder-msg" style="padding:16px 0">جارٍ التحميل…</p></div>
+    </div>
+    <div class="card">
+      <h2>📁 سجل التقارير المُقدَّمة</h2>
+      <div id="filingsArea"><p class="placeholder-msg" style="padding:16px 0">جارٍ التحميل…</p></div>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  let activePeriod = 'Q1';
+
+  function renderKPIs(d){
+    const grid=document.getElementById('kpiGrid'); grid.textContent='';
+    [
+      {val:(d.complianceScore||0)+'٪',lbl:'نسبة الامتثال الكلية',cls:d.complianceScore>=90?'ok':d.complianceScore>=70?'warn':'bad'},
+      {val:d.passedChecks||0,lbl:'بنود مستوفاة',cls:'ok'},
+      {val:d.failedChecks||0,lbl:'بنود متأخرة',cls:d.failedChecks===0?'ok':'bad'},
+      {val:d.filedReports||0,lbl:'تقارير مُقدَّمة',cls:''},
+    ].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi'+(it.cls?' '+it.cls:'');
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); grid.appendChild(k);
+    });
+  }
+
+  function renderChecks(checks){
+    const list=document.getElementById('checkList'); list.textContent='';
+    if(!checks.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='لا توجد بيانات.'; list.appendChild(m); return; }
+    checks.forEach(c=>{
+      const item=document.createElement('div');
+      item.className='check-item'+(c.status==='fail'?' fail':c.status==='warn'?' warn':'');
+      const icon=document.createElement('div'); icon.className='check-status';
+      icon.textContent=c.status==='pass'?'✅':c.status==='warn'?'⚠️':'❌';
+      const body=document.createElement('div'); body.className='check-body';
+      const title=document.createElement('div'); title.className='check-title'; title.textContent=c.title;
+      const desc=document.createElement('div'); desc.className='check-desc'; desc.textContent=c.desc||'';
+      body.appendChild(title); body.appendChild(desc);
+      item.appendChild(icon); item.appendChild(body);
+      list.appendChild(item);
+    });
+  }
+
+  function renderFilings(filings){
+    const area=document.getElementById('filingsArea'); area.textContent='';
+    if(!filings.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='لا توجد تقارير.'; area.appendChild(m); return; }
+    const table=document.createElement('table'); table.className='filings-table';
+    const thead=document.createElement('thead'); const hr=document.createElement('tr');
+    ['التقرير','تاريخ التقديم','الحالة'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    filings.forEach(f=>{
+      const tr=document.createElement('tr');
+      const tdN=document.createElement('td'); tdN.textContent=f.name||'—';
+      const tdD=document.createElement('td'); tdD.textContent=f.date||'—';
+      const tdS=document.createElement('td');
+      const badge=document.createElement('span');
+      badge.className='badge badge-'+(f.status||'pending');
+      badge.textContent=f.status==='filed'?'مُقدَّم':f.status==='overdue'?'متأخر':'قيد الإعداد';
+      tdS.appendChild(badge); tr.appendChild(tdN); tr.appendChild(tdD); tr.appendChild(tdS);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); area.appendChild(table);
+  }
+
+  async function load(){
+    try{
+      const r=await fetch('/app/admin/compliance-report?period='+encodeURIComponent(activePeriod));
+      if(!r.ok){
+        ['kpiGrid','checkList','filingsArea'].forEach(id=>{
+          const el=document.getElementById(id); el.textContent='';
+          const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.'; el.appendChild(m);
+        }); return;
+      }
+      const d=await r.json();
+      renderKPIs(d); renderChecks(d.checks||[]); renderFilings(d.filings||[]);
+    }catch{
+      const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل. حاول لاحقاً.';
+      document.getElementById('kpiGrid').textContent=''; document.getElementById('kpiGrid').appendChild(m);
+    }
+  }
+
+  document.querySelectorAll('.period-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); activePeriod=btn.dataset.period; load();
+    });
+  });
+
+  document.getElementById('exportBtn').addEventListener('click',()=>{ window.open('/app/admin/compliance-report/export?period='+activePeriod,'_blank'); });
+
+  load();
+}());
+</script>
+</body>
+</html>
