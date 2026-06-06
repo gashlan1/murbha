@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- Dependents -->
+  <div class="settings-group" id="depSec">
+    <div class="settings-h">👶 صناديق الأطفال</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل أطفالك لتتبّع تقدّم كل صندوق على حدة. كل سنة تأخير تعني آلاف الريالات الضائعة.</p>
+      <div id="depList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;">
+        <div style="font:900 12px Cairo,sans-serif;color:#6b21a8;margin-bottom:8px;">إضافة طفل</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="depName" placeholder="اسم الطفل (اختياري — يمكن استخدام لقب)" maxlength="60" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <input type="number" id="depAge" min="0" max="25" placeholder="العمر بالسنوات" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <input type="number" id="depTarget" min="0" step="1000" placeholder="المبلغ المستهدف عند ١٨ (ر.س)" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <input type="number" id="depSaved" min="0" step="500" placeholder="المُدّخر حاليًا (ر.س)" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <input type="number" id="depMonthly" min="0" step="50" placeholder="الإيداع الشهري (ر.س)" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <button type="button" id="depAddBtn" style="background:#6b21a8;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إضافة الصندوق</button>
+        </div>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">اقرأ <a href="kids-investing.html" style="color:var(--green);">دليل الاستثمار لأطفالك</a>.</p>
+    </div>
+  </div>
+
   <!-- Career stage -->
   <div class="settings-group" id="careerSec">
     <div class="settings-h">🎓 المرحلة الوظيفيّة</div>
@@ -5831,6 +5852,80 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Dependents
+  (async () => {
+    try {
+      const list = document.getElementById('depList');
+      const name = document.getElementById('depName');
+      const age = document.getElementById('depAge');
+      const target = document.getElementById('depTarget');
+      const saved = document.getElementById('depSaved');
+      const monthly = document.getElementById('depMonthly');
+      const btn = document.getElementById('depAddBtn');
+      if (!list || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/dependents');
+        list.replaceChildren();
+        if (!r.dependents || !r.dependents.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;font:500 11px Tajawal,sans-serif;color:var(--muted);text-align:center;';
+          empty.textContent = 'لا أطفال مسجّلين بعد. أضف أوّل صندوق.';
+          list.appendChild(empty);
+          return;
+        }
+        r.dependents.forEach(d => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid #6b21a8;';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+          const nm = document.createElement('div'); nm.style.cssText = 'font:900 13px Cairo,sans-serif;color:#6b21a8;'; nm.textContent = '👶 ' + d.name;
+          const ageTag = document.createElement('span'); ageTag.style.cssText = 'font:800 10px Cairo,sans-serif;color:#fff;background:#6b21a8;padding:3px 8px;border-radius:99px;'; ageTag.textContent = d.age + ' سنة';
+          head.append(nm, ageTag);
+          card.appendChild(head);
+          if (d.targetSar > 0) {
+            const barWrap = document.createElement('div'); barWrap.style.cssText = 'height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:6px 0;';
+            const barFill = document.createElement('div'); barFill.style.cssText = 'height:100%;background:linear-gradient(90deg,#6b21a8,#ec4899);width:' + Math.min(100, d.progressPct) + '%;';
+            barWrap.appendChild(barFill);
+            card.appendChild(barWrap);
+          }
+          const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);';
+          let metaTxt = fmt(d.savedSar) + ' / ' + fmt(d.targetSar) + ' ر.س (' + d.progressPct + '٪) · ' + d.yearsTo18 + ' سنة للـ ١٨';
+          if (d.requiredMonthly > 0) metaTxt += ' · مقترح: ' + fmt(d.requiredMonthly) + ' ر.س/شهر';
+          meta.textContent = metaTxt;
+          card.appendChild(meta);
+          const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '🗑 حذف';
+          delBtn.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 10px Cairo,sans-serif;margin-top:6px;';
+          delBtn.addEventListener('click', async () => {
+            if (!confirm('حذف صندوق ' + d.name + '؟')) return;
+            try { await App.api('DELETE', '/app/me/dependents/' + encodeURIComponent(d.id)); render(); } catch {}
+          });
+          card.appendChild(delBtn);
+          list.appendChild(card);
+        });
+      };
+      render();
+      btn.addEventListener('click', async () => {
+        if (!name.value.trim()) { App.toast && App.toast('أدخل اسم الطفل أو لقبه', 'error'); return; }
+        try {
+          const r = await App.api('POST', '/app/me/dependents', {
+            name: name.value,
+            age: Number(age.value || 0),
+            targetSar: Number(target.value || 0),
+            savedSar: Number(saved.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+          });
+          if (r.ok) {
+            App.toast && App.toast('تمت إضافة الصندوق', 'success');
+            name.value = ''; age.value = ''; target.value = ''; saved.value = ''; monthly.value = '';
+            await render();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
