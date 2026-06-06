@@ -859,6 +859,47 @@
     </div>
   </div>
 
+  <!-- Income needs -->
+  <div class="settings-group" id="incNeedsSec">
+    <div class="settings-h">💰 احتياجات الدخل الشهري</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد دخلاً شهرياً مستهدفاً، ونساعدك في الوصول إليه عبر الصفقات بتوزيعات منتظمة.</p>
+      <div id="incHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;"></div>
+      <div style="display:grid;gap:10px;margin-bottom:14px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الدخل الشهري المستهدف (ر.س)</label>
+          <input type="number" id="inTarget" min="0" step="500" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inPrefMonthly" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📅 فضّل الصفقات بدخل شهري على صفقات النموّ
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inAutoSweep" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔁 حوّل التوزيعات تلقائياً
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">وجهة التوزيعات</label>
+          <select id="inDest" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="main_account">حسابي الرئيسي</option>
+            <option value="savings_account">حساب التوفير</option>
+            <option value="spouse_account">حساب الزوج/الزوجة</option>
+            <option value="reinvest">إعادة استثمار</option>
+          </select>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inNotify" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 نبّهني عند كلّ توزيعة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inReport" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📊 تقرير دخل شهري مبسّط
+        </label>
+      </div>
+      <button type="button" id="inSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ احتياجات الدخل</button>
+    </div>
+  </div>
+
   <!-- External assets (whole portfolio view) -->
   <div class="settings-group" id="extAssetsSec">
     <div class="settings-h">🌐 الأصول الخارجيّة والالتزامات</div>
@@ -5098,6 +5139,54 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Income needs
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/income-needs');
+      if (!r.hasData) return;
+      const target = document.getElementById('inTarget');
+      const prefMonthly = document.getElementById('inPrefMonthly');
+      const autoSweep = document.getElementById('inAutoSweep');
+      const dest = document.getElementById('inDest');
+      const notify = document.getElementById('inNotify');
+      const report = document.getElementById('inReport');
+      const hero = document.getElementById('incHero');
+      const btn = document.getElementById('inSaveBtn');
+      if (!btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      target.value = r.targetMonthlyIncome;
+      prefMonthly.checked = !!r.preferMonthlyOverAccumulation;
+      autoSweep.checked = !!r.autoSweepDistributions;
+      dest.value = r.sweepDestination || 'main_account';
+      notify.checked = r.notifyOnEachDistribution !== false;
+      report.checked = r.monthlyReportEnabled !== false;
+      const color = r.coveragePct >= 100 ? '#0a4d36' : (r.coveragePct >= 50 ? '#b08840' : '#c54a3a');
+      hero.style.display = '';
+      hero.style.background = 'linear-gradient(135deg,' + color + ',#062b1e)';
+      hero.innerHTML = '';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 20px Cairo,sans-serif;color:#fbf6ea;';
+      big.textContent = fmt(r.estimatedMonthlyIncome) + ' / ' + fmt(r.targetMonthlyIncome) + ' ر.س/شهر';
+      const lbl = document.createElement('div'); lbl.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#d4ac6e;margin-top:4px;';
+      let extra = '';
+      if (r.gap > 0) extra = ' · فجوة ' + fmt(r.gap) + ' ر.س · تحتاج ' + fmt(r.requiredAdditionalCapital) + ' ر.س إضافيّة';
+      lbl.textContent = 'تغطية ' + r.coveragePct + '٪' + extra;
+      hero.append(big, lbl);
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/income-needs', {
+            targetMonthlyIncome: Number(target.value),
+            preferMonthlyOverAccumulation: prefMonthly.checked,
+            autoSweepDistributions: autoSweep.checked,
+            sweepDestination: dest.value,
+            notifyOnEachDistribution: notify.checked,
+            monthlyReportEnabled: report.checked,
+          });
+          App.toast && App.toast('تم حفظ احتياجات الدخل', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
