@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- Negative screens -->
+  <div class="settings-group" id="negScrSec">
+    <div class="settings-h">🚫 الفلاتر السلبيّة الشخصيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد ما لا تستثمر فيه. سنخفيه أو ننبّهك. أقصى ٣٠ فلتراً.</p>
+      <div id="negScrList" style="display:grid;gap:6px;margin-bottom:10px;"></div>
+      <button type="button" id="negScrAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة فلتر</button>
+      <div style="display:grid;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="negScrBlock" checked style="transform:scale(1.3);accent-color:#c54a3a;" />
+          🚫 امنع الاستثمار عند مطابقة فلتر
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="negScrWarn" checked style="transform:scale(1.3);accent-color:#b08840;" />
+          ⚠ أظهِر تحذيراً على الصفقات المخالفة
+        </label>
+      </div>
+      <button type="button" id="negScrSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الفلاتر</button>
+    </div>
+  </div>
+
   <!-- Recession prep -->
   <div class="settings-group" id="recPrepSec">
     <div class="settings-h">🌪 استعداد الركود</div>
@@ -4630,6 +4651,69 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Negative screens
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/negative-screens');
+      if (!r.hasData) return;
+      const list = document.getElementById('negScrList');
+      const addBtn = document.getElementById('negScrAddBtn');
+      const block = document.getElementById('negScrBlock');
+      const warn = document.getElementById('negScrWarn');
+      const btn = document.getElementById('negScrSaveBtn');
+      if (!list || !btn) return;
+      block.checked = r.blockOnMatch !== false;
+      warn.checked = r.showWarning !== false;
+      const addRow = (s) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        row.dataset.role = 'scr-row';
+        const type = document.createElement('select');
+        type.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        type.dataset.key = 'type';
+        [['category', 'فئة'], ['tag', 'علامة'], ['sponsor', 'راعٍ'], ['keyword', 'كلمة']].forEach(([v, t]) => {
+          const opt = document.createElement('option'); opt.value = v; opt.textContent = t;
+          if (s?.type === v) opt.selected = true;
+          type.appendChild(opt);
+        });
+        const key = document.createElement('input'); key.type = 'text'; key.placeholder = 'القيمة (مثال: tobacco)'; key.dataset.key = 'key'; key.maxLength = 60;
+        key.value = s?.key || '';
+        key.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const label = document.createElement('input'); label.type = 'text'; label.placeholder = 'الوصف (مثال: التبغ)'; label.dataset.key = 'label'; label.maxLength = 80;
+        label.value = s?.label || '';
+        label.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        if (s?.id) row.dataset.sid = s.id;
+        row.append(type, key, label, del);
+        list.appendChild(row);
+      };
+      (r.screens || []).forEach(addRow);
+      addBtn.addEventListener('click', () => {
+        if (list.querySelectorAll('[data-role="scr-row"]').length >= 30) {
+          App.toast && App.toast('الحدّ الأقصى ٣٠ فلتراً', 'error');
+          return;
+        }
+        addRow(null);
+      });
+      btn.addEventListener('click', async () => {
+        const rows = list.querySelectorAll('[data-role="scr-row"]');
+        const screens = [];
+        rows.forEach(row => {
+          const s = {};
+          if (row.dataset.sid) s.id = row.dataset.sid;
+          row.querySelectorAll('select, input').forEach(el => { s[el.dataset.key] = el.value; });
+          if (s.key && s.label) screens.push(s);
+        });
+        try {
+          await App.api('PUT', '/app/me/negative-screens', { screens, blockOnMatch: block.checked, showWarning: warn.checked });
+          App.toast && App.toast('تم حفظ الفلاتر', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
