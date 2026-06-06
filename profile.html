@@ -859,6 +859,48 @@
     </div>
   </div>
 
+  <!-- Health fund -->
+  <div class="settings-group" id="healthSec">
+    <div class="settings-h">🏥 صندوق الصحّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">يغطّي ما لا يغطّيه التأمين: نسبة المشاركة، تجميل، أسنان، طوارئ. حدّد ذكاءً بناءً على بوليصتك.</p>
+      <div id="healthSuggest" style="background:#ecfdf5;border-radius:10px;padding:10px;margin-bottom:12px;font:700 12px Cairo,sans-serif;color:#059669;display:none;"></div>
+      <div id="healthProgress" style="background:#f0fdfa;border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px;">
+          <div id="healthBar" style="height:100%;background:linear-gradient(90deg,#059669,#0891b2);width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="healthProgTxt" style="font:700 11px Cairo,sans-serif;color:var(--muted);text-align:center;"></div>
+      </div>
+      <div id="healthLayers" style="display:grid;gap:6px;margin-bottom:12px;"></div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="healthActive" /> أحفظ صندوقًا صحّيًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">أعلى فاتورة محتملة (ر.س)
+          <input type="number" id="healthMaxBill" min="0" step="5000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة المشاركة من البوليصة (٪)
+          <input type="number" id="healthGapPct" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="healthChronic" /> لديّ حالة مزمنة (ضغط/سكّر/نفسي)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المبلغ المستهدف (ر.س)
+          <input type="number" id="healthTarget" min="0" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُدّخر حتى الآن (ر.س)
+          <input type="number" id="healthSaved" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الإيداع الشهري (ر.س)
+          <input type="number" id="healthMonthly" min="0" step="50" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <textarea id="healthNotes" placeholder="ملاحظات (حالة العائلة، مواعيد متوقّعة)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="healthSaveBtn" style="background:#059669;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الصندوق</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">اقرأ <a href="health-savings.html" style="color:var(--green);">صندوق الصحّة</a>.</p>
+    </div>
+  </div>
+
   <!-- Wedding plan -->
   <div class="settings-group" id="wedSec">
     <div class="settings-h">💍 خطّة الزواج</div>
@@ -5902,6 +5944,86 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Health fund
+  (async () => {
+    try {
+      const active = document.getElementById('healthActive');
+      const maxBill = document.getElementById('healthMaxBill');
+      const gapPct = document.getElementById('healthGapPct');
+      const chronic = document.getElementById('healthChronic');
+      const target = document.getElementById('healthTarget');
+      const saved = document.getElementById('healthSaved');
+      const monthly = document.getElementById('healthMonthly');
+      const notes = document.getElementById('healthNotes');
+      const suggest = document.getElementById('healthSuggest');
+      const prog = document.getElementById('healthProgress');
+      const bar = document.getElementById('healthBar');
+      const progTxt = document.getElementById('healthProgTxt');
+      const layers = document.getElementById('healthLayers');
+      const btn = document.getElementById('healthSaveBtn');
+      if (!active || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/health-fund');
+        active.checked = !!r.active;
+        maxBill.value = r.maxBillSar || '';
+        gapPct.value = r.coverageGapPct || '';
+        chronic.checked = !!r.hasChronic;
+        target.value = r.targetSar || '';
+        saved.value = r.savedSar || '';
+        monthly.value = r.monthlyContribSar || '';
+        notes.value = r.notes || '';
+        if (r.suggestedTarget > 0) {
+          suggest.style.display = '';
+          suggest.textContent = '💡 المستهدف المُقترح: ' + fmt(r.suggestedTarget) + ' ر.س (٣ × المشاركة القصوى' + (r.hasChronic ? ' + ٢٠٪ احتياط مزمن' : '') + ')';
+        } else {
+          suggest.style.display = 'none';
+        }
+        layers.replaceChildren();
+        r.layers.forEach(l => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;padding:6px 10px;border-radius:8px;background:' + (l.met ? '#ecfdf5' : '#f3f4f6') + ';';
+          const lbl = document.createElement('span'); lbl.style.cssText = 'font:700 11px Cairo,sans-serif;color:' + (l.met ? '#059669' : 'var(--muted)') + ';';
+          lbl.textContent = (l.met ? '✓ ' : '◌ ') + l.label + ' (' + fmt(l.threshold) + ' ر.س)';
+          const right = document.createElement('span'); right.style.cssText = 'font:700 11px Cairo,sans-serif;color:' + (l.met ? '#059669' : 'var(--muted)') + ';';
+          right.textContent = l.met ? 'مكتملة' : '—';
+          row.append(lbl, right);
+          layers.appendChild(row);
+        });
+        if (r.active && r.targetSar > 0) {
+          prog.style.display = '';
+          bar.style.width = Math.min(100, r.progressPct) + '%';
+          let txt = r.progressPct + '٪ · ' + fmt(r.savedSar) + ' / ' + fmt(r.targetSar) + ' ر.س';
+          if (r.nextLayer) txt += ' · للطبقة التالية: ' + fmt(r.nextLayer.gap) + ' ر.س';
+          progTxt.textContent = txt;
+        } else {
+          prog.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/health-fund', {
+            active: active.checked,
+            maxBillSar: Number(maxBill.value || 0),
+            coverageGapPct: Number(gapPct.value || 20),
+            hasChronic: chronic.checked,
+            targetSar: Number(target.value || 0),
+            savedSar: Number(saved.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ الصندوق', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
