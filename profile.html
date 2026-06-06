@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Smart matches -->
+  <div class="settings-group" id="smartSec" style="display:none;">
+    <div class="settings-h">✨ صفقات مقترحة لك</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">بناءً على قطاعاتك المفضّلة وإعدادات تنبيهاتك.</p>
+      <div id="smartList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Quarterly journal -->
   <div class="settings-group" id="jrnlSec">
     <div class="settings-h">📓 يوميّاتك الاستثماريّة الرُّبعيّة</div>
@@ -3565,6 +3574,36 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Smart matches
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/smart-matches');
+      if (!r.hasData) return;
+      const sec = document.getElementById('smartSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('smartList');
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      r.matches.forEach(m => {
+        const row = document.createElement('a');
+        row.href = '/project?slug=' + encodeURIComponent(m.slug);
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;background:var(--paper);border-radius:10px;padding:12px;text-decoration:none;color:inherit;border:1px solid rgba(13,22,18,0.08);';
+        const left = document.createElement('div');
+        const title = document.createElement('div'); title.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; title.textContent = m.title;
+        const tagsWrap = document.createElement('div'); tagsWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;';
+        m.tags.forEach(t => {
+          const chip = document.createElement('span'); chip.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:99px;padding:2px 8px;font:700 9px Cairo,sans-serif;color:var(--green-dark);'; chip.textContent = t;
+          tagsWrap.appendChild(chip);
+        });
+        left.append(title, tagsWrap);
+        const right = document.createElement('div'); right.style.cssText = 'font:900 14px Cairo,sans-serif;color:#0f6e3a;text-align:end;'; right.textContent = m.expectedReturn + '٪';
+        row.append(left, right);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
