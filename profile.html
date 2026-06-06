@@ -859,6 +859,61 @@
     </div>
   </div>
 
+  <!-- Tax calendar -->
+  <div class="settings-group" id="taxCalSec">
+    <div class="settings-h">📅 تقويم الزكاة والضرائب</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اضبط مواعيد الزكاة وتنبيهات VAT حتى لا يفوتك موعد.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">تاريخ تمام الحول (موعد الزكاة القادم)</label>
+          <input type="date" id="tcZakatDate" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">تذكير قبل الزكاة (يوم)</label>
+          <input type="number" id="tcZakatDays" min="1" max="90" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">آخر زكاة دُفعت (تاريخ)</label>
+          <input type="date" id="tcZakatLast" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مبلغ آخر زكاة (ر.س)</label>
+          <input type="number" id="tcZakatAmt" min="0" step="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="tcAutoCalc" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🧮 احسب الزكاة المستحقّة تلقائياً
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:800 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="tcVatReg" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🧾 شركتي مسجّلة في VAT (تذكير بإقرارات ربعيّة)
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">تذكير قبل إقرار VAT (يوم)</label>
+          <input type="number" id="tcVatDays" min="1" max="60" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">ضرائب دوليّة — بلد الإقامة (ISO)</label>
+          <input type="text" id="tcIntlCountry" maxlength="2" placeholder="SA" style="width:100px;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;text-transform:uppercase;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">موعد الإقرار الضريبي الدولي</label>
+          <input type="date" id="tcIntlDate" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نسبة الادّخار الربعي للضرائب (٪)</label>
+          <input type="number" id="tcSavings" min="0" max="50" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="tcQReminders" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 تذكيرات ربعيّة بمراجعة الضرائب
+        </label>
+      </div>
+      <button type="button" id="tcSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تقويم الضرائب</button>
+    </div>
+  </div>
+
   <!-- Spouse link -->
   <div class="settings-group" id="spouseSec">
     <div class="settings-h">💑 ربط حساب شريك الحياة</div>
@@ -5361,6 +5416,58 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Tax calendar
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/tax-calendar');
+      if (!r.hasData) return;
+      const zakatDate = document.getElementById('tcZakatDate');
+      const zakatDays = document.getElementById('tcZakatDays');
+      const zakatLast = document.getElementById('tcZakatLast');
+      const zakatAmt = document.getElementById('tcZakatAmt');
+      const autoCalc = document.getElementById('tcAutoCalc');
+      const vatReg = document.getElementById('tcVatReg');
+      const vatDays = document.getElementById('tcVatDays');
+      const intlCountry = document.getElementById('tcIntlCountry');
+      const intlDate = document.getElementById('tcIntlDate');
+      const savings = document.getElementById('tcSavings');
+      const qReminders = document.getElementById('tcQReminders');
+      const btn = document.getElementById('tcSaveBtn');
+      if (!btn) return;
+      try {
+        if (r.zakatScheduleDate) zakatDate.value = new Date(r.zakatScheduleDate).toISOString().slice(0, 10);
+        if (r.zakatLastPaidAt) zakatLast.value = new Date(r.zakatLastPaidAt).toISOString().slice(0, 10);
+        if (r.intlTaxDeadline) intlDate.value = new Date(r.intlTaxDeadline).toISOString().slice(0, 10);
+      } catch {}
+      zakatDays.value = r.zakatReminderDaysBefore;
+      zakatAmt.value = r.zakatLastAmount;
+      autoCalc.checked = r.autoCalculateZakat !== false;
+      vatReg.checked = !!r.vatRegistered;
+      vatDays.value = r.vatReminderDaysBefore;
+      intlCountry.value = r.intlTaxCountry || '';
+      savings.value = r.quarterlySavingsPct;
+      qReminders.checked = r.sendQuarterlyReminders !== false;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/tax-calendar', {
+            zakatScheduleDate: zakatDate.value || null,
+            zakatLastPaidAt: zakatLast.value || null,
+            zakatLastAmount: Number(zakatAmt.value),
+            zakatReminderDaysBefore: Number(zakatDays.value),
+            autoCalculateZakat: autoCalc.checked,
+            vatRegistered: vatReg.checked,
+            vatReminderDaysBefore: Number(vatDays.value),
+            intlTaxCountry: intlCountry.value.toUpperCase(),
+            intlTaxDeadline: intlDate.value || null,
+            quarterlySavingsPct: Number(savings.value),
+            sendQuarterlyReminders: qReminders.checked,
+          });
+          App.toast && App.toast('تم حفظ تقويم الضرائب', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
