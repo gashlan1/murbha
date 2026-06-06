@@ -859,6 +859,68 @@
     </div>
   </div>
 
+  <!-- Advisor relationship -->
+  <div class="settings-group" id="afSec">
+    <div class="settings-h">👔 العلاقة مع المستشار المالي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">٧ ضوابط لاختيار مستشار جيّد، أو معرفة متى يكفي أن تدير بنفسك.</p>
+      <div id="afQual" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afActive" /> فعّل تتبّع العلاقة مع المستشار
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afHas" /> 👔 لديّ مستشار مالي حاليًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نوع المستشار
+          <select id="afType" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="none">🌱 بدون</option>
+            <option value="fee_only">🟢 رسوم فقط (مستقلّ)</option>
+            <option value="bank">🏦 مستشار بنك</option>
+            <option value="brokerage">📊 شركة وساطة</option>
+            <option value="robo">🤖 Robo-Advisor</option>
+            <option value="cfp">📜 CFP شامل</option>
+            <option value="accountant">🧮 محاسب/مراجع</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">سنوات العلاقة
+          <input type="number" id="afYears" min="0" max="60" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي ما تدفعه سنويًّا (ر.س)
+          <input type="number" id="afCost" min="0" max="1000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">التكلفة كنسبة من أصولك (٪)
+          <input type="number" id="afPct" min="0" max="20" step="0.1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afLic" /> تحقّقت من ترخيصه (CMA) شخصيًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afFid" /> ملتزم بمسؤوليّة الأمانة (Fiduciary)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afFees" /> أفهم تفصيلات الرسوم والعمولات
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afConf" /> تضارب المصالح مكشوف كتابيًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afSharia" /> متخصّص في الاستثمار الإسلامي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afAnnual" /> مراجعة سنويّة منتظمة معه
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="afPerf" /> أتتبّع أداء توصياته مقابل السوق
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="afNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="afSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ العلاقة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Investment journal -->
   <div class="settings-group" id="ijSec">
     <div class="settings-h">📓 سجلّ الاستثمار والقرارات</div>
@@ -10177,6 +10239,82 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Advisor relationship
+  (async () => {
+    try {
+      const active = document.getElementById('afActive');
+      const has = document.getElementById('afHas');
+      const type = document.getElementById('afType');
+      const years = document.getElementById('afYears');
+      const cost = document.getElementById('afCost');
+      const pct = document.getElementById('afPct');
+      const lic = document.getElementById('afLic');
+      const fid = document.getElementById('afFid');
+      const fees = document.getElementById('afFees');
+      const conf = document.getElementById('afConf');
+      const sharia = document.getElementById('afSharia');
+      const annual = document.getElementById('afAnnual');
+      const perf = document.getElementById('afPerf');
+      const notes = document.getElementById('afNotes');
+      const qualEl = document.getElementById('afQual');
+      const btn = document.getElementById('afSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        excellent_relationship: '🏆 علاقة ممتازة',
+        solid_relationship: '🎯 علاقة متينة',
+        building: '🌿 تبني العلاقة',
+        risky_relationship: '🚨 علاقة محفوفة',
+        self_managed: '👤 تدير بنفسك',
+        unknown: '❔ لم تُحدّد',
+      };
+      const r = await App.api('GET', '/app/me/advisor-relationship');
+      active.checked = !!r.active;
+      has.checked = !!r.hasAdvisor;
+      type.value = r.advisorType || 'none';
+      years.value = Number(r.relationshipYears || 0);
+      cost.value = Number(r.annualCostAmount || 0);
+      pct.value = Number(r.annualCostPct || 0);
+      lic.checked = !!r.verifiedLicense;
+      fid.checked = !!r.fiduciaryClarity;
+      fees.checked = !!r.feesUnderstood;
+      conf.checked = !!r.conflictsDisclosed;
+      sharia.checked = !!r.shariaSpecialized;
+      annual.checked = !!r.annualReview;
+      perf.checked = !!r.performanceTracked;
+      notes.value = r.notes || '';
+      if (qualEl) qualEl.textContent = (levelLabels[r.qualityLevel] || '—') + ' · ' + r.qualityScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/advisor-relationship', {
+            active: active.checked,
+            hasAdvisor: has.checked,
+            advisorType: type.value,
+            relationshipYears: Number(years.value || 0),
+            annualCostAmount: Number(cost.value || 0),
+            annualCostPct: Number(pct.value || 0),
+            verifiedLicense: lic.checked,
+            fiduciaryClarity: fid.checked,
+            feesUnderstood: fees.checked,
+            conflictsDisclosed: conf.checked,
+            shariaSpecialized: sharia.checked,
+            annualReview: annual.checked,
+            performanceTracked: perf.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت العلاقة', 'success');
+            const r2 = await App.api('GET', '/app/me/advisor-relationship');
+            if (qualEl) qualEl.textContent = (levelLabels[r2.qualityLevel] || '—') + ' · ' + r2.qualityScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
