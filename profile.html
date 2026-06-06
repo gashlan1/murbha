@@ -859,6 +859,18 @@
     </div>
   </div>
 
+  <!-- Risk tolerance -->
+  <div class="settings-group" id="riskTolSec">
+    <div class="settings-h">🎚 اختبار تحمّل المخاطر</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">٥ أسئلة قصيرة تحدّد ملفّك الاستثماري وتقترح الصفقات الأنسب.</p>
+      <div id="riskTolCurrent" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:12px 14px;margin-bottom:12px;font:800 12px Cairo,sans-serif;"></div>
+      <div id="riskTolQuestions" style="display:grid;gap:14px;"></div>
+      <button type="button" id="riskTolSubmit" style="margin-top:14px;background:#0a4d36;color:#fff;border:none;padding:12px 28px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احسب ملفّي</button>
+      <div id="riskTolResult" style="margin-top:14px;display:none;background:var(--paper);border-radius:10px;padding:14px;"></div>
+    </div>
+  </div>
+
   <!-- Tax residency -->
   <div class="settings-group" id="taxResSec">
     <div class="settings-h">🌍 الإقامة الضريبيّة (FATCA/CRS)</div>
@@ -4030,6 +4042,70 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Risk tolerance
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/risk-tolerance');
+      if (!r.hasData) return;
+      const wrap = document.getElementById('riskTolQuestions');
+      const cur = document.getElementById('riskTolCurrent');
+      const btn = document.getElementById('riskTolSubmit');
+      const result = document.getElementById('riskTolResult');
+      if (!wrap || !btn) return;
+      const tierLabels = {
+        conservative: { icon: '🛡', txt: 'محافظ', desc: 'تركيز على حفظ رأس المال' },
+        balanced: { icon: '⚖', txt: 'متوازن', desc: 'مزيج صحّي بين العائد والاستقرار' },
+        growth: { icon: '📈', txt: 'نموّ', desc: 'تركيز على نموّ رأس المال' },
+        aggressive: { icon: '🚀', txt: 'جريء', desc: 'تقبّل مخاطر عالية لعوائد مرتفعة' },
+      };
+      if (r.currentTier && cur) {
+        const t = tierLabels[r.currentTier];
+        cur.textContent = '✓ ملفّك الحالي: ' + t.icon + ' ' + t.txt + ' · النتيجة: ' + r.currentScore + '/٢٠';
+        cur.style.display = '';
+      }
+      const selections = {};
+      r.questions.forEach(q => {
+        const grp = document.createElement('div');
+        grp.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;'; lbl.textContent = q.label;
+        grp.appendChild(lbl);
+        const opts = document.createElement('div'); opts.style.cssText = 'display:grid;gap:6px;';
+        q.options.forEach(o => {
+          const optLbl = document.createElement('label');
+          optLbl.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font:600 11px Tajawal,sans-serif;color:var(--ink);';
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'risk_' + q.key;
+          radio.value = o.val;
+          radio.style.accentColor = '#0a4d36';
+          if (r.currentAnswers && r.currentAnswers[q.key] === o.val) { radio.checked = true; selections[q.key] = o.val; }
+          radio.addEventListener('change', () => { selections[q.key] = o.val; });
+          const txt = document.createElement('span'); txt.textContent = o.label;
+          optLbl.append(radio, txt);
+          opts.appendChild(optLbl);
+        });
+        grp.appendChild(opts);
+        wrap.appendChild(grp);
+      });
+      btn.addEventListener('click', async () => {
+        if (Object.keys(selections).length < r.questions.length) {
+          App.toast && App.toast('أكمل كلّ الأسئلة', 'error');
+          return;
+        }
+        try {
+          const out = await App.api('POST', '/app/me/risk-tolerance', { answers: selections });
+          const t = tierLabels[out.tier];
+          result.replaceChildren();
+          const h = document.createElement('div'); h.style.cssText = 'font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;'; h.textContent = t.icon + ' ' + t.txt + ' · ' + out.score + '/٢٠';
+          const d = document.createElement('div'); d.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;'; d.textContent = t.desc;
+          result.append(h, d);
+          result.style.display = '';
+          App.toast && App.toast('تمّ احتساب ملفّك', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
