@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Data export -->
+  <div class="settings-group" id="dataExpSec">
+    <div class="settings-h">📦 تصدير بياناتك</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احصل على نسخة كاملة من بياناتك (الاستثمارات، الإيصالات، الموافقات، الإعدادات) في ملفّ مضغوط.</p>
+      <button type="button" id="dataExpRequestBtn" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">📥 اطلب نسخة كاملة من بياناتك</button>
+      <div id="dataExpList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Active sessions -->
   <div class="settings-group" id="sessSec" style="display:none;">
     <div class="settings-h">🔐 الأجهزة المتّصلة</div>
@@ -3459,27 +3469,81 @@
     } catch (e) {}
   })();
 
-  // Active sessions
+  // Data export requests
+  (async () => {
+    const reqBtn = document.getElementById('dataExpRequestBtn');
+    const list = document.getElementById('dataExpList');
+    if (!reqBtn || !list) return;
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/data-export');
+        list.replaceChildren();
+        if (!r.requests.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا طلبات سابقة.';
+          list.appendChild(empty);
+          return;
+        }
+        r.requests.forEach(rq => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+          const left = document.createElement('div');
+          const dt = document.createElement('div'); dt.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+          dt.textContent = '📥 طلب ' + new Date(rq.requestedAt).toLocaleDateString('ar-SA');
+          const st = document.createElement('div'); st.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+          const stMap = { queued: '⏳ في الطابور', processing: '⚙️ قيد المعالجة', ready: '✅ جاهز', failed: '✕ فشل' };
+          st.textContent = (stMap[rq.status] || rq.status) + (rq.estimatedReadyAt && rq.status !== 'ready' ? ' · ينتهي تقريباً ' + new Date(rq.estimatedReadyAt).toLocaleDateString('ar-SA') : '');
+          left.append(dt, st);
+          const right = document.createElement('div');
+          if (rq.downloadUrl) {
+            const dl = document.createElement('a'); dl.href = rq.downloadUrl; dl.target = '_blank';
+            dl.style.cssText = 'background:var(--green-dark);color:#d4ac6e;border-radius:6px;padding:6px 12px;font:800 11px Cairo,sans-serif;text-decoration:none;';
+            dl.textContent = '⬇ تنزيل';
+            right.appendChild(dl);
+          }
+          row.append(left, right);
+          list.appendChild(row);
+        });
+      } catch (e) {}
+    }
+    reqBtn.addEventListener('click', async () => {
+      reqBtn.disabled = true;
+      try {
+        await App.api('POST', '/app/me/data-export', {});
+        if (App.toast) App.toast('تمّ تسجيل طلبك — ستصلك رسالة عند الجهوزيّة', 'success');
+        refresh();
+      } catch (e) {
+        if (App.toast) App.toast('فشل الطلب', 'error');
+      } finally {
+        reqBtn.disabled = false;
+      }
+    });
+    refresh();
+  })();
+
+  // Active sessions (renders against the canonical /app/me/sessions legacy shape)
   (async () => {
     try {
       const r = await App.api('GET', '/app/me/sessions');
-      if (!r.hasData) return;
+      const devices = Array.isArray(r.devices) ? r.devices : [];
+      if (!devices.length) return;
       const sec = document.getElementById('sessSec');
       if (!sec) return;
       sec.style.display = '';
       const list = document.getElementById('sessList');
       const revokeBtn = document.getElementById('sessRevokeBtn');
       list.replaceChildren();
-      r.sessions.forEach(s => {
+      const currentFp = r.currentFingerprint || '';
+      devices.slice(0, 15).forEach(d => {
+        const isCurrent = d.fingerprint && d.fingerprint === currentFp;
         const row = document.createElement('div');
-        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;background:' + (s.isCurrent ? '#eaf6ee' : 'var(--paper)') + ';border:1px solid ' + (s.isCurrent ? '#0f6e3a' : 'rgba(13,22,18,0.08)') + ';border-radius:8px;padding:10px;';
-        const ic = document.createElement('div'); ic.style.cssText = 'font-size:18px;text-align:center;'; ic.textContent = s.isCurrent ? '✅' : '🖥';
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:center;background:' + (isCurrent ? '#eaf6ee' : 'var(--paper)') + ';border:1px solid ' + (isCurrent ? '#0f6e3a' : 'rgba(13,22,18,0.08)') + ';border-radius:8px;padding:10px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:18px;text-align:center;'; ic.textContent = isCurrent ? '✅' : '🖥';
         const txt = document.createElement('div');
         const t1 = document.createElement('div'); t1.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
-        t1.textContent = (s.isCurrent ? 'هذه الجلسة الحاليّة' : 'جلسة سابقة') + (s.location ? ' · ' + s.location : '');
+        t1.textContent = (isCurrent ? 'هذه الجلسة الحاليّة' : 'جلسة سابقة') + (d.label ? ' · ' + d.label : '');
         const t2 = document.createElement('div'); t2.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
-        t2.textContent = (s.at ? new Date(s.at).toLocaleString('ar-SA') : '—') + ' · ' + s.ip;
-        const t3 = document.createElement('div'); t3.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; t3.textContent = s.userAgent;
+        t2.textContent = (d.lastSeen ? 'آخر دخول ' + new Date(d.lastSeen).toLocaleString('ar-SA') : '—') + ' · ' + (d.ip || '—');
+        const t3 = document.createElement('div'); t3.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;'; t3.textContent = d.ua || '—';
         txt.append(t1, t2, t3);
         row.append(ic, txt);
         list.appendChild(row);
