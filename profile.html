@@ -859,6 +859,58 @@
     </div>
   </div>
 
+  <!-- SA economy tracking -->
+  <div class="settings-group" id="saEconSec">
+    <div class="settings-h">🇸🇦 متابعة الاقتصاد السعودي ورؤية ٢٠٣٠</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد القطاعات المُفضّلة من رؤية ٢٠٣٠ ومؤشّرات الاقتصاد لمتابعتها.</p>
+      <div id="etTracker" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">القطاعات المهتمّ بها (اختر حتى ٥):</div>
+      <div id="etSectorsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;"></div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etActive" /> فعّل متابعة الاقتصاد السعودي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">مزاجك الاقتصادي
+          <select id="etSentiment" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="optimistic">😄 متفائل (نموّ قوي)</option>
+            <option value="neutral">😐 محايد</option>
+            <option value="cautious">🤔 حذر</option>
+            <option value="concerned">😟 قلق</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">٪ المحفظة في قطاعات الرؤية
+          <input type="number" id="etVisionPct" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <div style="font:700 11px Cairo,sans-serif;color:var(--muted);margin-top:8px;">المؤشّرات التي أتابعها:</div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etTasi" /> 📊 تاسي (مؤشّر السوق)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etOil" /> 🛢 أسعار النفط
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etSaibor" /> 🏦 سايبور
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etGiga" /> 🏗 المشاريع الكبرى (نيوم، القدّية، البحر الأحمر...)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etVisionAlign" /> 🎯 محفظتي مرتبطة بقطاعات الرؤية
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etOilHedge" /> 🛡 تحوّط ضدّ تذبذب النفط
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="etMonthly" /> 📊 تقرير اقتصادي شهري في مربحة
+        </label>
+        <textarea id="etNotes" placeholder="ملاحظات (قطاعات معيّنة، مشاريع متابعة)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="etSaveBtn" style="background:#006c35;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ متابعة الاقتصاد</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="sa-economy-pulse.html" style="color:var(--green);">نبض الاقتصاد السعودي</a>.</p>
+    </div>
+  </div>
+
   <!-- Boom discipline -->
   <div class="settings-group" id="boomDiscSec">
     <div class="settings-h">🚀 الانضباط في الازدهار</div>
@@ -7188,6 +7240,109 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // SA economy tracking
+  (async () => {
+    try {
+      const active = document.getElementById('etActive');
+      const sentiment = document.getElementById('etSentiment');
+      const visionPct = document.getElementById('etVisionPct');
+      const tasi = document.getElementById('etTasi');
+      const oil = document.getElementById('etOil');
+      const saibor = document.getElementById('etSaibor');
+      const giga = document.getElementById('etGiga');
+      const visionAlign = document.getElementById('etVisionAlign');
+      const oilHedge = document.getElementById('etOilHedge');
+      const monthly = document.getElementById('etMonthly');
+      const notes = document.getElementById('etNotes');
+      const tracker = document.getElementById('etTracker');
+      const sectorsGrid = document.getElementById('etSectorsGrid');
+      const btn = document.getElementById('etSaveBtn');
+      if (!active || !btn) return;
+      const sectorOptions = [
+        { key: 'tourism', label: '🌍 سياحة' },
+        { key: 'tech', label: '💻 تقنية' },
+        { key: 'healthcare', label: '🏥 صحّة' },
+        { key: 'energy', label: '⚡️ طاقة' },
+        { key: 'entertainment', label: '🎮 ترفيه' },
+        { key: 'manufacturing', label: '🏭 صناعة' },
+        { key: 'logistics', label: '🚚 لوجستيات' },
+        { key: 'education', label: '🎓 تعليم' },
+      ];
+      let selectedSectors = [];
+      const renderSectors = () => {
+        sectorsGrid.replaceChildren();
+        sectorOptions.forEach(opt => {
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;font:700 11px Cairo,sans-serif;color:var(--ink);background:var(--paper);padding:6px 8px;border-radius:8px;cursor:pointer;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = selectedSectors.includes(opt.key);
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              if (selectedSectors.length >= 5) { cb.checked = false; App.toast && App.toast('حد أقصى ٥', 'error'); return; }
+              if (!selectedSectors.includes(opt.key)) selectedSectors.push(opt.key);
+            } else {
+              selectedSectors = selectedSectors.filter(s => s !== opt.key);
+            }
+          });
+          const txt = document.createElement('span'); txt.textContent = opt.label;
+          label.append(cb, txt);
+          sectorsGrid.appendChild(label);
+        });
+      };
+      const levelLabels = {
+        expert: { txt: '🏆 خبير — متابعة شاملة', color: '#006c35' },
+        practiced: { txt: '✅ ممارِس', color: '#0a4d36' },
+        learning: { txt: '◷ في التعلّم', color: '#b08840' },
+        starter: { txt: '⚠ يبدأ', color: '#c54a3a' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/sa-economy-tracking');
+        active.checked = !!r.active;
+        sentiment.value = r.economicSentiment || 'neutral';
+        visionPct.value = r.visionAllocationPct || '';
+        tasi.checked = !!r.followsTasi;
+        oil.checked = !!r.followsOilPrices;
+        saibor.checked = !!r.followsSaibor;
+        giga.checked = !!r.gigaProjectsFollowed;
+        visionAlign.checked = !!r.visionAlignedPortfolio;
+        oilHedge.checked = !!r.oilDependencyHedge;
+        monthly.checked = !!r.monthlyEconomyReport;
+        notes.value = r.notes || '';
+        selectedSectors = [...(r.preferredSectors || [])];
+        renderSectors();
+        const l = levelLabels[r.trackerLevel] || levelLabels.starter;
+        tracker.style.color = l.color;
+        tracker.textContent = '🎯 المتابعة ' + r.trackerScore + '/١٠٠ · ' + r.enabledCount + ' من ' + r.maxOptions + ' · ' + l.txt;
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/sa-economy-tracking', {
+            active: active.checked,
+            economicSentiment: sentiment.value,
+            visionAllocationPct: Number(visionPct.value || 0),
+            preferredSectors: selectedSectors,
+            followsTasi: tasi.checked,
+            followsOilPrices: oil.checked,
+            followsSaibor: saibor.checked,
+            gigaProjectsFollowed: giga.checked,
+            visionAlignedPortfolio: visionAlign.checked,
+            oilDependencyHedge: oilHedge.checked,
+            monthlyEconomyReport: monthly.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ متابعة الاقتصاد', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
