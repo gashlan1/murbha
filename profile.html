@@ -859,6 +859,34 @@
     </div>
   </div>
 
+  <!-- Investor circle -->
+  <div class="settings-group" id="circleSec">
+    <div class="settings-h">👥 حلقاتي الاستثماريّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">أنشئ حلقة استثمار مع أصدقائك أو عائلتك. الذكاء الجماعي يفوق الفرد.</p>
+      <div id="circleList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;">
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">إنشاء حلقة جديدة</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="circName" placeholder="اسم الحلقة (مثال: نادي الاستثمار العائلي)" maxlength="80" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          <select id="circType" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="friends">👫 الأصدقاء المقرّبون</option>
+            <option value="family">👨‍👩‍👧 العائلة</option>
+            <option value="colleagues">💼 زملاء العمل</option>
+            <option value="virtual">🌐 مجتمع افتراضي</option>
+          </select>
+          <select id="circVote" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="majority">📊 أغلبيّة (٥٠٪+)</option>
+            <option value="consensus">🤝 إجماع كامل</option>
+            <option value="supermajority">🏛 أغلبيّة موصوفة (٧٥٪)</option>
+            <option value="leader">👤 قرار المنشئ</option>
+          </select>
+          <button type="button" id="circCreateBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إنشاء الحلقة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Commodity preferences -->
   <div class="settings-group" id="commPrefSec">
     <div class="settings-h">🛢 تفضيلات الاستثمار في السلع</div>
@@ -5683,6 +5711,73 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investor circle
+  (async () => {
+    try {
+      const list = document.getElementById('circleList');
+      const name = document.getElementById('circName');
+      const type = document.getElementById('circType');
+      const vote = document.getElementById('circVote');
+      const btn = document.getElementById('circCreateBtn');
+      if (!list || !btn) return;
+      const typeLabels = {
+        friends: '👫 أصدقاء',
+        family: '👨‍👩‍👧 عائلة',
+        colleagues: '💼 زملاء',
+        virtual: '🌐 افتراضي',
+      };
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/investor-circle');
+        if (!r.hasData) return;
+        list.replaceChildren();
+        if (!r.circles.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;font:500 11px Tajawal,sans-serif;color:var(--muted);text-align:center;';
+          empty.textContent = 'لا حلقات بعد. أنشئ أوّل حلقة معاً.';
+          list.appendChild(empty);
+          return;
+        }
+        r.circles.forEach(c => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid var(--green);';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = c.name;
+          const roleTag = document.createElement('span'); roleTag.style.cssText = 'font:800 10px Cairo,sans-serif;color:#fff;background:#0a4d36;padding:3px 8px;border-radius:99px;'; roleTag.textContent = c.myRole === 'admin' ? '👑 مدير' : 'عضو';
+          head.append(lbl, roleTag);
+          card.appendChild(head);
+          const meta = document.createElement('div'); meta.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;';
+          meta.textContent = (typeLabels[c.type] || c.type) + ' · ' + c.memberCount + ' عضو · ' + fmt(c.aumSar) + ' ر.س' + (c.charterSigned ? ' · ✓ موثّق' : '');
+          card.appendChild(meta);
+          if (c.myRole === 'admin') {
+            const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '🗑 حذف الحلقة';
+            delBtn.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 10px Cairo,sans-serif;';
+            delBtn.addEventListener('click', async () => {
+              if (!confirm('هل أنت متأكّد من حذف الحلقة؟')) return;
+              try { await App.api('DELETE', '/app/me/investor-circle/' + encodeURIComponent(c.id)); render(); } catch {}
+            });
+            card.appendChild(delBtn);
+          }
+          list.appendChild(card);
+        });
+      };
+      render();
+      btn.addEventListener('click', async () => {
+        if (!name.value.trim()) { App.toast && App.toast('أدخل اسم الحلقة', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/investor-circle', {
+            name: name.value,
+            type: type.value,
+            voteRule: vote.value,
+          });
+          App.toast && App.toast('تم إنشاء الحلقة', 'success');
+          name.value = '';
+          render();
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
