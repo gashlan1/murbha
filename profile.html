@@ -859,6 +859,38 @@
     </div>
   </div>
 
+  <!-- Two-step approval -->
+  <div class="settings-group" id="twoStepSec">
+    <div class="settings-h">🔐 موافقة بخطوتين للاستثمارات الكبيرة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حماية إضافيّة: نطلب تأكيداً ثانياً عند تجاوز الاستثمار حدّاً معيّناً.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <label for="tsEnabled" style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">تفعيل الميزة</label>
+        <input type="checkbox" id="tsEnabled" style="transform:scale(1.4);accent-color:#0a4d36;" />
+      </div>
+      <div id="tsForm" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label for="tsThreshold" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الحدّ المُفعِّل (ر.س)</label>
+          <input type="number" id="tsThreshold" min="1000" step="1000" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="tsMethod" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">طريقة التأكيد</label>
+          <select id="tsMethod" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="sms_otp">📱 رمز SMS</option>
+            <option value="email_otp">✉️ رمز بريد</option>
+            <option value="authenticator">🔐 تطبيق المصادقة</option>
+            <option value="biometric">👆 بصمة / Face ID</option>
+          </select>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label for="tsDelay" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">فترة انتظار قبل التنفيذ (دقيقة، ٠ = بلا انتظار)</label>
+          <input type="number" id="tsDelay" min="0" max="1440" step="5" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <button type="button" id="tsSave" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Email digest -->
   <div class="settings-group" id="digestSec">
     <div class="settings-h">📨 ملخّص بريدي دوريّ</div>
@@ -3789,6 +3821,43 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Two-step approval
+  (async () => {
+    const cb = document.getElementById('tsEnabled');
+    const form = document.getElementById('tsForm');
+    const thr = document.getElementById('tsThreshold');
+    const meth = document.getElementById('tsMethod');
+    const del = document.getElementById('tsDelay');
+    const saveBtn = document.getElementById('tsSave');
+    if (!cb || !form) return;
+    try {
+      const r = await App.api('GET', '/app/me/two-step-approval');
+      if (!r.hasData) return;
+      cb.checked = !!r.enabled;
+      thr.value = r.threshold;
+      meth.value = r.method;
+      del.value = r.delayMinutes;
+      form.style.display = cb.checked ? '' : 'none';
+      cb.addEventListener('change', () => { form.style.display = cb.checked ? '' : 'none'; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/two-step-approval', {
+            enabled: cb.checked,
+            threshold: Number(thr.value) || 10000,
+            method: meth.value,
+            delayMinutes: Number(del.value) || 0,
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
