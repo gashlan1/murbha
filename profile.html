@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Monthly investment chart -->
+  <div class="settings-group" id="monthChartSec" style="display:none;">
+    <div class="settings-h">📊 استثماراتك الشهريّة (آخر ١٢ شهر)</div>
+    <div style="padding:14px 18px;">
+      <div id="monthChartHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="monthChart" style="display:flex;align-items:flex-end;gap:4px;height:140px;margin-bottom:8px;"></div>
+      <div id="monthChartLegend" style="display:flex;justify-content:space-between;font:600 9px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- Consent log -->
   <div class="settings-group" id="consentSec">
     <div class="settings-h">📜 موافقاتك القانونيّة</div>
@@ -3417,6 +3427,40 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Monthly investment chart
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/monthly-chart');
+      if (!r.hasData) return;
+      const sec = document.getElementById('monthChartSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('monthChartHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 26px Cairo,sans-serif;color:#d4ac6e;'; big.textContent = fmt(r.total) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fff;margin-top:6px;';
+      sub.textContent = 'إجماليّ آخر ١٢ شهر · نشط في ' + r.activeMonths + ' شهر · متوسّط نشط ' + fmt(r.avgActive) + ' ر.س';
+      hero.append(big, sub);
+      const chart = document.getElementById('monthChart');
+      const legend = document.getElementById('monthChartLegend');
+      chart.replaceChildren();
+      legend.replaceChildren();
+      const max = Math.max(1, ...r.months.map(m => m.amount));
+      r.months.forEach(m => {
+        const col = document.createElement('div'); col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;';
+        const bar = document.createElement('div');
+        const color = m.month === r.bestMonth ? '#d4ac6e' : (m.amount > 0 ? '#0a4d36' : '#e7d7b8');
+        bar.style.cssText = 'width:100%;height:' + Math.max(4, (m.amount / max) * 100) + '%;background:' + color + ';border-radius:3px 3px 0 0;';
+        bar.title = m.month + ' — ' + fmt(m.amount) + ' ر.س · ' + m.count + ' صفقة';
+        col.appendChild(bar);
+        chart.appendChild(col);
+        const lb = document.createElement('div'); lb.style.cssText = 'flex:1;text-align:center;'; lb.textContent = m.month.slice(5);
+        legend.appendChild(lb);
       });
     } catch (e) {}
   })();
