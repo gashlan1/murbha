@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Residency status -->
+  <div class="settings-group" id="resStatSec">
+    <div class="settings-h">🌍 حالة الإقامة والجنسيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">هذه المعلومات تحدّد الصفقات المتاحة لك ومتطلّباتك الضريبيّة.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حالة الإقامة</label>
+          <select id="rsStatus" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="sa_citizen">🇸🇦 مواطن سعودي</option>
+            <option value="sa_resident">📋 مقيم في السعوديّة</option>
+            <option value="gcc_nonresident">🌐 خليجي غير مقيم</option>
+            <option value="foreign_nonresident">✈ أجنبي غير مقيم</option>
+          </select>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الجنسيّة (رمز ISO، مثل SA)</label>
+          <input type="text" id="rsNat" maxlength="2" placeholder="SA" style="width:100px;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;text-transform:uppercase;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">بلد الإقامة (رمز ISO)</label>
+          <input type="text" id="rsCountry" maxlength="2" placeholder="SA" style="width:100px;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;text-transform:uppercase;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">انتهاء الإقامة (إن وُجدت)</label>
+          <input type="date" id="rsIqama" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="rsAbroad" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🇸🇦✈ أنا سعوديّ في الخارج
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">لغة التواصل المفضّلة</label>
+          <select id="rsLang" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="ar">العربيّة</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="ur">اردو</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" id="rsSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ حالة الإقامة</button>
+    </div>
+  </div>
+
   <!-- Catch-up plan -->
   <div class="settings-group" id="catchUpSec">
     <div class="settings-h">🏃 خطّة التعويض (البدء المتأخّر)</div>
@@ -4785,6 +4830,41 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Residency status
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/residency-status');
+      if (!r.hasData) return;
+      const status = document.getElementById('rsStatus');
+      const nat = document.getElementById('rsNat');
+      const country = document.getElementById('rsCountry');
+      const iqama = document.getElementById('rsIqama');
+      const abroad = document.getElementById('rsAbroad');
+      const lang = document.getElementById('rsLang');
+      const btn = document.getElementById('rsSaveBtn');
+      if (!btn) return;
+      status.value = r.residencyStatus || 'sa_citizen';
+      nat.value = r.nationality || 'SA';
+      country.value = r.countryOfResidence || 'SA';
+      if (r.iqamaExpiry) { try { iqama.value = new Date(r.iqamaExpiry).toISOString().slice(0, 10); } catch {} }
+      abroad.checked = !!r.isSaudiAbroad;
+      lang.value = r.preferredLanguage || 'ar';
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/residency-status', {
+            residencyStatus: status.value,
+            nationality: nat.value.toUpperCase(),
+            countryOfResidence: country.value.toUpperCase(),
+            iqamaExpiry: iqama.value || null,
+            isSaudiAbroad: abroad.checked,
+            preferredLanguage: lang.value,
+          });
+          App.toast && App.toast('تم حفظ حالة الإقامة', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
