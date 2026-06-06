@@ -859,6 +859,53 @@
     </div>
   </div>
 
+  <!-- Liquidity needs -->
+  <div class="settings-group" id="liqNeedSec">
+    <div class="settings-h">💧 ملفّ احتياجات السيولة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد توزيع الطبقات الأمثل لك. سنوصي بصفقات تكمل الفجوات.</p>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مصاريفك الشهريّة (ر.س)</label>
+          <input type="number" id="liqExp" min="0" step="500" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">سيولة احتياطيّة (شهر)</label>
+          <input type="number" id="liqBuf" min="0" max="24" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">أهداف قادمة (ر.س)</label>
+          <input type="number" id="liqGoal" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">أفق الأهداف (شهر)</label>
+          <input type="number" id="liqHor" min="1" max="120" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">توزيع الطبقات (مجموعها ١٠٠٪)</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;text-align:center;">١ فوريّة</label>
+          <input type="number" id="liqRec1" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;text-align:center;">٢ قصيرة</label>
+          <input type="number" id="liqRec2" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;text-align:center;">٣ متوسّطة</label>
+          <input type="number" id="liqRec3" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;text-align:center;">٤ طويلة</label>
+          <input type="number" id="liqRec4" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+      </div>
+      <div id="liqCurrent" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"></div>
+      <button type="button" id="liqSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ احتياجاتي</button>
+    </div>
+  </div>
+
   <!-- Diversification coach -->
   <div class="settings-group" id="divCoachSec" style="display:none;">
     <div class="settings-h">🎯 مدرّب التنويع</div>
@@ -4457,6 +4504,52 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Liquidity needs
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/liquidity-needs');
+      if (!r.hasData) return;
+      const exp = document.getElementById('liqExp');
+      const buf = document.getElementById('liqBuf');
+      const goal = document.getElementById('liqGoal');
+      const hor = document.getElementById('liqHor');
+      const rec1 = document.getElementById('liqRec1');
+      const rec2 = document.getElementById('liqRec2');
+      const rec3 = document.getElementById('liqRec3');
+      const rec4 = document.getElementById('liqRec4');
+      const cur = document.getElementById('liqCurrent');
+      const btn = document.getElementById('liqSaveBtn');
+      if (!exp || !btn) return;
+      exp.value = r.monthlyExpenses;
+      buf.value = r.emergencyBufferMonths;
+      goal.value = r.upcomingGoalsAmount;
+      hor.value = r.upcomingGoalsHorizonMonths;
+      rec1.value = r.recipe[1];
+      rec2.value = r.recipe[2];
+      rec3.value = r.recipe[3];
+      rec4.value = r.recipe[4];
+      if (r.totalInvested > 0) {
+        cur.textContent = '📊 محفظتك الحاليّة: طبقة ١ ' + r.current[1] + '٪ · طبقة ٢ ' + r.current[2] + '٪ · طبقة ٣ ' + r.current[3] + '٪ · طبقة ٤ ' + r.current[4] + '٪';
+      } else {
+        cur.textContent = '📊 لا استثمارات بعد. ابدأ بأوّل صفقة لرؤية تحليل الطبقات.';
+      }
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/liquidity-needs', {
+            monthlyExpenses: Number(exp.value),
+            emergencyBufferMonths: Number(buf.value),
+            upcomingGoalsAmount: Number(goal.value),
+            upcomingGoalsHorizonMonths: Number(hor.value),
+            recipe: { 1: Number(rec1.value), 2: Number(rec2.value), 3: Number(rec3.value), 4: Number(rec4.value) },
+          });
+          App.toast && App.toast('تم حفظ احتياجات السيولة', 'success');
+        } catch (e) {
+          App.toast && App.toast(e?.error === 'recipe_must_sum_to_100' ? 'مجموع الطبقات يجب أن يساوي ١٠٠٪' : 'فشل', 'error');
+        }
       });
     } catch (e) {}
   })();
