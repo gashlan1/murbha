@@ -859,6 +859,52 @@
     </div>
   </div>
 
+  <!-- Email digest -->
+  <div class="settings-group" id="digestSec">
+    <div class="settings-h">📨 ملخّص بريدي دوريّ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احصل على ملخّص دوريّ بأهمّ ما يحدث في حسابك ومحفظتك.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="digFreq" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">التكرار</label>
+          <select id="digFreq" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="never">❌ لا أريد</option>
+            <option value="daily">☀️ يومي</option>
+            <option value="weekly">📅 أسبوعي</option>
+            <option value="biweekly">📆 كلّ أسبوعين</option>
+            <option value="monthly">🗓 شهري</option>
+          </select>
+        </div>
+        <div>
+          <label for="digDay" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">يوم الإرسال</label>
+          <select id="digDay" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="sunday">الأحد</option>
+            <option value="monday">الإثنين</option>
+            <option value="tuesday">الثلاثاء</option>
+            <option value="wednesday">الأربعاء</option>
+            <option value="thursday">الخميس</option>
+            <option value="friday">الجمعة</option>
+            <option value="saturday">السبت</option>
+          </select>
+        </div>
+        <div>
+          <label for="digTime" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الوقت</label>
+          <input type="time" id="digTime" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-top:8px;">الأقسام المضمَّنة:</div>
+        <div style="display:grid;gap:6px;">
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecPort" style="transform:scale(1.2);accent-color:#0a4d36;" />📊 ملخّص محفظتي</label>
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecNew" style="transform:scale(1.2);accent-color:#0a4d36;" />🆕 صفقات جديدة تناسبني</label>
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecPay" style="transform:scale(1.2);accent-color:#0a4d36;" />💰 توزيعات قادمة</label>
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecMkt" style="transform:scale(1.2);accent-color:#0a4d36;" />📰 أخبار السوق</label>
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecEdu" style="transform:scale(1.2);accent-color:#0a4d36;" />📚 محتوى تعليمي</label>
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="digSecPlt" style="transform:scale(1.2);accent-color:#0a4d36;" />🔔 تحديثات المنصّة</label>
+        </div>
+        <button type="button" id="digSave" style="padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Default project filter -->
   <div class="settings-group" id="defFiltSec">
     <div class="settings-h">🎛 الفلتر الافتراضي للصفقات</div>
@@ -3743,6 +3789,57 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Email digest
+  (async () => {
+    const freq = document.getElementById('digFreq');
+    const day = document.getElementById('digDay');
+    const time = document.getElementById('digTime');
+    const sPort = document.getElementById('digSecPort');
+    const sNew = document.getElementById('digSecNew');
+    const sPay = document.getElementById('digSecPay');
+    const sMkt = document.getElementById('digSecMkt');
+    const sEdu = document.getElementById('digSecEdu');
+    const sPlt = document.getElementById('digSecPlt');
+    const saveBtn = document.getElementById('digSave');
+    if (!freq || !saveBtn) return;
+    try {
+      const r = await App.api('GET', '/app/me/email-digest');
+      if (!r.hasData) return;
+      freq.value = r.frequency;
+      day.value = r.deliveryDay;
+      time.value = r.deliveryTime;
+      sPort.checked = r.sections.portfolioSummary;
+      sNew.checked = r.sections.newDeals;
+      sPay.checked = r.sections.upcomingPayouts;
+      sMkt.checked = r.sections.marketNews;
+      sEdu.checked = r.sections.educationalContent;
+      sPlt.checked = r.sections.platformUpdates;
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/email-digest', {
+            frequency: freq.value,
+            deliveryDay: day.value,
+            deliveryTime: time.value,
+            sections: {
+              portfolioSummary: sPort.checked,
+              newDeals: sNew.checked,
+              upcomingPayouts: sPay.checked,
+              marketNews: sMkt.checked,
+              educationalContent: sEdu.checked,
+              platformUpdates: sPlt.checked,
+            },
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
