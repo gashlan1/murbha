@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Referral rank -->
+  <div class="settings-group" id="refRankSec" style="display:none;">
+    <div class="settings-h">🏆 ترتيبك في قائمة المُحيلين</div>
+    <div style="padding:14px 18px;">
+      <div id="refRankHero" style="background:linear-gradient(135deg,#d4ac6e,#5c2418);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">أفضل ٥ مُحيلين</div>
+      <div id="refRankTop" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Saved searches -->
   <div class="settings-group" id="srchSec">
     <div class="settings-h">🔎 بحثك المحفوظ</div>
@@ -3536,6 +3546,37 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Referral rank
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/referral-rank');
+      if (!r.hasData || r.totalReferrers === 0) return;
+      const sec = document.getElementById('refRankSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('refRankHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 32px Cairo,sans-serif;color:#fff;';
+      big.textContent = r.myRank ? '#' + r.myRank : '—';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fbf6ea;opacity:0.9;margin-top:6px;';
+      sub.textContent = r.myRank ? ('من بين ' + fmt(r.totalReferrers) + ' مُحيل · ' + r.myCount + ' إحالة') : 'لا إحالات بعد';
+      hero.append(big, sub);
+      const top = document.getElementById('refRankTop');
+      top.replaceChildren();
+      r.top.forEach(t => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;background:' + (t.isMe ? '#eaf6ee' : 'var(--paper)') + ';border:1px solid ' + (t.isMe ? '#0f6e3a' : 'rgba(13,22,18,0.08)') + ';border-radius:8px;padding:10px;';
+        const rk = document.createElement('div'); rk.style.cssText = 'font:900 13px Cairo,sans-serif;text-align:center;color:' + (t.rank === 1 ? '#d4ac6e' : 'var(--green-dark)') + ';';
+        rk.textContent = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : '#' + t.rank));
+        const nm = document.createElement('div'); nm.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; nm.textContent = t.displayName + (t.isMe ? ' (أنت)' : '');
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:900 12px Cairo,sans-serif;color:#b08840;'; cnt.textContent = fmt(t.count) + ' إحالة';
+        row.append(rk, nm, cnt);
+        top.appendChild(row);
       });
     } catch (e) {}
   })();
