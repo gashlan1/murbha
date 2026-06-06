@@ -859,6 +859,55 @@
     </div>
   </div>
 
+  <!-- Crisis playbook -->
+  <div class="settings-group" id="cpSec">
+    <div class="settings-h">🆘 دليل الأزمة الماليّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">جهّز خطّة قبل الأزمة، لا أثناءها. كم شهر يكفيك المال إذا توقّف دخلك؟</p>
+      <div id="cpPrep" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="cpTier" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpActive" /> فعّل خطّة الأزمة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:#dc2626;">
+          <input type="checkbox" id="cpCrisis" /> 🚨 أنا حاليًّا في أزمة ماليّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد أشهر المهلة الحاليّة (سيولة ÷ النفقات الحرجة)
+          <input type="number" id="cpMonths" min="0" max="60" step="0.5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">النفقات الحرجة الشهريّة (ر.س)
+          <input type="number" id="cpEss" min="0" max="500000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpWritten" /> دليل أزمة مكتوب (٧ خطوات)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpMultiple" /> مصادر دخل متعدّدة (≥ ٢)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpDownsize" /> خطّة تقشّف جاهزة (تخفيض ٤٠٪+ سريع)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpLargeEmer" /> صندوق طوارئ ٦+ شهور
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpSpouse" /> الزوج/ة يعرف الأرقام والخطّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpCredit" /> أعرف خطوط الائتمان المتاحة (للضرورة فقط)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cpDrill" /> تدريب سنوي على سيناريو "فقدان الدخل"
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="cpNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="cpSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الأزمة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Side hustle -->
   <div class="settings-group" id="shSec">
     <div class="settings-h">💼 إدارة الدخل الجانبي والفريلانس</div>
@@ -9218,6 +9267,84 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Crisis playbook
+  (async () => {
+    try {
+      const active = document.getElementById('cpActive');
+      const crisis = document.getElementById('cpCrisis');
+      const months = document.getElementById('cpMonths');
+      const ess = document.getElementById('cpEss');
+      const written = document.getElementById('cpWritten');
+      const multiple = document.getElementById('cpMultiple');
+      const downsize = document.getElementById('cpDownsize');
+      const largeEmer = document.getElementById('cpLargeEmer');
+      const spouse = document.getElementById('cpSpouse');
+      const credit = document.getElementById('cpCredit');
+      const drill = document.getElementById('cpDrill');
+      const notes = document.getElementById('cpNotes');
+      const prepEl = document.getElementById('cpPrep');
+      const tierEl = document.getElementById('cpTier');
+      const btn = document.getElementById('cpSave');
+      if (!active || !btn) return;
+      const prepLabels = {
+        battle_ready: '🏆 جاهز للمعركة',
+        prepared: '🛡️ مستعدّ',
+        building: '🏗️ يبني',
+        exposed: '🚨 مكشوف',
+      };
+      const tierLabels = {
+        fortress: '🏰 حصن (≥ ١٢ شهر مهلة)',
+        solid: '🛡️ متين (٦-١٢ شهر)',
+        basic: '🟡 أساسي (٣-٦ شهر)',
+        fragile: '⚠️ هشّ (١-٣ شهر)',
+        unprepared: '🚨 غير جاهز (< شهر)',
+      };
+      const r = await App.api('GET', '/app/me/crisis-playbook');
+      active.checked = !!r.active;
+      crisis.checked = !!r.inActiveCrisis;
+      months.value = Number(r.monthsRunway || 0);
+      ess.value = Number(r.monthlyEssentialExpenses || 0);
+      written.checked = !!r.writtenPlaybook;
+      multiple.checked = !!r.multipleIncomeStreams;
+      downsize.checked = !!r.downsizePlanReady;
+      largeEmer.checked = !!r.largeEmergencyFund;
+      spouse.checked = !!r.spouseAwareness;
+      credit.checked = !!r.creditLineKnown;
+      drill.checked = !!r.annualDrill;
+      notes.value = r.notes || '';
+      if (prepEl) prepEl.textContent = (prepLabels[r.preparednessLevel] || '—') + ' · ' + r.preparednessScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (tierEl) tierEl.textContent = tierLabels[r.resilienceTier] || '—';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/crisis-playbook', {
+            active: active.checked,
+            inActiveCrisis: crisis.checked,
+            monthsRunway: Number(months.value || 0),
+            monthlyEssentialExpenses: Number(ess.value || 0),
+            writtenPlaybook: written.checked,
+            multipleIncomeStreams: multiple.checked,
+            downsizePlanReady: downsize.checked,
+            largeEmergencyFund: largeEmer.checked,
+            spouseAwareness: spouse.checked,
+            creditLineKnown: credit.checked,
+            annualDrill: drill.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الأزمة', 'success');
+            const r2 = await App.api('GET', '/app/me/crisis-playbook');
+            if (prepEl) prepEl.textContent = (prepLabels[r2.preparednessLevel] || '—') + ' · ' + r2.preparednessScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (tierEl) tierEl.textContent = tierLabels[r2.resilienceTier] || '—';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
