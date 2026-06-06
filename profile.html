@@ -859,6 +859,55 @@
     </div>
   </div>
 
+  <!-- Bucket strategy -->
+  <div class="settings-group" id="bucketSec">
+    <div class="settings-h">🪣 استراتيجيّة الدلاء الثلاثة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">قسّم محفظتك: دلو ١ سيولة (٠-٢ سنة) + دلو ٢ دخل (٢-٧) + دلو ٣ نموّ (٧+). يحميك من تسلسل العوائد.</p>
+      <div id="bucketMaturity" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketActive" /> فعّل استراتيجيّة الدلاء
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نفقاتك الشهريّة (ر.س)
+          <input type="number" id="bucketExpenses" min="0" max="500000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">دلو ١ — السيولة (٪)
+          <input type="number" id="bucketB1" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">دلو ٢ — الدخل (٪)
+          <input type="number" id="bucketB2" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">دلو ٣ — النموّ (٪)
+          <input type="number" id="bucketB3" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <div id="bucketSumWarn" style="display:none;font:700 11px Cairo,sans-serif;color:#dc2626;">⚠️ مجموع الدلاء ≠ ١٠٠٪</div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketExpSet" /> حدّدت نفقاتي السنويّة بدقّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketRefill" /> مجدول إعادة تعبئة دلو ١ سنويًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketGrowthCap" /> أحوّل من دلو ٣ إلى ٢ عند ارتفاع السوق
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketDownturn" /> كتبت قاعدة "لا أبيع من دلو ٣ في التراجع"
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketTagged" /> أصول محفظتي مصنّفة على ١/٢/٣
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="bucketAlert" /> تنبيه تلقائي عند انخفاض دلو ١ تحت ١٢ شهر
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="bucketNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="bucketSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ الاستراتيجيّة</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FIRE plan -->
   <div class="settings-group" id="fireSec">
     <div class="settings-h">🔥 خطّة الاستقلال المالي المبكّر (FIRE)</div>
@@ -8514,6 +8563,81 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Bucket strategy
+  (async () => {
+    try {
+      const active = document.getElementById('bucketActive');
+      const expenses = document.getElementById('bucketExpenses');
+      const b1 = document.getElementById('bucketB1');
+      const b2 = document.getElementById('bucketB2');
+      const b3 = document.getElementById('bucketB3');
+      const sumWarn = document.getElementById('bucketSumWarn');
+      const expSet = document.getElementById('bucketExpSet');
+      const refill = document.getElementById('bucketRefill');
+      const growthCap = document.getElementById('bucketGrowthCap');
+      const downturn = document.getElementById('bucketDownturn');
+      const tagged = document.getElementById('bucketTagged');
+      const alert_ = document.getElementById('bucketAlert');
+      const notes = document.getElementById('bucketNotes');
+      const matEl = document.getElementById('bucketMaturity');
+      const btn = document.getElementById('bucketSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        mature: '🏆 ناضج',
+        developing: '🪣 يتطوّر',
+        initial: '🌱 بداية',
+        starter: '🆕 جديد',
+      };
+      const checkSum = () => {
+        const t = Number(b1.value || 0) + Number(b2.value || 0) + Number(b3.value || 0);
+        if (sumWarn) sumWarn.style.display = (t !== 100) ? '' : 'none';
+      };
+      [b1, b2, b3].forEach(el => el.addEventListener('input', checkSum));
+      const r = await App.api('GET', '/app/me/bucket-strategy');
+      active.checked = !!r.active;
+      expenses.value = Number(r.monthlyExpenses || 0);
+      b1.value = Number(r.b1Pct || 15);
+      b2.value = Number(r.b2Pct || 35);
+      b3.value = Number(r.b3Pct || 50);
+      expSet.checked = !!r.monthlyExpensesSet;
+      refill.checked = !!r.annualRefillScheduled;
+      growthCap.checked = !!r.growthCapTransfer;
+      downturn.checked = !!r.downturnRuleWritten;
+      tagged.checked = !!r.assetsTagged;
+      alert_.checked = !!r.autoAlertEnabled;
+      notes.value = r.notes || '';
+      if (matEl) matEl.textContent = (levelLabels[r.maturityLevel] || '—') + ' · ' + r.maturityScore + '/١٠٠';
+      checkSum();
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/bucket-strategy', {
+            active: active.checked,
+            monthlyExpenses: Number(expenses.value || 0),
+            b1Pct: Number(b1.value || 15),
+            b2Pct: Number(b2.value || 35),
+            b3Pct: Number(b3.value || 50),
+            monthlyExpensesSet: expSet.checked,
+            annualRefillScheduled: refill.checked,
+            growthCapTransfer: growthCap.checked,
+            downturnRuleWritten: downturn.checked,
+            assetsTagged: tagged.checked,
+            autoAlertEnabled: alert_.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت استراتيجيّة الدلاء', 'success');
+            const r2 = await App.api('GET', '/app/me/bucket-strategy');
+            if (matEl) matEl.textContent = (levelLabels[r2.maturityLevel] || '—') + ' · ' + r2.maturityScore + '/١٠٠';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
