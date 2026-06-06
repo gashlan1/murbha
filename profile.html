@@ -859,6 +859,35 @@
     </div>
   </div>
 
+  <!-- Emergency contacts -->
+  <div class="settings-group" id="emerSec">
+    <div class="settings-h">🆘 جهات اتّصال الطوارئ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">من نتواصل معه في حالة طارئة (نشاط مريب، خمول طويل، أو وفاة). أقصى ٥ جهات.</p>
+      <div id="emerList" style="display:grid;gap:8px;margin-bottom:10px;"></div>
+      <button type="button" id="emerAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة جهة اتّصال</button>
+      <div style="display:grid;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="emerUnusual" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          أبلغهم عند رصد نشاط مريب
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="emerLargeWith" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          أبلغهم عند سحب يتجاوز الحدّ
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حدّ السحب للتنبيه (ر.س)</label>
+          <input type="number" id="emerThreshold" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">منح صلاحيّة بعد خمول (يوم)</label>
+          <input type="number" id="emerDays" min="30" max="720" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="emerSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ جهات الاتّصال</button>
+    </div>
+  </div>
+
   <!-- Personal impact report -->
   <div class="settings-group" id="impactSec" style="display:none;">
     <div class="settings-h">🌟 تقرير الأثر الشخصي</div>
@@ -4359,6 +4388,79 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Emergency contacts
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/emergency-contacts');
+      if (!r.hasData) return;
+      const list = document.getElementById('emerList');
+      const addBtn = document.getElementById('emerAddBtn');
+      const unusual = document.getElementById('emerUnusual');
+      const lwd = document.getElementById('emerLargeWith');
+      const thr = document.getElementById('emerThreshold');
+      const days = document.getElementById('emerDays');
+      const saveBtn = document.getElementById('emerSaveBtn');
+      if (!list || !saveBtn) return;
+      unusual.checked = r.notifyOnUnusualActivity !== false;
+      lwd.checked = r.notifyOnLargeWithdrawal !== false;
+      thr.value = r.notifyThreshold;
+      days.value = r.accessAfterInactivityDays;
+      const addRow = (c) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr 30px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        row.dataset.role = 'emer-row';
+        const mk = (ph, val, key) => {
+          const i = document.createElement('input'); i.type = 'text'; i.placeholder = ph; i.value = val || '';
+          i.dataset.key = key;
+          i.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;width:100%;';
+          return i;
+        };
+        const name = mk('الاسم', c?.name, 'name');
+        const rel = mk('الصلة', c?.relation, 'relation');
+        const ph = mk('الجوّال', c?.phone, 'phone');
+        const em = mk('البريد', c?.email, 'email');
+        const access = document.createElement('input'); access.type = 'checkbox'; access.checked = !!c?.canAccessAccount;
+        access.dataset.key = 'canAccessAccount';
+        access.title = 'صلاحيّة وصول للحساب';
+        access.style.cssText = 'transform:scale(1.3);accent-color:#0a4d36;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        row.append(name, rel, ph, em, access, del);
+        list.appendChild(row);
+      };
+      (r.contacts || []).forEach(addRow);
+      addBtn.addEventListener('click', () => {
+        if (list.querySelectorAll('[data-role="emer-row"]').length >= 5) {
+          App.toast && App.toast('الحدّ الأقصى ٥ جهات', 'error');
+          return;
+        }
+        addRow(null);
+      });
+      saveBtn.addEventListener('click', async () => {
+        const rows = list.querySelectorAll('[data-role="emer-row"]');
+        const contacts = [];
+        rows.forEach(row => {
+          const c = {};
+          row.querySelectorAll('input').forEach(i => {
+            c[i.dataset.key] = i.type === 'checkbox' ? i.checked : i.value;
+          });
+          if (c.name && (c.phone || c.email)) contacts.push(c);
+        });
+        try {
+          await App.api('PUT', '/app/me/emergency-contacts', {
+            contacts,
+            notifyOnUnusualActivity: unusual.checked,
+            notifyOnLargeWithdrawal: lwd.checked,
+            notifyThreshold: Number(thr.value),
+            accessAfterInactivityDays: Number(days.value),
+          });
+          App.toast && App.toast('تم حفظ جهات الاتّصال', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
