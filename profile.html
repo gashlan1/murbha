@@ -859,6 +859,50 @@
     </div>
   </div>
 
+  <!-- Payout preferences -->
+  <div class="settings-group" id="payPrefSec">
+    <div class="settings-h">💸 تفضيلات استلام التوزيعات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد كيف تريد استلام أرباحك من الصفقات.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="payPrefFreq" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">التكرار المفضّل (للترشيحات)</label>
+          <select id="payPrefFreq" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="any">⚡ أيّ تكرار</option>
+            <option value="monthly">📅 شهري</option>
+            <option value="quarterly">📆 ربع سنوي</option>
+            <option value="semiannual">🗓 نصف سنوي</option>
+            <option value="annual">📌 سنوي</option>
+          </select>
+        </div>
+        <div>
+          <label for="payPrefMethod" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">طريقة الاستلام</label>
+          <select id="payPrefMethod" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="bank">🏦 حساب بنكي مباشر</option>
+            <option value="wallet">👛 محفظتي في مرابحة</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="payPrefReinvest" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="payPrefReinvest" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);line-height:1.5;">🔁 أعد استثمار التوزيعات تلقائياً</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="payPrefAuto" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="payPrefAuto" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);line-height:1.5;">💰 سحب تلقائي عند تجاوز الحدّ</label>
+        </div>
+        <div id="payPrefAutoThreshold" style="display:none;">
+          <label for="payPrefAutoAmt" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">حدّ السحب التلقائي (ر.س)</label>
+          <input type="number" id="payPrefAutoAmt" min="0" step="500" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="payPrefNotify" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="payPrefNotify" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);line-height:1.5;">🔔 إشعار عند كلّ توزيع</label>
+        </div>
+        <button type="button" id="payPrefSave" style="padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Payment methods -->
   <div class="settings-group" id="pmSec">
     <div class="settings-h">💳 طرق الدفع</div>
@@ -3647,6 +3691,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Payout preferences
+  (async () => {
+    const freq = document.getElementById('payPrefFreq');
+    const method = document.getElementById('payPrefMethod');
+    const reinvest = document.getElementById('payPrefReinvest');
+    const auto = document.getElementById('payPrefAuto');
+    const autoBox = document.getElementById('payPrefAutoThreshold');
+    const autoAmt = document.getElementById('payPrefAutoAmt');
+    const notify = document.getElementById('payPrefNotify');
+    const saveBtn = document.getElementById('payPrefSave');
+    if (!freq || !saveBtn) return;
+    try {
+      const r = await App.api('GET', '/app/me/payout-preferences');
+      if (!r.hasData) return;
+      freq.value = r.preferredFrequency;
+      method.value = r.payoutMethod;
+      reinvest.checked = r.reinvestPayouts;
+      auto.checked = r.autoWithdrawal;
+      autoAmt.value = r.autoWithdrawalThreshold;
+      notify.checked = r.notifyOnPayout;
+      autoBox.style.display = auto.checked ? '' : 'none';
+      auto.addEventListener('change', () => { autoBox.style.display = auto.checked ? '' : 'none'; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/payout-preferences', {
+            preferredFrequency: freq.value,
+            payoutMethod: method.value,
+            reinvestPayouts: reinvest.checked,
+            autoWithdrawal: auto.checked,
+            autoWithdrawalThreshold: Number(autoAmt.value) || 5000,
+            notifyOnPayout: notify.checked,
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
