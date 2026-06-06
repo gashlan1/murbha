@@ -859,6 +859,60 @@
     </div>
   </div>
 
+  <!-- Kids money education -->
+  <div class="settings-group" id="kmSec">
+    <div class="settings-h">👶📚 تعليم الأبناء الماليّ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">عادات المال تتشكّل قبل ٧ سنوات. ابدأ الآن بنظام بسيط منتظم.</p>
+      <div id="kmCurr" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmActive" /> فعّل خطّة تعليم الأبناء
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد الأبناء
+          <input type="number" id="kmCount" min="0" max="20" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عمر أصغر طفل
+          <input type="number" id="kmYoung" min="0" max="25" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عمر أكبر طفل
+          <input type="number" id="kmOld" min="0" max="40" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي المصروف الشهري للأبناء (ر.س)
+          <input type="number" id="kmAllow" min="0" max="10000" step="10" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmRegular" /> مصروف منتظم (لا بمزاج)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmJars" /> نظام ٣ صناديق (ادّخار/إنفاق/صدقة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmSub" /> حساب فرعي/محفظة باسم الطفل (بإشرافي)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmMoments" /> أستثمر مواقف الحياة (تسوّق/فواتير) للتعليم
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmCharity" /> عادة الصدقة من مصروفهم
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmMicro" /> أتاحت لهم استثمارًا صغيرًا تجريبيًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmMedia" /> أعلّمهم النقد الإعلاني/الاستهلاكي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="kmZakat" /> علّمتهم احتساب الزكاة وتوزيعها
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="kmNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="kmSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة تعليم الأبناء</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Annual review -->
   <div class="settings-group" id="arSec">
     <div class="settings-h">📅 المراجعة الماليّة السنويّة</div>
@@ -9332,6 +9386,81 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Kids money education
+  (async () => {
+    try {
+      const active = document.getElementById('kmActive');
+      const count = document.getElementById('kmCount');
+      const young = document.getElementById('kmYoung');
+      const old = document.getElementById('kmOld');
+      const allow = document.getElementById('kmAllow');
+      const regular = document.getElementById('kmRegular');
+      const jars = document.getElementById('kmJars');
+      const sub = document.getElementById('kmSub');
+      const moments = document.getElementById('kmMoments');
+      const charity = document.getElementById('kmCharity');
+      const micro = document.getElementById('kmMicro');
+      const media = document.getElementById('kmMedia');
+      const zakat = document.getElementById('kmZakat');
+      const notes = document.getElementById('kmNotes');
+      const currEl = document.getElementById('kmCurr');
+      const btn = document.getElementById('kmSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        comprehensive: '🏆 منهج شامل',
+        structured: '🎯 منظّم',
+        developing: '🌿 يتطوّر',
+        beginning: '🌱 بداية',
+        not_started: '🚨 لم يبدأ',
+      };
+      const r = await App.api('GET', '/app/me/kids-money');
+      active.checked = !!r.active;
+      count.value = Number(r.kidsCount || 0);
+      young.value = Number(r.youngestKidAge || 5);
+      old.value = Number(r.oldestKidAge || 0);
+      allow.value = Number(r.monthlyAllowance || 0);
+      regular.checked = !!r.regularAllowance;
+      jars.checked = !!r.threeJarsSystem;
+      sub.checked = !!r.subAccount;
+      moments.checked = !!r.teachingMoments;
+      charity.checked = !!r.charityHabit;
+      micro.checked = !!r.microInvest;
+      media.checked = !!r.mediaLiteracy;
+      zakat.checked = !!r.zakatTaught;
+      notes.value = r.notes || '';
+      if (currEl) currEl.textContent = (levelLabels[r.curriculumLevel] || '—') + ' · ' + r.curriculumScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' أركان';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/kids-money', {
+            active: active.checked,
+            kidsCount: Number(count.value || 0),
+            youngestKidAge: Number(young.value || 5),
+            oldestKidAge: Number(old.value || 0),
+            monthlyAllowance: Number(allow.value || 0),
+            regularAllowance: regular.checked,
+            threeJarsSystem: jars.checked,
+            subAccount: sub.checked,
+            teachingMoments: moments.checked,
+            charityHabit: charity.checked,
+            microInvest: micro.checked,
+            mediaLiteracy: media.checked,
+            zakatTaught: zakat.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة تعليم الأبناء', 'success');
+            const r2 = await App.api('GET', '/app/me/kids-money');
+            if (currEl) currEl.textContent = (levelLabels[r2.curriculumLevel] || '—') + ' · ' + r2.curriculumScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' أركان';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
