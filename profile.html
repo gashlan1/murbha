@@ -859,6 +859,40 @@
     </div>
   </div>
 
+  <!-- Investment privacy -->
+  <div class="settings-group" id="invPrivSec">
+    <div class="settings-h">🛡️ خصوصيّة الاستثمار</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">تحكّم في كل ما يظهر عنك في مربحة. كل خانة تُفعّلها ترفع مستوى ستر استثمارك.</p>
+      <div id="invPrivScore" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipHideLeader" /> 🥇 إخفاء اسمي من قوائم الشرف والمتصدّرين
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipHideFamily" /> 👨‍👩‍👧 إخفاء الحساب عن أي حساب عائلي مرتبط
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipSilent" /> 🔕 إشعارات صامتة (بدون عنوان مفصّل)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipAlias" /> 🪪 استخدام اسم بديل على الفواتير الورقيّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الاسم البديل (اختياري)
+          <input type="text" id="ipAliasName" maxlength="60" placeholder="مثال: م. ر." style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipEncrypt" /> 🔐 تشفير الكشوف الشهريّة بكلمة سرّ
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ipBiometric" /> 👆 طلب البصمة عند فتح المحفظة
+        </label>
+        <button type="button" id="ipSaveBtn" style="background:#be185d;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ إعدادات الخصوصيّة</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للمزيد، اقرأ <a href="women-investing.html" style="color:var(--green);">المرأة والاستثمار</a>.</p>
+    </div>
+  </div>
+
   <!-- Car plan -->
   <div class="settings-group" id="carSec">
     <div class="settings-h">🚗 خطّة السيّارة</div>
@@ -6056,6 +6090,60 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investment privacy
+  (async () => {
+    try {
+      const hideLeader = document.getElementById('ipHideLeader');
+      const hideFamily = document.getElementById('ipHideFamily');
+      const silent = document.getElementById('ipSilent');
+      const alias = document.getElementById('ipAlias');
+      const aliasName = document.getElementById('ipAliasName');
+      const encrypt = document.getElementById('ipEncrypt');
+      const biometric = document.getElementById('ipBiometric');
+      const score = document.getElementById('invPrivScore');
+      const btn = document.getElementById('ipSaveBtn');
+      if (!hideLeader || !btn) return;
+      const renderScore = (s, count, max) => {
+        let color = '#c54a3a', emoji = '⚠️';
+        if (s >= 80) { color = '#0a4d36'; emoji = '🛡️'; }
+        else if (s >= 50) { color = '#b08840'; emoji = '🔒'; }
+        score.style.color = color;
+        score.textContent = emoji + ' خصوصيّتك: ' + s + '/١٠٠ · ' + count + ' من ' + max + ' خيارات مفعّلة';
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/investment-privacy');
+        hideLeader.checked = !!r.hideFromLeaderboard;
+        hideFamily.checked = !!r.hideFromFamilyAccount;
+        silent.checked = !!r.silentNotifications;
+        alias.checked = !!r.useAliasOnInvoices;
+        aliasName.value = r.aliasName || '';
+        encrypt.checked = !!r.encryptStatements;
+        biometric.checked = !!r.requireBiometricForViews;
+        renderScore(r.score, r.enabledCount, r.maxOptions);
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/investment-privacy', {
+            hideFromLeaderboard: hideLeader.checked,
+            hideFromFamilyAccount: hideFamily.checked,
+            silentNotifications: silent.checked,
+            useAliasOnInvoices: alias.checked,
+            aliasName: aliasName.value,
+            encryptStatements: encrypt.checked,
+            requireBiometricForViews: biometric.checked,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ إعدادات الخصوصيّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
