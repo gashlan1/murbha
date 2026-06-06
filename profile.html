@@ -859,6 +859,17 @@
     </div>
   </div>
 
+  <!-- Portfolio stress test -->
+  <div class="settings-group" id="stressSec" style="display:none;">
+    <div class="settings-h">⚠ اختبار صمود المحفظة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">كم ستخسر محفظتك في حال حدثت هذه السيناريوهات؟ نقطة بداية للتحوّط.</p>
+      <div id="stressHeader" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;font:800 12px Cairo,sans-serif;"></div>
+      <div id="stressScenarios" style="display:grid;gap:8px;"></div>
+      <div id="stressWorst" style="margin-top:12px;background:var(--paper);border-radius:12px;padding:14px;font:800 12px Cairo,sans-serif;color:var(--green-dark);"></div>
+    </div>
+  </div>
+
   <!-- Retirement calculator -->
   <div class="settings-group" id="retCalcSec">
     <div class="settings-h">🏖 حاسبة التقاعد</div>
@@ -4283,6 +4294,32 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Portfolio stress test
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/portfolio-stress-test');
+      if (!r.hasData) return;
+      const sec = document.getElementById('stressSec');
+      const header = document.getElementById('stressHeader');
+      const scWrap = document.getElementById('stressScenarios');
+      const worst = document.getElementById('stressWorst');
+      if (!sec || !scWrap) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      header.textContent = '💼 محفظتك: ' + fmt(r.totalInvested) + ' ر.س · تنويع: ' + r.diversificationScore + ' · العقار ' + r.realEstateExposurePct + '٪';
+      scWrap.replaceChildren();
+      r.scenarios.forEach(s => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;border-inline-start:4px solid #c54a3a;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;'; lbl.textContent = s.label;
+        const impact = document.createElement('div'); impact.style.cssText = 'font:800 12px Cairo,sans-serif;color:#c54a3a;'; impact.textContent = '⬇ ' + fmt(s.impact) + ' ر.س (' + s.impactPct + '٪)';
+        card.append(lbl, impact);
+        scWrap.appendChild(card);
+      });
+      worst.textContent = '🔻 السيناريو الأسوأ التراكمي: ' + fmt(r.worstCase) + ' ر.س (' + r.worstCasePct + '٪) · المحفظة بعد ذلك: ' + fmt(r.portfolioAfterWorst) + ' ر.س';
     } catch (e) {}
   })();
 
