@@ -859,6 +859,38 @@
     </div>
   </div>
 
+  <!-- Compound calculator -->
+  <div class="settings-group" id="cmpCalcSec">
+    <div class="settings-h">⚡ حاسبة المركّب</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احسب ما سيكون مالك بعد سنين بقوّة المركّب.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مبلغ ابتدائي (ر.س)</label>
+          <input type="number" id="cmpInit" min="0" step="1000" value="10000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">إضافة شهريّة (ر.س)</label>
+          <input type="number" id="cmpMo" min="0" step="100" value="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">عائد سنوي (٪)</label>
+          <input type="number" id="cmpYield" min="0" max="50" step="0.5" value="10" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مدّة (سنة)</label>
+          <input type="number" id="cmpYears" min="1" max="60" value="30" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">معدّل التضخّم (٪)</label>
+          <input type="number" id="cmpInfl" min="0" max="20" step="0.5" value="3" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="cmpCalcBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:12px 28px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احسب</button>
+      <div id="cmpResult" style="margin-top:14px;display:none;background:var(--paper);border-radius:12px;padding:16px;"></div>
+    </div>
+  </div>
+
   <!-- Windfall plan -->
   <div class="settings-group" id="wfPlanSec">
     <div class="settings-h">💎 خطّة الأموال المفاجئة</div>
@@ -4717,6 +4749,56 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Compound calculator
+  (async () => {
+    try {
+      const init = document.getElementById('cmpInit');
+      const mo = document.getElementById('cmpMo');
+      const yld = document.getElementById('cmpYield');
+      const years = document.getElementById('cmpYears');
+      const infl = document.getElementById('cmpInfl');
+      const btn = document.getElementById('cmpCalcBtn');
+      const result = document.getElementById('cmpResult');
+      if (!btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('POST', '/app/me/compound-calculator', {
+            initial: Number(init.value),
+            monthly: Number(mo.value),
+            yieldPct: Number(yld.value),
+            years: Number(years.value),
+            inflationPct: Number(infl.value),
+          });
+          result.replaceChildren();
+          const hero = document.createElement('div');
+          hero.style.cssText = 'background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:10px;padding:14px;text-align:center;margin-bottom:12px;';
+          const heroTxt = document.createElement('div'); heroTxt.style.cssText = 'font:900 22px Cairo,sans-serif;'; heroTxt.textContent = fmt(r.nominalFinal) + ' ر.س';
+          const heroLbl = document.createElement('div'); heroLbl.style.cssText = 'font:600 11px Tajawal,sans-serif;margin-top:4px;'; heroLbl.textContent = 'بعد ' + years.value + ' سنة (إسمي)';
+          hero.append(heroTxt, heroLbl);
+          result.appendChild(hero);
+          const rows = [
+            { lbl: 'القوّة الشرائيّة الحقيقيّة', val: fmt(r.realFinal) + ' ر.س' },
+            { lbl: 'إجمالي مساهماتك', val: fmt(r.totalContributions) + ' ر.س' },
+            { lbl: 'إجمالي الأرباح', val: fmt(r.totalGains) + ' ر.س' },
+            { lbl: 'نسبة الأرباح/المساهمات', val: r.gainsRatio + 'x' },
+            { lbl: 'يتضاعف كلّ', val: r.doublingYears + ' سنة' },
+          ];
+          rows.forEach(row => {
+            const r2 = document.createElement('div');
+            r2.style.cssText = 'display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);';
+            const l = document.createElement('span'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);'; l.textContent = row.lbl;
+            const v = document.createElement('span'); v.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);'; v.textContent = row.val;
+            r2.append(l, v);
+            result.appendChild(r2);
+          });
+          result.style.display = '';
+          App.toast && App.toast('تمّ الحساب', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
