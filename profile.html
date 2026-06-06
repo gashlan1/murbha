@@ -859,6 +859,53 @@
     </div>
   </div>
 
+  <!-- Flip vs Hold -->
+  <div class="settings-group" id="fhSec">
+    <div class="settings-h">🏠 التقليب مقابل الاحتفاظ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">قرار يحدّد ثروتك العقاريّة. حدّد إستراتيجيّتك وحسّن انضباطك.</p>
+      <div id="fhDisc" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fhInvolved" /> أستثمر/أريد أستثمر في العقار
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الإستراتيجيّة المفضّلة
+          <select id="fhPref" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="">—</option>
+            <option value="flip">التقليب (٦-١٨ شهرًا)</option>
+            <option value="hold">الاحتفاظ (١٠+ سنوات)</option>
+            <option value="brrrr">هجين BRRRR</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fhContractors" /> لديّ شبكة مقاولين موثوقين
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fhReserve" /> لديّ احتياطي ٦-١٢ شهر تشغيل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fhResearch" /> أبحث السوق بانتظام
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fh13w" /> توقّع تدفّق ١٣ أسبوعًا للمشروع
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="fhLegal" /> مستشار قانوني جاهز للعقود
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">هامش تقليب مستهدف (٪)
+          <input type="number" id="fhMargin" min="0" max="100" step="0.5" placeholder="٢٠" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عائد إيجار مستهدف (٪)
+          <input type="number" id="fhYield" min="0" max="50" step="0.1" placeholder="٧" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">سنوات احتفاظ مستهدفة
+          <input type="number" id="fhYears" min="0" max="50" step="1" placeholder="١٠" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <button type="button" id="fhSaveBtn" style="margin-top:6px;background:var(--ink);color:#fff;border:none;padding:10px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SME cashflow -->
   <div class="settings-group" id="smeCfSec">
     <div class="settings-h">💼 تدفّق نقدي للأعمال الصغيرة</div>
@@ -11002,6 +11049,66 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Flip vs Hold
+  (async () => {
+    try {
+      const involved = document.getElementById('fhInvolved');
+      const pref = document.getElementById('fhPref');
+      const contractors = document.getElementById('fhContractors');
+      const reserve = document.getElementById('fhReserve');
+      const research = document.getElementById('fhResearch');
+      const plan13 = document.getElementById('fh13w');
+      const legal = document.getElementById('fhLegal');
+      const margin = document.getElementById('fhMargin');
+      const yld = document.getElementById('fhYield');
+      const years = document.getElementById('fhYears');
+      const disc = document.getElementById('fhDisc');
+      const saveBtn = document.getElementById('fhSaveBtn');
+      if (!saveBtn) return;
+      const render = (p) => {
+        if (!p || !disc) return;
+        const labels = { master: '🏆 مستثمر عقاري منضبط', practiced: '🎯 ممارس', learning: '🌱 يتعلّم', starter: '🆕 مبتدئ' };
+        disc.textContent = (labels[p.level] || p.level || '') + ' · ' + (p.disciplineScore || 0) + '/١٠٠';
+      };
+      try {
+        const r = await App.api('GET', '/app/me/flip-hold');
+        const p = r.plan || {};
+        if (involved) involved.checked = !!p.isInvolved;
+        if (pref) pref.value = p.preference || '';
+        if (contractors) contractors.checked = !!p.contractorNetwork;
+        if (reserve) reserve.checked = !!p.flipReserveFund;
+        if (research) research.checked = !!p.marketResearchHabit;
+        if (plan13) plan13.checked = !!p.has13WeekCashflow;
+        if (legal) legal.checked = !!p.legalCounselReady;
+        if (margin) margin.value = p.targetFlipMargin || 0;
+        if (yld) yld.value = p.targetRentalYield || 0;
+        if (years) years.value = p.targetHoldYears || 0;
+        render(p);
+      } catch (e) {}
+      saveBtn.addEventListener('click', async () => {
+        try {
+          const body = {
+            isInvolved: !!involved?.checked,
+            preference: pref?.value || '',
+            contractorNetwork: !!contractors?.checked,
+            flipReserveFund: !!reserve?.checked,
+            marketResearchHabit: !!research?.checked,
+            has13WeekCashflow: !!plan13?.checked,
+            legalCounselReady: !!legal?.checked,
+            targetFlipMargin: Number(margin?.value || 0),
+            targetRentalYield: Number(yld?.value || 0),
+            targetHoldYears: Number(years?.value || 0)
+          };
+          const r = await App.api('PUT', '/app/me/flip-hold', body);
+          render(r.plan);
+          App.toast('تمّ حفظ خطّتك العقاريّة', 'success');
+        } catch (e) {
+          App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
