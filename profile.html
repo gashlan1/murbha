@@ -859,6 +859,58 @@
     </div>
   </div>
 
+  <!-- Fixed income (sukuk) preferences -->
+  <div class="settings-group" id="fixedIncSec">
+    <div class="settings-h">📜 تفضيلات الدخل الثابت (الصكوك)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد دور الصكوك في محفظتك واتركنا نوازن بينها وبين المرابحة.</p>
+      <div style="display:grid;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الصكوك المستهدفة (٪)</label>
+            <input type="number" id="fiSukuk" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مرابحة دخل (٪)</label>
+            <input type="number" id="fiMu" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نوع الصكوك المفضّل</label>
+          <select id="fiType" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="government">🏛 صكوك حكوميّة (الأكثر أماناً)</option>
+            <option value="corporate">🏢 صكوك شركات (أعلى عائد)</option>
+            <option value="mixed">⚖ مختلطة</option>
+            <option value="international">🌍 دوليّة</option>
+          </select>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">أدنى تصنيف ائتماني مقبول</label>
+          <select id="fiRating" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="AAA">AAA (أعلى أمان)</option>
+            <option value="AA">AA</option>
+            <option value="A">A</option>
+            <option value="BBB">BBB (مقبول)</option>
+            <option value="BB">BB (مخاطرة)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حيازاتك الحاليّة من الصكوك (ر.س)</label>
+          <input type="number" id="fiSukukAmt" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="fiAutoReb" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔁 وازن آليّاً بين الصكوك والمرابحة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="fiNotifyRate" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 نبّهني عند تغيّر معدّل ساما
+        </label>
+      </div>
+      <button type="button" id="fiSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تفضيلات الدخل الثابت</button>
+    </div>
+  </div>
+
   <!-- News filter -->
   <div class="settings-group" id="newsFilterSec">
     <div class="settings-h">📡 فلتر الأخبار (إشارة فقط، لا ضجيج)</div>
@@ -5559,6 +5611,44 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Fixed income (sukuk) preferences
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/fixed-income-pref');
+      if (!r.hasData) return;
+      const sukuk = document.getElementById('fiSukuk');
+      const mu = document.getElementById('fiMu');
+      const type = document.getElementById('fiType');
+      const rating = document.getElementById('fiRating');
+      const amt = document.getElementById('fiSukukAmt');
+      const autoReb = document.getElementById('fiAutoReb');
+      const notifyRate = document.getElementById('fiNotifyRate');
+      const btn = document.getElementById('fiSaveBtn');
+      if (!btn) return;
+      sukuk.value = r.targetSukukPct;
+      mu.value = r.targetMurabahaIncomePct;
+      type.value = r.preferredSukukType || 'government';
+      rating.value = r.minSukukRating || 'A';
+      amt.value = r.sukukHoldingsSar;
+      autoReb.checked = !!r.autoSukukRebalance;
+      notifyRate.checked = r.notifyOnRateChange !== false;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/fixed-income-pref', {
+            targetSukukPct: Number(sukuk.value),
+            targetMurabahaIncomePct: Number(mu.value),
+            preferredSukukType: type.value,
+            minSukukRating: rating.value,
+            sukukHoldingsSar: Number(amt.value),
+            autoSukukRebalance: autoReb.checked,
+            notifyOnRateChange: notifyRate.checked,
+          });
+          App.toast && App.toast('تم حفظ تفضيلات الدخل الثابت', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
