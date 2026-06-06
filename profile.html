@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Diversification score -->
+  <div class="settings-group" id="diverSec" style="display:none;">
+    <div class="settings-h">🎨 درجة تنويع محفظتك</div>
+    <div style="padding:14px 18px;">
+      <div id="diverHero" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;"></div>
+      <div id="diverBars" style="display:grid;gap:8px;margin-bottom:12px;"></div>
+      <div id="diverSuggestion" style="background:var(--paper);border-inline-start:4px solid var(--gold);border-radius:8px;padding:10px 14px;font:700 12px Cairo,sans-serif;color:var(--green-dark);"></div>
+    </div>
+  </div>
+
   <!-- Gift investment -->
   <div class="settings-group" id="giftSec">
     <div class="settings-h">🎁 أهدِ استثماراً</div>
@@ -3180,6 +3190,43 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Diversification score
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/diversification');
+      if (!r.hasData) return;
+      const sec = document.getElementById('diverSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('diverHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 48px Cairo,sans-serif;color:#d4ac6e;line-height:1;'; big.textContent = r.grade;
+      const score = document.createElement('div'); score.style.cssText = 'font:900 18px Cairo,sans-serif;color:#fff;margin-top:4px;'; score.textContent = r.overall + ' / 100';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:6px;'; sub.textContent = r.totalDeals + ' صفقة · ' + Number(r.totalAmount).toLocaleString('ar-SA') + ' ر.س';
+      hero.append(big, score, sub);
+      const bars = document.getElementById('diverBars');
+      bars.replaceChildren();
+      const items = [
+        { label: 'القطاعات', score: r.sectorScore, color: '#0a4d36' },
+        { label: 'المدن', score: r.cityScore, color: '#b08840' },
+        { label: 'الجهات الراعية', score: r.sponsorScore, color: '#5c2418' },
+        { label: 'الآجال', score: r.durationScore, color: '#1e3a8a' },
+      ];
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:90px 1fr 50px;gap:8px;align-items:center;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = it.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:12px;background:var(--paper);border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, it.score) + '%;background:' + it.color + ';';
+        bar.appendChild(fill);
+        const v = document.createElement('div'); v.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--gold);text-align:end;'; v.textContent = it.score;
+        row.append(lbl, bar, v);
+        bars.appendChild(row);
+      });
+      document.getElementById('diverSuggestion').textContent = '💡 ' + r.suggestion;
     } catch (e) {}
   })();
 
