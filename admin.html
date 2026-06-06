@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- DEFENSIVE DEALS -->
+  <div class="admin-card" id="defDealCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛡 توفّر الصفقات الدفاعيّة</span>
+      <span class="card-h-sub" id="defDealBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="defDealSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;"></div>
+      <div id="defDealCats" style="display:grid;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- GOAL FUNDING -->
   <div class="admin-card" id="goalFundCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -4345,6 +4357,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadDefDeal() {
+    const sumWrap = document.getElementById('defDealSummary');
+    const catWrap = document.getElementById('defDealCats');
+    const badge = document.getElementById('defDealBadge');
+    if (!sumWrap || !catWrap) return;
+    try {
+      const r = await App.api('GET', '/app/admin/defensive-deals-availability');
+      if (!r.hasData) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const readinessLabels = { good: '✓ جاهزون', fair: '◷ مقبول', weak: '⚠ ضعيف' };
+      const readinessColors = { good: '#0a4d36', fair: '#b08840', weak: '#c54a3a' };
+      if (badge) badge.textContent = r.defensivePct + '٪ دفاعيّة · ' + readinessLabels[r.readiness];
+      sumWrap.replaceChildren();
+      const tiles = [
+        { lbl: 'دفاعيّة', val: r.defensiveCount, color: '#0a4d36' },
+        { lbl: 'دوريّة', val: r.cyclicalCount, color: '#c54a3a' },
+        { lbl: 'محايدة', val: r.neutralCount, color: 'var(--muted)' },
+        { lbl: 'نسبة الدفاع', val: r.defensivePct + '٪', color: readinessColors[r.readiness] },
+        { lbl: 'الجاهزيّة', val: readinessLabels[r.readiness], color: readinessColors[r.readiness] },
+      ];
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + t.color + ';'; v.textContent = typeof t.val === 'number' ? fmt(t.val) : t.val;
+        const l = document.createElement('div'); l.style.cssText = 'font:700 9px Cairo,sans-serif;color:var(--muted);margin-top:2px;'; l.textContent = t.lbl;
+        tile.append(v, l);
+        sumWrap.appendChild(tile);
+      });
+      catWrap.replaceChildren();
+      const max = Math.max(1, ...r.defensiveByCategory.map(c => c.count));
+      r.defensiveByCategory.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr 50px;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = c.category;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:12px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, (c.count / max) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--green-dark);text-align:end;'; cnt.textContent = fmt(c.count);
+        row.append(lbl, bar, cnt);
+        catWrap.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadGoalFund() {
     const sumWrap = document.getElementById('goalFundSummary');
     const typesWrap = document.getElementById('goalFundTypes');
@@ -12458,7 +12514,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime(), loadMaint(), loadFailDepRsn(), loadNpsByCat(), loadMrr(), loadZakatTop(), loadTopYld(), loadMad(), loadAtRiskNew(), loadSatByAge(), loadTopNps(), loadSignFunnel(), loadTtfp(), loadWbStats(), loadDisputeStats(), loadEarlyExit(), loadFamilyAccts(), loadA11yFb(), loadLoginStreak(), loadVatSum(), loadRetCoh(), loadInflImp(), loadEsgDeal(), loadCommImp(), loadCrisisDrill(), loadFxExp(), loadMktCycle(), loadConcRisk(), loadLiqPool(), loadMoatScore(), loadDdQLog(), loadGoalFund()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime(), loadMaint(), loadFailDepRsn(), loadNpsByCat(), loadMrr(), loadZakatTop(), loadTopYld(), loadMad(), loadAtRiskNew(), loadSatByAge(), loadTopNps(), loadSignFunnel(), loadTtfp(), loadWbStats(), loadDisputeStats(), loadEarlyExit(), loadFamilyAccts(), loadA11yFb(), loadLoginStreak(), loadVatSum(), loadRetCoh(), loadInflImp(), loadEsgDeal(), loadCommImp(), loadCrisisDrill(), loadFxExp(), loadMktCycle(), loadConcRisk(), loadLiqPool(), loadMoatScore(), loadDdQLog(), loadGoalFund(), loadDefDeal()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {

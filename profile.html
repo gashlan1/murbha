@@ -859,6 +859,39 @@
     </div>
   </div>
 
+  <!-- Recession prep -->
+  <div class="settings-group" id="recPrepSec">
+    <div class="settings-h">🌪 استعداد الركود</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">قائمة استعدادك للأزمات الاقتصاديّة. راجعها كلّ ٣ شهور.</p>
+      <div id="recPrepChecklist" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;display:grid;gap:6px;"></div>
+      <div id="recPrepProgress" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:center;margin-bottom:14px;"></div>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">سيولة فوريّة مستهدفة (٪ من المحفظة)</label>
+          <input type="number" id="recSilo" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">صفقات دفاعيّة مستهدفة (٪)</label>
+          <input type="number" id="recDef" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">صندوق طوارئ (شهر معيشة)</label>
+          <input type="number" id="recMonths" min="0" max="36" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="recNotify" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 تنبيهات إشارات الركود (منحنى عوائد، تباطؤ نموّ)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="recAuto" style="transform:scale(1.3);accent-color:#c54a3a;" />
+          ⚙ توازن آليّ عند بدء إشارات الركود
+        </label>
+      </div>
+      <button type="button" id="recSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ استعدادي</button>
+    </div>
+  </div>
+
   <!-- Financial goals -->
   <div class="settings-group" id="goalsSec">
     <div class="settings-h">🎯 أهدافي الماليّة (دلاء الاستثمار)</div>
@@ -4597,6 +4630,73 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Recession prep
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/recession-prep');
+      if (!r.hasData) return;
+      const list = document.getElementById('recPrepChecklist');
+      const progress = document.getElementById('recPrepProgress');
+      const silo = document.getElementById('recSilo');
+      const def = document.getElementById('recDef');
+      const months = document.getElementById('recMonths');
+      const notify = document.getElementById('recNotify');
+      const auto = document.getElementById('recAuto');
+      const btn = document.getElementById('recSaveBtn');
+      if (!list || !btn) return;
+      const items = [
+        { key: 'emergency_fund_6mo', label: 'صندوق طوارئ ٦ شهور كاملاً' },
+        { key: 'liquidity_15pct', label: 'سيولة فوريّة ١٥٪ من المحفظة' },
+        { key: 'defensive_40pct', label: 'صفقات دفاعيّة ٤٠٪ من المحفظة' },
+        { key: 'reduce_cyclical', label: 'خفّضت التركّز الدوري' },
+        { key: 'paid_off_high_debt', label: 'سدّدت الديون عالية الفائدة' },
+        { key: 'reduced_essentials_cost', label: 'راجعت مصاريفي الأساسيّة وقلّصتها' },
+        { key: 'multiple_income_streams', label: 'لديّ مصادر دخل متعدّدة' },
+        { key: 'updated_emergency_contacts', label: 'حدّثت جهات اتّصال الطوارئ' },
+        { key: 'reviewed_insurance', label: 'راجعت التأمين الصحّي والحياة' },
+        { key: 'discussed_with_family', label: 'ناقشت الخطّة مع العائلة' },
+      ];
+      const completed = r.checklist || {};
+      const refresh = () => {
+        const count = Object.keys(completed).filter(k => completed[k]).length;
+        progress.textContent = '✓ ' + count + '/' + items.length + ' بند مكتمل' + (count >= 8 ? ' · ممتاز' : (count >= 5 ? ' · جيّد' : ' · ابدأ بالاستعداد'));
+      };
+      list.replaceChildren();
+      items.forEach(it => {
+        const label = document.createElement('label');
+        label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border-radius:6px;font:600 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!completed[it.key];
+        cb.dataset.key = it.key;
+        cb.style.accentColor = '#0a4d36';
+        cb.addEventListener('change', () => { completed[it.key] = cb.checked; refresh(); });
+        const txt = document.createElement('span'); txt.textContent = it.label;
+        label.append(cb, txt);
+        list.appendChild(label);
+      });
+      refresh();
+      silo.value = r.targetSiloPct;
+      def.value = r.targetDefensivePct;
+      months.value = r.monthlyEmergencyTarget;
+      notify.checked = r.notifyOnRecessionSignals !== false;
+      auto.checked = !!r.autoRebalanceOnSignal;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/recession-prep', {
+            checklist: completed,
+            targetSiloPct: Number(silo.value),
+            targetDefensivePct: Number(def.value),
+            monthlyEmergencyTarget: Number(months.value),
+            notifyOnRecessionSignals: notify.checked,
+            autoRebalanceOnSignal: auto.checked,
+          });
+          App.toast && App.toast('تم حفظ خطّة الركود', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
