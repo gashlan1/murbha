@@ -859,6 +859,32 @@
     </div>
   </div>
 
+  <!-- External assets (whole portfolio view) -->
+  <div class="settings-group" id="extAssetsSec">
+    <div class="settings-h">🌐 الأصول الخارجيّة والالتزامات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل أصولك خارج مُرابحة (عقار، أسهم، ذهب، بنوك) لرؤية صافي ثروتك.</p>
+      <div id="extWealthHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;"></div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">الأصول الخارجيّة</div>
+      <div id="extAssetsList" style="display:grid;gap:6px;margin-bottom:10px;"></div>
+      <button type="button" id="extAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة أصل</button>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">الالتزامات (ديون)</div>
+      <div id="extLiabilitiesList" style="display:grid;gap:6px;margin-bottom:10px;"></div>
+      <button type="button" id="extLibAddBtn" style="background:#fff;color:#c54a3a;border:1px dashed #c54a3a;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;margin-bottom:14px;">+ إضافة دين</button>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="extAdvisor" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🤝 شارك صورتي الكاملة مع مستشاري المالي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="extZakat" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🤲 احسب الزكاة على أصولي الخارجيّة أيضاً
+        </label>
+      </div>
+      <button type="button" id="extSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الأصول والالتزامات</button>
+    </div>
+  </div>
+
   <!-- Payroll link -->
   <div class="settings-group" id="payrollSec">
     <div class="settings-h">💸 ربط الراتب بالاستثمار</div>
@@ -5072,6 +5098,122 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // External assets
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/external-assets');
+      if (!r.hasData) return;
+      const hero = document.getElementById('extWealthHero');
+      const list = document.getElementById('extAssetsList');
+      const libList = document.getElementById('extLiabilitiesList');
+      const addBtn = document.getElementById('extAddBtn');
+      const libAddBtn = document.getElementById('extLibAddBtn');
+      const advisor = document.getElementById('extAdvisor');
+      const zakat = document.getElementById('extZakat');
+      const btn = document.getElementById('extSaveBtn');
+      if (!list || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const renderHero = () => {
+        hero.style.display = '';
+        hero.innerHTML = '';
+        const big = document.createElement('div'); big.style.cssText = 'font:900 22px Cairo,sans-serif;color:#fbf6ea;'; big.textContent = 'صافي ثروتك: ' + fmt(r.netWealth) + ' ر.س';
+        const sub = document.createElement('div'); sub.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#d4ac6e;margin-top:4px;';
+        sub.textContent = 'مرابحة ' + fmt(r.myMurabaha) + ' + خارجي ' + fmt(r.totalExternal) + ' − ديون ' + fmt(r.totalLiabilities);
+        hero.append(big, sub);
+      };
+      renderHero();
+      const assetTypes = [
+        ['bank', '🏦 حسابات بنكيّة'],
+        ['stocks', '📈 أسهم وصناديق'],
+        ['gold', '🥇 ذهب ومعادن'],
+        ['realestate', '🏠 عقارات'],
+        ['business', '💼 شركات خاصّة'],
+        ['pension', '💰 تقاعد'],
+        ['intl', '🌍 دوليّة'],
+        ['collectibles', '🎨 مقتنيات'],
+      ];
+      const addAssetRow = (a) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr 130px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        row.dataset.role = 'ext-asset';
+        if (a?.id) row.dataset.eid = a.id;
+        const type = document.createElement('select');
+        type.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        type.dataset.key = 'type';
+        assetTypes.forEach(([v, t]) => {
+          const opt = document.createElement('option'); opt.value = v; opt.textContent = t;
+          if (a?.type === v) opt.selected = true;
+          type.appendChild(opt);
+        });
+        const label = document.createElement('input'); label.type = 'text'; label.placeholder = 'اسم الأصل'; label.dataset.key = 'label'; label.maxLength = 100;
+        label.value = a?.label || '';
+        label.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const val = document.createElement('input'); val.type = 'number'; val.placeholder = 'القيمة (ر.س)'; val.dataset.key = 'valueSar'; val.min = '0'; val.step = '1000';
+        val.value = a?.valueSar || '';
+        val.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        row.append(type, label, val, del);
+        list.appendChild(row);
+      };
+      const addLibRow = (l) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 130px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;border-inline-start:4px solid #c54a3a;';
+        row.dataset.role = 'ext-liability';
+        if (l?.id) row.dataset.lid = l.id;
+        const label = document.createElement('input'); label.type = 'text'; label.placeholder = 'وصف الدين'; label.dataset.key = 'label'; label.maxLength = 100;
+        label.value = l?.label || '';
+        label.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;';
+        const amt = document.createElement('input'); amt.type = 'number'; amt.placeholder = 'المبلغ (ر.س)'; amt.dataset.key = 'amountSar'; amt.min = '0'; amt.step = '1000';
+        amt.value = l?.amountSar || '';
+        amt.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;color:#c54a3a;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        row.append(label, amt, del);
+        libList.appendChild(row);
+      };
+      (r.externalAssets || []).forEach(addAssetRow);
+      (r.liabilities || []).forEach(addLibRow);
+      addBtn.addEventListener('click', () => addAssetRow(null));
+      libAddBtn.addEventListener('click', () => addLibRow(null));
+      advisor.checked = !!r.shareWithAdvisor;
+      zakat.checked = r.includeInZakat !== false;
+      btn.addEventListener('click', async () => {
+        const assetRows = list.querySelectorAll('[data-role="ext-asset"]');
+        const externalAssets = [];
+        assetRows.forEach(row => {
+          const a = {};
+          if (row.dataset.eid) a.id = row.dataset.eid;
+          row.querySelectorAll('select, input').forEach(el => {
+            a[el.dataset.key] = el.type === 'number' ? Number(el.value) : el.value;
+          });
+          if (a.label && a.valueSar > 0) externalAssets.push(a);
+        });
+        const libRows = libList.querySelectorAll('[data-role="ext-liability"]');
+        const liabilities = [];
+        libRows.forEach(row => {
+          const l = {};
+          if (row.dataset.lid) l.id = row.dataset.lid;
+          row.querySelectorAll('input').forEach(el => {
+            l[el.dataset.key] = el.type === 'number' ? Number(el.value) : el.value;
+          });
+          if (l.label && l.amountSar > 0) liabilities.push(l);
+        });
+        try {
+          await App.api('PUT', '/app/me/external-assets', {
+            externalAssets,
+            liabilities,
+            shareWithAdvisor: advisor.checked,
+            includeInZakat: zakat.checked,
+          });
+          App.toast && App.toast('تم حفظ الأصول والالتزامات', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
