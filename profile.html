@@ -859,6 +859,42 @@
     </div>
   </div>
 
+  <!-- Catch-up plan -->
+  <div class="settings-group" id="catchUpSec">
+    <div class="settings-h">🏃 خطّة التعويض (البدء المتأخّر)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إذا بدأت بعد سنّ ٤٠، هذه الخطّة تساعدك على اللحاق.</p>
+      <div id="catchUpHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;"></div>
+      <div style="display:grid;gap:10px;margin-bottom:14px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الهدف عند التقاعد (ر.س)</label>
+          <input type="number" id="cuTarget" min="0" step="100000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">دخلك الشهري (ر.س — للحساب)</label>
+          <input type="number" id="cuIncome" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">سنوات عمل إضافيّة بعد ٦٥</label>
+          <input type="number" id="cuExtra" min="0" max="15" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cuAggressive" style="transform:scale(1.3);accent-color:#c54a3a;" />
+          🔥 ادّخار عنيف (٢٥–٤٠٪ من الدخل)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cuRisk" style="transform:scale(1.3);accent-color:#b08840;" />
+          📈 تحمّل مخاطر أعلى لعائد مرتفع
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">خطّة دخل إضافي (عمل ثانٍ)</label>
+          <textarea id="cuSecond" rows="2" maxlength="500" placeholder="مثال: تدريس خصوصي ٣ آلاف شهرياً" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <button type="button" id="cuSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ خطّة التعويض</button>
+    </div>
+  </div>
+
   <!-- Compound calculator -->
   <div class="settings-group" id="cmpCalcSec">
     <div class="settings-h">⚡ حاسبة المركّب</div>
@@ -4749,6 +4785,56 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Catch-up plan
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/catch-up-plan');
+      if (!r.hasData) return;
+      const hero = document.getElementById('catchUpHero');
+      const target = document.getElementById('cuTarget');
+      const income = document.getElementById('cuIncome');
+      const extra = document.getElementById('cuExtra');
+      const aggressive = document.getElementById('cuAggressive');
+      const risk = document.getElementById('cuRisk');
+      const second = document.getElementById('cuSecond');
+      const btn = document.getElementById('cuSaveBtn');
+      if (!btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const intensityLabels = {
+        manageable: { txt: '✓ مُريحة', color: '#0a4d36' },
+        moderate: { txt: '◷ متوسّطة', color: '#b08840' },
+        aggressive: { txt: '⚠ شديدة', color: '#c54a3a' },
+        heroic: { txt: '🔥 بطوليّة', color: '#5c2418' },
+      };
+      const intensity = intensityLabels[r.intensity] || intensityLabels.moderate;
+      hero.style.display = '';
+      hero.style.background = 'linear-gradient(135deg,' + intensity.color + ',#062b1e)';
+      hero.innerHTML = '';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 22px Cairo,sans-serif;color:#fbf6ea;'; big.textContent = fmt(r.requiredMonthly) + ' ر.س/شهر';
+      const lbl = document.createElement('div'); lbl.style.cssText = 'font:600 12px Tajawal,sans-serif;color:#d4ac6e;margin-top:4px;';
+      lbl.textContent = 'لتصل لـ ' + fmt(r.target) + ' عند ٦٥ · ' + r.yearsToRetirement + ' سنة متبقّية · شدّة: ' + intensity.txt + (r.incomePct !== null ? ' (' + r.incomePct + '٪ من دخلك)' : '');
+      hero.append(big, lbl);
+      target.value = r.target;
+      extra.value = r.workExtraYears;
+      aggressive.checked = r.aggressiveSavings;
+      risk.checked = r.increasedRiskTolerance;
+      second.value = r.secondaryIncomePlan;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/catch-up-plan', {
+            target: Number(target.value),
+            monthlyIncome: Number(income.value),
+            workExtraYears: Number(extra.value),
+            aggressiveSavings: aggressive.checked,
+            increasedRiskTolerance: risk.checked,
+            secondaryIncomePlan: second.value,
+          });
+          App.toast && App.toast('تم حفظ خطّة التعويض', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
