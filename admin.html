@@ -695,6 +695,19 @@
     </div>
   </div>
 
+  <!-- MAINTENANCE WINDOWS -->
+  <div class="admin-card" id="maintCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🛠 نوافذ الصيانة المجدولة</span>
+      <span class="card-h-sub" id="maintBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="maintUpcoming" style="display:grid;gap:6px;margin-bottom:14px;"></div>
+      <div style="font:800 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;">السابقة</div>
+      <div id="maintPast" style="display:grid;gap:5px;"></div>
+    </div>
+  </div>
+
   <!-- UPTIME STATUS -->
   <div class="admin-card" id="uptimeCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3963,6 +3976,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadMaint() {
+    const upcoming = document.getElementById('maintUpcoming');
+    const past = document.getElementById('maintPast');
+    const badge = document.getElementById('maintBadge');
+    if (!upcoming) return;
+    try {
+      const r = await App.api('GET', '/app/admin/maintenance-windows');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = (r.upcoming.length || 0) + ' قادمة · ' + (r.past.length || 0) + ' سابقة';
+      const mk = (w, isPast) => {
+        const row = document.createElement('div');
+        const impactColor = w.impact === 'major' ? '#c54a3a' : (w.impact === 'moderate' ? '#b08840' : '#0a4d36');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr 70px 90px;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;border-inline-start:4px solid ' + impactColor + ';opacity:' + (isPast ? '0.6' : '1') + ';';
+        const dt = document.createElement('div'); dt.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+        dt.textContent = new Date(w.startAt).toLocaleString('ar-SA');
+        const title = document.createElement('div');
+        const t = document.createElement('div'); t.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; t.textContent = w.title;
+        const d = document.createElement('div'); d.style.cssText = 'font:500 10px Tajawal,sans-serif;color:var(--muted);'; d.textContent = w.description || '—';
+        title.append(t, d);
+        const dur = document.createElement('div'); dur.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);text-align:end;'; dur.textContent = w.durationMin + ' د';
+        const impact = document.createElement('div'); impact.style.cssText = 'font:800 10px Cairo,sans-serif;color:' + impactColor + ';text-align:end;'; impact.textContent = w.impact === 'major' ? '⚠ كبير' : (w.impact === 'moderate' ? '🟡 متوسّط' : '🟢 طفيف');
+        row.append(dt, title, dur, impact);
+        return row;
+      };
+      upcoming.replaceChildren();
+      if (!r.upcoming.length) {
+        const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا نوافذ صيانة قادمة.';
+        upcoming.appendChild(empty);
+      } else {
+        r.upcoming.forEach(w => upcoming.appendChild(mk(w, false)));
+      }
+      past.replaceChildren();
+      r.past.forEach(w => past.appendChild(mk(w, true)));
+    } catch (e) {}
+  }
+
   async function loadUptime() {
     const grid = document.getElementById('uptimeGrid');
     const badge = document.getElementById('uptimeBadge');
@@ -10859,7 +10908,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime(), loadMaint()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
