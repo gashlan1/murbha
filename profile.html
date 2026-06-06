@@ -859,6 +859,54 @@
     </div>
   </div>
 
+  <!-- Inflation hedge -->
+  <div class="settings-group" id="inflSec">
+    <div class="settings-h">📈 خطّة الحماية من التضخّم</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">التضخّم يأكل قوّتك الشرائيّة. حدّد دروعك ضدّه.</p>
+      <div id="inflProtection" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflActive" /> فعّل خطّة الحماية من التضخّم
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">توقّعك السنوي للتضخّم (٪)
+          <input type="number" id="inflExpect" min="0" max="30" step="0.5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة الأصول الحقيقيّة في محفظتك (٪)
+          <input type="number" id="inflRealPct" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflReal" /> خصّصت ٢٠٪+ لأصول حقيقيّة (عقار/ذهب/سلع)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflShort" /> مرابحة قصيرة الأجل (≤ ١٢ شهر)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflFx" /> حصّة بعملة قويّة (USD/CHF)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflGold" /> ذهب فيزيكي أو رقمي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflRaise" /> تفاوض زيادة سنويّة ≥ التضخّم
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflSide" /> دخل ثانوي مرن (يتجاوب مع الأسعار)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflTrack" /> أتتبّع CPI الرسمي شهريًّا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="inflSector" /> أراقب تضخّم سلّتي الشخصيّة (سكن/تعليم/صحّة)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="inflNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="inflSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة التضخّم</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Rebalance plan -->
   <div class="settings-group" id="rebalSec">
     <div class="settings-h">⚖️ خطّة إعادة موازنة المحفظة</div>
@@ -8338,6 +8386,75 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Inflation hedge plan
+  (async () => {
+    try {
+      const active = document.getElementById('inflActive');
+      const expect = document.getElementById('inflExpect');
+      const realPct = document.getElementById('inflRealPct');
+      const real = document.getElementById('inflReal');
+      const shortM = document.getElementById('inflShort');
+      const fx = document.getElementById('inflFx');
+      const gold = document.getElementById('inflGold');
+      const raise = document.getElementById('inflRaise');
+      const side = document.getElementById('inflSide');
+      const track = document.getElementById('inflTrack');
+      const sector = document.getElementById('inflSector');
+      const notes = document.getElementById('inflNotes');
+      const protectionEl = document.getElementById('inflProtection');
+      const btn = document.getElementById('inflSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        armored: '🛡️ مدرّع',
+        defended: '🛡️ محمي',
+        partial: '◷ حماية جزئيّة',
+        minimal: '⚠️ حماية ضعيفة',
+        exposed: '🚨 مكشوف',
+      };
+      const r = await App.api('GET', '/app/me/inflation-hedge');
+      active.checked = !!r.active;
+      expect.value = Number(r.inflationExpectationPct || 3);
+      realPct.value = Number(r.realAssetsPct || 0);
+      real.checked = !!r.realAssetsAllocated;
+      shortM.checked = !!r.shortMurabaha;
+      fx.checked = !!r.foreignCurrencyHedge;
+      gold.checked = !!r.goldAllocation;
+      raise.checked = !!r.salaryRaiseNegotiated;
+      side.checked = !!r.sideIncomeStream;
+      track.checked = !!r.inflationTracked;
+      sector.checked = !!r.sectorInflationWatch;
+      notes.value = r.notes || '';
+      if (protectionEl) protectionEl.textContent = (levelLabels[r.protectionLevel] || '—') + ' · ' + r.protectionScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' دروع';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/inflation-hedge', {
+            active: active.checked,
+            inflationExpectationPct: Number(expect.value || 3),
+            realAssetsPct: Number(realPct.value || 0),
+            realAssetsAllocated: real.checked,
+            shortMurabaha: shortM.checked,
+            foreignCurrencyHedge: fx.checked,
+            goldAllocation: gold.checked,
+            salaryRaiseNegotiated: raise.checked,
+            sideIncomeStream: side.checked,
+            inflationTracked: track.checked,
+            sectorInflationWatch: sector.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة التضخّم', 'success');
+            const r2 = await App.api('GET', '/app/me/inflation-hedge');
+            if (protectionEl) protectionEl.textContent = (levelLabels[r2.protectionLevel] || '—') + ' · ' + r2.protectionScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' دروع';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
