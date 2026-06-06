@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Deposit insights -->
+  <div class="settings-group" id="depInsSec" style="display:none;">
+    <div class="settings-h">💳 رؤى الإيداع</div>
+    <div style="padding:14px 18px;">
+      <div id="depInsHero" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="depInsKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Readiness checklist -->
   <div class="settings-group" id="readySec" style="display:none;">
     <div class="settings-h">✅ قائمة الجاهزيّة للاستثمار</div>
@@ -3209,6 +3218,42 @@
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
       });
+    } catch (e) {}
+  })();
+
+  // Deposit insights
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/deposit-insights');
+      if (!r.hasData) return;
+      const sec = document.getElementById('depInsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('depInsHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '💳';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 28px Cairo,sans-serif;color:#d4ac6e;margin:6px 0 4px;';
+      big.textContent = fmt(r.totalDeposited) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fff;';
+      sub.textContent = 'إجماليّ مودَع عبر ' + r.depositCount + ' إيداع';
+      hero.append(ic, big, sub);
+      const kpis = document.getElementById('depInsKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div'); w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll); return w;
+      };
+      kpis.append(
+        mk('متوسّط الإيداع', fmt(r.avgDeposit) + ' ر.س', '#0a4d36'),
+        mk('أكبر إيداع', fmt(r.largestDeposit) + ' ر.س', '#0f6e3a'),
+        mk('متوسّط شهري', fmt(r.monthlyAverage) + ' ر.س', '#b08840'),
+        mk('أشهر نشطة', r.activeMonths, '#062b1e'),
+        mk('طريقة الدفع المفضّلة', r.preferredMethod || '—', '#5c2418'),
+        mk('عمليّات فاشلة', fmt(r.failedCount), r.failedCount > 0 ? '#c54a3a' : '#0f6e3a'),
+      );
     } catch (e) {}
   })();
 
