@@ -859,6 +859,61 @@
     </div>
   </div>
 
+  <!-- Lifestyle creep guard -->
+  <div class="settings-group" id="creepSec">
+    <div class="settings-h">🚧 حارس تضخّم نمط الحياة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد كيف تتعامل مع كلّ زيادة في الدخل. القاعدة المقترحة: ٥٠/٣٠/٢٠.</p>
+      <div id="creepGuard" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepActive" /> فعّل حارس التضخّم
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تخصيص الزيادة — استثمار (٪)
+          <input type="number" id="creepInvest" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تخصيص الزيادة — نمط حياة (٪)
+          <input type="number" id="creepLifestyle" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تخصيص الزيادة — صدقة/أهل/طوارئ (٪)
+          <input type="number" id="creepGive" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <div id="creepSumWarn" style="display:none;font:700 11px Cairo,sans-serif;color:#dc2626;">⚠️ مجموع النسب ≠ ١٠٠٪</div>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">آخر زيادة راتب (ر.س)
+          <input type="number" id="creepLastAmt" min="0" max="1000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تاريخ آخر زيادة
+          <input type="date" id="creepLastDate" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepAutoSplit" /> توزيع تلقائي للزيادة قبل أن أراها
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creep24h" /> قاعدة ٢٤ ساعة لأيّ شراء فوق ١٠٠٠ ر.س
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepWishlist" /> قائمة مرغوبات بانتظار ٣٠ يومًا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepTracking" /> أتتبّع نفقاتي شهريًّا بالفئات
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepReverse" /> ميزانيّة معكوسة (الاستثمار أوّلاً، أنفق الباقي)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepAlert" /> تنبيه عند زيادة الدخل
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="creepSubs" /> أراجع الاشتراكات ربع سنويًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="creepNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="creepSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ حارس التضخّم</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bucket strategy -->
   <div class="settings-group" id="bucketSec">
     <div class="settings-h">🪣 استراتيجيّة الدلاء الثلاثة</div>
@@ -8563,6 +8618,87 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Lifestyle creep guard
+  (async () => {
+    try {
+      const active = document.getElementById('creepActive');
+      const invest = document.getElementById('creepInvest');
+      const lifestyle = document.getElementById('creepLifestyle');
+      const give = document.getElementById('creepGive');
+      const sumWarn = document.getElementById('creepSumWarn');
+      const lastAmt = document.getElementById('creepLastAmt');
+      const lastDate = document.getElementById('creepLastDate');
+      const autoSplit = document.getElementById('creepAutoSplit');
+      const rule24h = document.getElementById('creep24h');
+      const wishlist = document.getElementById('creepWishlist');
+      const tracking = document.getElementById('creepTracking');
+      const reverse = document.getElementById('creepReverse');
+      const alert_ = document.getElementById('creepAlert');
+      const subs = document.getElementById('creepSubs');
+      const notes = document.getElementById('creepNotes');
+      const guardEl = document.getElementById('creepGuard');
+      const btn = document.getElementById('creepSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        fortified: '🏆 محصّن',
+        protected: '🛡️ محمي',
+        aware: '👀 واعٍ',
+        exposed: '🚨 مكشوف',
+      };
+      const checkSum = () => {
+        const t = Number(invest.value || 0) + Number(lifestyle.value || 0) + Number(give.value || 0);
+        if (sumWarn) sumWarn.style.display = (t !== 100) ? '' : 'none';
+      };
+      [invest, lifestyle, give].forEach(el => el.addEventListener('input', checkSum));
+      const r = await App.api('GET', '/app/me/lifestyle-creep');
+      active.checked = !!r.active;
+      invest.value = Number(r.raiseSplitInvestPct || 50);
+      lifestyle.value = Number(r.raiseSplitLifestylePct || 30);
+      give.value = Number(r.raiseSplitGivePct || 20);
+      lastAmt.value = Number(r.lastRaiseAmount || 0);
+      if (r.lastRaiseDate) lastDate.value = String(r.lastRaiseDate).slice(0, 10);
+      autoSplit.checked = !!r.autoSplitOnRaise;
+      rule24h.checked = !!r.rule24h;
+      wishlist.checked = !!r.wishlistDelay30d;
+      tracking.checked = !!r.monthlyTracking;
+      reverse.checked = !!r.reverseBudget;
+      alert_.checked = !!r.raiseAlertEnabled;
+      subs.checked = !!r.subscriptionAudit;
+      notes.value = r.notes || '';
+      if (guardEl) guardEl.textContent = (levelLabels[r.guardLevel] || '—') + ' · ' + r.guardScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      checkSum();
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/lifestyle-creep', {
+            active: active.checked,
+            raiseSplitInvestPct: Number(invest.value || 50),
+            raiseSplitLifestylePct: Number(lifestyle.value || 30),
+            raiseSplitGivePct: Number(give.value || 20),
+            lastRaiseAmount: Number(lastAmt.value || 0),
+            lastRaiseDate: lastDate.value || null,
+            autoSplitOnRaise: autoSplit.checked,
+            rule24h: rule24h.checked,
+            wishlistDelay30d: wishlist.checked,
+            monthlyTracking: tracking.checked,
+            reverseBudget: reverse.checked,
+            raiseAlertEnabled: alert_.checked,
+            subscriptionAudit: subs.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظ حارس التضخّم', 'success');
+            const r2 = await App.api('GET', '/app/me/lifestyle-creep');
+            if (guardEl) guardEl.textContent = (levelLabels[r2.guardLevel] || '—') + ' · ' + r2.guardScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
