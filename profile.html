@@ -859,6 +859,46 @@
     </div>
   </div>
 
+  <!-- Retirement calculator -->
+  <div class="settings-group" id="retCalcSec">
+    <div class="settings-h">🏖 حاسبة التقاعد</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احسب إن كنت ستصل لهدف التقاعد. التحديث آنيّ بناءً على مدّخراتك ومساهمتك الشهريّة.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">عمرك الحالي</label>
+          <input type="number" id="rcAge" min="15" max="90" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">عمر التقاعد المستهدف</label>
+          <input type="number" id="rcRetAge" min="40" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الدخل الشهري المرغوب (ر.س)</label>
+          <input type="number" id="rcTarget" min="0" step="500" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">مدّخراتك الحاليّة (ر.س)</label>
+          <input type="number" id="rcSavings" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">المساهمة الشهريّة (ر.س)</label>
+          <input type="number" id="rcContrib" min="0" step="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">العائد السنوي المتوقّع (٪)</label>
+          <input type="number" id="rcYield" min="0" max="30" step="0.5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">معدّل التضخّم (٪)</label>
+          <input type="number" id="rcInfl" min="0" max="20" step="0.5" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="rcCalcBtn" style="margin-top:14px;background:#0a4d36;color:#fff;border:none;padding:12px 28px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">احسب</button>
+      <div id="rcResult" style="margin-top:14px;display:none;background:var(--paper);border-radius:12px;padding:16px;"></div>
+    </div>
+  </div>
+
   <!-- Investor expenses -->
   <div class="settings-group" id="invExpSec">
     <div class="settings-h">💼 مصاريف الاستثمار (للضريبة)</div>
@@ -4242,6 +4282,68 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Retirement calc
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/retirement-calc');
+      if (!r.hasData) return;
+      const age = document.getElementById('rcAge');
+      const retAge = document.getElementById('rcRetAge');
+      const target = document.getElementById('rcTarget');
+      const savings = document.getElementById('rcSavings');
+      const contrib = document.getElementById('rcContrib');
+      const yld = document.getElementById('rcYield');
+      const infl = document.getElementById('rcInfl');
+      const btn = document.getElementById('rcCalcBtn');
+      const result = document.getElementById('rcResult');
+      if (!age || !btn) return;
+      age.value = r.currentAge;
+      retAge.value = r.retirementAge;
+      target.value = r.targetMonthlyIncome;
+      savings.value = r.currentSavings;
+      contrib.value = r.monthlyContribution;
+      yld.value = r.expectedYieldPct;
+      infl.value = r.inflationPct;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      btn.addEventListener('click', async () => {
+        try {
+          const out = await App.api('POST', '/app/me/retirement-calc', {
+            currentAge: Number(age.value),
+            retirementAge: Number(retAge.value),
+            targetMonthlyIncome: Number(target.value),
+            currentSavings: Number(savings.value),
+            monthlyContribution: Number(contrib.value),
+            expectedYieldPct: Number(yld.value),
+            inflationPct: Number(infl.value),
+          });
+          result.replaceChildren();
+          const h = document.createElement('div');
+          h.style.cssText = 'font:900 18px Cairo,sans-serif;color:' + (out.onTrack ? '#0a4d36' : '#c54a3a') + ';margin-bottom:8px;text-align:center;';
+          h.textContent = out.onTrack ? '✅ أنت في المسار' : '⚠ أنت متأخّر';
+          result.appendChild(h);
+          const tiles = [
+            { lbl: 'سنوات حتّى التقاعد', val: out.yearsToRetire },
+            { lbl: 'المبلغ المتوقّع', val: fmt(out.projectedNestEgg) + ' ر.س' },
+            { lbl: 'المبلغ المطلوب', val: fmt(out.requiredNestEgg) + ' ر.س' },
+            { lbl: 'الفجوة', val: (out.gap >= 0 ? '+' : '') + fmt(out.gap) + ' ر.س' },
+            { lbl: 'الدخل المعادل الآن', val: fmt(out.futureTargetMonthly) + ' ر.س/شهر (مع التضخّم)' },
+          ];
+          if (!out.onTrack) tiles.push({ lbl: 'المساهمة الشهريّة المطلوبة', val: fmt(out.requiredMonthlyContrib) + ' ر.س' });
+          tiles.forEach(t => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);';
+            const l = document.createElement('span'); l.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);'; l.textContent = t.lbl;
+            const v = document.createElement('span'); v.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);'; v.textContent = t.val;
+            row.append(l, v);
+            result.appendChild(row);
+          });
+          result.style.display = '';
+          App.toast && App.toast('تمّ احتساب التقاعد', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
