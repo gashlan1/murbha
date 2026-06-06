@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Referral earnings -->
+  <div class="settings-group" id="refEarnSec" style="display:none;">
+    <div class="settings-h">🤝 أرباحك من الإحالات</div>
+    <div style="padding:14px 18px;">
+      <div id="refEarnHero" style="background:linear-gradient(135deg,#b08840,#5c2418);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="refEarnKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px;"></div>
+      <div id="refEarnRows" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Diversification score -->
   <div class="settings-group" id="diverSec" style="display:none;">
     <div class="settings-h">🎨 درجة تنويع محفظتك</div>
@@ -3189,6 +3199,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Referral earnings
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/referral-earnings');
+      if (!r.hasData || r.totalReferred === 0) return;
+      const sec = document.getElementById('refEarnSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('refEarnHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 32px Cairo,sans-serif;color:#fff;'; big.textContent = fmt(r.totalEarned) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fbf6ea;opacity:0.92;margin-top:6px;'; sub.textContent = 'كسبت من ' + r.activated + ' من أصدقائك المُحالين';
+      const code = document.createElement('div'); code.style.cssText = 'background:rgba(255,255,255,0.18);border-radius:8px;padding:8px 12px;font:800 14px Cairo,sans-serif;color:#fff;margin-top:10px;display:inline-block;'; code.textContent = '🎟 رمزك: ' + r.referralCode;
+      hero.append(big, sub, code);
+      const kpis = document.getElementById('refEarnKpis');
+      kpis.replaceChildren();
+      const mk = (l, v, color) => {
+        const w = document.createElement('div'); w.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;text-align:center;';
+        const vv = document.createElement('div'); vv.style.cssText = 'font:900 16px Cairo,sans-serif;color:' + (color || 'var(--green-dark)') + ';'; vv.textContent = v;
+        const ll = document.createElement('div'); ll.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;'; ll.textContent = l;
+        w.append(vv, ll); return w;
+      };
+      kpis.append(
+        mk('مُحالون', r.totalReferred, '#0a4d36'),
+        mk('فعّلوا', r.activated, '#0f6e3a'),
+        mk('بانتظار', r.pending, '#b08840'),
+        mk('معدّل التفعيل', r.activationRate + '٪', '#5c2418'),
+      );
+      const rows = document.getElementById('refEarnRows');
+      rows.replaceChildren();
+      r.rows.slice(0, 5).forEach(row => {
+        const w = document.createElement('div');
+        w.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+        const name = document.createElement('div'); name.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; name.textContent = row.name;
+        const status = document.createElement('div'); status.style.cssText = 'font:700 10px Cairo,sans-serif;'; status.style.color = row.invested ? '#0f6e3a' : '#b08840'; status.textContent = row.invested ? '✓ مفعّل' : '⏳ بانتظار';
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0f6e3a;'; amt.textContent = row.earned > 0 ? '+' + fmt(row.earned) : '—';
+        w.append(name, status, amt);
+        rows.appendChild(w);
       });
     } catch (e) {}
   })();
