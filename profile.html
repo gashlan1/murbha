@@ -859,6 +859,41 @@
     </div>
   </div>
 
+  <!-- Investor expenses -->
+  <div class="settings-group" id="invExpSec">
+    <div class="settings-h">💼 مصاريف الاستثمار (للضريبة)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل المصاريف المتعلّقة بنشاطك الاستثماري — رسوم، استشارات، اشتراكات. مفيد للضرائب والتقييم الذاتي.</p>
+      <div id="invExpSummary" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:12px 14px;margin-bottom:14px;font:800 12px Cairo,sans-serif;text-align:center;display:none;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">مصروف جديد</div>
+        <div style="display:grid;gap:8px;">
+          <select id="expCategory" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="platform_fees">رسوم منصّة</option>
+            <option value="tax_advisor">مستشار ضريبي</option>
+            <option value="legal">قانوني</option>
+            <option value="subscriptions">اشتراكات (بلومبيرغ، وول ستريت، إلخ)</option>
+            <option value="education">تعليم وكتب</option>
+            <option value="travel">سفر متعلّق بالاستثمار</option>
+            <option value="other">آخر</option>
+          </select>
+          <input type="text" id="expDesc" placeholder="وصف قصير" maxlength="200" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+          <input type="number" id="expAmount" placeholder="المبلغ (ر.س)" min="0" step="0.01" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+          <input type="date" id="expDate" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+          <label style="display:flex;align-items:center;gap:8px;font:700 11px Cairo,sans-serif;color:var(--green-dark);">
+            <input type="checkbox" id="expDeduct" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+            قابل للخصم الضريبي
+          </label>
+          <button type="button" id="expAddBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إضافة</button>
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">حسب الفئة (السنة الحاليّة)</div>
+      <div id="expByCat" style="display:grid;gap:6px;margin-bottom:14px;"></div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">آخر القيود</div>
+      <div id="expList" style="display:grid;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Decision log -->
   <div class="settings-group" id="decLogSec">
     <div class="settings-h">📔 سجلّ القرارات الاستثماريّة</div>
@@ -4207,6 +4242,93 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Investor expenses
+  (async () => {
+    try {
+      const cat = document.getElementById('expCategory');
+      const desc = document.getElementById('expDesc');
+      const amt = document.getElementById('expAmount');
+      const dt = document.getElementById('expDate');
+      const ded = document.getElementById('expDeduct');
+      const btn = document.getElementById('expAddBtn');
+      const sumWrap = document.getElementById('invExpSummary');
+      const catWrap = document.getElementById('expByCat');
+      const list = document.getElementById('expList');
+      if (!list || !btn) return;
+      const catLabels = {
+        platform_fees: 'رسوم منصّة',
+        tax_advisor: 'مستشار ضريبي',
+        legal: 'قانوني',
+        subscriptions: 'اشتراكات',
+        education: 'تعليم وكتب',
+        travel: 'سفر استثماري',
+        other: 'آخر',
+      };
+      try { dt.value = new Date().toISOString().slice(0, 10); } catch {}
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/expenses');
+        if (!r.hasData) return;
+        if (sumWrap) {
+          sumWrap.textContent = '✓ إجمالي ' + r.year + ': ' + fmt(r.totalYear) + ' ر.س';
+          sumWrap.style.display = '';
+        }
+        catWrap.replaceChildren();
+        const max = Math.max(1, ...r.byCategory.map(c => c.total));
+        r.byCategory.forEach(c => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:130px 1fr 80px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = catLabels[c.category] || c.category;
+          const bar = document.createElement('div'); bar.style.cssText = 'height:10px;background:#fff;border-radius:4px;overflow:hidden;';
+          const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, (c.total / max) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+          bar.appendChild(fill);
+          const v = document.createElement('div'); v.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--green-dark);text-align:end;'; v.textContent = fmt(c.total);
+          row.append(lbl, bar, v);
+          catWrap.appendChild(row);
+        });
+        list.replaceChildren();
+        if (!r.entries.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'background:var(--paper);border-radius:8px;padding:12px;font:500 11px Tajawal,sans-serif;color:var(--muted);text-align:center;';
+          empty.textContent = 'لا قيود بعد. ابدأ بتسجيل أوّل مصروف.';
+          list.appendChild(empty);
+          return;
+        }
+        r.entries.slice(0, 20).forEach(e => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid;grid-template-columns:80px 1fr 70px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+          const d = document.createElement('div'); d.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);'; d.textContent = new Date(e.date).toLocaleDateString('ar-SA');
+          const desc2 = document.createElement('div'); desc2.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+          desc2.textContent = (catLabels[e.category] || e.category) + ' — ' + e.description + (e.taxDeductible ? ' 🧾' : '');
+          const v = document.createElement('div'); v.style.cssText = 'font:900 11px Cairo,sans-serif;color:#c54a3a;text-align:end;'; v.textContent = fmt(e.amount);
+          const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+          del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:800 12px Cairo,sans-serif;';
+          del.addEventListener('click', async () => {
+            try { await App.api('DELETE', '/app/me/expenses/' + encodeURIComponent(e.id)); render(); } catch {}
+          });
+          row.append(d, desc2, v, del);
+          list.appendChild(row);
+        });
+      };
+      render();
+      btn.addEventListener('click', async () => {
+        if (!desc.value.trim() || !Number(amt.value)) { App.toast && App.toast('أكمل الوصف والمبلغ', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/expenses', {
+            category: cat.value,
+            description: desc.value,
+            amount: Number(amt.value),
+            date: dt.value || null,
+            taxDeductible: ded.checked,
+          });
+          App.toast && App.toast('تم إضافة المصروف', 'success');
+          desc.value = ''; amt.value = '';
+          render();
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
