@@ -859,6 +859,30 @@
     </div>
   </div>
 
+  <!-- Payment methods -->
+  <div class="settings-group" id="pmSec">
+    <div class="settings-h">💳 طرق الدفع</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إدارة بطاقاتك وحساباتك البنكيّة المستخدمة للإيداع والسحب.</p>
+      <div id="pmList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:14px;">
+        <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">➕ أضف طريقة جديدة</div>
+        <div style="display:grid;gap:8px;">
+          <select id="pmType" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="card">💳 بطاقة ائتمان/مدى</option>
+            <option value="iban">🏦 IBAN حساب بنكي</option>
+            <option value="apple_pay">📱 Apple Pay</option>
+            <option value="stc_pay">📲 STC Pay</option>
+          </select>
+          <input type="text" id="pmLabel" maxlength="40" placeholder="اسم الطريقة (مثلاً: مدى الراجحي)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="pmLast4" maxlength="4" placeholder="آخر ٤ أرقام" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="pmBank" maxlength="40" placeholder="اسم البنك (اختياري)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <button type="button" id="pmAddBtn" style="padding:10px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 12px Cairo,sans-serif;cursor:pointer;">إضافة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Withdrawal projection -->
   <div class="settings-group" id="wdProjSec" style="display:none;">
     <div class="settings-h">💧 متى يمكنك سحب أموالك؟</div>
@@ -3625,6 +3649,68 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Payment methods
+  (async () => {
+    const list = document.getElementById('pmList');
+    const typeIn = document.getElementById('pmType');
+    const labelIn = document.getElementById('pmLabel');
+    const last4In = document.getElementById('pmLast4');
+    const bankIn = document.getElementById('pmBank');
+    const addBtn = document.getElementById('pmAddBtn');
+    if (!list || !addBtn) return;
+    const typeMap = { card: '💳 بطاقة', iban: '🏦 IBAN', apple_pay: '📱 Apple Pay', stc_pay: '📲 STC Pay' };
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/payment-methods');
+        list.replaceChildren();
+        if (!r.hasData || !r.methods.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا طرق دفع محفوظة بعد.';
+          list.appendChild(empty);
+          return;
+        }
+        r.methods.forEach(m => {
+          const card = document.createElement('div');
+          card.style.cssText = 'display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;background:' + (m.isDefault ? '#eaf6ee' : 'var(--paper)') + ';border:1px solid ' + (m.isDefault ? '#0f6e3a' : 'rgba(13,22,18,0.08)') + ';border-radius:10px;padding:12px;';
+          const ic = document.createElement('div'); ic.style.cssText = 'font-size:22px;text-align:center;'; ic.textContent = (typeMap[m.type] || '💳').split(' ')[0];
+          const txt = document.createElement('div');
+          const t1 = document.createElement('div'); t1.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; t1.textContent = (m.label || (typeMap[m.type] || m.type)) + (m.lastFour ? ' •••• ' + m.lastFour : '');
+          const t2 = document.createElement('div'); t2.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);'; t2.textContent = (m.bankName || '') + (m.isDefault ? ' · الافتراضي ✓' : '');
+          txt.append(t1, t2);
+          const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:6px;';
+          if (!m.isDefault) {
+            const def = document.createElement('button'); def.type = 'button'; def.style.cssText = 'background:none;border:none;color:#0a4d36;cursor:pointer;font:700 10px Cairo,sans-serif;'; def.textContent = 'افتراضي';
+            def.onclick = async () => { await App.api('PUT', '/app/me/payment-methods/' + encodeURIComponent(m.id) + '/default', {}); refresh(); };
+            actions.appendChild(def);
+          }
+          const del = document.createElement('button'); del.type = 'button'; del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 11px Cairo,sans-serif;'; del.textContent = '✕';
+          del.onclick = async () => { await App.api('DELETE', '/app/me/payment-methods/' + encodeURIComponent(m.id)); refresh(); };
+          actions.appendChild(del);
+          card.append(ic, txt, actions);
+          list.appendChild(card);
+        });
+      } catch (e) {}
+    }
+    addBtn.addEventListener('click', async () => {
+      addBtn.disabled = true;
+      try {
+        await App.api('POST', '/app/me/payment-methods', {
+          type: typeIn.value,
+          label: labelIn.value.trim(),
+          lastFour: last4In.value.trim(),
+          bankName: bankIn.value.trim(),
+        });
+        if (App.toast) App.toast('تمّت الإضافة', 'success');
+        labelIn.value = ''; last4In.value = ''; bankIn.value = '';
+        refresh();
+      } catch (e) {
+        if (App.toast) App.toast('فشل', 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+    refresh();
   })();
 
   // Withdrawal projection
