@@ -859,6 +859,60 @@
     </div>
   </div>
 
+  <!-- Asset allocation preferences -->
+  <div class="settings-group" id="assetAllocSec">
+    <div class="settings-h">🎨 تخصيص فئات الأصول</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد نسبك المستهدفة بين المرابحة، الذهب، السيولة، والأصول الأخرى.</p>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">الأهداف (٪ — مجموعها ١٠٠)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">🏗 المرابحة</label>
+          <input type="number" id="aaMu" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">🥇 الذهب</label>
+          <input type="number" id="aaGold" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">💵 سيولة</label>
+          <input type="number" id="aaCash" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+        <div>
+          <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">📊 أخرى</label>
+          <input type="number" id="aaOther" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">الحيازات الحاليّة (للمتابعة الذاتيّة)</div>
+      <div style="display:grid;gap:8px;margin-bottom:12px;">
+        <div id="aaCurrentMu" style="background:var(--paper);border-radius:8px;padding:8px;font:700 11px Cairo,sans-serif;color:var(--green-dark);"></div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">قيمة الذهب لديك (ر.س)</label>
+          <input type="number" id="aaCurGold" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">السيولة (حسابات بنكيّة)</label>
+          <input type="number" id="aaCurCash" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">أصول أخرى (عقار، أسهم)</label>
+          <input type="number" id="aaCurOther" min="0" step="1000" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="aaRebalance" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 تنبيهي عند انحراف عن الأهداف
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حدّ الانحراف للتنبيه (٪)</label>
+          <input type="number" id="aaThreshold" min="1" max="20" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="aaSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تخصيص الأصول</button>
+    </div>
+  </div>
+
   <!-- Qualified investor progress -->
   <div class="settings-group" id="qualProgSec">
     <div class="settings-h">🎖 الترقية لمستثمر مؤهّل</div>
@@ -4944,6 +4998,55 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Asset allocation preferences
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/asset-allocation-pref');
+      if (!r.hasData) return;
+      const mu = document.getElementById('aaMu');
+      const gold = document.getElementById('aaGold');
+      const cash = document.getElementById('aaCash');
+      const other = document.getElementById('aaOther');
+      const curMuBox = document.getElementById('aaCurrentMu');
+      const curGold = document.getElementById('aaCurGold');
+      const curCash = document.getElementById('aaCurCash');
+      const curOther = document.getElementById('aaCurOther');
+      const rebalance = document.getElementById('aaRebalance');
+      const threshold = document.getElementById('aaThreshold');
+      const btn = document.getElementById('aaSaveBtn');
+      if (!btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      mu.value = r.targetMurabahaPct;
+      gold.value = r.targetGoldPct;
+      cash.value = r.targetCashPct;
+      other.value = r.targetOtherPct;
+      curMuBox.textContent = '🏗 مرابحتك الحاليّة: ' + fmt(r.currentMurabaha) + ' ر.س (تلقائي من استثماراتك)';
+      curGold.value = r.currentGold;
+      curCash.value = r.currentCash;
+      curOther.value = r.currentOther;
+      rebalance.checked = r.autoRebalanceAlerts !== false;
+      threshold.value = r.rebalanceThresholdPct;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/asset-allocation-pref', {
+            targetMurabahaPct: Number(mu.value),
+            targetGoldPct: Number(gold.value),
+            targetCashPct: Number(cash.value),
+            targetOtherPct: Number(other.value),
+            currentGold: Number(curGold.value),
+            currentCash: Number(curCash.value),
+            currentOther: Number(curOther.value),
+            autoRebalanceAlerts: rebalance.checked,
+            rebalanceThresholdPct: Number(threshold.value),
+          });
+          App.toast && App.toast('تم حفظ التخصيص', 'success');
+        } catch (e) {
+          App.toast && App.toast(e?.error === 'targets_must_sum_to_100' ? 'الأهداف يجب أن تساوي ١٠٠٪' : 'فشل', 'error');
+        }
       });
     } catch (e) {}
   })();
