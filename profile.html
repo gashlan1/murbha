@@ -859,6 +859,57 @@
     </div>
   </div>
 
+  <!-- Career stage -->
+  <div class="settings-group" id="careerSec">
+    <div class="settings-h">🎓 المرحلة الوظيفيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد مرحلتك لنخصّص لك التنبيهات والصفقات المناسبة (تيكت صغير للمبتدئين، صفقات أطول للمتقدّمين).</p>
+      <div id="careerHint" style="background:#eff6ff;border-radius:10px;padding:10px;margin-bottom:12px;font:700 12px Cairo,sans-serif;color:#1e40af;display:none;"></div>
+      <div style="display:grid;gap:8px;">
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المرحلة
+          <select id="careerStage" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="unknown">— اختر</option>
+            <option value="student">طالب</option>
+            <option value="first_job">أوّل وظيفة (أقل من سنة)</option>
+            <option value="early_career">بداية المسار (١–٥ سنوات)</option>
+            <option value="mid_career">وسط المسار (٦–١٥)</option>
+            <option value="senior">متقدّم (+١٥)</option>
+            <option value="retired">متقاعد</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">سنوات الخبرة
+          <input type="number" id="careerYears" min="0" max="60" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الراتب الشهري الإجمالي (ر.س)
+          <input type="number" id="careerIncome" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نوع جهة العمل
+          <select id="careerEmployer" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="unknown">— اختر</option>
+            <option value="government">حكومي</option>
+            <option value="private_large">شركة كبرى</option>
+            <option value="private_sme">منشأة صغيرة/متوسطة</option>
+            <option value="startup">شركة ناشئة</option>
+            <option value="self_employed">عمل حر</option>
+            <option value="gig">منصة (طلبات/توصيل)</option>
+            <option value="unemployed">باحث عن عمل</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="careerRetirement" /> مشترك في برنامج تقاعد/ادّخار وظيفي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="careerInvested" /> سبق أن استثمرت في مربحة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="careerAlerts" checked /> تذكيرات قاعدة ٥٠/٣٠/٢٠ شهريًّا
+        </label>
+        <button type="button" id="careerSaveBtn" style="background:#2563eb;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ المرحلة</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="first-job-investing.html" style="color:var(--green);">أوّل وظيفة، أوّل استثمار</a>.</p>
+    </div>
+  </div>
+
   <!-- Spiritual goal -->
   <div class="settings-group" id="spiritSec">
     <div class="settings-h">🕋 هدف العمرة / الحج</div>
@@ -5780,6 +5831,64 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Career stage
+  (async () => {
+    try {
+      const stage = document.getElementById('careerStage');
+      const years = document.getElementById('careerYears');
+      const income = document.getElementById('careerIncome');
+      const employer = document.getElementById('careerEmployer');
+      const retirement = document.getElementById('careerRetirement');
+      const invested = document.getElementById('careerInvested');
+      const alerts = document.getElementById('careerAlerts');
+      const hint = document.getElementById('careerHint');
+      const btn = document.getElementById('careerSaveBtn');
+      if (!stage || !btn) return;
+      const renderHint = () => {
+        const inc = Number(income.value || 0);
+        if (!inc) { hint.style.display = 'none'; return; }
+        const save = Math.round(inc * 0.20);
+        const needs = Math.round(inc * 0.50);
+        const wants = Math.round(inc * 0.30);
+        const fmt = n => n.toLocaleString('ar-SA');
+        hint.style.display = '';
+        hint.textContent = '💡 قاعدة ٥٠/٣٠/٢٠: احتياجات ' + fmt(needs) + ' · رغبات ' + fmt(wants) + ' · ادّخار+استثمار ' + fmt(save) + ' ر.س/شهر';
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/career-stage');
+        stage.value = r.stage || 'unknown';
+        years.value = r.yearsExperience || '';
+        income.value = r.monthlyGrossIncome || '';
+        employer.value = r.employerType || 'unknown';
+        retirement.checked = !!r.hasRetirementPlan;
+        invested.checked = !!r.hasInvested;
+        alerts.checked = r.fiftyThirtyTwentyAlerts !== false;
+        renderHint();
+      };
+      load();
+      income.addEventListener('input', renderHint);
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/career-stage', {
+            stage: stage.value,
+            yearsExperience: Number(years.value || 0),
+            monthlyGrossIncome: Number(income.value || 0),
+            employerType: employer.value,
+            hasRetirementPlan: retirement.checked,
+            hasInvested: invested.checked,
+            fiftyThirtyTwentyAlerts: alerts.checked,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ المرحلة الوظيفيّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
