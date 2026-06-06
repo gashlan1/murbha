@@ -859,6 +859,24 @@
     </div>
   </div>
 
+  <!-- Savings goals -->
+  <div class="settings-group" id="goalsSec">
+    <div class="settings-h">🎯 أهدافك الادّخاريّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">ضع أهدافاً واضحة (سفر، زواج، منزل) وتابع تقدّمك.</p>
+      <div id="goalsList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:14px;">
+        <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">➕ أضف هدفاً جديداً</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="goalName" maxlength="60" placeholder="مثلاً: رحلة اليابان" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="number" id="goalTarget" min="100" step="500" placeholder="المبلغ المستهدف (ر.س)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="goalIcon" maxlength="3" value="🎯" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;text-align:center;width:80px;" />
+          <button type="button" id="goalAddBtn" style="padding:10px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 12px Cairo,sans-serif;cursor:pointer;">إضافة الهدف</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Recurring deposit -->
   <div class="settings-group" id="recDepSec">
     <div class="settings-h">💸 إيداع تلقائي متكرّر</div>
@@ -3302,6 +3320,69 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Savings goals
+  (async () => {
+    const list = document.getElementById('goalsList');
+    const nameIn = document.getElementById('goalName');
+    const targetIn = document.getElementById('goalTarget');
+    const iconIn = document.getElementById('goalIcon');
+    const addBtn = document.getElementById('goalAddBtn');
+    if (!list || !addBtn) return;
+    const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/savings-goals');
+        list.replaceChildren();
+        if (!r.hasData || !r.goals.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:10px;'; empty.textContent = 'لا أهداف بعد. أضف هدفك الأوّل أدناه.';
+          list.appendChild(empty);
+          return;
+        }
+        r.goals.forEach(g => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+          const left = document.createElement('div'); left.style.cssText = 'display:flex;align-items:center;gap:8px;';
+          const ic = document.createElement('div'); ic.style.cssText = 'font-size:22px;'; ic.textContent = g.icon || '🎯';
+          const nm = document.createElement('div'); nm.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; nm.textContent = g.name;
+          left.append(ic, nm);
+          const del = document.createElement('button'); del.type = 'button';
+          del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 11px Cairo,sans-serif;'; del.textContent = '✕';
+          del.onclick = async () => {
+            await App.api('DELETE', '/app/me/savings-goals/' + encodeURIComponent(g.id));
+            refresh();
+          };
+          head.append(left, del);
+          const bar = document.createElement('div'); bar.style.cssText = 'height:10px;background:#fff;border-radius:99px;overflow:hidden;margin-bottom:6px;';
+          const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + g.progressPct + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+          bar.appendChild(fill);
+          const sub = document.createElement('div'); sub.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--muted);';
+          sub.textContent = fmt(g.savedAmount || 0) + ' / ' + fmt(g.targetAmount) + ' ر.س · ' + g.progressPct + '٪';
+          card.append(head, bar, sub);
+          list.appendChild(card);
+        });
+      } catch (e) {}
+    }
+    addBtn.addEventListener('click', async () => {
+      addBtn.disabled = true;
+      try {
+        await App.api('POST', '/app/me/savings-goals', {
+          name: nameIn.value.trim(),
+          targetAmount: Number(targetIn.value) || 0,
+          icon: iconIn.value.trim() || '🎯',
+        });
+        if (App.toast) App.toast('تمّت إضافة الهدف', 'success');
+        nameIn.value = ''; targetIn.value = ''; iconIn.value = '🎯';
+        refresh();
+      } catch (e) {
+        if (App.toast) App.toast('فشل — تحقّق من الاسم والمبلغ', 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+    refresh();
   })();
 
   // Recurring deposit
