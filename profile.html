@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Category limits -->
+  <div class="settings-group" id="catLimSec">
+    <div class="settings-h">🎚 سقف الاستثمار لكلّ قطاع</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد حدّاً أعلى لكلّ قطاع. سنمنعك تلقائياً من تجاوزه (٠ = بلا حدّ).</p>
+      <div id="catLimList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <button type="button" id="catLimSave" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ الحدود</button>
+    </div>
+  </div>
+
   <!-- Currency & number display -->
   <div class="settings-group" id="currSec">
     <div class="settings-h">💱 العملة والأرقام</div>
@@ -3933,6 +3943,56 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Category limits
+  (async () => {
+    const list = document.getElementById('catLimList');
+    const saveBtn = document.getElementById('catLimSave');
+    if (!list || !saveBtn) return;
+    const inputs = {};
+    try {
+      const r = await App.api('GET', '/app/me/category-limits');
+      if (!r.hasData) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      list.replaceChildren();
+      r.categories.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:160px 1fr 140px;gap:10px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = c.label;
+        const status = document.createElement('div'); status.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        if (c.cap > 0) {
+          const usedPct = Math.min(100, Math.round((c.invested / c.cap) * 100));
+          const color = usedPct >= 80 ? '#c54a3a' : (usedPct >= 50 ? '#b08840' : '#0f6e3a');
+          status.innerHTML = 'مستهلك: <strong style="color:' + color + ';">' + fmt(c.invested) + ' / ' + fmt(c.cap) + '</strong> (' + usedPct + '٪)';
+        } else {
+          status.textContent = c.invested > 0 ? ('استثمرت ' + fmt(c.invested) + ' ر.س — بدون سقف') : 'لا استثمارات بعد';
+        }
+        const input = document.createElement('input');
+        input.type = 'number'; input.min = '0'; input.step = '1000'; input.value = c.cap;
+        input.style.cssText = 'padding:8px;border:1px solid var(--line);border-radius:6px;font:600 11px Tajawal,sans-serif;';
+        input.placeholder = 'السقف ر.س';
+        inputs[c.key] = input;
+        row.append(lbl, status, input);
+        list.appendChild(row);
+      });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        const limits = {};
+        for (const [k, input] of Object.entries(inputs)) {
+          const v = Number(input.value) || 0;
+          if (v > 0) limits[k] = v;
+        }
+        try {
+          await App.api('PUT', '/app/me/category-limits', { limits });
+          if (App.toast) App.toast('تمّ حفظ الحدود', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
