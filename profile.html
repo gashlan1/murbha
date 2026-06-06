@@ -859,6 +859,46 @@
     </div>
   </div>
 
+  <!-- Spiritual goal -->
+  <div class="settings-group" id="spiritSec">
+    <div class="settings-h">🕋 هدف العمرة / الحج</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد هدفك الروحاني لنقترح عليك صفقات قصيرة الأمد مناسبة، ونتابع تقدّمك شهريًّا.</p>
+      <div id="spiritStatus" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">لم يُحدَّد بعد</div>
+      <div id="spiritProgress" style="background:#fef9f0;border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px;">
+          <div id="spiritBar" style="height:100%;background:linear-gradient(90deg,#0a4d36,#b08840);width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="spiritProgTxt" style="font:700 11px Cairo,sans-serif;color:var(--muted);text-align:center;"></div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نوع الهدف
+          <select id="spiritType" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="none">— لا هدف حاليًا</option>
+            <option value="umrah">🕋 العمرة فقط</option>
+            <option value="hajj">🕌 الحج فقط</option>
+            <option value="both">🕋 + 🕌 العمرة والحج معًا</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المبلغ المستهدف (ر.س)
+          <input type="number" id="spiritTarget" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُدّخر حتى الآن (ر.س)
+          <input type="number" id="spiritSaved" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الشهور المتبقّية
+          <input type="number" id="spiritMonths" min="0" max="120" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُساهمة الشهريّة (ر.س)
+          <input type="number" id="spiritMonthly" min="0" step="50" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <textarea id="spiritNotes" placeholder="ملاحظات (موعد محدد، رفقة، إلخ)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="spiritSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الهدف</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="umrah-fund.html" style="color:var(--green);">صندوق العمرة</a>.</p>
+    </div>
+  </div>
+
   <!-- Debt profile -->
   <div class="settings-group" id="debtSec">
     <div class="settings-h">💳 ملف الديون والميزانية</div>
@@ -5740,6 +5780,70 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Spiritual goal
+  (async () => {
+    try {
+      const type = document.getElementById('spiritType');
+      const target = document.getElementById('spiritTarget');
+      const saved = document.getElementById('spiritSaved');
+      const months = document.getElementById('spiritMonths');
+      const monthly = document.getElementById('spiritMonthly');
+      const notes = document.getElementById('spiritNotes');
+      const status = document.getElementById('spiritStatus');
+      const prog = document.getElementById('spiritProgress');
+      const bar = document.getElementById('spiritBar');
+      const progTxt = document.getElementById('spiritProgTxt');
+      const btn = document.getElementById('spiritSaveBtn');
+      if (!type || !btn) return;
+      const statusLabels = {
+        'on-track': { txt: '✅ في المسار الصحيح', color: '#0a4d36' },
+        'behind': { txt: '⚠️ متأخّر — ارفع المُساهمة الشهريّة', color: '#b08840' },
+        'funded': { txt: '🎉 الهدف مُموَّل بالكامل', color: '#0a4d36' },
+        'unconfigured': { txt: 'أكمل البيانات لمتابعة التقدّم', color: 'var(--muted)' },
+        'unknown': { txt: 'لم يُحدَّد بعد', color: 'var(--muted)' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/spiritual-goal');
+        type.value = r.type || 'none';
+        target.value = r.targetSar || '';
+        saved.value = r.savedSar || '';
+        months.value = r.monthsRemaining || '';
+        monthly.value = r.monthlyContribSar || '';
+        notes.value = r.notes || '';
+        const l = statusLabels[r.status] || statusLabels.unknown;
+        status.style.color = l.color;
+        const required = r.requiredMonthly > 0 ? ' · مطلوب شهريًّا: ' + r.requiredMonthly.toLocaleString('ar-SA') + ' ر.س' : '';
+        status.textContent = l.txt + required;
+        if (r.type !== 'none' && r.targetSar > 0) {
+          prog.style.display = '';
+          bar.style.width = Math.min(100, r.progressPct) + '%';
+          progTxt.textContent = r.progressPct + '٪ · ' + (r.savedSar || 0).toLocaleString('ar-SA') + ' / ' + (r.targetSar || 0).toLocaleString('ar-SA') + ' ر.س';
+        } else {
+          prog.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/spiritual-goal', {
+            type: type.value,
+            targetSar: Number(target.value || 0),
+            savedSar: Number(saved.value || 0),
+            monthsRemaining: Number(months.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ الهدف', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
