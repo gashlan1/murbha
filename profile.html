@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Trust score -->
+  <div class="settings-group" id="trustSec" style="display:none;">
+    <div class="settings-h">🛡 درجة الثقة في حسابك</div>
+    <div style="padding:14px 18px;">
+      <div id="trustHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="trustComponents" style="display:grid;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Smart matches -->
   <div class="settings-group" id="smartSec" style="display:none;">
     <div class="settings-h">✨ صفقات مقترحة لك</div>
@@ -3574,6 +3583,38 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Trust score
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/trust-score');
+      if (!r.hasData) return;
+      const sec = document.getElementById('trustSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const hero = document.getElementById('trustHero');
+      hero.replaceChildren();
+      const big = document.createElement('div'); big.style.cssText = 'font:900 48px Cairo,sans-serif;color:#d4ac6e;line-height:1;'; big.textContent = r.grade;
+      const score = document.createElement('div'); score.style.cssText = 'font:900 18px Cairo,sans-serif;color:#fff;margin-top:6px;'; score.textContent = r.score + ' / 100';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:6px;'; sub.textContent = r.total + ' من ' + r.maxTotal + ' نقطة محقّقة';
+      hero.append(big, score, sub);
+      const list = document.getElementById('trustComponents');
+      list.replaceChildren();
+      r.components.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:160px 1fr 60px;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:8px 12px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = c.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:8px;background:#fff;border-radius:4px;overflow:hidden;';
+        const pct = (c.value / c.max) * 100;
+        const color = pct >= 100 ? '#0f6e3a' : (pct >= 50 ? '#b08840' : '#c54a3a');
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, pct) + '%;background:' + color + ';';
+        bar.appendChild(fill);
+        const v = document.createElement('div'); v.style.cssText = 'font:900 11px Cairo,sans-serif;color:' + color + ';text-align:end;'; v.textContent = c.value + '/' + c.max;
+        row.append(lbl, bar, v);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
