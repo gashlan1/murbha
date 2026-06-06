@@ -859,6 +859,56 @@
     </div>
   </div>
 
+  <!-- Wedding plan -->
+  <div class="settings-group" id="wedSec">
+    <div class="settings-h">💍 خطّة الزواج</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد الميزانية والمرحلة لنقترح صفقات متوسّطة الأمد، ونتابع تقدّمك شهريًّا.</p>
+      <div id="wedStatus" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">غير مفعَّل</div>
+      <div id="wedProgress" style="background:#fdf2f8;border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px;">
+          <div id="wedBar" style="height:100%;background:linear-gradient(90deg,#db2777,#b08840);width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="wedProgTxt" style="font:700 11px Cairo,sans-serif;color:var(--muted);text-align:center;"></div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="wedActive" /> أدّخر للزواج حاليًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المرحلة
+          <select id="wedStage" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="planning">✍️ تخطيط</option>
+            <option value="engaged">💍 خطوبة</option>
+            <option value="close">⏰ موعد قريب (أقل من ٦ أشهر)</option>
+            <option value="married">🎉 متزوّج (إغلاق)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الأسلوب
+          <select id="wedStyle" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="budget">💸 ميزانيّة (أقل من ١٠٠ ألف)</option>
+            <option value="mid">⚖️ متوسّط (١٠٠–٣٥٠ ألف)</option>
+            <option value="luxury">✨ فاخر (+٣٥٠ ألف)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المبلغ المستهدف (ر.س)
+          <input type="number" id="wedTarget" min="0" step="5000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُدّخر حتى الآن (ر.س)
+          <input type="number" id="wedSaved" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الشهور المتبقّية
+          <input type="number" id="wedMonths" min="0" max="120" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُساهمة الشهريّة (ر.س)
+          <input type="number" id="wedMonthly" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <textarea id="wedNotes" placeholder="ملاحظات (موعد محدد، شريك مدخّر، إلخ)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="wedSaveBtn" style="background:#be185d;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الخطّة</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="wedding-fund.html" style="color:var(--green);">صندوق الزواج</a>.</p>
+    </div>
+  </div>
+
   <!-- Dependents -->
   <div class="settings-group" id="depSec">
     <div class="settings-h">👶 صناديق الأطفال</div>
@@ -5852,6 +5902,76 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Wedding plan
+  (async () => {
+    try {
+      const active = document.getElementById('wedActive');
+      const stage = document.getElementById('wedStage');
+      const style = document.getElementById('wedStyle');
+      const target = document.getElementById('wedTarget');
+      const saved = document.getElementById('wedSaved');
+      const months = document.getElementById('wedMonths');
+      const monthly = document.getElementById('wedMonthly');
+      const notes = document.getElementById('wedNotes');
+      const status = document.getElementById('wedStatus');
+      const prog = document.getElementById('wedProgress');
+      const bar = document.getElementById('wedBar');
+      const progTxt = document.getElementById('wedProgTxt');
+      const btn = document.getElementById('wedSaveBtn');
+      if (!active || !btn) return;
+      const statusLabels = {
+        'on-track': { txt: '✅ في المسار الصحيح', color: '#be185d' },
+        'behind': { txt: '⚠️ متأخّر — ارفع الإيداع الشهري', color: '#b08840' },
+        'funded': { txt: '🎉 ميزانيّة الزواج جاهزة', color: '#0a4d36' },
+        'unconfigured': { txt: 'أكمل البيانات لمتابعة التقدّم', color: 'var(--muted)' },
+        'inactive': { txt: 'غير مفعَّل', color: 'var(--muted)' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/wedding-plan');
+        active.checked = !!r.active;
+        stage.value = r.stage || 'planning';
+        style.value = r.style || 'mid';
+        target.value = r.targetSar || '';
+        saved.value = r.savedSar || '';
+        months.value = r.monthsRemaining || '';
+        monthly.value = r.monthlyContribSar || '';
+        notes.value = r.notes || '';
+        const l = statusLabels[r.status] || statusLabels.inactive;
+        status.style.color = l.color;
+        const required = r.requiredMonthly > 0 ? ' · مطلوب شهريًّا: ' + r.requiredMonthly.toLocaleString('ar-SA') + ' ر.س' : '';
+        status.textContent = l.txt + required;
+        if (r.active && r.targetSar > 0) {
+          prog.style.display = '';
+          bar.style.width = Math.min(100, r.progressPct) + '%';
+          progTxt.textContent = r.progressPct + '٪ · ' + (r.savedSar || 0).toLocaleString('ar-SA') + ' / ' + (r.targetSar || 0).toLocaleString('ar-SA') + ' ر.س';
+        } else {
+          prog.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/wedding-plan', {
+            active: active.checked,
+            stage: stage.value,
+            style: style.value,
+            targetSar: Number(target.value || 0),
+            savedSar: Number(saved.value || 0),
+            monthsRemaining: Number(months.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ الخطّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
