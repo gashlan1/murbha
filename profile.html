@@ -859,6 +859,56 @@
     </div>
   </div>
 
+  <!-- Commodity preferences -->
+  <div class="settings-group" id="commPrefSec">
+    <div class="settings-h">🛢 تفضيلات الاستثمار في السلع</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد نسبة السلع المستهدفة وتوزيعها بين الفئات.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">إجمالي السلع المستهدفة (٪ من المحفظة)</label>
+          <input type="number" id="cpTarget" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);">توزيع داخل السلع</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">🥇 معادن نفيسة</label>
+            <input type="number" id="cpPM" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+          </div>
+          <div>
+            <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">⛽ طاقة</label>
+            <input type="number" id="cpEnergy" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+          </div>
+          <div>
+            <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">🌾 زراعة</label>
+            <input type="number" id="cpAg" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+          </div>
+          <div>
+            <label style="font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:2px;">🏭 صناعيّة</label>
+            <input type="number" id="cpInd" min="0" max="100" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;text-align:center;" />
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cpPhysical" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📦 أتطلّب حيازة فعليّة موثّقة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cpSharia" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📜 أتطلّب اعتماد شرعي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cpLocal" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🇸🇦 فضّل السلع المحلّيّة (سعوديّة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="cpAlerts" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🔔 نبّهني بتذبذب الأسعار
+        </label>
+      </div>
+      <button type="button" id="cpSaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تفضيلات السلع</button>
+    </div>
+  </div>
+
   <!-- Real estate holdings -->
   <div class="settings-group" id="reHoldingsSec">
     <div class="settings-h">🏘 عقاراتي المباشرة</div>
@@ -5633,6 +5683,50 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Commodity preferences
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/commodity-prefs');
+      if (!r.hasData) return;
+      const target = document.getElementById('cpTarget');
+      const pm = document.getElementById('cpPM');
+      const energy = document.getElementById('cpEnergy');
+      const ag = document.getElementById('cpAg');
+      const ind = document.getElementById('cpInd');
+      const physical = document.getElementById('cpPhysical');
+      const sharia = document.getElementById('cpSharia');
+      const local = document.getElementById('cpLocal');
+      const alerts = document.getElementById('cpAlerts');
+      const btn = document.getElementById('cpSaveBtn');
+      if (!btn) return;
+      target.value = r.targetCommodityPct;
+      pm.value = r.preciousMetalsPct;
+      energy.value = r.energyPct;
+      ag.value = r.agriculturePct;
+      ind.value = r.industrialPct;
+      physical.checked = !!r.requirePhysicalCustody;
+      sharia.checked = r.requireShariaCert !== false;
+      local.checked = !!r.preferLocalCommodities;
+      alerts.checked = r.notifyOnPriceAlerts !== false;
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/commodity-prefs', {
+            targetCommodityPct: Number(target.value),
+            preciousMetalsPct: Number(pm.value),
+            energyPct: Number(energy.value),
+            agriculturePct: Number(ag.value),
+            industrialPct: Number(ind.value),
+            requirePhysicalCustody: physical.checked,
+            requireShariaCert: sharia.checked,
+            preferLocalCommodities: local.checked,
+            notifyOnPriceAlerts: alerts.checked,
+          });
+          App.toast && App.toast('تم حفظ تفضيلات السلع', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
