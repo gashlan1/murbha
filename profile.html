@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Self-employed pension -->
+  <div class="settings-group" id="selfPenSec">
+    <div class="settings-h">🏖 خطّة التقاعد المستقلّ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إذا لم يكن لديك تأمين تقاعدي وظيفي، هنا تبني تقاعدك الخاص بقاعدة ٢٥× نفقاتك السنويّة.</p>
+      <div id="selfPenStatus" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">غير مفعَّل</div>
+      <div id="selfPenProj" style="background:#ecfdf5;border-radius:10px;padding:10px;margin-bottom:12px;font:700 12px Cairo,sans-serif;color:#166534;display:none;text-align:center;"></div>
+      <div id="selfPenProgress" style="background:var(--paper);border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px;">
+          <div id="selfPenBar" style="height:100%;background:linear-gradient(90deg,#1f2937,#0a4d36);width:0%;transition:width .4s;"></div>
+        </div>
+        <div id="selfPenProgTxt" style="font:700 11px Cairo,sans-serif;color:var(--muted);text-align:center;"></div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="spActive" /> أبني تقاعدًا مستقلًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عمرك الآن
+          <input type="number" id="spAge" min="18" max="80" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عمر التقاعد المستهدف
+          <input type="number" id="spRetire" min="40" max="80" step="1" value="60" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">النفقات السنويّة المتوقّعة بعد التقاعد (ر.س)
+          <input type="number" id="spExpenses" min="0" step="10000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المُدّخر حتى الآن (ر.س)
+          <input type="number" id="spSaved" min="0" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الإيداع الشهري (ر.س)
+          <input type="number" id="spMonthly" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="spGosi" /> 🏛 مشترك بالتأمينات الاجتماعيّة الاختياريّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="spLifeIns" /> 💼 لديّ تأمين حياة يحمي الخطّة
+        </label>
+        <textarea id="spNotes" placeholder="ملاحظات (حصص الشركة، عقار، تركة متوقّعة)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="spSaveBtn" style="background:#1f2937;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ الخطّة</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="pension-self-employed.html" style="color:var(--green);">تقاعد المستقلّ وصاحب العمل</a>.</p>
+    </div>
+  </div>
+
   <!-- Annual bonus -->
   <div class="settings-group" id="bonusSec">
     <div class="settings-h">💰 خطّة البونص السنوي</div>
@@ -6153,6 +6198,91 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Self-employed pension
+  (async () => {
+    try {
+      const active = document.getElementById('spActive');
+      const age = document.getElementById('spAge');
+      const retire = document.getElementById('spRetire');
+      const expenses = document.getElementById('spExpenses');
+      const saved = document.getElementById('spSaved');
+      const monthly = document.getElementById('spMonthly');
+      const gosi = document.getElementById('spGosi');
+      const lifeIns = document.getElementById('spLifeIns');
+      const notes = document.getElementById('spNotes');
+      const status = document.getElementById('selfPenStatus');
+      const proj = document.getElementById('selfPenProj');
+      const prog = document.getElementById('selfPenProgress');
+      const bar = document.getElementById('selfPenBar');
+      const progTxt = document.getElementById('selfPenProgTxt');
+      const btn = document.getElementById('spSaveBtn');
+      if (!active || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const statusLabels = {
+        'on-track': { txt: '✅ في المسار الصحيح', color: '#0a4d36' },
+        'small-gap': { txt: '◷ فجوة صغيرة — قابلة للإغلاق', color: '#b08840' },
+        'medium-gap': { txt: '⚠️ فجوة متوسّطة — ارفع المدّخر', color: '#b08840' },
+        'large-gap': { txt: '⛔ فجوة كبيرة — مراجعة جوهريّة', color: '#c54a3a' },
+        'unconfigured': { txt: 'أكمل النفقات والعمر للمتابعة', color: 'var(--muted)' },
+        'inactive': { txt: 'غير مفعَّل', color: 'var(--muted)' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/self-pension');
+        active.checked = !!r.active;
+        age.value = r.currentAge || '';
+        retire.value = r.retireAge || 60;
+        expenses.value = r.annualExpensesSar || '';
+        saved.value = r.savedSar || '';
+        monthly.value = r.monthlyContribSar || '';
+        gosi.checked = !!r.voluntaryGosi;
+        lifeIns.checked = !!r.hasLifeInsurance;
+        notes.value = r.notes || '';
+        const l = statusLabels[r.status] || statusLabels.inactive;
+        status.style.color = l.color;
+        let txt = l.txt;
+        if (r.suggestedTarget > 0) txt += ' · هدف مقترح: ' + fmt(r.suggestedTarget) + ' ر.س';
+        if (r.requiredMonthly > 0) txt += ' · مطلوب شهريًّا: ' + fmt(r.requiredMonthly) + ' ر.س';
+        status.textContent = txt;
+        if (r.active && r.projectedAtRetire > 0) {
+          proj.style.display = '';
+          proj.textContent = '📈 المتوقّع عند التقاعد: ' + fmt(r.projectedAtRetire) + ' ر.س (' + r.yearsToRetirement + ' سنة)';
+        } else {
+          proj.style.display = 'none';
+        }
+        if (r.active && r.targetSar > 0) {
+          prog.style.display = '';
+          bar.style.width = Math.min(100, r.progressPct) + '%';
+          progTxt.textContent = r.progressPct + '٪ مما تحتاج · ' + fmt(r.projectedAtRetire) + ' / ' + fmt(r.targetSar) + ' ر.س';
+        } else {
+          prog.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/self-pension', {
+            active: active.checked,
+            currentAge: Number(age.value || 30),
+            retireAge: Number(retire.value || 60),
+            annualExpensesSar: Number(expenses.value || 0),
+            targetSar: 0,
+            savedSar: Number(saved.value || 0),
+            monthlyContribSar: Number(monthly.value || 0),
+            voluntaryGosi: gosi.checked,
+            hasLifeInsurance: lifeIns.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ الخطّة', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
