@@ -859,6 +859,35 @@
     </div>
   </div>
 
+  <!-- Debt profile -->
+  <div class="settings-group" id="debtSec">
+    <div class="settings-h">💳 ملف الديون والميزانية</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">صرّح بدخلك وأقساطك الشهريّة لنعرض لك فحص ملاءمة على كل صفقة قبل الاستثمار. تبقى البيانات خاصّة بحسابك.</p>
+      <div id="debtTier" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">لم يُصرَّح بعد</div>
+      <div style="display:grid;gap:8px;">
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الدخل الشهري (ر.س)
+          <input type="number" id="debtIncome" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي أقساط الديون الشهريّة (ر.س)
+          <input type="number" id="debtPayments" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي المصاريف الشهريّة الأخرى (ر.س)
+          <input type="number" id="debtExpenses" min="0" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">صندوق الطوارئ (ر.س)
+          <input type="number" id="debtEmergency" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="debtCcFlag" /> لديّ دين بطاقة ائتمان قائم
+        </label>
+        <textarea id="debtNotes" placeholder="ملاحظات خاصة بك (اختياري)" maxlength="500" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="debtSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ ملف الديون</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">اقرأ <a href="debt-management.html" style="color:var(--green);">دليل إدارة الديون</a> قبل أن تستثمر.</p>
+    </div>
+  </div>
+
   <!-- Investor circle -->
   <div class="settings-group" id="circleSec">
     <div class="settings-h">👥 حلقاتي الاستثماريّة</div>
@@ -5711,6 +5740,64 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Debt profile
+  (async () => {
+    try {
+      const income = document.getElementById('debtIncome');
+      const payments = document.getElementById('debtPayments');
+      const expenses = document.getElementById('debtExpenses');
+      const emergency = document.getElementById('debtEmergency');
+      const cc = document.getElementById('debtCcFlag');
+      const notes = document.getElementById('debtNotes');
+      const tier = document.getElementById('debtTier');
+      const btn = document.getElementById('debtSaveBtn');
+      if (!income || !btn) return;
+      const tiers = {
+        safe: { txt: '✅ آمن — استثمر بثقة', color: '#0a4d36' },
+        moderate: { txt: '⚠️ معتدل — استثمر باعتدال', color: '#b08840' },
+        high: { txt: '⛔ مرتفع — ركّز على السداد', color: '#c54a3a' },
+        danger: { txt: '🚨 خطر — أعد هيكلة الديون', color: '#c54a3a' },
+        unknown: { txt: 'لم يُصرَّح بعد', color: 'var(--muted)' },
+      };
+      const renderTier = (t, dti, months) => {
+        const l = tiers[t] || tiers.unknown;
+        tier.style.color = l.color;
+        const dtiTxt = dti !== null && dti !== undefined ? ' · DTI ' + (dti * 100).toFixed(0) + '٪' : '';
+        const monthsTxt = months !== null && months !== undefined ? ' · طوارئ ' + months + ' شهر' : '';
+        tier.textContent = l.txt + dtiTxt + monthsTxt;
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/debt-profile');
+        income.value = r.monthlyIncome || '';
+        payments.value = r.monthlyDebtPayments || '';
+        expenses.value = r.monthlyExpenses || '';
+        emergency.value = r.emergencyFundSar || '';
+        cc.checked = !!r.hasCreditCardDebt;
+        notes.value = r.notes || '';
+        renderTier(r.tier, r.dti, r.emergencyMonthsCovered);
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/debt-profile', {
+            monthlyIncome: Number(income.value || 0),
+            monthlyDebtPayments: Number(payments.value || 0),
+            monthlyExpenses: Number(expenses.value || 0),
+            emergencyFundSar: Number(emergency.value || 0),
+            hasCreditCardDebt: cc.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ ملف الديون', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
