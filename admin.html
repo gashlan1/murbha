@@ -695,6 +695,17 @@
     </div>
   </div>
 
+  <!-- NOTIFICATION DELIVERY -->
+  <div class="admin-card" id="notifDelCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>📡 توصيل الإشعارات حسب القناة</span>
+      <span class="card-h-sub" id="notifDelBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="notifDelRows" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- REFUND REASONS -->
   <div class="admin-card" id="refReasCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3637,6 +3648,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadNotifDel() {
+    const wrap = document.getElementById('notifDelRows');
+    const badge = document.getElementById('notifDelBadge');
+    if (!wrap) return;
+    try {
+      const r = await App.api('GET', '/app/admin/notif-delivery');
+      if (!r.hasData) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (badge) badge.textContent = fmt(r.totalSent) + ' إشعار';
+      wrap.replaceChildren();
+      const chMap = { push: '🔔 Push', email: '✉️ Email', sms: '📱 SMS', whatsapp: '💬 WhatsApp', inapp: '📲 داخل التطبيق' };
+      r.channels.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--paper);border-radius:8px;padding:12px;';
+        const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+        const name = document.createElement('div'); name.style.cssText = 'font:800 13px Cairo,sans-serif;color:var(--green-dark);'; name.textContent = (chMap[c.channel] || c.channel) + ' · ' + fmt(c.sent);
+        const stats = document.createElement('div'); stats.style.cssText = 'display:flex;gap:10px;font:800 11px Cairo,sans-serif;';
+        const dr = document.createElement('span'); dr.style.color = '#0f6e3a'; dr.textContent = '✓ ' + c.deliveryRate + '٪';
+        const or = document.createElement('span'); or.style.color = '#b08840'; or.textContent = '👁 ' + c.openRate + '٪';
+        const fr = document.createElement('span'); fr.style.color = '#c54a3a'; fr.textContent = '✕ ' + c.failRate + '٪';
+        stats.append(dr, or, fr);
+        head.append(name, stats);
+        const bar = document.createElement('div'); bar.style.cssText = 'display:flex;height:10px;background:#fff;border-radius:4px;overflow:hidden;';
+        const d = document.createElement('div'); d.style.cssText = 'width:' + c.deliveryRate + '%;background:#0f6e3a;';
+        const o = document.createElement('div'); o.style.cssText = 'width:' + (c.openRate * c.deliveryRate / 100) + '%;background:#b08840;';
+        const f = document.createElement('div'); f.style.cssText = 'width:' + c.failRate + '%;background:#c54a3a;';
+        bar.append(d, o, f);
+        row.append(head, bar);
+        wrap.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadRefReas() {
     const wrap = document.getElementById('refReasList');
     const badge = document.getElementById('refReasBadge');
@@ -9707,7 +9751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
