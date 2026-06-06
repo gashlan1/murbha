@@ -859,6 +859,66 @@
     </div>
   </div>
 
+  <!-- Cybersec plan -->
+  <div class="settings-group" id="cySec">
+    <div class="settings-h">🔐 الأمن السيبراني (حماية حسابك)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">٩ ضوابط أساسيّة. كلّ مفقود = ثغرة. لا يحتاج خبرة تقنيّة.</p>
+      <div id="cyPosture" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyActive" /> فعّل خطّة الأمن السيبراني
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">طريقة 2FA الأساسيّة
+          <select id="cy2fa" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="hardware_key">🔑 مفتاح أمان ماديّ (الأقوى)</option>
+            <option value="authenticator">📱 تطبيق Authenticator (موصى به)</option>
+            <option value="biometric">👁️ بصمة/وجه</option>
+            <option value="sms">💬 رسالة نصّيّة (الأضعف)</option>
+            <option value="none">🚨 بدون (غير آمن)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">تاريخ آخر مراجعة أمنيّة
+          <input type="date" id="cyLastReview" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:#dc2626;">
+          <input type="checkbox" id="cyBreach" /> 🚨 تعرّضت لاختراق/سرقة سابقًا
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyPM" /> أستخدم مدير كلمات سرّ (1Password/Bitwarden)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyStrong" /> كلمات سرّ قويّة (≥ ١٦ حرف + فريدة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyAuth" /> 2FA عبر تطبيق Authenticator على كلّ الحسابات الحرجة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cySim" /> رمز PIN لشركة الاتّصالات مفعَّل (ضدّ SIM swap)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyDevice" /> قفل الجهاز قويّ + تحديثات تلقائيّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyPhish" /> تدرّبت على كشف التصيّد الإلكتروني
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyMonthly" /> مراجعة شهريّة (معاملات + أجهزة متّصلة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyBackup" /> نسخ احتياطيّة للوثائق (سحابي مشفّر + خارجي)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="cyVpn" /> VPN موثوق على شبكات WiFi عامّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="cyNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="cySave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الأمن السيبراني</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Sukuk plan -->
   <div class="settings-group" id="skSec">
     <div class="settings-h">📜 خطّة الاستثمار في الصكوك</div>
@@ -9755,6 +9815,80 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Cybersec plan
+  (async () => {
+    try {
+      const active = document.getElementById('cyActive');
+      const fa2 = document.getElementById('cy2fa');
+      const lastReview = document.getElementById('cyLastReview');
+      const breach = document.getElementById('cyBreach');
+      const pm = document.getElementById('cyPM');
+      const strong = document.getElementById('cyStrong');
+      const auth = document.getElementById('cyAuth');
+      const sim = document.getElementById('cySim');
+      const device = document.getElementById('cyDevice');
+      const phish = document.getElementById('cyPhish');
+      const monthly = document.getElementById('cyMonthly');
+      const backup = document.getElementById('cyBackup');
+      const vpn = document.getElementById('cyVpn');
+      const notes = document.getElementById('cyNotes');
+      const postureEl = document.getElementById('cyPosture');
+      const btn = document.getElementById('cySave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        fortress: '🏰 حصن (٨+ ضوابط)',
+        hardened: '🛡️ محصّن (٦-٧)',
+        basic: '🟡 أساسي (٣-٥)',
+        exposed: '🚨 مكشوف (< ٣)',
+      };
+      const r = await App.api('GET', '/app/me/cybersec-plan');
+      active.checked = !!r.active;
+      fa2.value = r.primary2faMethod || 'authenticator';
+      if (r.lastSecurityReviewDate) lastReview.value = String(r.lastSecurityReviewDate).slice(0, 10);
+      breach.checked = !!r.experiencedBreach;
+      pm.checked = !!r.passwordManager;
+      strong.checked = !!r.strongPasswords;
+      auth.checked = !!r.authenticator2fa;
+      sim.checked = !!r.simPinSet;
+      device.checked = !!r.deviceLockSecure;
+      phish.checked = !!r.phishingTraining;
+      monthly.checked = !!r.monthlyReview;
+      backup.checked = !!r.backupsKept;
+      vpn.checked = !!r.vpnOnPublic;
+      notes.value = r.notes || '';
+      if (postureEl) postureEl.textContent = (levelLabels[r.postureLevel] || '—') + ' · ' + r.postureScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/cybersec-plan', {
+            active: active.checked,
+            primary2faMethod: fa2.value,
+            lastSecurityReviewDate: lastReview.value || null,
+            experiencedBreach: breach.checked,
+            passwordManager: pm.checked,
+            strongPasswords: strong.checked,
+            authenticator2fa: auth.checked,
+            simPinSet: sim.checked,
+            deviceLockSecure: device.checked,
+            phishingTraining: phish.checked,
+            monthlyReview: monthly.checked,
+            backupsKept: backup.checked,
+            vpnOnPublic: vpn.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الأمن', 'success');
+            const r2 = await App.api('GET', '/app/me/cybersec-plan');
+            if (postureEl) postureEl.textContent = (levelLabels[r2.postureLevel] || '—') + ' · ' + r2.postureScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
