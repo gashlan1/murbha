@@ -859,6 +859,57 @@
     </div>
   </div>
 
+  <!-- Accessibility prefs -->
+  <div class="settings-group" id="a11yPrefSec">
+    <div class="settings-h">♿ تفضيلات الوصول الشامل</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">ابن منصّة تناسبك. هذه التفضيلات تنطبق على كلّ صفحة تزورها.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="a11ySize" style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">حجم النصّ</label>
+          <select id="a11ySize" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="normal">عادي</option>
+            <option value="medium">متوسّط (١٢٥٪)</option>
+            <option value="large">كبير (١٥٠٪)</option>
+            <option value="xlarge">كبير جدّاً (٢٠٠٪)</option>
+          </select>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="a11yContrast" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🌓 تباين عالٍ (وضع داكن مكثّف)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="a11yMotion" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🚫 تخفيف الحركة (لا رسوم متحرّكة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="a11yReader" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          📢 أستخدم قارئ شاشة (نُحسّن الأوصاف الصوتيّة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="a11yAudio" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          🎧 وثائق صوتيّة (MP3 + قراءة لي)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="a11ySession" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          ⏱ جلسة ممدّدة (لا تطفئ الجلسة سريعاً)
+        </label>
+        <div>
+          <label for="a11yContact" style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">طريقة التواصل المفضّلة</label>
+          <select id="a11yContact" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="any">أيّ طريقة</option>
+            <option value="email">بريد فقط</option>
+            <option value="sms">رسالة نصّيّة</option>
+            <option value="call">مكالمة هاتفيّة</option>
+            <option value="video">مكالمة فيديو</option>
+            <option value="whatsapp">واتساب</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" id="a11ySaveBtn" style="margin-top:12px;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ تفضيلاتي</button>
+    </div>
+  </div>
+
   <!-- Inheritance plan -->
   <div class="settings-group" id="inheritSec">
     <div class="settings-h">📜 خطّة التوريث</div>
@@ -4124,6 +4175,45 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Accessibility prefs
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/accessibility-prefs');
+      if (!r.hasData) return;
+      const size = document.getElementById('a11ySize');
+      const contrast = document.getElementById('a11yContrast');
+      const motion = document.getElementById('a11yMotion');
+      const reader = document.getElementById('a11yReader');
+      const audio = document.getElementById('a11yAudio');
+      const session = document.getElementById('a11ySession');
+      const contact = document.getElementById('a11yContact');
+      const btn = document.getElementById('a11ySaveBtn');
+      if (!size || !btn) return;
+      size.value = r.textSize || 'normal';
+      contrast.checked = !!r.highContrast;
+      motion.checked = !!r.reduceMotion;
+      reader.checked = !!r.screenReader;
+      audio.checked = !!r.audioDocs;
+      session.checked = !!r.extendedSession;
+      contact.value = r.preferredContact || 'any';
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/accessibility-prefs', {
+            textSize: size.value,
+            largeText: size.value !== 'normal',
+            highContrast: contrast.checked,
+            reduceMotion: motion.checked,
+            screenReader: reader.checked,
+            audioDocs: audio.checked,
+            extendedSession: session.checked,
+            preferredContact: contact.value,
+          });
+          App.toast && App.toast('تم حفظ تفضيلات الوصول', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
