@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>حاسبة المرابحة — مُرابحة</title>
+<meta name="description" content="احسب عائدك المتوقع من صفقات المرابحة. جدول السداد، الربح الإجمالي، والعائد الفعلي السنوي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .inputs-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .inputs-card h2{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.fields-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font:700 11px Cairo,sans-serif;color:var(--muted);}
+  .field input,.field select{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 13px Tajawal,sans-serif;background:var(--paper);}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+  .field .hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-calc{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:12px 32px;font:700 13px Cairo,sans-serif;cursor:pointer;margin-top:14px;}
+  .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:18px;}
+  .result-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;}
+  .result-val{font:900 24px Cairo,sans-serif;color:var(--green-dark);}
+  .result-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:5px;}
+  .result-card.highlight{border-color:var(--gold);background:linear-gradient(135deg,#fffdf4,#fff);}
+  .result-card.highlight .result-val{color:var(--gold);}
+  .chart-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .chart-card h2{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .bar-chart{display:flex;flex-direction:column;gap:8px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-label{font:700 11px Cairo,sans-serif;color:var(--muted);width:60px;flex-shrink:0;text-align:start;}
+  .bar-track{flex:1;background:var(--paper);border-radius:99px;height:14px;overflow:hidden;position:relative;}
+  .bar-principal{height:100%;background:var(--green);border-radius:99px 0 0 99px;float:right;}
+  .bar-profit{height:100%;background:var(--gold);border-radius:0 99px 99px 0;float:right;}
+  .bar-val{font:900 10px Cairo,sans-serif;color:var(--muted);width:80px;text-align:start;flex-shrink:0;}
+  .legend{display:flex;gap:16px;margin-top:8px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .legend-dot{width:10px;height:10px;border-radius:50%;}
+  .schedule-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .schedule-card h2{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .schedule-table{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .schedule-table th{background:var(--paper);font:900 10px Cairo,sans-serif;color:var(--green-dark);padding:8px 10px;border-bottom:1px solid var(--line);text-align:start;}
+  .schedule-table td{padding:8px 10px;border-bottom:1px solid var(--line);}
+  .schedule-table tr:last-child td{border-bottom:none;font:700 11px Cairo,sans-serif;background:var(--paper);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🧮 حاسبة المرابحة</h1>
+    <p>احسب ربحك المتوقع من صفقات المرابحة مع جدول سداد تفصيلي وفق هيكل التمويل الإسلامي.</p>
+  </div>
+
+  <div class="inputs-card">
+    <h2>⚙️ معطيات الحساب</h2>
+    <div class="fields-grid">
+      <div class="field">
+        <label>مبلغ الاستثمار (ر.س)</label>
+        <input type="number" id="principal" value="50000" min="1000" step="1000" />
+      </div>
+      <div class="field">
+        <label>هامش الربح السنوي (٪)</label>
+        <input type="number" id="markupRate" value="10" min="1" max="30" step="0.5" />
+      </div>
+      <div class="field">
+        <label>مدة الصفقة (أشهر)</label>
+        <input type="number" id="tenorMonths" value="12" min="1" max="60" />
+      </div>
+      <div class="field">
+        <label>نوع السداد</label>
+        <select id="repaymentType">
+          <option value="bullet">دفعة واحدة عند الانتهاء</option>
+          <option value="monthly">أقساط شهرية متساوية</option>
+          <option value="quarterly">أقساط ربع سنوية</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" id="calcBtn">احسب العائد</button>
+  </div>
+
+  <div class="results-grid" id="resultsGrid"><p class="placeholder-msg">اضغط «احسب العائد» لرؤية النتائج.</p></div>
+
+  <div class="chart-card" id="chartCard" style="display:none">
+    <h2>📊 توزيع رأس المال والربح</h2>
+    <div class="bar-chart" id="barChart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>رأس المال</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>الربح</div>
+    </div>
+  </div>
+
+  <div class="schedule-card" id="scheduleCard" style="display:none">
+    <h2>📅 جدول السداد</h2>
+    <div id="scheduleArea"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n,dec){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:dec||0,maximumFractionDigits:dec||0}); }
+
+  function calculate(){
+    const P = parseFloat(document.getElementById('principal').value)||0;
+    const rAnnual = parseFloat(document.getElementById('markupRate').value)||0;
+    const months = parseInt(document.getElementById('tenorMonths').value)||0;
+    const type = document.getElementById('repaymentType').value;
+    if(!P||!rAnnual||!months) return;
+
+    const rMonthly = rAnnual/100/12;
+    const totalMarkup = P * (rAnnual/100) * (months/12);
+    const totalRepayment = P + totalMarkup;
+    const effectiveAnnual = ((Math.pow(1+rMonthly, 12)-1)*100);
+
+    renderResults(P, totalMarkup, totalRepayment, rAnnual, effectiveAnnual, months);
+    renderChart(P, totalMarkup, months);
+    renderSchedule(P, totalMarkup, months, type, rMonthly);
+  }
+
+  function renderResults(P, totalMarkup, totalRepayment, nominalRate, effectiveRate, months){
+    const grid=document.getElementById('resultsGrid'); grid.textContent='';
+    [
+      {val:fmt(P)+' ر.س',lbl:'رأس المال',hl:false},
+      {val:fmt(totalMarkup,2)+' ر.س',lbl:'إجمالي الربح',hl:true},
+      {val:fmt(totalRepayment,2)+' ر.س',lbl:'إجمالي المبلغ المُسترد',hl:false},
+      {val:nominalRate+'٪',lbl:'هامش الربح الاسمي',hl:false},
+      {val:effectiveRate.toFixed(2)+'٪',lbl:'العائد الفعلي السنوي',hl:true},
+      {val:months+' شهر',lbl:'مدة الصفقة',hl:false},
+    ].forEach(it=>{
+      const card=document.createElement('div'); card.className='result-card'+(it.hl?' highlight':'');
+      const val=document.createElement('div'); val.className='result-val'; val.textContent=it.val;
+      const lbl=document.createElement('div'); lbl.className='result-lbl'; lbl.textContent=it.lbl;
+      card.appendChild(val); card.appendChild(lbl); grid.appendChild(card);
+    });
+  }
+
+  function renderChart(P, totalMarkup, months){
+    const card=document.getElementById('chartCard'); card.style.display='';
+    const chart=document.getElementById('barChart'); chart.textContent='';
+    const total=P+totalMarkup;
+    const pPct=Math.round((P/total)*100);
+    const mPct=100-pPct;
+
+    // summary bar
+    const row=document.createElement('div'); row.className='bar-row';
+    const lbl=document.createElement('div'); lbl.className='bar-label'; lbl.textContent='الإجمالي';
+    const track=document.createElement('div'); track.className='bar-track';
+    const bp=document.createElement('div'); bp.className='bar-principal'; bp.style.width=pPct+'%';
+    const bm=document.createElement('div'); bm.className='bar-profit'; bm.style.width=mPct+'%';
+    track.appendChild(bp); track.appendChild(bm);
+    const val=document.createElement('div'); val.className='bar-val'; val.textContent=fmt(total,0)+' ر.س';
+    row.appendChild(lbl); row.appendChild(track); row.appendChild(val);
+    chart.appendChild(row);
+
+    // per-year rows
+    const years=Math.ceil(months/12);
+    for(let y=1;y<=Math.min(years,5);y++){
+      const mInYear=Math.min(y*12, months)-(y-1)*12;
+      const profit=totalMarkup*(mInYear/months);
+      const total_y=(P/years)+profit;
+      const pPctY=Math.round(((P/years)/total_y)*100);
+      const mPctY=100-pPctY;
+      const r=document.createElement('div'); r.className='bar-row';
+      const l=document.createElement('div'); l.className='bar-label'; l.textContent='سنة '+y;
+      const tr=document.createElement('div'); tr.className='bar-track';
+      const b1=document.createElement('div'); b1.className='bar-principal'; b1.style.width=pPctY+'%';
+      const b2=document.createElement('div'); b2.className='bar-profit'; b2.style.width=mPctY+'%';
+      tr.appendChild(b1); tr.appendChild(b2);
+      const v=document.createElement('div'); v.className='bar-val'; v.textContent=fmt(total_y,0)+' ر.س';
+      r.appendChild(l); r.appendChild(tr); r.appendChild(v); chart.appendChild(r);
+    }
+  }
+
+  function renderSchedule(P, totalMarkup, months, type, rMonthly){
+    const card=document.getElementById('scheduleCard'); card.style.display='';
+    const area=document.getElementById('scheduleArea'); area.textContent='';
+    const table=document.createElement('table'); table.className='schedule-table';
+    const thead=document.createElement('thead'); const hr=document.createElement('tr');
+    ['#','الدفعة','رأس المال','الربح','الرصيد المتبقي'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+
+    let schedule=[];
+    if(type==='bullet'){
+      schedule=[{n:months,payment:P+totalMarkup,principal:P,profit:totalMarkup,balance:0}];
+    } else if(type==='monthly'){
+      const pmt=(months>0)?(P+totalMarkup)/months:0;
+      const profitPer=totalMarkup/months;
+      const principalPer=P/months;
+      let bal=P;
+      for(let i=1;i<=Math.min(months,24);i++){
+        bal-=principalPer;
+        schedule.push({n:i,payment:pmt,principal:principalPer,profit:profitPer,balance:Math.max(0,bal)});
+      }
+      if(months>24) schedule.push({n:'…',payment:'…',principal:'…',profit:'…',balance:'…'});
+    } else {
+      const periods=Math.ceil(months/3);
+      const pmt=(P+totalMarkup)/periods;
+      const profitPer=totalMarkup/periods;
+      const principalPer=P/periods;
+      let bal=P;
+      for(let i=1;i<=Math.min(periods,8);i++){
+        bal-=principalPer;
+        schedule.push({n:'ر'+(i),payment:pmt,principal:principalPer,profit:profitPer,balance:Math.max(0,bal)});
+      }
+    }
+
+    let sumPayment=0,sumPrincipal=0,sumProfit=0;
+    schedule.forEach(s=>{
+      const tr=document.createElement('tr');
+      const isEllipsis=s.n==='…';
+      const cells=[s.n, isEllipsis?'…':fmt(s.payment,2)+' ر.س', isEllipsis?'…':fmt(s.principal,2)+' ر.س', isEllipsis?'…':fmt(s.profit,2)+' ر.س', isEllipsis?'…':fmt(s.balance,2)+' ر.س'];
+      if(!isEllipsis){ sumPayment+=s.payment; sumPrincipal+=s.principal; sumProfit+=s.profit; }
+      cells.forEach(c=>{ const td=document.createElement('td'); td.textContent=c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+
+    // totals row
+    const totRow=document.createElement('tr');
+    ['الإجمالي',fmt(P+totalMarkup,2)+' ر.س',fmt(P,2)+' ر.س',fmt(totalMarkup,2)+' ر.س','—'].forEach(c=>{ const td=document.createElement('td'); td.textContent=c; totRow.appendChild(td); });
+    tbody.appendChild(totRow);
+    table.appendChild(tbody); area.appendChild(table);
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+  calculate();
+}());
+</script>
+</body>
+</html>
