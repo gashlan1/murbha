@@ -859,6 +859,63 @@
     </div>
   </div>
 
+  <!-- Side hustle -->
+  <div class="settings-group" id="shSec">
+    <div class="settings-h">💼 إدارة الدخل الجانبي والفريلانس</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل دخلك الجانبي وضوابطه. القاعدة المقترحة: ٦٠/٢٠/٢٠.</p>
+      <div id="shMaturity" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="shTransition" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shActive" /> فعّل خطّة الدخل الجانبي
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المصدر الأساسي
+          <select id="shSource" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="freelance">💻 فريلانس (برمجة/تصميم/كتابة)</option>
+            <option value="ecommerce">🛍️ تجارة إلكترونيّة</option>
+            <option value="content">🎥 صنع محتوى/يوتيوب</option>
+            <option value="rental">🏠 تأجير قصير (إيربنب/سيّارة)</option>
+            <option value="teaching">📚 تدريس/استشارة</option>
+            <option value="passive">💰 دخل سلبي (عقار/صكوك)</option>
+            <option value="project">🚀 مشروع جانبي منتظم</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">متوسّط الدخل الشهري (ر.س)
+          <input type="number" id="shMonthly" min="0" max="1000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نسبة من الراتب الأساسي (٪)
+          <input type="number" id="shPct" min="0" max="500" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shSep" /> حساب منفصل للدخل الجانبي
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shSplit" /> قاعدة التقسيم التلقائي ٦٠/٢٠/٢٠ مفعّلة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shReserve" /> صندوق "احتياطي الدخل" ٣-٦ شهور
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shZakat" /> أتتبّع الزكاة على الدخل/المخزون
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shContracts" /> أستخدم عقودًا مكتوبة لكلّ مشروع
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shBurn" /> حارس احتراق (حدّ ساعات + يوم راحة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="shAuto" /> استثمار تلقائي لكلّ دفعة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="shNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="shSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ الدخل الجانبي</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Long-term care -->
   <div class="settings-group" id="ltcSec">
     <div class="settings-h">🌅 الرعاية طويلة الأمد (للذات والوالدين)</div>
@@ -9161,6 +9218,84 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Side hustle
+  (async () => {
+    try {
+      const active = document.getElementById('shActive');
+      const source = document.getElementById('shSource');
+      const monthly = document.getElementById('shMonthly');
+      const pct = document.getElementById('shPct');
+      const sep = document.getElementById('shSep');
+      const split = document.getElementById('shSplit');
+      const reserve = document.getElementById('shReserve');
+      const zakat = document.getElementById('shZakat');
+      const contracts = document.getElementById('shContracts');
+      const burn = document.getElementById('shBurn');
+      const auto = document.getElementById('shAuto');
+      const notes = document.getElementById('shNotes');
+      const matEl = document.getElementById('shMaturity');
+      const transEl = document.getElementById('shTransition');
+      const btn = document.getElementById('shSave');
+      if (!active || !btn) return;
+      const matLabels = {
+        mastered: '🏆 متقن',
+        organized: '🎯 منظّم',
+        developing: '🌿 يتطوّر',
+        beginner: '🌱 مبتدئ',
+      };
+      const transLabels = {
+        ready_to_fulltime: '🚀 جاهز للتفرّغ الكامل',
+        approaching: '🎯 يقترب (≥ ٧٠٪ من الراتب)',
+        meaningful: '💼 دخل مؤثّر (٣٠-٧٠٪)',
+        supplemental: '🌿 دخل مكمّل (< ٣٠٪)',
+        not_ready: '🌱 لم يبدأ بعد',
+      };
+      const r = await App.api('GET', '/app/me/side-hustle');
+      active.checked = !!r.active;
+      source.value = r.primarySource || 'freelance';
+      monthly.value = Number(r.avgMonthlyIncome || 0);
+      pct.value = Number(r.pctOfPrimaryIncome || 0);
+      sep.checked = !!r.separateAccount;
+      split.checked = !!r.autoSplit602020;
+      reserve.checked = !!r.incomeReserveFund;
+      zakat.checked = !!r.zakatTracking;
+      contracts.checked = !!r.contractsUsed;
+      burn.checked = !!r.burnoutGuard;
+      auto.checked = !!r.monthlyAutoInvest;
+      notes.value = r.notes || '';
+      if (matEl) matEl.textContent = (matLabels[r.maturityLevel] || '—') + ' · ' + r.maturityScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (transEl) transEl.textContent = transLabels[r.transitionReadiness] || '—';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/side-hustle', {
+            active: active.checked,
+            primarySource: source.value,
+            avgMonthlyIncome: Number(monthly.value || 0),
+            pctOfPrimaryIncome: Number(pct.value || 0),
+            separateAccount: sep.checked,
+            autoSplit602020: split.checked,
+            incomeReserveFund: reserve.checked,
+            zakatTracking: zakat.checked,
+            contractsUsed: contracts.checked,
+            burnoutGuard: burn.checked,
+            monthlyAutoInvest: auto.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظ الدخل الجانبي', 'success');
+            const r2 = await App.api('GET', '/app/me/side-hustle');
+            if (matEl) matEl.textContent = (matLabels[r2.maturityLevel] || '—') + ' · ' + r2.maturityScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (transEl) transEl.textContent = transLabels[r2.transitionReadiness] || '—';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
