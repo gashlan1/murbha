@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>توقّع الثروة — مُرابحة</title>
+<meta name="description" content="اعرف كيف تنمو استثماراتك مع مرور الوقت. توقّع ثروتك المستقبلية باستخدام العائد المركّب." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .inputs-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:14px;}
+  .inputs-card h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .inputs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .field input,.field select{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:500 12px Tajawal,sans-serif;background:var(--paper);}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+  .field .hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-calc{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:12px 28px;font:700 14px Cairo,sans-serif;cursor:pointer;margin-top:16px;width:100%;}
+  .results-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:14px;}
+  .results-card h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .kpi{flex:1;min-width:120px;background:var(--paper);border-radius:12px;padding:14px;text-align:center;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .kpi-val.gold{color:var(--gold);}
+  .chart-area{overflow-x:auto;}
+  .chart-svg{width:100%;min-width:320px;height:220px;display:block;}
+  .table-wrap{overflow-x:auto;margin-top:14px;}
+  .forecast-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .forecast-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .forecast-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .forecast-table tr:last-child td{border-bottom:none;font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .disclaimer{font:500 11px Tajawal,sans-serif;color:var(--muted);background:var(--paper);border-radius:10px;padding:12px;margin-top:8px;line-height:1.7;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔮 توقّع الثروة</h1>
+    <p>أدخل رأس المال ومعدّل الإضافة الشهرية وشاهد كيف تتراكم ثروتك عبر السنين بقوّة العائد المركّب.</p>
+  </div>
+
+  <div class="inputs-card">
+    <h2>⚙️ ضبط المعاملات</h2>
+    <div class="inputs-grid">
+      <div class="field">
+        <label>رأس المال الابتدائي (ر.س)</label>
+        <input type="number" id="principal" value="10000" min="1000" step="1000" />
+        <span class="hint">الحدّ الأدنى ١٠٠٠ ريال</span>
+      </div>
+      <div class="field">
+        <label>إضافة شهرية (ر.س)</label>
+        <input type="number" id="monthly" value="1000" min="0" step="500" />
+        <span class="hint">يمكن تركها صفراً</span>
+      </div>
+      <div class="field">
+        <label>معدّل العائد السنوي (٪)</label>
+        <input type="number" id="rate" value="9.2" min="1" max="30" step="0.1" />
+        <span class="hint">متوسّط مُرابحة التاريخي ٩.٢٪</span>
+      </div>
+      <div class="field">
+        <label>مدّة الاستثمار</label>
+        <select id="years">
+          <option value="5">٥ سنوات</option>
+          <option value="10" selected>١٠ سنوات</option>
+          <option value="15">١٥ سنة</option>
+          <option value="20">٢٠ سنة</option>
+          <option value="25">٢٥ سنة</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>إعادة استثمار العوائد؟</label>
+        <select id="reinvest">
+          <option value="yes" selected>نعم (مركّب)</option>
+          <option value="no">لا (عائد بسيط)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>نموّ الإضافة الشهرية سنويًّا (٪)</label>
+        <input type="number" id="monthlyGrowth" value="0" min="0" max="20" step="1" />
+        <span class="hint">مثلاً: ٥٪ مع زيادة الراتب</span>
+      </div>
+    </div>
+    <button class="btn-calc" id="calcBtn">🔮 احسب التوقّع</button>
+  </div>
+
+  <div class="results-card" id="resultsCard" style="display:none">
+    <h2>📊 نتائج التوقّع</h2>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="chart-area">
+      <svg class="chart-svg" id="chartSvg" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="table-wrap">
+      <table class="forecast-table" id="forecastTable">
+        <thead><tr>
+          <th>السنة</th>
+          <th>رأس المال المضاف</th>
+          <th>إجمالي العوائد</th>
+          <th>القيمة الإجمالية</th>
+        </tr></thead>
+        <tbody id="forecastBody"></tbody>
+      </table>
+    </div>
+    <div class="disclaimer">تنبيه: هذه توقّعات افتراضية للتخطيط وليست ضماناً لعوائد مستقبلية. العوائد الفعلية تعتمد على أداء الصفقات.</div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Math.round(n).toLocaleString('ar-SA'); }
+  function fmtK(n){ return n>=1000000?(n/1000000).toFixed(2)+' م':(n>=1000?(n/1000).toFixed(1)+' ك':String(Math.round(n))); }
+
+  function calculate(){
+    const P = parseFloat(document.getElementById('principal').value)||0;
+    const M = parseFloat(document.getElementById('monthly').value)||0;
+    const r = (parseFloat(document.getElementById('rate').value)||9.2)/100;
+    const Y = parseInt(document.getElementById('years').value)||10;
+    const reinvest = document.getElementById('reinvest').value === 'yes';
+    const mg = (parseFloat(document.getElementById('monthlyGrowth').value)||0)/100;
+    const rm = r/12;
+
+    const rows = [];
+    let balance = P;
+    let totalContrib = P;
+    let totalInterest = 0;
+    let currentMonthly = M;
+
+    for(let y = 1; y <= Y; y++){
+      let yearInterest = 0;
+      for(let m = 0; m < 12; m++){
+        const interest = reinvest ? balance * rm : P * rm;
+        balance += interest + currentMonthly;
+        totalContrib += currentMonthly;
+        totalInterest += interest;
+        yearInterest += interest;
+      }
+      currentMonthly *= (1 + mg);
+      rows.push({ year: y, contrib: totalContrib, interest: totalInterest, total: balance });
+    }
+    return rows;
+  }
+
+  function renderResults(rows){
+    const last = rows[rows.length-1];
+    const P = parseFloat(document.getElementById('principal').value)||0;
+    const gain = last.total - last.contrib;
+    const multiplier = (last.total / P).toFixed(2);
+
+    document.getElementById('resultsCard').style.display='';
+
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.textContent = '';
+    [
+      {val:'SAR '+fmt(last.total),lbl:'القيمة النهائية المتوقّعة',gold:true},
+      {val:'SAR '+fmt(last.contrib),lbl:'إجمالي ما أضفته',gold:false},
+      {val:'SAR '+fmt(gain),lbl:'إجمالي العوائد المكتسبة',gold:true},
+      {val:multiplier+'x',lbl:'مضاعف رأس المال الأصلي',gold:false},
+    ].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'+(it.gold?' gold':''); v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); kpiRow.appendChild(k);
+    });
+
+    renderChart(rows);
+    renderTable(rows);
+  }
+
+  function renderChart(rows){
+    const svg = document.getElementById('chartSvg');
+    svg.textContent = '';
+    const W=800, H=220, PAD=40;
+    const maxVal = rows[rows.length-1].total;
+    const minVal = 0;
+    const range = maxVal - minVal || 1;
+
+    function xPos(i){ return PAD + (i/(rows.length-1||1))*(W-PAD*2); }
+    function yPos(v){ return H - PAD - ((v-minVal)/range)*(H-PAD*2); }
+
+    // grid lines
+    [0,0.25,0.5,0.75,1].forEach(f=>{
+      const y = H-PAD - f*(H-PAD*2);
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',PAD); line.setAttribute('x2',W-PAD);
+      line.setAttribute('y1',y); line.setAttribute('y2',y);
+      line.setAttribute('stroke','rgba(13,22,18,.06)'); line.setAttribute('stroke-width','1');
+      svg.appendChild(line);
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',PAD-4); txt.setAttribute('y',y+4);
+      txt.setAttribute('text-anchor','end'); txt.setAttribute('font-size','9');
+      txt.setAttribute('fill','#6b7268'); txt.setAttribute('font-family','Cairo,sans-serif');
+      txt.textContent = fmtK(minVal+f*range);
+      svg.appendChild(txt);
+    });
+
+    // contrib area
+    let contrib = 'M'+xPos(0)+','+yPos(rows[0].contrib);
+    rows.forEach((r,i)=>{ contrib += ' L'+xPos(i)+','+yPos(r.contrib); });
+    contrib += ' L'+xPos(rows.length-1)+','+(H-PAD)+' L'+xPos(0)+','+(H-PAD)+' Z';
+    const contribPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+    contribPath.setAttribute('d',contrib);
+    contribPath.setAttribute('fill','rgba(10,77,54,.12)');
+    svg.appendChild(contribPath);
+
+    // total area
+    let total = 'M'+xPos(0)+','+yPos(rows[0].total);
+    rows.forEach((r,i)=>{ total += ' L'+xPos(i)+','+yPos(r.total); });
+    total += ' L'+xPos(rows.length-1)+','+(H-PAD)+' L'+xPos(0)+','+(H-PAD)+' Z';
+    const totalPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+    totalPath.setAttribute('d',total);
+    totalPath.setAttribute('fill','rgba(176,136,64,.15)');
+    svg.appendChild(totalPath);
+
+    // total line
+    let line = 'M'+xPos(0)+','+yPos(rows[0].total);
+    rows.forEach((r,i)=>{ line += ' L'+xPos(i)+','+yPos(r.total); });
+    const linePath = document.createElementNS('http://www.w3.org/2000/svg','path');
+    linePath.setAttribute('d',line);
+    linePath.setAttribute('fill','none');
+    linePath.setAttribute('stroke','#b08840');
+    linePath.setAttribute('stroke-width','2.5');
+    svg.appendChild(linePath);
+
+    // year labels
+    rows.forEach((r,i)=>{
+      if(i%Math.ceil(rows.length/5)===0 || i===rows.length-1){
+        const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x',xPos(i)); txt.setAttribute('y',H-6);
+        txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-size','9');
+        txt.setAttribute('fill','#6b7268'); txt.setAttribute('font-family','Cairo,sans-serif');
+        txt.textContent='س'+r.year;
+        svg.appendChild(txt);
+      }
+    });
+  }
+
+  function renderTable(rows){
+    const body = document.getElementById('forecastBody');
+    body.textContent = '';
+    rows.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      [
+        'سنة '+r.year,
+        'SAR '+fmt(r.contrib),
+        'SAR '+fmt(r.interest),
+        'SAR '+fmt(r.total)
+      ].forEach(v=>{
+        const td=document.createElement('td');
+        td.textContent=v;
+        if(i===rows.length-1) td.style.fontWeight='900';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('calcBtn').addEventListener('click',()=>{
+    const rows = calculate();
+    renderResults(rows);
+  });
+
+  // auto-calculate on load
+  document.getElementById('calcBtn').click();
+}());
+</script>
+</body>
+</html>
