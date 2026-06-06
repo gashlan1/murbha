@@ -859,6 +859,38 @@
     </div>
   </div>
 
+  <!-- Decision log -->
+  <div class="settings-group" id="decLogSec">
+    <div class="settings-h">📔 سجلّ القرارات الاستثماريّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اكتب سبب كلّ قرار قبل تنفيذه. بعد ٦ أشهر، ستتعلّم من قراراتك أكثر من أيّ كتاب.</p>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">قرار جديد</div>
+        <div style="display:grid;gap:8px;">
+          <select id="dlDecision" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="invest">استثمرت</option>
+            <option value="skip">تخطّيت</option>
+            <option value="exit">خرجت</option>
+            <option value="hold">احتفظت</option>
+          </select>
+          <input type="text" id="dlProjectName" placeholder="اسم الصفقة (اختياري)" maxlength="120" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+          <textarea id="dlRationale" rows="3" placeholder="لماذا؟ ما الأسباب؟" maxlength="1000" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;resize:vertical;"></textarea>
+          <textarea id="dlExpected" rows="2" placeholder="النتيجة المتوقّعة (للمراجعة لاحقاً)" maxlength="500" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;resize:vertical;"></textarea>
+          <select id="dlMood" style="padding:8px;border:1px solid var(--line);border-radius:8px;font:700 11px Cairo,sans-serif;">
+            <option value="neutral">حياديّ</option>
+            <option value="confident">واثق</option>
+            <option value="cautious">حذر</option>
+            <option value="excited">متحمّس</option>
+            <option value="reluctant">متردّد</option>
+          </select>
+          <button type="button" id="dlAddBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">إضافة للسجلّ</button>
+        </div>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">آخر قراراتي</div>
+      <div id="dlList" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Accessibility prefs -->
   <div class="settings-group" id="a11yPrefSec">
     <div class="settings-h">♿ تفضيلات الوصول الشامل</div>
@@ -4175,6 +4207,79 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Decision log
+  (async () => {
+    try {
+      const decision = document.getElementById('dlDecision');
+      const projName = document.getElementById('dlProjectName');
+      const rationale = document.getElementById('dlRationale');
+      const expected = document.getElementById('dlExpected');
+      const mood = document.getElementById('dlMood');
+      const addBtn = document.getElementById('dlAddBtn');
+      const list = document.getElementById('dlList');
+      if (!list || !addBtn) return;
+      const labels = { invest: '✅ استثمرت', skip: '⏭ تخطّيت', exit: '🚪 خرجت', hold: '⏸ احتفظت' };
+      const moods = { confident: '💪 واثق', cautious: '🤔 حذر', excited: '🚀 متحمّس', reluctant: '😬 متردّد', neutral: '😐 حياديّ' };
+      const render = async () => {
+        const r = await App.api('GET', '/app/me/decision-log');
+        if (!r.hasData) return;
+        list.replaceChildren();
+        if (!r.entries.length) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'background:var(--paper);border-radius:10px;padding:14px;font:500 11px Tajawal,sans-serif;color:var(--muted);text-align:center;';
+          empty.textContent = 'لم تسجّل أيّ قرار بعد. ابدأ بأوّل قرار.';
+          list.appendChild(empty);
+          return;
+        }
+        r.entries.forEach(e => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;';
+          const lbl = document.createElement('div'); lbl.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = labels[e.decision] || e.decision;
+          const date = document.createElement('div'); date.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--muted);'; date.textContent = new Date(e.createdAt).toLocaleDateString('ar-SA');
+          head.append(lbl, date);
+          card.appendChild(head);
+          if (e.projectName) {
+            const pn = document.createElement('div'); pn.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--gold);margin-bottom:4px;'; pn.textContent = e.projectName;
+            card.appendChild(pn);
+          }
+          const rat = document.createElement('div'); rat.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.6;margin-bottom:6px;'; rat.textContent = e.rationale;
+          card.appendChild(rat);
+          if (e.expectedOutcome) {
+            const exp = document.createElement('div'); exp.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);background:#fff;border-radius:6px;padding:6px 8px;margin-bottom:6px;'; exp.textContent = '🎯 ' + e.expectedOutcome;
+            card.appendChild(exp);
+          }
+          const mLine = document.createElement('div'); mLine.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font:700 10px Cairo,sans-serif;color:var(--green-dark);';
+          const mTxt = document.createElement('span'); mTxt.textContent = moods[e.mood] || moods.neutral;
+          const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.textContent = '🗑 حذف';
+          delBtn.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 10px Cairo,sans-serif;';
+          delBtn.addEventListener('click', async () => {
+            try { await App.api('DELETE', '/app/me/decision-log/' + encodeURIComponent(e.id)); render(); } catch {}
+          });
+          mLine.append(mTxt, delBtn);
+          card.appendChild(mLine);
+          list.appendChild(card);
+        });
+      };
+      render();
+      addBtn.addEventListener('click', async () => {
+        if (!rationale.value.trim()) { App.toast && App.toast('اكتب سبب القرار', 'error'); return; }
+        try {
+          await App.api('POST', '/app/me/decision-log', {
+            decision: decision.value,
+            projectName: projName.value || null,
+            rationale: rationale.value,
+            expectedOutcome: expected.value,
+            mood: mood.value,
+          });
+          App.toast && App.toast('تم تسجيل القرار', 'success');
+          projName.value = ''; rationale.value = ''; expected.value = '';
+          render();
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
