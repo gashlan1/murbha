@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Recent receipts -->
+  <div class="settings-group" id="receiptsSec" style="display:none;">
+    <div class="settings-h">🧾 آخر الإيصالات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">آخر ١٥ عمليّة في حسابك مع رابط تحميل الإيصال.</p>
+      <div id="receiptsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
   <!-- Monthly investment chart -->
   <div class="settings-group" id="monthChartSec" style="display:none;">
     <div class="settings-h">📊 استثماراتك الشهريّة (آخر ١٢ شهر)</div>
@@ -3427,6 +3436,40 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Recent receipts
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/recent-receipts');
+      if (!r.hasData) return;
+      const sec = document.getElementById('receiptsSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const list = document.getElementById('receiptsList');
+      list.replaceChildren();
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const iconMap = { investment: '📈', deposit: '💳', withdraw: '📤', payout: '💰' };
+      const colorMap = { investment: '#0a4d36', deposit: '#0f6e3a', withdraw: '#c54a3a', payout: '#b08840' };
+      r.receipts.forEach(rec => {
+        const row = document.createElement('a');
+        row.href = rec.receiptUrl;
+        row.target = '_blank';
+        row.rel = 'noopener';
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto auto;gap:10px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;text-decoration:none;color:inherit;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:18px;text-align:center;'; ic.textContent = iconMap[rec.type] || '🧾';
+        const ttl = document.createElement('div');
+        const t1 = document.createElement('div'); t1.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; t1.textContent = rec.title;
+        const t2 = document.createElement('div'); t2.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        t2.textContent = rec.date ? new Date(rec.date).toLocaleDateString('ar-SA') : '—';
+        ttl.append(t1, t2);
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:' + (colorMap[rec.type] || 'var(--green-dark)') + ';text-align:end;';
+        amt.textContent = (rec.amount >= 0 ? '+' : '') + fmt(rec.amount) + ' ر.س';
+        const dl = document.createElement('div'); dl.style.cssText = 'font:700 10px Cairo,sans-serif;color:var(--gold);'; dl.textContent = '⬇';
+        row.append(ic, ttl, amt, dl);
+        list.appendChild(row);
       });
     } catch (e) {}
   })();
