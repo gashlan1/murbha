@@ -859,6 +859,51 @@
     </div>
   </div>
 
+  <!-- Income profile -->
+  <div class="settings-group" id="incProfSec">
+    <div class="settings-h">💼 ملفّ الدخل</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">نوع دخلك يحدّد استراتيجيّتك. ندعم الموظّفين، الفريلانسرز، أصحاب الأعمال، والمتقاعدين.</p>
+      <div id="incProfHero" style="display:none;background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;"></div>
+      <div style="display:grid;gap:10px;margin-bottom:14px;">
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نوع الدخل</label>
+          <select id="ipType" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="salaried">👔 موظّف براتب</option>
+            <option value="freelance">💻 فريلانسر</option>
+            <option value="business_owner">🏪 صاحب عمل/تاجر</option>
+            <option value="retired">🏖 متقاعد</option>
+            <option value="other">📌 آخر</option>
+          </select>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">دخلك آخر ١٢ شهر (ر.س — افصل بفاصلة)</label>
+          <input type="text" id="ipHistory" placeholder="مثال: 12000, 8000, 18000, ..." style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 11px Cairo,sans-serif;" />
+          <div style="font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;">سيُحسب الاستقرار تلقائياً</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نسبة الادّخار التلقائي (٪)</label>
+            <input type="number" id="ipSave" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+          <div>
+            <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">نسبة الضرائب التلقائيّة (٪)</label>
+            <input type="number" id="ipTax" min="0" max="50" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+          </div>
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">أكبر عميل يشكّل (٪) من دخلك</label>
+          <input type="number" id="ipClient" min="0" max="100" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">صندوق طوارئ مستهدف (شهر)</label>
+          <input type="number" id="ipEmer" min="0" max="24" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+      </div>
+      <button type="button" id="ipSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ ملفّ الدخل</button>
+    </div>
+  </div>
+
   <!-- Residency status -->
   <div class="settings-group" id="resStatSec">
     <div class="settings-h">🌍 حالة الإقامة والجنسيّة</div>
@@ -4830,6 +4875,60 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Income profile
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/income-profile');
+      if (!r.hasData) return;
+      const type = document.getElementById('ipType');
+      const hist = document.getElementById('ipHistory');
+      const save = document.getElementById('ipSave');
+      const tax = document.getElementById('ipTax');
+      const client = document.getElementById('ipClient');
+      const emer = document.getElementById('ipEmer');
+      const hero = document.getElementById('incProfHero');
+      const btn = document.getElementById('ipSaveBtn');
+      if (!btn) return;
+      type.value = r.incomeType || 'salaried';
+      hist.value = (r.monthlyIncomes12 || []).join(', ');
+      save.value = r.autoSaveRate;
+      tax.value = r.autoTaxRate;
+      client.value = r.biggestClientPct;
+      emer.value = r.emergencyMonthsTarget;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+      const stabilityLabels = {
+        very_stable: { txt: '✓ مستقرّ جدّاً', color: '#0a4d36' },
+        stable: { txt: '✓ مستقرّ', color: '#0a4d36' },
+        variable: { txt: '◷ متغيّر', color: '#b08840' },
+        very_variable: { txt: '⚠ شديد التغيّر', color: '#c54a3a' },
+      };
+      if (r.monthlyIncomes12 && r.monthlyIncomes12.length >= 3) {
+        const s = stabilityLabels[r.incomeStability] || stabilityLabels.stable;
+        hero.style.display = '';
+        hero.style.background = 'linear-gradient(135deg,' + s.color + ',#062b1e)';
+        hero.innerHTML = '';
+        const big = document.createElement('div'); big.style.cssText = 'font:900 18px Cairo,sans-serif;color:#fbf6ea;'; big.textContent = 'متوسّط ' + fmt(r.avg) + ' ر.س';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#d4ac6e;margin-top:4px;';
+        lbl.textContent = 'الاستقرار: ' + s.txt + ' · أدنى ' + fmt(r.min) + ' · أعلى ' + fmt(r.max);
+        hero.append(big, lbl);
+      }
+      btn.addEventListener('click', async () => {
+        try {
+          const arr = (hist.value || '').split(',').map(v => Number(v.trim()) || 0);
+          await App.api('PUT', '/app/me/income-profile', {
+            incomeType: type.value,
+            monthlyIncomes12: arr,
+            autoSaveRate: Number(save.value),
+            autoTaxRate: Number(tax.value),
+            biggestClientPct: Number(client.value),
+            emergencyMonthsTarget: Number(emer.value),
+          });
+          App.toast && App.toast('تم حفظ ملفّ الدخل', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
