@@ -695,6 +695,20 @@
     </div>
   </div>
 
+  <!-- LOGIN STREAKS -->
+  <div class="admin-card" id="loginStreakCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>🔥 سلسلة الدخول اليومي</span>
+      <span class="card-h-sub" id="loginStreakBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="loginStreakSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:10px;"></div>
+      <div id="loginStreakRows" style="display:grid;gap:6px;margin-bottom:10px;"></div>
+      <div style="font:900 11px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">أبطال السلسلة</div>
+      <div id="loginStreakTop" style="display:grid;gap:4px;"></div>
+    </div>
+  </div>
+
   <!-- A11Y FEEDBACK -->
   <div class="admin-card" id="a11yFbCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -4160,6 +4174,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadLoginStreak() {
+    const sumWrap = document.getElementById('loginStreakSummary');
+    const rowsWrap = document.getElementById('loginStreakRows');
+    const topWrap = document.getElementById('loginStreakTop');
+    const badge = document.getElementById('loginStreakBadge');
+    if (!sumWrap || !rowsWrap || !topWrap) return;
+    try {
+      const r = await App.api('GET', '/app/admin/login-streaks');
+      if (!r.hasData) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (badge) badge.textContent = fmt(r.totalUsers) + ' مستخدم بسلسلة · أطول: ' + fmt(r.longestStreak) + ' يوم';
+      sumWrap.replaceChildren();
+      const tiles = [
+        { lbl: 'إجمالي السلاسل', val: r.totalUsers, color: 'var(--green-dark)' },
+        { lbl: 'متوسّط السلسلة', val: r.avgStreak + ' يوم', color: '#b08840' },
+        { lbl: 'أطول سلسلة', val: r.longestStreak + ' يوم', color: '#c54a3a' },
+      ];
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;text-align:center;';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + t.color + ';'; v.textContent = typeof t.val === 'number' ? fmt(t.val) : t.val;
+        const l = document.createElement('div'); l.style.cssText = 'font:700 9px Cairo,sans-serif;color:var(--muted);margin-top:2px;'; l.textContent = t.lbl;
+        tile.append(v, l);
+        sumWrap.appendChild(tile);
+      });
+      rowsWrap.replaceChildren();
+      const max = Math.max(1, ...r.buckets.map(b => b.count));
+      r.buckets.forEach(b => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:140px 1fr 50px;gap:8px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = b.label;
+        const bar = document.createElement('div'); bar.style.cssText = 'height:12px;background:#fff;border-radius:4px;overflow:hidden;';
+        const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:' + Math.max(2, (b.count / max) * 100) + '%;background:linear-gradient(90deg,#0a4d36,#b08840);';
+        bar.appendChild(fill);
+        const cnt = document.createElement('div'); cnt.style.cssText = 'font:900 11px Cairo,sans-serif;color:var(--green-dark);text-align:end;'; cnt.textContent = fmt(b.count);
+        row.append(lbl, bar, cnt);
+        rowsWrap.appendChild(row);
+      });
+      topWrap.replaceChildren();
+      r.top.slice(0, 10).forEach((u, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:30px 1fr 70px;gap:6px;align-items:center;background:var(--paper);border-radius:6px;padding:6px 8px;';
+        const rk = document.createElement('div'); rk.style.cssText = 'font:900 11px Cairo,sans-serif;text-align:center;color:' + (i === 0 ? '#d4ac6e' : 'var(--green-dark)') + ';';
+        rk.textContent = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '#' + (i + 1)));
+        const nm = document.createElement('div'); nm.style.cssText = 'font:700 11px Cairo,sans-serif;color:var(--green-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; nm.textContent = u.name;
+        const s = document.createElement('div'); s.style.cssText = 'font:900 11px Cairo,sans-serif;color:#c54a3a;text-align:end;'; s.textContent = '🔥 ' + fmt(u.streak);
+        row.append(rk, nm, s);
+        topWrap.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function loadA11yFb() {
     const sumWrap = document.getElementById('a11yFbSummary');
     const rowsWrap = document.getElementById('a11yFbRows');
@@ -11637,7 +11703,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime(), loadMaint(), loadFailDepRsn(), loadNpsByCat(), loadMrr(), loadZakatTop(), loadTopYld(), loadMad(), loadAtRiskNew(), loadSatByAge(), loadTopNps(), loadSignFunnel(), loadTtfp(), loadWbStats(), loadDisputeStats(), loadEarlyExit(), loadFamilyAccts(), loadA11yFb()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign(), loadRevTrn(), loadLtvCoh(), loadCxlCat(), loadRetCurve(), loadMauTrend(), loadTopDep(), loadDealPipe(), loadAvgSize(), loadTopCat(), loadFundVel(), loadWdSla(), loadNpsTrend(), loadDevPlat(), loadSatCat(), loadDormUsers(), loadHtc(), loadRevSeg(), loadWkClos(), loadCohRev(), loadAcqChan(), loadStall(), loadPltHealth(), loadPower(), loadRetSrc(), loadUptime(), loadMaint(), loadFailDepRsn(), loadNpsByCat(), loadMrr(), loadZakatTop(), loadTopYld(), loadMad(), loadAtRiskNew(), loadSatByAge(), loadTopNps(), loadSignFunnel(), loadTtfp(), loadWbStats(), loadDisputeStats(), loadEarlyExit(), loadFamilyAccts(), loadA11yFb(), loadLoginStreak()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
