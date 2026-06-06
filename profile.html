@@ -859,6 +859,47 @@
     </div>
   </div>
 
+  <!-- Default project filter -->
+  <div class="settings-group" id="defFiltSec">
+    <div class="settings-h">🎛 الفلتر الافتراضي للصفقات</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد كيف تريد فرز وفلترة قائمة الصفقات عند فتحها.</p>
+      <div style="display:grid;gap:10px;">
+        <div>
+          <label for="defFiltSort" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الترتيب الافتراضي</label>
+          <select id="defFiltSort" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="newest">🆕 الأحدث أوّلاً</option>
+            <option value="highest_return">📈 الأعلى عائداً</option>
+            <option value="shortest_duration">⏱ الأقصر مدّة</option>
+            <option value="closest_to_close">🔥 الأقرب للإغلاق</option>
+            <option value="lowest_min">💸 الأقلّ حدّاً أدنى</option>
+          </select>
+        </div>
+        <div>
+          <label for="defFiltCat" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">قطاع مفضّل (اختياري)</label>
+          <input type="text" id="defFiltCat" maxlength="40" placeholder="مثلاً: عقار، تجزئة، صناعة..." style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div>
+          <label for="defFiltMinRet" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الحدّ الأدنى للعائد (٪)</label>
+          <input type="number" id="defFiltMinRet" min="0" max="30" step="0.5" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div>
+          <label for="defFiltMaxDur" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الحدّ الأعلى للمدّة (شهر، ٠ = بلا حدّ)</label>
+          <input type="number" id="defFiltMaxDur" min="0" max="120" step="1" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="defFiltSharia" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="defFiltSharia" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);">☪ الصفقات مع شهادة شرعيّة فقط</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="defFiltClosed" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="defFiltClosed" style="font:700 11px Cairo,sans-serif;color:var(--green-dark);">📂 أظهر الصفقات المغلقة أيضاً</label>
+        </div>
+        <button type="button" id="defFiltSave" style="padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Followed sponsors -->
   <div class="settings-group" id="follSpSec">
     <div class="settings-h">🤝 الجهات الراعية التي تتابعها</div>
@@ -3702,6 +3743,46 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Default project filter
+  (async () => {
+    const sort = document.getElementById('defFiltSort');
+    const cat = document.getElementById('defFiltCat');
+    const minRet = document.getElementById('defFiltMinRet');
+    const maxDur = document.getElementById('defFiltMaxDur');
+    const sharia = document.getElementById('defFiltSharia');
+    const closed = document.getElementById('defFiltClosed');
+    const saveBtn = document.getElementById('defFiltSave');
+    if (!sort || !saveBtn) return;
+    try {
+      const r = await App.api('GET', '/app/me/default-project-filter');
+      if (!r.hasData) return;
+      sort.value = r.sortBy;
+      cat.value = r.category || '';
+      minRet.value = r.minReturn || 0;
+      maxDur.value = r.maxDuration || 0;
+      sharia.checked = r.onlyShariaCertified;
+      closed.checked = r.showClosed;
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/default-project-filter', {
+            sortBy: sort.value,
+            category: cat.value.trim(),
+            minReturn: Number(minRet.value) || 0,
+            maxDuration: Number(maxDur.value) || 0,
+            onlyShariaCertified: sharia.checked,
+            showClosed: closed.checked,
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
