@@ -1664,6 +1664,13 @@
   <div id="sponsorHistList" style="display:flex;flex-direction:column;gap:6px;"></div>
 </div>
 
+<!-- Live activity feed -->
+<div class="card-section" id="liveFeedCard" style="display:none;">
+  <h2 class="section-h">⚡ آخر النشاطات</h2>
+  <p id="liveFeedSub" style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;"></p>
+  <div id="liveFeedList" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+
 <!-- Fee disclosure -->
 <div class="card-section" id="feeDiscCard" style="display:none;">
   <h2 class="section-h">💸 شفافيّة الرسوم</h2>
@@ -5018,6 +5025,36 @@
     } catch (e) { card.style.display = 'none'; }
   }
 
+  async function _loadLiveFeed(slug) {
+    const card = document.getElementById('liveFeedCard');
+    const list = document.getElementById('liveFeedList');
+    const sub = document.getElementById('liveFeedSub');
+    if (!card || !list) return;
+    try {
+      const r = await App.api('GET', '/app/projects/' + encodeURIComponent(slug) + '/live-activity');
+      if (!r.hasData) return;
+      card.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      sub.textContent = '🔥 ' + r.last24h + ' استثمار في آخر ٢٤ ساعة · ' + r.total + ' إجماليّ';
+      list.replaceChildren();
+      r.events.forEach(e => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+        const ic = document.createElement('div'); ic.style.cssText = 'font-size:18px;text-align:center;'; ic.textContent = '💰';
+        const txt = document.createElement('div');
+        const t1 = document.createElement('div'); t1.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);';
+        t1.textContent = e.display + (e.city ? ' · 📍 ' + e.city : '');
+        const t2 = document.createElement('div'); t2.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        const minsAgo = e.at ? Math.max(0, Math.floor((Date.now() - new Date(e.at).getTime()) / 60000)) : 0;
+        t2.textContent = minsAgo < 60 ? 'قبل ' + minsAgo + ' دقيقة' : (minsAgo < 1440 ? 'قبل ' + Math.floor(minsAgo / 60) + ' ساعة' : 'قبل ' + Math.floor(minsAgo / 1440) + ' يوم');
+        txt.append(t1, t2);
+        const amt = document.createElement('div'); amt.style.cssText = 'font:900 12px Cairo,sans-serif;color:#0f6e3a;'; amt.textContent = '+' + fmt(e.amount) + ' ر.س';
+        row.append(ic, txt, amt);
+        list.appendChild(row);
+      });
+    } catch (e) {}
+  }
+
   async function _loadFeeDisc(slug) {
     const card = document.getElementById('feeDiscCard');
     const list = document.getElementById('feeDiscList');
@@ -5756,7 +5793,7 @@
       card.style.display = '';
     } catch (e) { card.style.display = 'none'; }
   }
-  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _setVintage(p); } catch (e) {} try { _setDocLang(p); } catch (e) {} try { _setSponTrack(p.slug || p.id); } catch (e) {} try { _setTicketTrend(p.slug || p.id); } catch (e) {} try { _setSubVel(p.slug || p.id); } catch (e) {} try { _setPayoutCd(p.slug || p.id); } catch (e) {} try { _setVerifiedBadge(p.slug || p.id); } catch (e) {} try { _setCxlWindow(p.slug || p.id); } catch (e) {} try { _setSecMkt(p.slug || p.id); } catch (e) {} try { _setShariaCert(p.slug || p.id); } catch (e) {} try { _setIrr(p.slug || p.id); } catch (e) {} try { _setMinCtx(p.slug || p.id); } catch (e) {} try { _setFirstPay(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _initReferFriend(p); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadRepInv(p.slug || p.id); } catch (e) {} try { _loadCityDiv(p.slug || p.id); } catch (e) {} try { _loadTotRet(p.slug || p.id); } catch (e) {} try { _loadPayoutSched(p.slug || p.id); } catch (e) {} try { _loadFeeDisc(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initPriceCheck(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
+  _renderProject = function(p) { _origRender(p); try { _bindShare(p); } catch (e) {} try { _initQa(p); } catch (e) {} try { _loadDocs(p.slug || p.id); } catch (e) {} try { _emitProductSchema(p); } catch (e) {} try { _loadSimilar(p.slug || p.id); } catch (e) {} try { _loadPeerDist(p.slug || p.id); } catch (e) {} try { _loadRegions(p.slug || p.id); } catch (e) {} try { _setMilestone(p); } catch (e) {} try { _setHealth(p); } catch (e) {} try { _setMomentum(p.slug || p.id); } catch (e) {} try { _setPopularity(p); } catch (e) {} try { _setListingAge(p); } catch (e) {} try { _initBookmark(p.slug || p.id); } catch (e) {} try { _initReminder(p); } catch (e) {} try { _setCloseSpeed(p); } catch (e) {} try { _setHistFund(p.slug || p.id); } catch (e) {} try { _setLastActivity(p.slug || p.id); } catch (e) {} try { _setShareholders(p); } catch (e) {} try { _setGrade(p); } catch (e) {} try { _setEarlyBird(p); } catch (e) {} try { _setSkin(p); } catch (e) {} try { _setMarketMomentum(p.slug || p.id); } catch (e) {} try { _setVerifiedShare(p.slug || p.id); } catch (e) {} try { _initNotifyLaunch(p.slug || p.id); } catch (e) {} try { _setLiveCount(p.slug || p.id); } catch (e) {} try { _setVintage(p); } catch (e) {} try { _setDocLang(p); } catch (e) {} try { _setSponTrack(p.slug || p.id); } catch (e) {} try { _setTicketTrend(p.slug || p.id); } catch (e) {} try { _setSubVel(p.slug || p.id); } catch (e) {} try { _setPayoutCd(p.slug || p.id); } catch (e) {} try { _setVerifiedBadge(p.slug || p.id); } catch (e) {} try { _setCxlWindow(p.slug || p.id); } catch (e) {} try { _setSecMkt(p.slug || p.id); } catch (e) {} try { _setShariaCert(p.slug || p.id); } catch (e) {} try { _setIrr(p.slug || p.id); } catch (e) {} try { _setMinCtx(p.slug || p.id); } catch (e) {} try { _setFirstPay(p.slug || p.id); } catch (e) {} try { _loadGrowth(p.slug || p.id); } catch (e) {} try { _loadEntry(p.slug || p.id); } catch (e) {} try { _loadTopDays(p.slug || p.id); } catch (e) {} try { _loadInvTypes(p.slug || p.id); } catch (e) {} try { _loadSignSpeed(p.slug || p.id); } catch (e) {} try { _loadRoiBand(p.slug || p.id); } catch (e) {} try { _loadAmtTiers(p.slug || p.id); } catch (e) {} try { _loadSponsorHist(p.slug || p.id); } catch (e) {} try { _initReferFriend(p); } catch (e) {} try { _loadVelocity(p.slug || p.id); } catch (e) {} try { _loadConcRisk(p.slug || p.id); } catch (e) {} try { _loadTopInv(p.slug || p.id); } catch (e) {} try { _loadRepInv(p.slug || p.id); } catch (e) {} try { _loadCityDiv(p.slug || p.id); } catch (e) {} try { _loadTotRet(p.slug || p.id); } catch (e) {} try { _loadPayoutSched(p.slug || p.id); } catch (e) {} try { _loadFeeDisc(p.slug || p.id); } catch (e) {} try { _loadLiveFeed(p.slug || p.id); } catch (e) {} try { _loadCxl(p.slug || p.id); } catch (e) {} try { _loadCurve(p.slug || p.id); } catch (e) {} try { _loadPI(p.slug || p.id); } catch (e) {} try { _initThesis(p); } catch (e) {} try { _initPriceCheck(p); } catch (e) {} try { _initRegs(p); } catch (e) {} try { _initContractSummary(p); } catch (e) {} try { _initBenchmark(p); } catch (e) {} try { _initAccTags(p); } catch (e) {} try { _loadSensitivity(p); } catch (e) {} try { _initCalc(p); } catch (e) {} try { _initPayouts(p); } catch (e) {} try { _initFinSum(p); } catch (e) {} };
 
   async function _setFirstPay(slug) {
     const badge = document.getElementById('firstPayBadge');
