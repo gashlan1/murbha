@@ -695,6 +695,18 @@
     </div>
   </div>
 
+  <!-- PEAK SIGNUP HOURS -->
+  <div class="admin-card" id="peakSignCard" style="grid-column: 1 / -1;">
+    <div class="card-h">
+      <span>⏰ أكثر ساعات التسجيل (توقيت السعوديّة)</span>
+      <span class="card-h-sub" id="peakSignBadge">—</span>
+    </div>
+    <div class="card-body">
+      <div id="peakSignChart" style="display:flex;align-items:flex-end;gap:3px;height:120px;margin-bottom:8px;"></div>
+      <div id="peakSignLegend" style="display:flex;justify-content:space-between;font:600 9px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- LANDING CTA CLICKS -->
   <div class="admin-card" id="ctaClicksCard" style="grid-column: 1 / -1;">
     <div class="card-h">
@@ -3659,6 +3671,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('failedTxnDays')?.addEventListener('change', loadFailedTxns);
 
   // ── Feedback inbox ────────────────────────────────────────────
+  async function loadPeakSign() {
+    const chart = document.getElementById('peakSignChart');
+    const legend = document.getElementById('peakSignLegend');
+    const badge = document.getElementById('peakSignBadge');
+    if (!chart) return;
+    try {
+      const r = await App.api('GET', '/app/admin/peak-signup-hours');
+      if (!r.hasData) return;
+      if (badge) badge.textContent = 'الذروة: ' + r.peakHour + ':٠٠ (' + r.peakHourCount + ' مستخدم)';
+      chart.replaceChildren();
+      legend.replaceChildren();
+      const max = Math.max(1, ...r.hours.map(h => h.count));
+      r.hours.forEach(h => {
+        const col = document.createElement('div'); col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;';
+        const bar = document.createElement('div');
+        const color = h.hour === r.peakHour ? '#0f6e3a' : '#b08840';
+        bar.style.cssText = 'width:100%;height:' + Math.max(4, (h.count / max) * 100) + '%;background:' + color + ';border-radius:3px 3px 0 0;';
+        bar.title = h.hour + ':٠٠ — ' + h.count + ' تسجيل';
+        col.appendChild(bar);
+        chart.appendChild(col);
+        const lb = document.createElement('div'); lb.style.cssText = 'flex:1;text-align:center;'; lb.textContent = h.hour;
+        legend.appendChild(lb);
+      });
+    } catch (e) {}
+  }
+
   async function loadCtaClicks() {
     const wrap = document.getElementById('ctaClicksRows');
     const badge = document.getElementById('ctaClicksBadge');
@@ -9791,7 +9829,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     targets.forEach(t => obs.observe(t));
   }
 
-  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks()]);
+  await Promise.all([loadUsers(), loadInvestments(), loadQualifications(), loadQAInbox(), loadHelpCms(), loadProjectDocs(), loadWebhooks(), loadAnnouncements(), loadSettings(), loadAudit(), refreshTwofa(), loadLaunchPlan(), loadHealth(), loadPushHealth(), loadFlags(), loadJobs(), loadNewsletter(), loadFeedback(), loadFailedTxns(), loadRoadmap(), loadInvChart(), loadRefunds(), loadFailedLoginChart(), loadInvestmentStatus(), populatePuProjectSelect(), loadDealAlerts(), loadKycQueue(), loadWithdrQueue(), loadClosingSoon(), loadIdleBalances(), loadPaymStats(), loadFunnel(), loadTopLtv(), loadYieldReport(), loadPendingDeletions(), loadSignupSources(), loadActivation(), loadSupportSla(), loadProjViews(), loadStuckSignups(), loadBalSummary(), loadAnnAnalytics(), loadNpsTrend(), loadAtRisk(), loadCompletedDeals(), loadMaintStatus(), loadNotifBacklog(), loadWhHealth(), loadSegments(), loadSecRisk(), loadRevTrend(), loadKycTime(), loadWeeklyTrend(), loadInvByCat(), loadProjStatus(), loadAmtHist(), loadNvr(), loadPeak(), loadWv(), loadDorm(), loadConc(), loadTtfi(), loadKycAge(), loadCamp(), loadPipe(), loadOnb(), loadVel(), loadInact(), loadPayHist(), loadPu(), loadFbs(), loadRfTr(), loadFa(), loadPf(), loadPrReg(), loadWb(), loadLg(), loadLv(), loadTt(), loadSla(), loadRfReasons(), loadPs(), loadRb(), loadDur(), loadEng(), loadCoh(), loadCad(), loadAml(), loadSeg(), loadDc(), loadRve(), loadRd(), loadIdle(), loadNt(), loadVip(), loadCpa(), loadLc(), loadSpon(), loadNpsum(), loadUp(), loadQr(), loadAvp(), loadPm(), loadAiSum(), loadSponTr(), loadDepFail(), loadKycRej(), loadRefRatio(), loadRetCoh(), loadTtfiHist(), loadAgeDist(), loadHourHm(), loadCatPerf(), loadFundSpd(), loadKycStage(), loadRefReas(), loadNotifDel(), loadCtaClicks(), loadPeakSign()]);
 
   // Live updates via SSE. Admins receive every event; refresh impacted cards.
   if (typeof EventSource !== 'undefined') {
