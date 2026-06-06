@@ -859,6 +859,57 @@
     </div>
   </div>
 
+  <!-- Recession prep -->
+  <div class="settings-group" id="recPrepSec">
+    <div class="settings-h">📉 جاهزيّة الركود</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">قِس مدى استعدادك لدورة ركود قادمة بقاعدة "٣ صناديق" + قائمة فحص ٧ ضوابط.</p>
+      <div id="rpReadiness" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpActive" /> أبني جاهزيّة للركود
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpEmergency" /> 💰 صندوق طوارئ ٦+ أشهر مصاريف
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpOpportunity" /> 🎯 صندوق فرصة (كاش جاهز للشراء)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">٪ كاش الفرصة من المحفظة
+          <input type="number" id="rpCashPct" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">٪ التخصيص الدفاعي
+          <input type="number" id="rpDefensive" min="0" max="100" step="5" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpReverseDca" /> 📊 خطّة متوسّط التكلفة المعكوسة (يزيد عند الانخفاض)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpLossCap" /> 🚨 تنبيهات سقف الخسارة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عتبة تنبيه الخسارة (٪)
+          <input type="number" id="rpLossCapPct" min="5" max="50" step="5" value="15" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpAvoidRisky" /> 🚫 تجنّب القطاعات الدوريّة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">سياسة تجنّب القطاعات الخطرة
+          <select id="rpPolicy" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="none">— بدون قيود</option>
+            <option value="moderate">⚠️ معتدلة (تقليل التعرّض)</option>
+            <option value="strict">🚫 صارمة (تجنّب كامل)</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="rpPsych" /> 🧠 جاهزيّة نفسيّة (لا أتاسرع للبيع)
+        </label>
+        <textarea id="rpNotes" placeholder="ملاحظات (خطّة الطوارئ، قصص سابقة)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="rpSaveBtn" style="background:#c2410c;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ جاهزيّة الركود</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="recession-investing.html" style="color:var(--green);">الاستثمار في الركود</a>.</p>
+    </div>
+  </div>
+
   <!-- Philanthropy plan -->
   <div class="settings-group" id="phSec">
     <div class="settings-h">🌱 خطّة العطاء الخيري</div>
@@ -7079,6 +7130,76 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Recession prep
+  (async () => {
+    try {
+      const active = document.getElementById('rpActive');
+      const emergency = document.getElementById('rpEmergency');
+      const opportunity = document.getElementById('rpOpportunity');
+      const cashPct = document.getElementById('rpCashPct');
+      const defensive = document.getElementById('rpDefensive');
+      const reverseDca = document.getElementById('rpReverseDca');
+      const lossCap = document.getElementById('rpLossCap');
+      const lossCapPct = document.getElementById('rpLossCapPct');
+      const avoidRisky = document.getElementById('rpAvoidRisky');
+      const policy = document.getElementById('rpPolicy');
+      const psych = document.getElementById('rpPsych');
+      const notes = document.getElementById('rpNotes');
+      const readiness = document.getElementById('rpReadiness');
+      const btn = document.getElementById('rpSaveBtn');
+      if (!active || !btn) return;
+      const readinessLabels = {
+        master: { txt: '🛡 ماهر — جاهز تمامًا للركود', color: '#1f2937' },
+        prepared: { txt: '✅ مستعدّ — ضوابط أساسيّة قائمة', color: '#0a4d36' },
+        partial: { txt: '◷ جاهزيّة جزئيّة', color: '#b08840' },
+        exposed: { txt: '⛔ مكشوف — ابدأ البناء الآن', color: '#c54a3a' },
+      };
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/recession-prep');
+        active.checked = !!r.active;
+        emergency.checked = !!r.emergencyFund6Months;
+        opportunity.checked = !!r.opportunityCashSet;
+        cashPct.value = r.cashOpportunityPct || '';
+        defensive.value = r.defensiveAllocation || '';
+        reverseDca.checked = !!r.reverseDcaPlan;
+        lossCap.checked = !!r.lossCapAlertsEnabled;
+        lossCapPct.value = r.lossCapThresholdPct || 15;
+        avoidRisky.checked = !!r.avoidingRiskySectors;
+        policy.value = r.sectorAvoidancePolicy || 'none';
+        psych.checked = !!r.psychologicalReadiness;
+        notes.value = r.notes || '';
+        const l = readinessLabels[r.readinessLevel] || readinessLabels.exposed;
+        readiness.style.color = l.color;
+        readiness.textContent = '🎯 الجاهزيّة ' + r.readinessScore + '/١٠٠ · ' + r.enabledCount + ' من ' + r.maxOptions + ' ضوابط · ' + l.txt;
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/recession-prep', {
+            active: active.checked,
+            emergencyFund6Months: emergency.checked,
+            opportunityCashSet: opportunity.checked,
+            cashOpportunityPct: Number(cashPct.value || 0),
+            defensiveAllocation: Number(defensive.value || 0),
+            reverseDcaPlan: reverseDca.checked,
+            lossCapAlertsEnabled: lossCap.checked,
+            lossCapThresholdPct: Number(lossCapPct.value || 15),
+            avoidingRiskySectors: avoidRisky.checked,
+            sectorAvoidancePolicy: policy.value,
+            psychologicalReadiness: psych.checked,
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ جاهزيّة الركود', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
