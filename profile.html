@@ -859,6 +859,61 @@
     </div>
   </div>
 
+  <!-- Inheritance received -->
+  <div class="settings-group" id="inhSec">
+    <div class="settings-h">📜 الميراث المُستلَم</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجّل ميراثك لنُتابع التزامك الشرعي (سداد ديون المتوفّى + الصدقة الجارية) واستثمار النصيب المتبقّي.</p>
+      <div id="inhSummary" style="background:#fef9f0;border-radius:10px;padding:10px;margin-bottom:12px;display:none;">
+        <div style="font:900 12px Cairo,sans-serif;color:#b08840;text-align:center;margin-bottom:8px;" id="inhTotal">—</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;font:700 10px Cairo,sans-serif;">
+          <div><div style="color:#166534;" id="inhInv">—</div>استثمار</div>
+          <div><div style="color:#7c3aed;" id="inhSad">—</div>صدقة جارية</div>
+          <div><div style="color:#1e40af;" id="inhLiq">—</div>سيولة</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ihActive" /> تلقّيت ميراثًا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المبلغ المُستَلم (ر.س)
+          <input type="number" id="ihAmount" min="0" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">القرابة بالمتوفّى
+          <select id="ihRelation" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="parent">والد/ة</option>
+            <option value="spouse">زوج/ة</option>
+            <option value="sibling">أخ/أخت</option>
+            <option value="grandparent">جدّ/ة</option>
+            <option value="child">ابن/بنت</option>
+            <option value="other">قرابة أخرى</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ihDebts" /> ✓ سدّدت ديون المتوفّى
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ihWill" /> 📃 توجد وصيّة مكتوبة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="ihDispute" /> ⚠️ يوجد خلاف مع الإخوة على التقسيم
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الصدقة الجارية المُتعهَّد بها (ر.س)
+          <input type="number" id="ihSadaqaPledged" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">الصدقة الجارية المُسدَّدة فعلًا (ر.س)
+          <input type="number" id="ihSadaqaPaid" min="0" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">المستثمَر من الميراث (ر.س)
+          <input type="number" id="ihInvested" min="0" step="1000" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <textarea id="ihNotes" placeholder="ملاحظات (نوع الصدقة، خطّة التقسيم)" maxlength="300" rows="2" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;"></textarea>
+        <button type="button" id="ihSaveBtn" style="background:#1f2937;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ سجل الميراث</button>
+      </div>
+      <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;">للتفاصيل، اقرأ <a href="inheritance-management.html" style="color:var(--green);">إدارة الميراث</a>.</p>
+    </div>
+  </div>
+
   <!-- Expat departure -->
   <div class="settings-group" id="expatDepSec">
     <div class="settings-h">✈️ خطّة المغادرة للمقيم</div>
@@ -6428,6 +6483,75 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Inheritance received
+  (async () => {
+    try {
+      const active = document.getElementById('ihActive');
+      const amount = document.getElementById('ihAmount');
+      const relation = document.getElementById('ihRelation');
+      const debts = document.getElementById('ihDebts');
+      const will = document.getElementById('ihWill');
+      const dispute = document.getElementById('ihDispute');
+      const sadaqaPledged = document.getElementById('ihSadaqaPledged');
+      const sadaqaPaid = document.getElementById('ihSadaqaPaid');
+      const invested = document.getElementById('ihInvested');
+      const notes = document.getElementById('ihNotes');
+      const summary = document.getElementById('inhSummary');
+      const total = document.getElementById('inhTotal');
+      const invSpan = document.getElementById('inhInv');
+      const sadSpan = document.getElementById('inhSad');
+      const liqSpan = document.getElementById('inhLiq');
+      const btn = document.getElementById('ihSaveBtn');
+      if (!active || !btn) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const load = async () => {
+        const r = await App.api('GET', '/app/me/inheritance-received');
+        active.checked = !!r.active;
+        amount.value = r.amountReceivedSar || '';
+        relation.value = r.relationToDeceased || 'parent';
+        debts.checked = !!r.debtsSettled;
+        will.checked = !!r.willExists;
+        dispute.checked = !!r.siblingsDispute;
+        sadaqaPledged.value = r.sadaqaPledgedSar || '';
+        sadaqaPaid.value = r.sadaqaPaidSar || '';
+        invested.value = r.investedSar || '';
+        notes.value = r.notes || '';
+        if (r.amountReceivedSar > 0) {
+          summary.style.display = '';
+          total.textContent = '💰 الميراث ' + fmt(r.amountReceivedSar) + ' ر.س · مُستثمر ' + r.investedPct + '٪ · صدقة ' + r.sadaqaFulfilledPct + '٪ مُسدّدة';
+          invSpan.textContent = fmt(r.investedSar);
+          sadSpan.textContent = fmt(r.sadaqaPaidSar);
+          liqSpan.textContent = fmt(r.liquidityKeptSar);
+        } else {
+          summary.style.display = 'none';
+        }
+      };
+      load();
+      btn.addEventListener('click', async () => {
+        try {
+          const r = await App.api('PUT', '/app/me/inheritance-received', {
+            active: active.checked,
+            amountReceivedSar: Number(amount.value || 0),
+            relationToDeceased: relation.value,
+            debtsSettled: debts.checked,
+            willExists: will.checked,
+            siblingsDispute: dispute.checked,
+            sadaqaPledgedSar: Number(sadaqaPledged.value || 0),
+            sadaqaPaidSar: Number(sadaqaPaid.value || 0),
+            investedSar: Number(invested.value || 0),
+            notes: notes.value,
+          });
+          if (r.ok) {
+            App.toast && App.toast('تم حفظ سجل الميراث', 'success');
+            await load();
+          }
+        } catch {
+          App.toast && App.toast('تعذّر الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
