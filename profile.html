@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- Saved searches -->
+  <div class="settings-group" id="srchSec">
+    <div class="settings-h">🔎 بحثك المحفوظ</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">احفظ معايير بحث متكرّرة (قطاع، عائد، مدّة، مدينة) وسنبلّغك بأيّ صفقة جديدة تطابقها.</p>
+      <div id="srchList" style="display:grid;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:14px;">
+        <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">➕ احفظ بحثاً جديداً</div>
+        <div style="display:grid;gap:8px;">
+          <input type="text" id="srchName" maxlength="60" placeholder="اسم البحث (مثلاً: عقار جدّة عائد ١٠)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="srchCat" maxlength="40" placeholder="القطاع (اختياري)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="number" id="srchMinRet" min="0" max="30" step="0.5" placeholder="الحدّ الأدنى للعائد %" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="number" id="srchMaxDur" min="0" max="120" step="1" placeholder="الحدّ الأعلى للمدّة (شهر)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <input type="text" id="srchCity" maxlength="60" placeholder="المدينة (اختياري)" style="padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <label style="display:flex;align-items:center;gap:8px;font:600 11px Tajawal,sans-serif;color:var(--green-dark);"><input type="checkbox" id="srchNotify" style="transform:scale(1.2);accent-color:#0a4d36;" />🔔 أبلغني عند وجود صفقة مطابقة</label>
+          <button type="button" id="srchAddBtn" style="padding:10px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 12px Cairo,sans-serif;cursor:pointer;">حفظ البحث</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Anniversaries -->
   <div class="settings-group" id="annivSec" style="display:none;">
     <div class="settings-h">🎂 ذكرى انضمامك</div>
@@ -3517,6 +3538,73 @@
         card.style.display = 'none';
       });
     } catch (e) {}
+  })();
+
+  // Saved searches
+  (async () => {
+    const list = document.getElementById('srchList');
+    const nameIn = document.getElementById('srchName');
+    const catIn = document.getElementById('srchCat');
+    const minRetIn = document.getElementById('srchMinRet');
+    const maxDurIn = document.getElementById('srchMaxDur');
+    const cityIn = document.getElementById('srchCity');
+    const notifyIn = document.getElementById('srchNotify');
+    const addBtn = document.getElementById('srchAddBtn');
+    if (!list || !addBtn) return;
+    async function refresh() {
+      try {
+        const r = await App.api('GET', '/app/me/saved-searches');
+        list.replaceChildren();
+        if (!r.hasData || !r.searches.length) {
+          const empty = document.createElement('div'); empty.style.cssText = 'font:600 11px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:8px;'; empty.textContent = 'لا بحوث محفوظة بعد.';
+          list.appendChild(empty);
+          return;
+        }
+        r.searches.forEach(s => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background:var(--paper);border-radius:10px;padding:12px;';
+          const head = document.createElement('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+          const nm = document.createElement('div'); nm.style.cssText = 'font:900 12px Cairo,sans-serif;color:var(--green-dark);'; nm.textContent = '🔎 ' + s.name;
+          const del = document.createElement('button'); del.type = 'button';
+          del.style.cssText = 'background:none;border:none;color:#c54a3a;cursor:pointer;font:700 11px Cairo,sans-serif;'; del.textContent = '✕';
+          del.onclick = async () => {
+            await App.api('DELETE', '/app/me/saved-searches/' + encodeURIComponent(s.id));
+            refresh();
+          };
+          head.append(nm, del);
+          const tags = document.createElement('div'); tags.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;';
+          const mk = (t) => { const c = document.createElement('span'); c.style.cssText = 'background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:99px;padding:3px 8px;font:700 10px Cairo,sans-serif;color:var(--green-dark);'; c.textContent = t; tags.appendChild(c); };
+          if (s.filters.category) mk('📦 ' + s.filters.category);
+          if (s.filters.minReturn > 0) mk('≥ ' + s.filters.minReturn + '٪');
+          if (s.filters.maxDuration > 0) mk('≤ ' + s.filters.maxDuration + ' شهر');
+          if (s.filters.city) mk('📍 ' + s.filters.city);
+          if (s.filters.notifyOnMatch) mk('🔔 تنبيهات');
+          card.append(head, tags);
+          list.appendChild(card);
+        });
+      } catch (e) {}
+    }
+    addBtn.addEventListener('click', async () => {
+      addBtn.disabled = true;
+      try {
+        await App.api('POST', '/app/me/saved-searches', {
+          name: nameIn.value.trim(),
+          category: catIn.value.trim(),
+          minReturn: Number(minRetIn.value) || 0,
+          maxDuration: Number(maxDurIn.value) || 0,
+          city: cityIn.value.trim(),
+          notifyOnMatch: notifyIn.checked,
+        });
+        if (App.toast) App.toast('تمّ حفظ البحث', 'success');
+        nameIn.value = ''; catIn.value = ''; minRetIn.value = ''; maxDurIn.value = ''; cityIn.value = ''; notifyIn.checked = false;
+        refresh();
+      } catch (e) {
+        if (App.toast) App.toast('فشل — تحقّق من الاسم', 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    });
+    refresh();
   })();
 
   // Anniversaries
