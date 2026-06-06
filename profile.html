@@ -859,6 +859,43 @@
     </div>
   </div>
 
+  <!-- Auto-zakat -->
+  <div class="settings-group" id="autoZakatSec">
+    <div class="settings-h">🤲 الزكاة التلقائيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">ندفع زكاة محفظتك تلقائياً في الشهر الذي تختاره. تذكير قبل الدفع بأسبوع وموافقتك المسبقة.</p>
+      <div id="zakatStatus" style="background:var(--paper);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;font:600 12px Tajawal,sans-serif;color:var(--green-dark);"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <label for="azEnabled" style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">تفعيل الزكاة التلقائيّة</label>
+        <input type="checkbox" id="azEnabled" style="transform:scale(1.4);accent-color:#0a4d36;" />
+      </div>
+      <div id="azForm" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label for="azMonth" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">شهر الزكاة</label>
+          <select id="azMonth" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="ramadan">🌙 رمضان</option>
+            <option value="muharram">📿 محرّم</option>
+            <option value="dhulhijjah">🕋 ذو الحجّة</option>
+            <option value="custom">📅 شهر مخصّص</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="azCharity" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">الجهة المستفيدة</label>
+          <select id="azCharity" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;background:#fff;">
+            <option value="platform_curated">✨ جمعيّات معتمدة (تختار مرابحة)</option>
+            <option value="national_zakat_fund">🏛 صندوق الزكاة الوطني</option>
+            <option value="custom">📝 جمعيّة خاصّة بي</option>
+          </select>
+        </div>
+        <div id="azCustomBox" style="margin-bottom:14px;display:none;">
+          <label for="azCustomName" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">اسم الجمعيّة</label>
+          <input type="text" id="azCustomName" maxlength="80" placeholder="مثلاً: إنسان الخيريّة" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <button type="button" id="azSave" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Two-step approval -->
   <div class="settings-group" id="twoStepSec">
     <div class="settings-h">🔐 موافقة بخطوتين للاستثمارات الكبيرة</div>
@@ -3821,6 +3858,53 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Auto-zakat
+  (async () => {
+    const cb = document.getElementById('azEnabled');
+    const form = document.getElementById('azForm');
+    const month = document.getElementById('azMonth');
+    const charity = document.getElementById('azCharity');
+    const customBox = document.getElementById('azCustomBox');
+    const customName = document.getElementById('azCustomName');
+    const saveBtn = document.getElementById('azSave');
+    const status = document.getElementById('zakatStatus');
+    if (!cb || !form) return;
+    try {
+      const r = await App.api('GET', '/app/me/auto-zakat');
+      if (!r.hasData) return;
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      if (r.aboveNisab) {
+        status.innerHTML = '💎 زكاة محفظتك المقدّرة: <strong style="color:#0a4d36;">' + fmt(r.estimatedZakat) + ' ر.س</strong> (٢٫٥٪ من ' + fmt(r.zakatable) + ' ر.س)';
+      } else {
+        status.innerHTML = 'محفظتك (' + fmt(r.zakatable) + ' ر.س) <strong>دون النصاب</strong> (' + fmt(r.nisabSar) + ' ر.س). الزكاة غير واجبة عليها.';
+      }
+      cb.checked = !!r.enabled;
+      month.value = r.paymentMonth;
+      charity.value = r.charityChoice;
+      customName.value = r.customCharityName || '';
+      form.style.display = cb.checked ? '' : 'none';
+      customBox.style.display = charity.value === 'custom' ? '' : 'none';
+      cb.addEventListener('change', () => { form.style.display = cb.checked ? '' : 'none'; });
+      charity.addEventListener('change', () => { customBox.style.display = charity.value === 'custom' ? '' : 'none'; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/auto-zakat', {
+            enabled: cb.checked,
+            paymentMonth: month.value,
+            charityChoice: charity.value,
+            customCharityName: customName.value.trim(),
+          });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
