@@ -859,6 +859,37 @@
     </div>
   </div>
 
+  <!-- DD checklist progress -->
+  <div class="settings-group" id="ddCheckSec">
+    <div class="settings-h">📋 قائمة العناية الواجبة الشخصيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">حدّد البنود التي تتحقّق منها قبل أيّ استثمار. سنذكّرك بها في صفحة كلّ صفقة.</p>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div id="ddCheckList" style="display:grid;gap:6px;"></div>
+        <div id="ddCheckProgress" style="margin-top:10px;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-align:center;"></div>
+      </div>
+      <div style="display:grid;gap:10px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="ddEnforce" style="transform:scale(1.3);accent-color:#c54a3a;" />
+          🚫 منع الاستثمار حتّى أكمل الحدّ الأدنى من البنود
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">الحدّ الأدنى للبنود قبل الاستثمار</label>
+          <input type="number" id="ddMin" min="0" max="25" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="ddShow" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          أظهِر قائمتي في كلّ صفحة صفقة
+        </label>
+        <div>
+          <label style="font:800 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">ملاحظاتي الشخصيّة</label>
+          <textarea id="ddNotes" rows="3" maxlength="2000" placeholder="مثال: أرفض صفقات بمشاريع ناشئة. حدّي الأقصى ٥٠٠٠ في كلّ صفقة." style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <button type="button" id="ddSaveBtn" style="background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ قائمتي</button>
+    </div>
+  </div>
+
   <!-- Quality filter -->
   <div class="settings-group" id="qualFilterSec">
     <div class="settings-h">🏰 فلتر الجودة (الخندق الاقتصاديّ)</div>
@@ -4551,6 +4582,83 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // DD checklist progress
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/dd-checklist-progress');
+      if (!r.hasData) return;
+      const list = document.getElementById('ddCheckList');
+      const progress = document.getElementById('ddCheckProgress');
+      const enforce = document.getElementById('ddEnforce');
+      const min = document.getElementById('ddMin');
+      const show = document.getElementById('ddShow');
+      const notes = document.getElementById('ddNotes');
+      const btn = document.getElementById('ddSaveBtn');
+      if (!list || !btn) return;
+      const items = [
+        { key: 'sponsor_history', label: 'تحقّقت من تاريخ الراعي' },
+        { key: 'payment_reliability', label: 'راجعت موثوقيّة الدفع' },
+        { key: 'skin_in_game', label: 'تأكّدت من رأس مال الراعي الخاصّ' },
+        { key: 'expected_return', label: 'فهمت العائد المتوقّع' },
+        { key: 'duration_match', label: 'تطابق المدّة مع أهدافي' },
+        { key: 'collateral', label: 'تحقّقت من الأصول الضامنة' },
+        { key: 'fee_structure', label: 'فهمت هيكل الرسوم' },
+        { key: 'distribution_schedule', label: 'راجعت جدول التوزيعات' },
+        { key: 'early_exit', label: 'فهمت شروط الخروج المبكّر' },
+        { key: 'real_return', label: 'حسبت العائد بعد التضخّم' },
+        { key: 'risk_disclosure', label: 'قرأت إفصاح المخاطر' },
+        { key: 'cycle_sensitivity', label: 'قيّمت حساسيّة الدورة' },
+        { key: 'correlation_check', label: 'تحقّقت من الارتباط بمحفظتي' },
+        { key: 'currency_risk', label: 'قيّمت مخاطر العملة' },
+        { key: 'concentration_check', label: 'تحقّقت من حدود التركّز' },
+        { key: 'sharia_certified', label: 'تأكّدت من التوافق الشرعي' },
+        { key: 'sama_limits', label: 'ضمن سقوف ساما' },
+        { key: 'esg_aligned', label: 'متوافقة مع ESG (إن طبّق)' },
+        { key: 'goal_aligned', label: 'تحقّق هدفاً ماليّاً لي' },
+        { key: 'emotional_check', label: 'لست أتصرّف بعاطفة' },
+        { key: 'loss_acceptable', label: 'يمكنني تحمّل الخسارة' },
+        { key: 'plan_consistent', label: 'لا أخالف خطّتي المكتوبة' },
+        { key: 'no_regret', label: 'لن أندم بعد سنة' },
+      ];
+      const completed = r.completedItems || {};
+      const refresh = () => {
+        const count = Object.keys(completed).filter(k => completed[k]).length;
+        progress.textContent = '✓ أكملت ' + count + ' من ' + items.length + ' بند' + (r.minimumItemsToInvest > 0 ? ' (المطلوب ' + r.minimumItemsToInvest + ')' : '');
+      };
+      list.replaceChildren();
+      items.forEach(it => {
+        const label = document.createElement('label');
+        label.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border-radius:6px;font:600 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!completed[it.key];
+        cb.style.accentColor = '#0a4d36';
+        cb.dataset.key = it.key;
+        cb.addEventListener('change', () => { completed[it.key] = cb.checked; refresh(); });
+        const txt = document.createElement('span'); txt.textContent = it.label;
+        label.append(cb, txt);
+        list.appendChild(label);
+      });
+      refresh();
+      enforce.checked = !!r.enforceBeforeInvest;
+      min.value = r.minimumItemsToInvest || 0;
+      show.checked = r.showOnEveryDeal !== false;
+      notes.value = r.notes || '';
+      btn.addEventListener('click', async () => {
+        try {
+          await App.api('PUT', '/app/me/dd-checklist-progress', {
+            completedItems: completed,
+            enforceBeforeInvest: enforce.checked,
+            minimumItemsToInvest: Number(min.value),
+            showOnEveryDeal: show.checked,
+            notes: notes.value,
+          });
+          App.toast && App.toast('تم حفظ قائمة العناية', 'success');
+        } catch { App.toast && App.toast('فشل', 'error'); }
       });
     } catch (e) {}
   })();
