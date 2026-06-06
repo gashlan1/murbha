@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Anniversaries -->
+  <div class="settings-group" id="annivSec" style="display:none;">
+    <div class="settings-h">🎂 ذكرى انضمامك</div>
+    <div style="padding:14px 18px;">
+      <div id="annivHero" style="background:linear-gradient(135deg,#b08840,#5c2418);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="annivGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Public bio -->
   <div class="settings-group" id="pubBioSec">
     <div class="settings-h">🌐 ملفّك العامّ (اختياري)</div>
@@ -3506,6 +3515,41 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Anniversaries
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/anniversaries');
+      if (!r.hasData) return;
+      const sec = document.getElementById('annivSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('annivHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '🎂';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 26px Cairo,sans-serif;color:#fff;margin:6px 0 4px;';
+      if (r.fullYears >= 1) big.textContent = r.fullYears + ' سنوات معنا';
+      else big.textContent = 'مرحباً بك معنا';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fbf6ea;opacity:0.9;';
+      const joinDate = new Date(r.joinedAt).toLocaleDateString('ar-SA');
+      sub.textContent = 'انضممت منذ ' + joinDate + ' · ' + fmt(r.investmentsToDate) + ' صفقة';
+      const next = document.createElement('div'); next.style.cssText = 'font:600 11px Tajawal,sans-serif;color:#fbf6ea;opacity:0.85;margin-top:8px;';
+      next.textContent = r.daysUntilNextAnniversary > 0 ? '🎁 الذكرى القادمة بعد ' + r.daysUntilNextAnniversary + ' يوماً' : '';
+      hero.append(ic, big, sub, next);
+      const grid = document.getElementById('annivGrid');
+      grid.replaceChildren();
+      r.milestones.forEach(m => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:' + (m.achieved ? 'linear-gradient(135deg,#fbf6ea,#fff)' : 'var(--paper)') + ';border:1px solid ' + (m.achieved ? '#d4ac6e' : 'rgba(13,22,18,0.1)') + ';border-radius:10px;padding:12px 8px;text-align:center;opacity:' + (m.achieved ? '1' : '0.45') + ';';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = m.label;
+        const st = document.createElement('div'); st.style.cssText = 'font:600 9px Tajawal,sans-serif;color:' + (m.achieved ? '#0f6e3a' : '#b08840') + ';margin-top:2px;';
+        st.textContent = m.achieved ? '✓ مفتوح' : '🔒 لم يفتح بعد';
+        tile.append(lbl, st);
+        grid.appendChild(tile);
       });
     } catch (e) {}
   })();
