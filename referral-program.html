@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>برنامج الإحالة — مُرابحة</title>
+<meta name="description" content="ادعُ أصدقاءك واكسب مكافآت على كل مستثمر جديد تحيله إلى مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:16px;}
+  .card h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .link-box{display:flex;gap:10px;align-items:center;}
+  .link-input{flex:1;border:1px solid var(--line);border-radius:10px;padding:11px 14px;font:500 13px Tajawal,sans-serif;background:var(--paper);color:var(--ink);}
+  .btn-copy{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:11px 20px;font:700 13px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .share-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn-share{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  @media(max-width:520px){.stats-grid{grid-template-columns:1fr 1fr;}}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;}
+  .stat-val{font:900 26px Cairo,sans-serif;color:var(--green-dark);}
+  .stat-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .tiers{display:grid;gap:10px;}
+  .tier{display:flex;align-items:center;gap:14px;background:var(--paper);border-radius:12px;padding:14px;}
+  .tier-icon{font-size:26px;flex-shrink:0;}
+  .tier-info{flex:1;}
+  .tier-name{font:700 13px Cairo,sans-serif;color:var(--green-dark);}
+  .tier-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .tier-reward{font:900 13px Cairo,sans-serif;color:var(--gold);white-space:nowrap;}
+  .tier.active{border:2px solid var(--green);}
+  .history-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .history-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .history-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .history-table tr:last-child td{border-bottom:none;}
+  .badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-pending{background:#fff8e1;color:#a07020;}
+  .badge-paid{background:#e8f5e9;color:#2e7d32;}
+  .badge-expired{background:#fdecea;color:#c54a3a;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🎁 برنامج الإحالة</h1>
+    <p>ادعُ أصدقاءك للاستثمار في مُرابحة واكسب مكافآت نقدية على كل استثمار ناجح.</p>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">إجمالي الإحالات</div></div>
+    <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">الإحالات المحوّلة</div></div>
+    <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">المكافآت المكتسبة (ر.س)</div></div>
+  </div>
+
+  <div class="card">
+    <h2>🔗 رابط الإحالة الخاص بك</h2>
+    <div class="link-box">
+      <input class="link-input" id="referralLink" readonly value="جارٍ التحميل…" />
+      <button class="btn-copy" id="copyBtn">نسخ</button>
+    </div>
+    <div class="share-row">
+      <button class="btn-share" id="shareWhatsApp">📱 واتساب</button>
+      <button class="btn-share" id="shareEmail">📧 بريد إلكتروني</button>
+      <button class="btn-share" id="shareTwitter">🐦 تويتر</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 مستويات المكافآت</h2>
+    <div class="tiers" id="tiersArea">
+      <p class="empty-msg">جارٍ التحميل…</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 سجل الإحالات</h2>
+    <div id="historyArea"><p class="empty-msg">جارٍ التحميل…</p></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  const TIER_ICONS = ['🥉','🥈','🥇','💎'];
+  const BADGE_LABELS = {pending:'قيد الانتظار',paid:'مدفوعة',expired:'منتهية',active:'نشطة'};
+
+  function showToast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg;
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  function renderStats(d){
+    const grid=document.getElementById('statsGrid');
+    grid.textContent='';
+    const items=[
+      {val:d.totalReferrals||0,lbl:'إجمالي الإحالات'},
+      {val:d.convertedReferrals||0,lbl:'الإحالات المحوّلة'},
+      {val:Number(d.totalRewards||0).toLocaleString('ar-SA'),lbl:'المكافآت المكتسبة (ر.س)'},
+    ];
+    items.forEach(it=>{
+      const s=document.createElement('div'); s.className='stat';
+      const v=document.createElement('div'); v.className='stat-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='stat-lbl'; l.textContent=it.lbl;
+      s.appendChild(v); s.appendChild(l); grid.appendChild(s);
+    });
+  }
+
+  function renderTiers(tiers, currentTier){
+    const area=document.getElementById('tiersArea'); area.textContent='';
+    tiers.forEach((tier,i)=>{
+      const row=document.createElement('div');
+      row.className='tier'+(tier.name===currentTier?' active':'');
+      const icon=document.createElement('div'); icon.className='tier-icon'; icon.textContent=TIER_ICONS[i]||'⭐';
+      const info=document.createElement('div'); info.className='tier-info';
+      const nm=document.createElement('div'); nm.className='tier-name'; nm.textContent=tier.name;
+      const desc=document.createElement('div'); desc.className='tier-desc'; desc.textContent=tier.desc;
+      info.appendChild(nm); info.appendChild(desc);
+      const rew=document.createElement('div'); rew.className='tier-reward'; rew.textContent=tier.reward;
+      row.appendChild(icon); row.appendChild(info); row.appendChild(rew);
+      area.appendChild(row);
+    });
+  }
+
+  function renderHistory(referrals){
+    const area=document.getElementById('historyArea'); area.textContent='';
+    if(!referrals.length){
+      const m=document.createElement('p'); m.className='empty-msg';
+      m.textContent='لا توجد إحالات بعد. ابدأ بمشاركة رابطك!'; area.appendChild(m); return;
+    }
+    const table=document.createElement('table'); table.className='history-table';
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    ['الاسم','التاريخ','الاستثمار','المكافأة','الحالة'].forEach(h=>{
+      const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    referrals.forEach(r=>{
+      const tr=document.createElement('tr');
+      const cells=[
+        r.name||'—',
+        r.date||'—',
+        r.invested?Number(r.invested).toLocaleString('ar-SA')+' ر.س':'—',
+        r.reward?'+'+Number(r.reward).toLocaleString('ar-SA')+' ر.س':'—',
+      ];
+      cells.forEach(val=>{
+        const td=document.createElement('td'); td.textContent=val; tr.appendChild(td);
+      });
+      const tdS=document.createElement('td');
+      const badge=document.createElement('span');
+      const st=r.status||'pending';
+      badge.className='badge badge-'+st; badge.textContent=BADGE_LABELS[st]||st;
+      tdS.appendChild(badge); tr.appendChild(tdS);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); area.appendChild(table);
+  }
+
+  function setupLink(link){
+    const input=document.getElementById('referralLink');
+    input.value=link||window.location.origin+'?ref=YOURCODE';
+    document.getElementById('copyBtn').addEventListener('click',()=>{
+      navigator.clipboard.writeText(input.value).then(()=>showToast('تم نسخ الرابط! ✅'));
+    });
+    const msg=encodeURIComponent('انضم إلى مُرابحة واستثمر بشكل حلال: '+input.value);
+    document.getElementById('shareWhatsApp').addEventListener('click',()=>{ window.open('https://wa.me/?text='+msg,'_blank'); });
+    document.getElementById('shareEmail').addEventListener('click',()=>{ window.location.href='mailto:?subject=دعوة+للاستثمار+في+مُرابحة&body='+msg; });
+    document.getElementById('shareTwitter').addEventListener('click',()=>{ window.open('https://twitter.com/intent/tweet?text='+msg,'_blank'); });
+  }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/referral-program');
+      if(!r.ok){
+        if(r.status===401) showToast('يجب تسجيل الدخول.');
+        else showToast('تعذّر التحميل.'); return;
+      }
+      const d=await r.json();
+      renderStats(d);
+      renderTiers(d.tiers||[], d.currentTier||'');
+      renderHistory(d.referrals||[]);
+      setupLink(d.referralLink||'');
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>
