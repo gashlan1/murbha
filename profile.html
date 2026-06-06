@@ -859,6 +859,16 @@
     </div>
   </div>
 
+  <!-- Preferred categories -->
+  <div class="settings-group" id="prefCatSec">
+    <div class="settings-h">🎯 قطاعاتك المفضّلة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">اختر القطاعات التي تهتمّ بها — ستظهر صفقاتها أوّلاً، ويعتمدها الاستثمار التلقائي.</p>
+      <div id="prefCatGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px;"></div>
+      <button type="button" id="prefCatSave" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ التفضيلات</button>
+    </div>
+  </div>
+
   <!-- Deposit insights -->
   <div class="settings-group" id="depInsSec" style="display:none;">
     <div class="settings-h">💳 رؤى الإيداع</div>
@@ -3217,6 +3227,49 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Preferred categories
+  (async () => {
+    const grid = document.getElementById('prefCatGrid');
+    const saveBtn = document.getElementById('prefCatSave');
+    if (!grid || !saveBtn) return;
+    let selected = new Set();
+    try {
+      const r = await App.api('GET', '/app/me/preferred-categories');
+      if (!r.hasData) return;
+      selected = new Set(r.selected || []);
+      grid.replaceChildren();
+      r.available.forEach(cat => {
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        const isOn = selected.has(cat.key);
+        tile.style.cssText = 'background:' + (isOn ? 'linear-gradient(135deg,#0a4d36,#062b1e)' : 'var(--paper)') + ';color:' + (isOn ? '#fbf6ea' : 'var(--green-dark)') + ';border:1px solid ' + (isOn ? '#0a4d36' : 'rgba(13,22,18,0.1)') + ';border-radius:10px;padding:12px;text-align:start;cursor:pointer;font-family:inherit;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 12px Cairo,sans-serif;margin-bottom:2px;'; lbl.textContent = cat.label;
+        const desc = document.createElement('div'); desc.style.cssText = 'font:600 10px Tajawal,sans-serif;opacity:0.8;'; desc.textContent = cat.desc;
+        tile.append(lbl, desc);
+        tile.addEventListener('click', () => {
+          if (selected.has(cat.key)) selected.delete(cat.key);
+          else selected.add(cat.key);
+          const on = selected.has(cat.key);
+          tile.style.background = on ? 'linear-gradient(135deg,#0a4d36,#062b1e)' : 'var(--paper)';
+          tile.style.color = on ? '#fbf6ea' : 'var(--green-dark)';
+          tile.style.borderColor = on ? '#0a4d36' : 'rgba(13,22,18,0.1)';
+        });
+        grid.appendChild(tile);
+      });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/preferred-categories', { selected: [...selected] });
+          if (App.toast) App.toast('تمّ الحفظ', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل الحفظ', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
