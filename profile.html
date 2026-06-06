@@ -859,6 +859,27 @@
     </div>
   </div>
 
+  <!-- Consent log -->
+  <div class="settings-group" id="consentSec">
+    <div class="settings-h">📜 موافقاتك القانونيّة</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سجلّ موافقاتك الرسميّة وآخر تحديث لكلّ منها.</p>
+      <div id="consentList" style="display:grid;gap:6px;margin-bottom:14px;"></div>
+      <div style="background:var(--paper);border-radius:10px;padding:12px;">
+        <div style="font:800 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">إدارة الموافقات</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <input type="checkbox" id="consentMarketing" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="consentMarketing" style="font:600 11px Tajawal,sans-serif;color:var(--green-dark);">رسائل تسويقيّة من مرابحة</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <input type="checkbox" id="consentSharia" style="transform:scale(1.2);accent-color:#0a4d36;" />
+          <label for="consentSharia" style="font:600 11px Tajawal,sans-serif;color:var(--green-dark);">أقرّ بأنّي اطّلعت على الإفصاحات الشرعيّة</label>
+        </div>
+        <button type="button" id="consentSave" style="width:100%;padding:10px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 12px Cairo,sans-serif;cursor:pointer;">حفظ الموافقات</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Locale & tax -->
   <div class="settings-group" id="locTaxSec">
     <div class="settings-h">🌍 اللغة والإقامة الضريبيّة</div>
@@ -3396,6 +3417,54 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Consent log
+  (async () => {
+    const list = document.getElementById('consentList');
+    const cbMarketing = document.getElementById('consentMarketing');
+    const cbSharia = document.getElementById('consentSharia');
+    const saveBtn = document.getElementById('consentSave');
+    if (!list || !saveBtn) return;
+    try {
+      const r = await App.api('GET', '/app/me/consent-log');
+      if (!r.hasData) return;
+      list.replaceChildren();
+      const items = [
+        { key: 'terms', label: '📄 شروط الاستخدام', v: r.current.terms },
+        { key: 'privacy', label: '🔒 سياسة الخصوصيّة', v: r.current.privacy },
+        { key: 'data', label: '💾 معالجة البيانات', v: r.current.data },
+        { key: 'sharia', label: '☪ الإفصاح الشرعي', v: r.current.sharia },
+        { key: 'marketing', label: '📣 رسائل تسويقيّة', v: r.current.marketing },
+        { key: 'crs', label: '🌐 موافقة CRS', v: r.current.crs },
+      ];
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;background:var(--paper);border-radius:8px;padding:10px;';
+        const lbl = document.createElement('div'); lbl.style.cssText = 'font:800 11px Cairo,sans-serif;color:var(--green-dark);'; lbl.textContent = it.label;
+        const st = document.createElement('div'); st.style.cssText = 'font:700 10px Cairo,sans-serif;'; st.style.color = it.v.accepted ? '#0f6e3a' : '#b08840'; st.textContent = it.v.accepted ? '✓ مقبول' : '⏸ غير مقبول';
+        const dt = document.createElement('div'); dt.style.cssText = 'font:600 10px Tajawal,sans-serif;color:var(--muted);';
+        dt.textContent = it.v.at ? new Date(it.v.at).toLocaleDateString('ar-SA') : '—';
+        row.append(lbl, st, dt);
+        list.appendChild(row);
+      });
+      cbMarketing.checked = !!r.current.marketing.accepted;
+      cbSharia.checked = !!r.current.sharia.accepted;
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/consent-log', {
+            marketing: cbMarketing.checked,
+            sharia: cbSharia.checked,
+          });
+          if (App.toast) App.toast('تمّ تحديث الموافقات', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل الحفظ', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
