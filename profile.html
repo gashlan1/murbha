@@ -859,6 +859,61 @@
     </div>
   </div>
 
+  <!-- Sandwich generation -->
+  <div class="settings-group" id="sandwichSec">
+    <div class="settings-h">🥪 جيل الساندويتش (الأبناء والوالدان)</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">إذا كنت تدعم والديك وأبناءك ماليًّا، حدّد العبء واحرص على الذات.</p>
+      <div id="sgResilience" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:8px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div id="sgBurden" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgActive" /> فعّل خطّة جيل الساندويتش
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgParents" /> أدعم والديّ ماليًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">دعم الوالدين الشهري (ر.س)
+          <input type="number" id="sgParentsAmt" min="0" max="100000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgKids" /> لديّ أبناء يعتمدون عليّ
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد الأبناء
+          <input type="number" id="sgKidsCount" min="0" max="20" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">نفقات الأبناء الشهريّة (ر.س)
+          <input type="number" id="sgKidsAmt" min="0" max="100000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي الدعم/الدخل (٪)
+          <input type="number" id="sgSupportPct" min="0" max="100" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgSiblings" /> اتّفقت مع إخوتي على توزيع دعم الوالدين
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgSelfFirst" /> أتبنّى قاعدة "الذات أوّلاً" (تأمين+طوارئ+تقاعد قبل الدعم)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgEmer" /> صندوق طوارئ ٩-١٢ شهر (لمسؤوليّاتي المضاعفة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgLife" /> تأمين حياة كافٍ نشط (يحمي المعتمدين)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgRetire" /> أدّخر تقاعدي رغم الالتزامات
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sgWritten" /> خطّة العائلة مكتوبة ومُراجَعة
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="sgNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="sgSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الساندويتش</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Insurance coverage audit -->
   <div class="settings-group" id="insSec">
     <div class="settings-h">🛡️ تدقيق التغطية التأمينيّة (التكافل)</div>
@@ -8799,6 +8854,89 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Sandwich generation
+  (async () => {
+    try {
+      const active = document.getElementById('sgActive');
+      const parents = document.getElementById('sgParents');
+      const parentsAmt = document.getElementById('sgParentsAmt');
+      const kids = document.getElementById('sgKids');
+      const kidsCount = document.getElementById('sgKidsCount');
+      const kidsAmt = document.getElementById('sgKidsAmt');
+      const supportPct = document.getElementById('sgSupportPct');
+      const siblings = document.getElementById('sgSiblings');
+      const selfFirst = document.getElementById('sgSelfFirst');
+      const emer = document.getElementById('sgEmer');
+      const life = document.getElementById('sgLife');
+      const retire = document.getElementById('sgRetire');
+      const written = document.getElementById('sgWritten');
+      const notes = document.getElementById('sgNotes');
+      const resEl = document.getElementById('sgResilience');
+      const burdenEl = document.getElementById('sgBurden');
+      const btn = document.getElementById('sgSave');
+      if (!active || !btn) return;
+      const resLabels = {
+        resilient: '🏆 مرن ومتين',
+        stable: '🛡️ مستقرّ',
+        building: '🌱 يبني الأساس',
+        fragile: '🚨 هشّ',
+      };
+      const burdenLabels = {
+        balanced: '✅ عبء متوازن (≤ ٢٠٪)',
+        moderate: '🟡 عبء معتدل (٢٠-٣٥٪)',
+        heavy: '🟠 عبء ثقيل (٣٥-٥٠٪)',
+        crisis: '🔴 أزمة عبء (> ٥٠٪)',
+      };
+      const r = await App.api('GET', '/app/me/sandwich-gen');
+      active.checked = !!r.active;
+      parents.checked = !!r.parentsSupport;
+      parentsAmt.value = Number(r.parentsMonthlyAmount || 0);
+      kids.checked = !!r.kidsSupport;
+      kidsCount.value = Number(r.kidsCount || 0);
+      kidsAmt.value = Number(r.kidsMonthlyAmount || 0);
+      supportPct.value = Number(r.totalSupportPctOfIncome || 0);
+      siblings.checked = !!r.siblingsSplitAgreed;
+      selfFirst.checked = !!r.selfFirstRule;
+      emer.checked = !!r.largeEmergencyFund;
+      life.checked = !!r.lifeInsuranceActive;
+      retire.checked = !!r.retirementSavingActive;
+      written.checked = !!r.writtenPlan;
+      notes.value = r.notes || '';
+      if (resEl) resEl.textContent = (resLabels[r.resilienceLevel] || '—') + ' · ' + r.resilienceScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      if (burdenEl) burdenEl.textContent = burdenLabels[r.burdenStatus] || '—';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/sandwich-gen', {
+            active: active.checked,
+            parentsSupport: parents.checked,
+            parentsMonthlyAmount: Number(parentsAmt.value || 0),
+            kidsSupport: kids.checked,
+            kidsCount: Number(kidsCount.value || 0),
+            kidsMonthlyAmount: Number(kidsAmt.value || 0),
+            totalSupportPctOfIncome: Number(supportPct.value || 0),
+            siblingsSplitAgreed: siblings.checked,
+            selfFirstRule: selfFirst.checked,
+            largeEmergencyFund: emer.checked,
+            lifeInsuranceActive: life.checked,
+            retirementSavingActive: retire.checked,
+            writtenPlan: written.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الساندويتش', 'success');
+            const r2 = await App.api('GET', '/app/me/sandwich-gen');
+            if (resEl) resEl.textContent = (resLabels[r2.resilienceLevel] || '—') + ' · ' + r2.resilienceScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+            if (burdenEl) burdenEl.textContent = burdenLabels[r2.burdenStatus] || '—';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
