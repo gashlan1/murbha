@@ -859,6 +859,45 @@
     </div>
   </div>
 
+  <!-- Inheritance plan -->
+  <div class="settings-group" id="inheritSec">
+    <div class="settings-h">📜 خطّة التوريث</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">بيانات المستفيدين عند الوفاة. تُستخدم فقط بعد تقديم وثيقة وفاة رسميّة لمحكمة الأحوال الشخصيّة.</p>
+      <div style="display:grid;gap:10px;margin-bottom:14px;">
+        <div>
+          <label for="inhMethod" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">طريقة التقسيم</label>
+          <select id="inhMethod" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="sharia">حسب الشريعة الإسلاميّة (افتراضي)</option>
+            <option value="equal">بالتساوي بين المستفيدين</option>
+            <option value="custom">نسب مخصّصة (تجب أن تساوي ١٠٠٪)</option>
+          </select>
+        </div>
+        <div>
+          <label for="inhExecName" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">اسم الوصيّ</label>
+          <input type="text" id="inhExecName" maxlength="80" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+        </div>
+        <div>
+          <label for="inhExecPhone" style="font:800 12px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:4px;">جوّال الوصيّ</label>
+          <input type="tel" id="inhExecPhone" maxlength="20" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Cairo,sans-serif;" />
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font:700 11px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inhAuto" checked style="transform:scale(1.3);accent-color:#0a4d36;" />
+          توزيع تلقائي بعد إثبات الوفاة (يوفّر وقتاً للعائلة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 11px Cairo,sans-serif;color:var(--green-dark);">
+          <input type="checkbox" id="inhNotar" style="transform:scale(1.3);accent-color:#0a4d36;" />
+          الخطّة موثّقة لدى كاتب العدل
+        </label>
+      </div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;">المستفيدون</div>
+      <div id="inhBenList" style="display:grid;gap:8px;margin-bottom:10px;"></div>
+      <button type="button" id="inhAddBtn" style="background:#fff;color:#0a4d36;border:1px dashed #0a4d36;padding:8px 16px;border-radius:8px;font:800 11px Cairo,sans-serif;cursor:pointer;">+ إضافة مستفيد</button>
+      <button type="button" id="inhSaveBtn" style="margin-top:12px;display:block;background:#0a4d36;color:#fff;border:none;padding:10px 22px;border-radius:8px;font:800 12px Cairo,sans-serif;cursor:pointer;">حفظ خطّة التوريث</button>
+      <div id="inhStatus" style="margin-top:8px;font:600 11px Tajawal,sans-serif;color:var(--muted);"></div>
+    </div>
+  </div>
+
   <!-- Auto-reinvest rules -->
   <div class="settings-group" id="autoReinvSec">
     <div class="settings-h">🔁 قواعد إعادة الاستثمار التلقائي</div>
@@ -4085,6 +4124,78 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Inheritance plan
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/inheritance-plan');
+      if (!r.hasData) return;
+      const method = document.getElementById('inhMethod');
+      const execName = document.getElementById('inhExecName');
+      const execPhone = document.getElementById('inhExecPhone');
+      const auto = document.getElementById('inhAuto');
+      const notar = document.getElementById('inhNotar');
+      const list = document.getElementById('inhBenList');
+      const addBtn = document.getElementById('inhAddBtn');
+      const saveBtn = document.getElementById('inhSaveBtn');
+      const status = document.getElementById('inhStatus');
+      if (!list || !saveBtn) return;
+      method.value = r.sharingMethod || 'sharia';
+      execName.value = r.executorName || '';
+      execPhone.value = r.executorPhone || '';
+      auto.checked = r.autoDistribute !== false;
+      notar.checked = !!r.notarized;
+      if (status && r.lastUpdatedAt) status.textContent = '✓ آخر تحديث: ' + new Date(r.lastUpdatedAt).toLocaleDateString('ar-SA');
+      const addBenRow = (b) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr 70px 30px;gap:6px;align-items:center;background:var(--paper);border-radius:8px;padding:8px;';
+        row.dataset.role = 'ben-row';
+        const mk = (ph, val, key) => {
+          const i = document.createElement('input'); i.type = 'text'; i.placeholder = ph; i.value = val || '';
+          i.dataset.key = key;
+          i.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:600 11px Cairo,sans-serif;width:100%;';
+          return i;
+        };
+        const name = mk('الاسم', b?.name, 'name');
+        const rel = mk('الصلة', b?.relation, 'relation');
+        const nid = mk('الهويّة', b?.nationalId, 'nationalId');
+        const ph = mk('الجوّال', b?.phone, 'phone');
+        const pct = document.createElement('input'); pct.type = 'number'; pct.placeholder = '٪'; pct.min = 0; pct.max = 100; pct.value = b?.sharePct || 0;
+        pct.dataset.key = 'sharePct';
+        pct.style.cssText = 'padding:6px;border:1px solid var(--line);border-radius:6px;font:700 11px Cairo,sans-serif;width:100%;';
+        const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕';
+        del.style.cssText = 'background:#c54a3a;color:#fff;border:none;border-radius:6px;padding:4px;cursor:pointer;font:800 11px Cairo,sans-serif;';
+        del.addEventListener('click', () => row.remove());
+        row.append(name, rel, nid, ph, pct, del);
+        list.appendChild(row);
+      };
+      (r.beneficiaries || []).forEach(addBenRow);
+      addBtn.addEventListener('click', () => addBenRow(null));
+      saveBtn.addEventListener('click', async () => {
+        const rows = list.querySelectorAll('[data-role="ben-row"]');
+        const beneficiaries = [];
+        rows.forEach(row => {
+          const b = {};
+          row.querySelectorAll('input').forEach(i => { b[i.dataset.key] = i.value; });
+          if (b.name) beneficiaries.push(b);
+        });
+        try {
+          await App.api('PUT', '/app/me/inheritance-plan', {
+            beneficiaries,
+            executorName: execName.value,
+            executorPhone: execPhone.value,
+            autoDistribute: auto.checked,
+            sharingMethod: method.value,
+            notarized: notar.checked,
+          });
+          App.toast && App.toast('تم حفظ خطّة التوريث', 'success');
+          if (status) status.textContent = '✓ آخر تحديث: ' + new Date().toLocaleDateString('ar-SA');
+        } catch (e) {
+          App.toast && App.toast(e?.error === 'shares_must_sum_to_100' ? 'النسب يجب أن تساوي ١٠٠٪' : 'فشل', 'error');
+        }
       });
     } catch (e) {}
   })();
