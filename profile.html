@@ -859,6 +859,19 @@
     </div>
   </div>
 
+  <!-- Diversification coach -->
+  <div class="settings-group" id="divCoachSec" style="display:none;">
+    <div class="settings-h">🎯 مدرّب التنويع</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">تحليل آنيّ لتنويع محفظتك مع توصيات قابلة للتنفيذ.</p>
+      <div id="divCoachHero" style="background:linear-gradient(135deg,#062b1e,#0a4d36);color:#d4ac6e;border-radius:14px;padding:20px;margin-bottom:12px;text-align:center;"></div>
+      <div id="divCoachGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px;"></div>
+      <div id="divCoachIssues" style="display:grid;gap:6px;margin-bottom:10px;"></div>
+      <div style="font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">💡 التوصيات</div>
+      <div id="divCoachRec" style="display:grid;gap:4px;"></div>
+    </div>
+  </div>
+
   <!-- Cycle prefs -->
   <div class="settings-group" id="cyclePrefSec">
     <div class="settings-h">🔄 تفضيلات دورة السوق</div>
@@ -4444,6 +4457,64 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Diversification coach
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/diversification-coach');
+      if (!r.hasData) return;
+      const sec = document.getElementById('divCoachSec');
+      const hero = document.getElementById('divCoachHero');
+      const grid = document.getElementById('divCoachGrid');
+      const issuesWrap = document.getElementById('divCoachIssues');
+      const recWrap = document.getElementById('divCoachRec');
+      if (!sec || !grid) return;
+      sec.style.display = '';
+      const gradeColors = { A: '#0a4d36', B: '#0a4d36', C: '#b08840', D: '#c54a3a' };
+      const heroText = document.createElement('div'); heroText.style.cssText = 'font:900 24px Cairo,sans-serif;color:#fbf6ea;';
+      heroText.textContent = 'درجة التنويع: ' + r.grade + ' (' + r.score + '/١٠٠)';
+      const heroDesc = document.createElement('div'); heroDesc.style.cssText = 'font:500 12px Tajawal,sans-serif;color:#d4ac6e;margin-top:6px;';
+      heroDesc.textContent = r.dealCount + ' صفقة · ' + r.categoryCount + ' قطاع · ' + r.sponsorCount + ' راعٍ · ' + r.regionCount + ' منطقة';
+      hero.replaceChildren(heroText, heroDesc);
+      hero.style.background = 'linear-gradient(135deg,' + (gradeColors[r.grade] || '#062b1e') + ',#062b1e)';
+      grid.replaceChildren();
+      const tiles = [
+        { lbl: 'أكبر صفقة', val: r.maxDealPct + '٪', good: r.maxDealPct <= 10 },
+        { lbl: 'أكبر قطاع', val: r.maxCategoryPct + '٪', good: r.maxCategoryPct <= 30 },
+        { lbl: 'أكبر راعٍ', val: r.maxSponsorPct + '٪', good: r.maxSponsorPct <= 20 },
+        { lbl: 'عدد الصفقات', val: r.dealCount, good: r.dealCount >= 15 },
+      ];
+      tiles.forEach(t => {
+        const tile = document.createElement('div');
+        tile.style.cssText = 'background:var(--paper);border-radius:10px;padding:10px;text-align:center;';
+        const v = document.createElement('div'); v.style.cssText = 'font:900 14px Cairo,sans-serif;color:' + (t.good ? '#0a4d36' : '#c54a3a') + ';'; v.textContent = t.val;
+        const l = document.createElement('div'); l.style.cssText = 'font:700 9px Cairo,sans-serif;color:var(--muted);margin-top:2px;'; l.textContent = t.lbl;
+        tile.append(v, l);
+        grid.appendChild(tile);
+      });
+      issuesWrap.replaceChildren();
+      const sevColors = { high: '#c54a3a', medium: '#b08840', low: 'var(--muted)' };
+      r.issues.forEach(i => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;border-inline-start:4px solid ' + (sevColors[i.severity] || 'var(--muted)') + ';font:600 11px Tajawal,sans-serif;color:var(--ink);';
+        row.textContent = '⚠ ' + i.label;
+        issuesWrap.appendChild(row);
+      });
+      if (!r.issues.length) {
+        const ok = document.createElement('div');
+        ok.style.cssText = 'background:var(--paper);border-radius:8px;padding:10px;border-inline-start:4px solid #0a4d36;font:700 11px Cairo,sans-serif;color:#0a4d36;';
+        ok.textContent = '✓ لا توجد قضايا تركّز حالياً. أحسنت!';
+        issuesWrap.appendChild(ok);
+      }
+      recWrap.replaceChildren();
+      r.recommendations.forEach(rec => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--paper);border-radius:6px;padding:8px 10px;font:600 11px Tajawal,sans-serif;color:var(--ink);';
+        row.textContent = '• ' + rec;
+        recWrap.appendChild(row);
       });
     } catch (e) {}
   })();
