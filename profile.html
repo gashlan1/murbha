@@ -859,6 +859,57 @@
     </div>
   </div>
 
+  <!-- Negotiation plan -->
+  <div class="settings-group" id="negSec">
+    <div class="settings-h">💬 مهارة التفاوض المالي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">٧ مجالات تفاوض. كلّ ساعة جيّدة = آلاف الريالات.</p>
+      <div id="negSkill" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negActive" /> فعّل تتبّع التفاوض
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">إجمالي توفير من التفاوض السنوي (ر.س)
+          <input type="number" id="negSavings" min="0" max="10000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">عدد المفاوضات هذه السنة
+          <input type="number" id="negCount" min="0" max="1000" step="1" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">أكبر مكسب من تفاوض (ر.س)
+          <input type="number" id="negBigAmt" min="0" max="10000000" step="100" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">وصف أكبر مكسب
+          <input type="text" id="negBigDesc" maxlength="100" placeholder="مثال: زيادة راتب ١٥٪" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negSalary" /> تفاوضت على راتبي خلال آخر سنتين
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negRent" /> تفاوضت على إيجاري آخر مرّة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negIns" /> تفاوضت على أقساط التأمين / قارنت
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negFees" /> تفاوضت على رسوم الاستثمار/البنوك
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negResearch" /> أبحث وأقارن قبل أيّ تفاوض كبير
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negBatna" /> أحدّد BATNA (بديلي الأفضل) قبل التفاوض
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="negDocs" /> أوثّق كلّ اتّفاق كتابيًّا
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="negNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="negSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ مهارة التفاوض</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Zakat tracking -->
   <div class="settings-group" id="ztSec">
     <div class="settings-h">🧾 توثيق الزكاة بدقّة</div>
@@ -10365,6 +10416,78 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Negotiation plan
+  (async () => {
+    try {
+      const active = document.getElementById('negActive');
+      const savings = document.getElementById('negSavings');
+      const count = document.getElementById('negCount');
+      const bigAmt = document.getElementById('negBigAmt');
+      const bigDesc = document.getElementById('negBigDesc');
+      const salary = document.getElementById('negSalary');
+      const rent = document.getElementById('negRent');
+      const ins = document.getElementById('negIns');
+      const fees = document.getElementById('negFees');
+      const research = document.getElementById('negResearch');
+      const batna = document.getElementById('negBatna');
+      const docs = document.getElementById('negDocs');
+      const notes = document.getElementById('negNotes');
+      const skillEl = document.getElementById('negSkill');
+      const btn = document.getElementById('negSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        master: '🏆 متمكّن',
+        sharp: '🎯 حادّ',
+        capable: '🟢 قادر',
+        learner: '📘 يتعلّم',
+        novice: '🌱 مبتدئ',
+      };
+      const r = await App.api('GET', '/app/me/negotiation-plan');
+      active.checked = !!r.active;
+      savings.value = Number(r.annualSavingsAmount || 0);
+      count.value = Number(r.negotiationsThisYear || 0);
+      bigAmt.value = Number(r.biggestWinAmount || 0);
+      bigDesc.value = r.biggestWinDescription || '';
+      salary.checked = !!r.salaryNegotiated;
+      rent.checked = !!r.rentNegotiated;
+      ins.checked = !!r.insuranceNegotiated;
+      fees.checked = !!r.feesNegotiated;
+      research.checked = !!r.researchesFirst;
+      batna.checked = !!r.batnaPrepared;
+      docs.checked = !!r.documentsAgreements;
+      notes.value = r.notes || '';
+      if (skillEl) skillEl.textContent = (levelLabels[r.skillLevel] || '—') + ' · ' + r.skillScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' مهارات';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/negotiation-plan', {
+            active: active.checked,
+            annualSavingsAmount: Number(savings.value || 0),
+            negotiationsThisYear: Number(count.value || 0),
+            biggestWinAmount: Number(bigAmt.value || 0),
+            biggestWinDescription: bigDesc.value || '',
+            salaryNegotiated: salary.checked,
+            rentNegotiated: rent.checked,
+            insuranceNegotiated: ins.checked,
+            feesNegotiated: fees.checked,
+            researchesFirst: research.checked,
+            batnaPrepared: batna.checked,
+            documentsAgreements: docs.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت مهارة التفاوض', 'success');
+            const r2 = await App.api('GET', '/app/me/negotiation-plan');
+            if (skillEl) skillEl.textContent = (levelLabels[r2.skillLevel] || '—') + ' · ' + r2.skillScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' مهارات';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
