@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مقارنة الصفقات — مُرابحة</title>
+<meta name="description" content="قارن بين صفقتين أو أكثر جنباً إلى جنب — العائد والمخاطر والمدّة والتصنيف الشرعي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:980px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:40px 22px; margin-bottom:22px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; max-width:620px; margin:0 auto; line-height:1.85; }
+  section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:14px; }
+  section h2 { font:900 18px Cairo,sans-serif; color:var(--green-dark); margin-bottom:12px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .picker-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .picker-col h3 { font:900 13px Cairo,sans-serif; color:var(--muted); margin-bottom:8px; }
+  .deal-search { width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 12px; font:500 12px Tajawal,sans-serif; background:var(--paper); }
+  .deal-search:focus { outline:none; border-color:var(--green); }
+  .deal-dropdown { background:#fff; border:1px solid var(--line); border-radius:10px; max-height:200px; overflow-y:auto; display:none; }
+  .deal-dropdown.open { display:block; }
+  .deal-opt { padding:10px 12px; cursor:pointer; font:500 12px Tajawal,sans-serif; color:var(--ink); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .deal-opt:hover { background:var(--paper); }
+  .deal-opt:last-child { border-bottom:none; }
+  .deal-opt-yield { font:700 12px Cairo,sans-serif; color:var(--green); }
+  .selected-deal { background:var(--paper); border:2px solid var(--green); border-radius:10px; padding:12px; display:none; }
+  .selected-deal.visible { display:block; }
+  .sel-name { font:900 13px Cairo,sans-serif; color:var(--green-dark); }
+  .sel-meta { font:500 11px Tajawal,sans-serif; color:var(--muted); margin-top:3px; }
+  .clear-btn { background:none; border:none; color:#c54a3a; font:700 11px Cairo,sans-serif; cursor:pointer; float:inline-end; }
+  .compare-table { width:100%; border-collapse:collapse; font:500 12px Tajawal,sans-serif; }
+  .compare-table th, .compare-table td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:start; }
+  .compare-table th { background:var(--paper); font:900 12px Cairo,sans-serif; color:var(--green-dark); }
+  .compare-table .row-lbl { font:700 12px Cairo,sans-serif; color:var(--muted); width:160px; }
+  .better { color:var(--green); font-weight:900; }
+  .worse { color:#c54a3a; }
+  .neutral { color:var(--muted); }
+  .verdict-row { background:linear-gradient(90deg,#e8f5e9,#f1f8e9); }
+  .verdict-cell { font:900 14px Cairo,sans-serif; color:var(--green-dark); padding:14px 10px; }
+  .placeholder-msg { font:500 13px Tajawal,sans-serif; color:var(--muted); text-align:center; padding:30px 0; }
+  @media(max-width:600px){ .picker-row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>⚖️ مقارنة الصفقات</h1>
+    <p>اختر صفقتين وقارنهما بدقّة قبل اتّخاذ قرار الاستثمار. الأرقام تتكلّم.</p>
+  </div>
+
+  <section>
+    <h2>🔎 اختر الصفقتين</h2>
+    <div class="picker-row">
+      <div class="picker-col">
+        <h3>الصفقة الأولى</h3>
+        <input type="text" class="deal-search" id="searchA" placeholder="ابحث باسم الصفقة…" autocomplete="off" />
+        <div class="deal-dropdown" id="dropA"></div>
+        <div class="selected-deal" id="selA">
+          <button class="clear-btn" data-target="A">✕ إزالة</button>
+          <div class="sel-name" id="selNameA"></div>
+          <div class="sel-meta" id="selMetaA"></div>
+        </div>
+      </div>
+      <div class="picker-col">
+        <h3>الصفقة الثانية</h3>
+        <input type="text" class="deal-search" id="searchB" placeholder="ابحث باسم الصفقة…" autocomplete="off" />
+        <div class="deal-dropdown" id="dropB"></div>
+        <div class="selected-deal" id="selB">
+          <button class="clear-btn" data-target="B">✕ إزالة</button>
+          <div class="sel-name" id="selNameB"></div>
+          <div class="sel-meta" id="selMetaB"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>📊 جدول المقارنة</h2>
+    <div id="tableWrap">
+      <p class="placeholder-msg" id="tablePlaceholder">اختر صفقتين لبدء المقارنة.</p>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  let deals = [];
+  let selectedA = null;
+  let selectedB = null;
+
+  const RISK_LABEL = { low:'منخفض', medium:'متوسّط', high:'مرتفع' };
+
+  function fmt(n) { return Number(n || 0).toLocaleString('ar-SA'); }
+
+  function filterDeals(q) {
+    const ql = q.toLowerCase();
+    return deals.filter(d => (d.name || d.title || '').toLowerCase().includes(ql) || (d.category || '').toLowerCase().includes(ql));
+  }
+
+  function buildDropdown(drop, results, onSelect) {
+    drop.textContent = '';
+    if (!results.length) {
+      const item = document.createElement('div');
+      item.className = 'deal-opt';
+      item.textContent = 'لا توجد نتائج';
+      drop.appendChild(item);
+    } else {
+      results.slice(0, 12).forEach(d => {
+        const item = document.createElement('div');
+        item.className = 'deal-opt';
+        const nameEl = document.createElement('span');
+        nameEl.textContent = d.name || d.title || d.id;
+        const yieldEl = document.createElement('span');
+        yieldEl.className = 'deal-opt-yield';
+        yieldEl.textContent = (d.yield || d.expectedReturn || '?') + '٪';
+        item.appendChild(nameEl);
+        item.appendChild(yieldEl);
+        item.addEventListener('mousedown', (e) => { e.preventDefault(); onSelect(d); });
+        drop.appendChild(item);
+      });
+    }
+    drop.classList.add('open');
+  }
+
+  function showSelected(side, deal) {
+    const sel = document.getElementById('sel' + side);
+    const nm = document.getElementById('selName' + side);
+    const meta = document.getElementById('selMeta' + side);
+    nm.textContent = deal.name || deal.title || deal.id;
+    meta.textContent = 'العائد: ' + (deal.yield || deal.expectedReturn || '?') + '٪ · المدّة: ' + (deal.duration || '?') + ' شهراً';
+    sel.classList.add('visible');
+    document.getElementById('search' + side).value = '';
+    document.getElementById('drop' + side).classList.remove('open');
+  }
+
+  function clearSelected(side) {
+    if (side === 'A') selectedA = null;
+    else selectedB = null;
+    document.getElementById('sel' + side).classList.remove('visible');
+    renderTable();
+  }
+
+  function winner(a, b, higherBetter) {
+    if (a === b) return ['neutral', 'neutral'];
+    if (higherBetter) return a > b ? ['better', 'worse'] : ['worse', 'better'];
+    return a < b ? ['better', 'worse'] : ['worse', 'better'];
+  }
+
+  function renderTable() {
+    const wrap = document.getElementById('tableWrap');
+    const placeholder = document.getElementById('tablePlaceholder');
+    if (!selectedA || !selectedB) {
+      wrap.textContent = '';
+      placeholder.style.display = '';
+      wrap.appendChild(placeholder);
+      return;
+    }
+    if (placeholder) placeholder.style.display = 'none';
+
+    const a = selectedA;
+    const b = selectedB;
+    const yA = parseFloat(a.yield || a.expectedReturn || 0);
+    const yB = parseFloat(b.yield || b.expectedReturn || 0);
+    const dA = parseInt(a.duration || 0);
+    const dB = parseInt(b.duration || 0);
+    const mA = parseInt(a.minAmount || a.minimumInvestment || 500);
+    const mB = parseInt(b.minAmount || b.minimumInvestment || 500);
+    const riskOrder = { low:0, medium:1, high:2 };
+    const rA = riskOrder[a.riskLevel || 'medium'] ?? 1;
+    const rB = riskOrder[b.riskLevel || 'medium'] ?? 1;
+    const fundA = Math.min(100, Math.round(((a.funded || 0) / (a.amount || 1)) * 100));
+    const fundB = Math.min(100, Math.round(((b.funded || 0) / (b.amount || 1)) * 100));
+
+    const rows = [
+      { lbl: 'العائد السنوي المتوقّع', va: yA + '٪', vb: yB + '٪', cls: winner(yA, yB, true) },
+      { lbl: 'مدّة الاستثمار', va: dA + ' شهراً', vb: dB + ' شهراً', cls: winner(dA, dB, false) },
+      { lbl: 'الحدّ الأدنى للاستثمار', va: fmt(mA) + ' ر.س', vb: fmt(mB) + ' ر.س', cls: winner(mA, mB, false) },
+      { lbl: 'مستوى المخاطرة', va: RISK_LABEL[a.riskLevel] || 'متوسّط', vb: RISK_LABEL[b.riskLevel] || 'متوسّط', cls: winner(rA, rB, false) },
+      { lbl: 'نسبة التمويل', va: fundA + '٪', vb: fundB + '٪', cls: ['neutral', 'neutral'] },
+      { lbl: 'معتمد شرعاً', va: a.sharia !== false ? '✅ نعم' : '❌ لا', vb: b.sharia !== false ? '✅ نعم' : '❌ لا', cls: ['neutral', 'neutral'] },
+      { lbl: 'الفئة', va: a.category || '—', vb: b.category || '—', cls: ['neutral', 'neutral'] },
+    ];
+
+    const scA = rows.filter(r => r.cls[0] === 'better').length;
+    const scB = rows.filter(r => r.cls[1] === 'better').length;
+    let verdict;
+    if (scA > scB) verdict = (a.name || a.title || 'الصفقة الأولى') + ' تتفوّق في ' + scA + ' معايير';
+    else if (scB > scA) verdict = (b.name || b.title || 'الصفقة الثانية') + ' تتفوّق في ' + scB + ' معايير';
+    else verdict = 'الصفقتان متكافئتان — اختر بناءً على تفضيلاتك الشخصيّة';
+
+    wrap.textContent = '';
+
+    const table = document.createElement('table');
+    table.className = 'compare-table';
+
+    const thead = document.createElement('thead');
+    const hrow = document.createElement('tr');
+    [' ', a.name || a.title || 'الصفقة أ', b.name || b.title || 'الصفقة ب'].forEach((h, i) => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      if (i === 0) th.className = 'row-lbl';
+      hrow.appendChild(th);
+    });
+    thead.appendChild(hrow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      const lbl = document.createElement('td');
+      lbl.className = 'row-lbl';
+      lbl.textContent = row.lbl;
+      const tdA = document.createElement('td');
+      tdA.textContent = row.va;
+      tdA.className = row.cls[0];
+      const tdB = document.createElement('td');
+      tdB.textContent = row.vb;
+      tdB.className = row.cls[1];
+      tr.appendChild(lbl);
+      tr.appendChild(tdA);
+      tr.appendChild(tdB);
+      tbody.appendChild(tr);
+    });
+
+    const vtr = document.createElement('tr');
+    vtr.className = 'verdict-row';
+    const vlbl = document.createElement('td');
+    vlbl.textContent = '🏆 الحكم';
+    vlbl.className = 'row-lbl';
+    const vval = document.createElement('td');
+    vval.colSpan = 2;
+    vval.className = 'verdict-cell';
+    vval.textContent = verdict;
+    vtr.appendChild(vlbl);
+    vtr.appendChild(vval);
+    tbody.appendChild(vtr);
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+  }
+
+  function wireSearch(side) {
+    const input = document.getElementById('search' + side);
+    const drop = document.getElementById('drop' + side);
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim();
+      if (!q) { drop.classList.remove('open'); return; }
+      buildDropdown(drop, filterDeals(q), (deal) => {
+        if (side === 'A') selectedA = deal;
+        else selectedB = deal;
+        showSelected(side, deal);
+        renderTable();
+      });
+    });
+
+    input.addEventListener('blur', () => { setTimeout(() => drop.classList.remove('open'), 200); });
+    input.addEventListener('focus', () => {
+      if (input.value.trim()) buildDropdown(drop, filterDeals(input.value.trim()), (deal) => {
+        if (side === 'A') selectedA = deal;
+        else selectedB = deal;
+        showSelected(side, deal);
+        renderTable();
+      });
+    });
+  }
+
+  document.querySelectorAll('.clear-btn').forEach(btn => {
+    btn.addEventListener('click', () => clearSelected(btn.dataset.target));
+  });
+
+  wireSearch('A');
+  wireSearch('B');
+
+  (async function load() {
+    try {
+      const r = await fetch('/app/public/projects');
+      if (!r.ok) return;
+      const d = await r.json();
+      deals = d.projects || d.items || [];
+    } catch { /* silent — search returns empty */ }
+  }());
+}());
+</script>
+</body>
+</html>

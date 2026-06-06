@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>قائمة المتابعة — مُرابحة</title>
+<meta name="description" content="احفظ الصفقات التي تهمّك وتابعها في مكان واحد. لا تفوّتك فرصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:40px 22px; margin-bottom:22px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; max-width:620px; margin:0 auto; line-height:1.85; }
+  section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:14px; }
+  section h2 { font:900 18px Cairo,sans-serif; color:var(--green-dark); margin-bottom:12px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .filter-row { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-btn { background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:6px 16px; font:700 12px Cairo,sans-serif; color:var(--muted); cursor:pointer; transition:all .15s; }
+  .filter-btn.active, .filter-btn:hover { background:var(--green); color:#fbf6ea; border-color:var(--green); }
+  .deal-list { display:grid; gap:10px; }
+  .deal-card { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; gap:14px; align-items:flex-start; }
+  .deal-thumb { width:52px; height:52px; border-radius:10px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+  .deal-body { flex:1; min-width:0; }
+  .deal-name { font:900 13px Cairo,sans-serif; color:var(--green-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .deal-meta { font:500 11px Tajawal,sans-serif; color:var(--muted); margin-top:3px; }
+  .deal-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+  .tag { background:#e8f5e9; color:var(--green); border-radius:6px; padding:2px 8px; font:700 10px Cairo,sans-serif; }
+  .tag.red { background:#fdecea; color:#c54a3a; }
+  .tag.gold { background:#fdf5e4; color:var(--gold); }
+  .deal-actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  .btn-invest { background:var(--green); color:#fbf6ea; border:none; border-radius:8px; padding:7px 14px; font:700 11px Cairo,sans-serif; cursor:pointer; white-space:nowrap; }
+  .btn-remove { background:none; border:1px solid var(--line); border-radius:8px; padding:5px 10px; font:700 10px Cairo,sans-serif; color:var(--muted); cursor:pointer; }
+  .btn-remove:hover { border-color:#c54a3a; color:#c54a3a; }
+  .empty-state { text-align:center; padding:40px 20px; }
+  .empty-state .icon { font-size:48px; margin-bottom:12px; }
+  .empty-state p { font:500 13px Tajawal,sans-serif; color:var(--muted); }
+  .empty-state a { display:inline-block; margin-top:12px; background:var(--green); color:#fbf6ea; border-radius:10px; padding:9px 24px; font:700 13px Cairo,sans-serif; text-decoration:none; }
+  .loading-msg { font:500 13px Tajawal,sans-serif; color:var(--muted); padding:20px 0; text-align:center; }
+  .yield-val { font:900 13px Cairo,sans-serif; color:var(--green); }
+  @media(max-width:540px){ .deal-card{flex-wrap:wrap;} .deal-actions{flex-direction:row;} }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔖 قائمة المتابعة</h1>
+    <p>الصفقات التي أضفتها للمتابعة في مكان واحد. راقبها وادخل عند الوقت المناسب.</p>
+  </div>
+
+  <section>
+    <h2>📋 صفقاتي المحفوظة</h2>
+    <div class="filter-row">
+      <button class="filter-btn active" data-filter="all">الكلّ</button>
+      <button class="filter-btn" data-filter="open">مفتوحة</button>
+      <button class="filter-btn" data-filter="closing">تُغلق قريباً</button>
+      <button class="filter-btn" data-filter="full">اكتملت</button>
+    </div>
+    <div class="deal-list" id="dealList">
+      <p class="loading-msg">جارٍ التحميل…</p>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  const list = document.getElementById('dealList');
+  let allItems = [];
+  let activeFilter = 'all';
+
+  const ICONS = { real_estate: '🏗️', logistics: '🚚', agri: '🌾', tech: '💻', energy: '⚡', retail: '🛍️', other: '📦' };
+
+  function statusTag(s) {
+    if (s === 'open') return { label: 'مفتوحة', cls: '' };
+    if (s === 'closing') return { label: 'تُغلق قريباً', cls: 'gold' };
+    if (s === 'full') return { label: 'اكتملت', cls: 'red' };
+    return { label: s, cls: '' };
+  }
+
+  function renderList(items) {
+    list.textContent = '';
+    const filtered = activeFilter === 'all' ? items : items.filter(i => i.status === activeFilter);
+    if (!filtered.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+      icon.textContent = '🔍';
+      const msg = document.createElement('p');
+      msg.textContent = activeFilter === 'all'
+        ? 'لا توجد صفقات محفوظة بعد. تصفّح الفرص وأضف ما يهمّك.'
+        : 'لا توجد صفقات بهذا التصنيف.';
+      const link = document.createElement('a');
+      link.href = '/deals.html';
+      link.textContent = 'تصفّح الفرص';
+      empty.appendChild(icon);
+      empty.appendChild(msg);
+      if (activeFilter === 'all') empty.appendChild(link);
+      list.appendChild(empty);
+      return;
+    }
+    filtered.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'deal-card';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'deal-thumb';
+      thumb.textContent = ICONS[item.category] || '📦';
+
+      const body = document.createElement('div');
+      body.className = 'deal-body';
+
+      const name = document.createElement('div');
+      name.className = 'deal-name';
+      name.textContent = item.name;
+
+      const meta = document.createElement('div');
+      meta.className = 'deal-meta';
+      meta.textContent = 'عائد متوقّع: ';
+      const yv = document.createElement('span');
+      yv.className = 'yield-val';
+      yv.textContent = item.yield + '٪';
+      meta.appendChild(yv);
+      const sep = document.createTextNode(' · مدّة: ' + item.duration + ' شهراً');
+      meta.appendChild(sep);
+
+      const tags = document.createElement('div');
+      tags.className = 'deal-tags';
+      const st = statusTag(item.status);
+      const t = document.createElement('span');
+      t.className = 'tag' + (st.cls ? ' ' + st.cls : '');
+      t.textContent = st.label;
+      tags.appendChild(t);
+      if (item.sharia) {
+        const sh = document.createElement('span');
+        sh.className = 'tag';
+        sh.textContent = 'معتمد شرعاً';
+        tags.appendChild(sh);
+      }
+
+      body.appendChild(name);
+      body.appendChild(meta);
+      body.appendChild(tags);
+
+      const actions = document.createElement('div');
+      actions.className = 'deal-actions';
+      const invest = document.createElement('button');
+      invest.className = 'btn-invest';
+      invest.textContent = 'استثمر';
+      invest.addEventListener('click', () => { window.location.href = '/project.html?id=' + encodeURIComponent(item.id); });
+      const remove = document.createElement('button');
+      remove.className = 'btn-remove';
+      remove.textContent = 'إزالة';
+      remove.addEventListener('click', () => removeItem(item.id, card));
+      actions.appendChild(invest);
+      actions.appendChild(remove);
+
+      card.appendChild(thumb);
+      card.appendChild(body);
+      card.appendChild(actions);
+      list.appendChild(card);
+    });
+  }
+
+  async function removeItem(id, card) {
+    try {
+      const r = await fetch('/app/me/watchlist/' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': document.cookie.match(/csrf=([^;]+)/)?.[1] || '' }
+      });
+      if (r.ok) {
+        allItems = allItems.filter(i => i.id !== id);
+        card.style.opacity = '0';
+        card.style.transition = 'opacity .3s';
+        setTimeout(() => renderList(allItems), 300);
+      }
+    } catch { /* silent */ }
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderList(allItems);
+    });
+  });
+
+  (async function load() {
+    try {
+      const r = await fetch('/app/me/watchlist');
+      if (!r.ok) {
+        list.textContent = '';
+        const msg = document.createElement('p');
+        msg.className = 'loading-msg';
+        msg.textContent = 'يجب تسجيل الدخول لعرض قائمة المتابعة.';
+        list.appendChild(msg);
+        return;
+      }
+      const d = await r.json();
+      allItems = d.items || [];
+      renderList(allItems);
+    } catch {
+      list.textContent = '';
+      const msg = document.createElement('p');
+      msg.className = 'loading-msg';
+      msg.textContent = 'تعذّر التحميل. حاول لاحقاً.';
+      list.appendChild(msg);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

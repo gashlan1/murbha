@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>دليل الرعاة — مُرابحة</title>
+<meta name="description" content="تعرّف على شركات المرابحة الراعية للصفقات. سجلّهم، تقييماتهم، وصفقاتهم النشطة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:920px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:620px;margin:0 auto;line-height:1.85;}
+  .filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+  .search-box{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .search-box:focus{outline:none;border-color:var(--green);}
+  .cat-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .cat-btn.active,.cat-btn:hover{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .sponsor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .sponsor-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s;}
+  .sponsor-card:hover{box-shadow:0 4px 16px rgba(10,77,54,.10);}
+  .sp-header{display:flex;align-items:center;gap:12px;}
+  .sp-logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .sp-name{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .sp-cat{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .sp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .sp-stat{text-align:center;background:var(--paper);border-radius:8px;padding:8px 4px;}
+  .sp-stat-num{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .sp-stat-lbl{font:500 9px Tajawal,sans-serif;color:var(--muted);}
+  .sp-tags{display:flex;gap:5px;flex-wrap:wrap;}
+  .tag{background:#e8f5e9;color:var(--green);border-radius:6px;padding:2px 8px;font:700 10px Cairo,sans-serif;}
+  .tag.gold{background:#fdf5e4;color:var(--gold);}
+  .tag.red{background:#fdecea;color:#c54a3a;}
+  .sp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
+  .sp-rating{font:900 13px Cairo,sans-serif;color:var(--gold);}
+  .view-btn{background:var(--green);color:#fbf6ea;border:none;border-radius:8px;padding:7px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;grid-column:1/-1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🏢 دليل الرعاة</h1>
+    <p>الشركات التي تضمن صفقات المرابحة. تحقّق من سجلّهم ودرجاتهم قبل الاستثمار.</p>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" class="search-box" id="searchBox" placeholder="ابحث عن راعٍ…" autocomplete="off" />
+    <button class="cat-btn active" data-cat="">الكلّ</button>
+    <button class="cat-btn" data-cat="real_estate">عقارات</button>
+    <button class="cat-btn" data-cat="logistics">لوجستيات</button>
+    <button class="cat-btn" data-cat="agri">زراعة</button>
+    <button class="cat-btn" data-cat="tech">تقنية</button>
+  </div>
+
+  <div class="sponsor-grid" id="sponsorGrid">
+    <p class="empty-msg">جارٍ تحميل الرعاة…</p>
+  </div>
+</main>
+<script>
+(function(){
+  const ICONS={real_estate:'🏗️',logistics:'🚚',agri:'🌾',tech:'💻',energy:'⚡',retail:'🛍️',other:'🏢'};
+  let allSponsors=[];
+  let activeCat='';
+  let searchQ='';
+
+  function stars(r){return '★'.repeat(Math.round(r||0))+'☆'.repeat(5-Math.round(r||0));}
+  function fmt(n){return Number(n||0).toLocaleString('ar-SA');}
+
+  function render(){
+    const grid=document.getElementById('sponsorGrid');
+    grid.textContent='';
+    const q=searchQ.toLowerCase();
+    const filtered=allSponsors.filter(s=>{
+      if(activeCat && s.category!==activeCat) return false;
+      if(q && !(s.name||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    if(!filtered.length){
+      const m=document.createElement('p');
+      m.className='empty-msg';
+      m.textContent='لا توجد نتائج.';
+      grid.appendChild(m);
+      return;
+    }
+    filtered.forEach(sp=>{
+      const card=document.createElement('div');
+      card.className='sponsor-card';
+
+      const hdr=document.createElement('div');
+      hdr.className='sp-header';
+      const logo=document.createElement('div');
+      logo.className='sp-logo';
+      logo.textContent=ICONS[sp.category]||'🏢';
+      const info=document.createElement('div');
+      const nm=document.createElement('div');
+      nm.className='sp-name';
+      nm.textContent=sp.name;
+      const cat=document.createElement('div');
+      cat.className='sp-cat';
+      cat.textContent=sp.categoryLabel||sp.category||'متنوّع';
+      info.appendChild(nm);
+      info.appendChild(cat);
+      hdr.appendChild(logo);
+      hdr.appendChild(info);
+
+      const stats=document.createElement('div');
+      stats.className='sp-stats';
+      [{num:sp.dealCount||0,lbl:'صفقات'},{num:fmt(sp.totalFunded||0),lbl:'ر.س مموّلة'},{num:(sp.successRate||100)+'٪',lbl:'نسبة النجاح'}].forEach(st=>{
+        const s=document.createElement('div');
+        s.className='sp-stat';
+        const n=document.createElement('div');
+        n.className='sp-stat-num';
+        n.textContent=st.num;
+        const l=document.createElement('div');
+        l.className='sp-stat-lbl';
+        l.textContent=st.lbl;
+        s.appendChild(n);
+        s.appendChild(l);
+        stats.appendChild(s);
+      });
+
+      const tags=document.createElement('div');
+      tags.className='sp-tags';
+      if(sp.sharia){const t=document.createElement('span');t.className='tag';t.textContent='معتمد شرعاً';tags.appendChild(t);}
+      if(sp.hasBcpDocument){const t=document.createElement('span');t.className='tag gold';t.textContent='خطّة طوارئ';tags.appendChild(t);}
+      if(sp.activeDealCount>0){const t=document.createElement('span');t.className='tag';t.textContent=sp.activeDealCount+' صفقة نشطة';tags.appendChild(t);}
+
+      const footer=document.createElement('div');
+      footer.className='sp-footer';
+      const rating=document.createElement('div');
+      rating.className='sp-rating';
+      rating.textContent=stars(sp.rating||4);
+      const btn=document.createElement('button');
+      btn.className='view-btn';
+      btn.textContent='عرض الصفقات';
+      btn.addEventListener('click',()=>{ window.location.href='/projects.html?sponsor='+encodeURIComponent(sp.id); });
+      footer.appendChild(rating);
+      footer.appendChild(btn);
+
+      card.appendChild(hdr);
+      card.appendChild(stats);
+      if(tags.children.length) card.appendChild(tags);
+      card.appendChild(footer);
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('searchBox').addEventListener('input',e=>{searchQ=e.target.value.trim();render();});
+  document.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat=btn.dataset.cat;
+      render();
+    });
+  });
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/public/sponsors');
+      if(!r.ok) throw new Error();
+      const d=await r.json();
+      allSponsors=d.sponsors||[];
+      render();
+    }catch{
+      const grid=document.getElementById('sponsorGrid');
+      grid.textContent='';
+      const m=document.createElement('p');
+      m.className='empty-msg';
+      m.textContent='تعذّر تحميل الرعاة. حاول لاحقاً.';
+      grid.appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

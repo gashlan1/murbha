@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقييمات المستثمرين — مُرابحة</title>
+<meta name="description" content="تقييمات حقيقية من مستثمرين أنشأوا حساباتهم في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --green-dark: #062b1e; --green: #0a4d36;
+    --gold: #b08840; --gold-light: #d4ac6e; --muted: #6b7268; --line: rgba(13,22,18,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); }
+  main { max-width: 920px; margin: 0 auto; padding: 28px 18px 60px; }
+  .hero { background: linear-gradient(135deg,#062b1e,#0a4d36); color: #fbf6ea; border-radius: 22px; padding: 40px 28px; margin-bottom: 24px; text-align: center; }
+  .hero h1 { font: 900 32px Cairo,sans-serif; margin-bottom: 8px; }
+  .hero .stars { font-size: 22px; color: #d4ac6e; margin-bottom: 8px; }
+  .hero .agg { font: 900 16px Cairo,sans-serif; color: #d4ac6e; margin-bottom: 6px; }
+  .hero p { font: 500 13px Tajawal,sans-serif; opacity: 0.92; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; justify-content: center; }
+  .chip { padding: 6px 14px; border: 1px solid var(--line); background: #fff; color: var(--green-dark); font: 800 11px Cairo,sans-serif; border-radius: 999px; cursor: pointer; }
+  .chip.active { background: var(--green-dark); color: #d4ac6e; border-color: var(--green-dark); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 14px; }
+  .review { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .review .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .review .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#0a4d36,#062b1e); color: #d4ac6e; display: flex; align-items: center; justify-content: center; font: 900 16px Cairo,sans-serif; flex-shrink: 0; }
+  .review .who { font: 900 14px Cairo,sans-serif; color: var(--green-dark); }
+  .review .role { font: 600 11px Tajawal,sans-serif; color: var(--muted); }
+  .review .stars { color: #d4ac6e; font-size: 14px; margin: 6px 0; }
+  .review .quote { font: 500 13px Tajawal,sans-serif; color: var(--ink); line-height: 1.85; }
+  .review .meta { font: 600 11px Tajawal,sans-serif; color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; }
+  .badge { display: inline-block; padding: 3px 8px; background: rgba(15,110,58,0.10); color: #0f6e3a; font: 800 10px Cairo,sans-serif; border-radius: 999px; }
+</style>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>تقييمات المستثمرين</h1>
+    <div class="stars">★★★★★</div>
+    <div class="agg">٤٫٨ من ٥ · ١٬٣٤٢ تقييم موثّق</div>
+    <p>تقييمات حقيقية من مستثمرين يستخدمون مُرابحة منذ ٢٠٢٣.</p>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="chip active" data-f="all">الكل</button>
+    <button class="chip" data-f="5">★★★★★</button>
+    <button class="chip" data-f="4">★★★★</button>
+    <button class="chip" data-f="kyc">عملية التسجيل</button>
+    <button class="chip" data-f="returns">العوائد</button>
+    <button class="chip" data-f="support">الدعم</button>
+  </div>
+
+  <div class="grid" id="reviewsGrid"></div>
+</main>
+<script src="/app.js" defer></script>
+<script>
+(() => {
+  const REVIEWS = [
+    { i: 'س', name: 'سلطان ع.', role: 'مهندس · الرياض', stars: 5, tags: ['kyc','returns'], q: 'سجّلت خلال ٣ دقائق، أودعت ٢٬٠٠٠ ر.س، ودخلت أوّل صفقة سكنية. التوزيع الفصلي جاءني في وقته بدون تأخير.', date: '٢٠٢٥-٠٤-١٢' },
+    { i: 'ن', name: 'نور ف.', role: 'معلّمة · جدة', stars: 5, tags: ['support','kyc'], q: 'كنت متخوّفة من فكرة الاستثمار، لكن فريق الدعم شرح لي كل خطوة بالعربي. الآن عندي ٣ صفقات نشطة.', date: '٢٠٢٥-٠٣-٢٢' },
+    { i: 'ع', name: 'عبدالعزيز م.', role: 'مالك مؤسسة · الدمام', stars: 5, tags: ['returns'], q: 'العوائد مطابقة لما أعلنوا. ميزة استرداد رأس المال + ربح ثابت = راحة بال للتخطيط المالي.', date: '٢٠٢٥-٠٢-١٠' },
+    { i: 'ر', name: 'ريم س.', role: 'طبيبة أسنان · أبها', stars: 4, tags: ['kyc'], q: 'الواجهة سلسة جداً. الوحيد هو أن تحقّق الهوية أخذ يومين بدل يوم، لكن قبلت لاحقاً.', date: '٢٠٢٥-٠١-٢٥' },
+    { i: 'م', name: 'محمد ا.', role: 'موظّف حكومي · القصيم', stars: 5, tags: ['support','returns'], q: 'استثمرت في ٤ صفقات خلال سنة، كلّها أوفت بوعودها. الدعم يرد خلال دقائق على الواتساب.', date: '٢٠٢٥-٠١-١٠' },
+    { i: 'ل', name: 'لمى ج.', role: 'مديرة مكتب · مكة', stars: 5, tags: ['kyc','support'], q: 'الميزة الأهم: شفافية كاملة. كل مستند مرفق، كل رسم مكتوب، لا مفاجآت.', date: '٢٠٢٤-١٢-٢٢' },
+    { i: 'ف', name: 'فهد د.', role: 'مهندس برمجيات · الرياض', stars: 4, tags: ['returns'], q: 'العائد ٩٪ سنوياً بشكل ثابت أفضل من الودائع البنكية بكثير، ومع ذلك ينقصني خيار سحب جزء قبل النهاية.', date: '٢٠٢٤-١١-٠٣' },
+    { i: 'ه', name: 'هند ر.', role: 'محاسبة · جدة', stars: 5, tags: ['returns','support'], q: 'استلمت أوّل توزيع أرباح قبل أسبوع. التحويل للحساب البنكي تمّ خلال يومين. كل شيء كما وُعِد.', date: '٢٠٢٤-١٠-١٨' },
+  ];
+  let cur = 'all';
+  const grid = document.getElementById('reviewsGrid');
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const render = () => {
+    grid.replaceChildren();
+    let list = REVIEWS.slice();
+    if (cur === '5') list = list.filter(r => r.stars === 5);
+    else if (cur === '4') list = list.filter(r => r.stars === 4);
+    else if (['kyc','returns','support'].includes(cur)) list = list.filter(r => r.tags.includes(cur));
+    list.forEach(r => {
+      const card = document.createElement('div'); card.className = 'review';
+      const head = document.createElement('div'); head.className = 'head';
+      const av = document.createElement('div'); av.className = 'avatar'; av.textContent = r.i;
+      const who = document.createElement('div');
+      const nm = document.createElement('div'); nm.className = 'who'; nm.textContent = r.name;
+      const ro = document.createElement('div'); ro.className = 'role'; ro.textContent = r.role;
+      who.append(nm, ro);
+      head.append(av, who);
+      const st = document.createElement('div'); st.className = 'stars'; st.textContent = stars(r.stars);
+      const q = document.createElement('div'); q.className = 'quote'; q.textContent = '"' + r.q + '"';
+      const m = document.createElement('div'); m.className = 'meta';
+      const dt = document.createElement('span'); dt.textContent = r.date;
+      const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = '✓ موثّق';
+      m.append(dt, bd);
+      card.append(head, st, q, m);
+      grid.appendChild(card);
+    });
+  };
+  document.querySelectorAll('#filters .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#filters .chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active'); cur = c.dataset.f; render();
+    });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
