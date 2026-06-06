@@ -859,6 +859,15 @@
     </div>
   </div>
 
+  <!-- Compound projection -->
+  <div class="settings-group" id="compSec" style="display:none;">
+    <div class="settings-h">🌱 لو واصلت — توقّعات النموّ المُركّب</div>
+    <div style="padding:14px 18px;">
+      <div id="compHero" style="background:linear-gradient(135deg,#0a4d36,#062b1e);color:#fff;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;"></div>
+      <div id="compTable" style="display:grid;gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- Auto-reinvest -->
   <div class="settings-group" id="reinvestSec">
     <div class="settings-h">🔁 إعادة الاستثمار التلقائيّة</div>
@@ -3142,6 +3151,44 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Compound projection
+  (async () => {
+    try {
+      const r = await App.api('GET', '/app/me/compound-projection');
+      if (!r.hasData) return;
+      const sec = document.getElementById('compSec');
+      if (!sec) return;
+      sec.style.display = '';
+      const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+      const hero = document.getElementById('compHero');
+      hero.replaceChildren();
+      const ic = document.createElement('div'); ic.style.cssText = 'font-size:30px;line-height:1;'; ic.textContent = '🌱';
+      const big = document.createElement('div'); big.style.cssText = 'font:900 26px Cairo,sans-serif;color:#d4ac6e;margin:6px 0 4px;';
+      big.textContent = fmt(r.currentInvested) + ' ر.س';
+      const sub = document.createElement('div'); sub.style.cssText = 'font:700 12px Cairo,sans-serif;color:#fff;';
+      sub.textContent = 'مع متوسّط عائد ' + r.blendedRatePct + '٪ على محفظتك';
+      hero.append(ic, big, sub);
+      const table = document.getElementById('compTable');
+      table.replaceChildren();
+      const header = document.createElement('div');
+      header.style.cssText = 'display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;font:800 11px Cairo,sans-serif;color:var(--muted);padding:6px 10px;border-bottom:1px dashed var(--line);';
+      ['المدّة','بدون إضافات','مع ١٠٠٠ ر.س/شهر'].forEach(t => {
+        const c = document.createElement('div'); c.textContent = t; header.appendChild(c);
+      });
+      table.appendChild(header);
+      r.projection.forEach((row, idx) => {
+        const w = document.createElement('div');
+        w.style.cssText = 'display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;background:#fff;border:1px solid rgba(13,22,18,0.1);border-radius:10px;padding:12px;align-items:center;';
+        const yr = document.createElement('div'); yr.style.cssText = 'font:900 14px Cairo,sans-serif;color:var(--green-dark);'; yr.textContent = row.years + ' سنة';
+        const v1 = document.createElement('div'); v1.style.cssText = 'font:900 13px Cairo,sans-serif;color:#0a4d36;'; v1.textContent = fmt(row.futureValue) + ' ر.س';
+        const v2val = r.withMonthlyAdditions[idx].futureValue;
+        const v2 = document.createElement('div'); v2.style.cssText = 'font:900 13px Cairo,sans-serif;color:#b08840;'; v2.textContent = fmt(v2val) + ' ر.س';
+        w.append(yr, v1, v2);
+        table.appendChild(w);
       });
     } catch (e) {}
   })();
