@@ -859,6 +859,35 @@
     </div>
   </div>
 
+  <!-- Self-imposed cap -->
+  <div class="settings-group" id="selfCapSec">
+    <div class="settings-h">🛡 سقف استثمارك الذاتي</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">سيطر على استثمارك. حدّد سقفاً شهرياً أو سنويّاً أو لكلّ صفقة — والمنصّة ستحميك من تجاوزه.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <label for="selfCapEnabled" style="font:800 13px Cairo,sans-serif;color:var(--green-dark);">تفعيل السقف الذاتي</label>
+        <input type="checkbox" id="selfCapEnabled" style="transform:scale(1.4);accent-color:#0a4d36;" />
+      </div>
+      <div id="selfCapForm" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <label for="selfCapMonth" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">سقف شهري (ر.س، ٠ = بلا حدّ)</label>
+          <input type="number" id="selfCapMonth" min="0" step="1000" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <div id="selfCapMonthHint" style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;"></div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="selfCapYear" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">سقف سنوي (ر.س، ٠ = بلا حدّ)</label>
+          <input type="number" id="selfCapYear" min="0" step="5000" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+          <div id="selfCapYearHint" style="font:600 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;"></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label for="selfCapDeal" style="font:700 11px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;">سقف لكلّ صفقة (ر.س، ٠ = بلا حدّ)</label>
+          <input type="number" id="selfCapDeal" min="0" step="500" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;" />
+        </div>
+        <button type="button" id="selfCapSave" style="width:100%;padding:12px;background:var(--green-dark);color:#d4ac6e;border:none;border-radius:8px;font:900 13px Cairo,sans-serif;cursor:pointer;">حفظ السقف</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Savings goals -->
   <div class="settings-group" id="goalsSec">
     <div class="settings-h">🎯 أهدافك الادّخاريّة</div>
@@ -3318,6 +3347,50 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Self-cap
+  (async () => {
+    const cb = document.getElementById('selfCapEnabled');
+    const form = document.getElementById('selfCapForm');
+    const mIn = document.getElementById('selfCapMonth');
+    const yIn = document.getElementById('selfCapYear');
+    const dIn = document.getElementById('selfCapDeal');
+    const mHint = document.getElementById('selfCapMonthHint');
+    const yHint = document.getElementById('selfCapYearHint');
+    const saveBtn = document.getElementById('selfCapSave');
+    if (!cb || !form) return;
+    const fmt = n => Number(n || 0).toLocaleString('ar-SA');
+    try {
+      const r = await App.api('GET', '/app/me/self-cap');
+      if (!r.hasData) return;
+      cb.checked = !!r.enabled;
+      mIn.value = r.monthlyCap || 0;
+      yIn.value = r.yearlyCap || 0;
+      dIn.value = r.perDealCap || 0;
+      if (r.monthlyCap > 0) mHint.textContent = 'استهلكت هذا الشهر ' + fmt(r.monthSpent) + ' · متبقي ' + fmt(r.monthRemaining || 0);
+      else mHint.textContent = 'استهلكت هذا الشهر ' + fmt(r.monthSpent) + ' ر.س';
+      if (r.yearlyCap > 0) yHint.textContent = 'استهلكت هذه السنة ' + fmt(r.yearSpent) + ' · متبقي ' + fmt(r.yearRemaining || 0);
+      else yHint.textContent = 'استهلكت هذه السنة ' + fmt(r.yearSpent) + ' ر.س';
+      form.style.display = cb.checked ? '' : 'none';
+      cb.addEventListener('change', () => { form.style.display = cb.checked ? '' : 'none'; });
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+          await App.api('PUT', '/app/me/self-cap', {
+            enabled: cb.checked,
+            monthlyCap: Number(mIn.value) || 0,
+            yearlyCap: Number(yIn.value) || 0,
+            perDealCap: Number(dIn.value) || 0,
+          });
+          if (App.toast) App.toast('تمّ حفظ السقف', 'success');
+        } catch (e) {
+          if (App.toast) App.toast('فشل الحفظ', 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
       });
     } catch (e) {}
   })();
