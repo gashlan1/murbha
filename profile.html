@@ -859,6 +859,62 @@
     </div>
   </div>
 
+  <!-- Scam defense -->
+  <div class="settings-group" id="sdSec">
+    <div class="settings-h">🚨 الحماية من الاحتيال الاستثماري</div>
+    <div style="padding:14px 18px;">
+      <p style="font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:12px;">٨ ضوابط ضدّ الاحتيال. الذكاء ليس حماية كافية.</p>
+      <div id="sdDef" style="background:var(--paper);border-radius:10px;padding:12px;margin-bottom:12px;font:800 12px Cairo,sans-serif;color:var(--muted);text-align:center;">—</div>
+      <div style="display:grid;gap:8px;">
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdActive" /> فعّل خطّة الحماية من الاحتيال
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:#dc2626;">
+          <input type="checkbox" id="sdEver" /> 🚨 سبق أن تعرّضت لمحاولة احتيال
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">آخر حادثة (إن وُجدت)
+          <select id="sdTier" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;">
+            <option value="never">✅ لم تحدث</option>
+            <option value="attempted">🟡 حاول أحد وفشل</option>
+            <option value="lost_minor">🟠 خسارة صغيرة (< ١٠ آلاف)</option>
+            <option value="lost_major">🔴 خسارة كبيرة (≥ ١٠ آلاف)</option>
+          </select>
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">أكبر مبلغ تعرّضت لعرضه احتيالًا (ر.س)
+          <input type="number" id="sdAmt" min="0" max="10000000" step="500" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:700 12px Cairo,sans-serif;" />
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdLic" /> أتحقّق من الترخيص (CMA/ساما) قبل أيّ صفقة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdPress" /> أرفض الضغط لاتّخاذ قرار سريع
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdFatwa" /> أتحقّق من فتوى شرعيّة موقّعة قبل "الإسلامي"
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdCool" /> قاعدة فترة تأمّل (٢٤-٧٢ ساعة) قبل أيّ صفقة كبيرة
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdSpouse" /> أستشير الزوج/ة قبل صفقة > ١٠ آلاف
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdFam" /> علّمت أسرتي (والدين/أولاد) الإشارات الحمراء
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdSimah" /> أراقب تقرير سمة الائتماني سنويًّا (ضدّ سرقة الهويّة)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font:700 12px Cairo,sans-serif;color:var(--ink);">
+          <input type="checkbox" id="sdReport" /> أبلّغ عن محاولات الاحتيال (ساما/شرطة/CMA)
+        </label>
+        <label style="font:700 11px Cairo,sans-serif;color:var(--muted);">ملاحظات
+          <textarea id="sdNotes" rows="2" maxlength="300" style="display:block;margin-top:4px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:600 12px Tajawal,sans-serif;resize:vertical;"></textarea>
+        </label>
+        <button type="button" id="sdSave" class="btn btn-primary" style="margin-top:6px;">💾 حفظ خطّة الحماية</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Fee awareness -->
   <div class="settings-group" id="faSec">
     <div class="settings-h">💸 الوعي بالرسوم في الاستثمار</div>
@@ -9868,6 +9924,78 @@
       dismiss?.addEventListener('click', () => {
         try { localStorage.setItem('mrb_review_prompt_done', '1'); } catch {}
         card.style.display = 'none';
+      });
+    } catch (e) {}
+  })();
+
+  // Scam defense
+  (async () => {
+    try {
+      const active = document.getElementById('sdActive');
+      const ever = document.getElementById('sdEver');
+      const tier = document.getElementById('sdTier');
+      const amt = document.getElementById('sdAmt');
+      const lic = document.getElementById('sdLic');
+      const press = document.getElementById('sdPress');
+      const fatwa = document.getElementById('sdFatwa');
+      const cool = document.getElementById('sdCool');
+      const spouse = document.getElementById('sdSpouse');
+      const fam = document.getElementById('sdFam');
+      const simah = document.getElementById('sdSimah');
+      const report = document.getElementById('sdReport');
+      const notes = document.getElementById('sdNotes');
+      const defEl = document.getElementById('sdDef');
+      const btn = document.getElementById('sdSave');
+      if (!active || !btn) return;
+      const levelLabels = {
+        fortress: '🏰 حصن (٧+ ضوابط)',
+        guarded: '🛡️ محصّن (٥-٦)',
+        aware: '🟡 واعٍ (٣-٤)',
+        learning: '📘 يتعلّم',
+        vulnerable: '🚨 هشّ',
+      };
+      const r = await App.api('GET', '/app/me/scam-defense');
+      active.checked = !!r.active;
+      ever.checked = !!r.everScammed;
+      tier.value = r.lastIncidentTier || 'never';
+      amt.value = Number(r.largestApproachAmount || 0);
+      lic.checked = !!r.verifiesLicense;
+      press.checked = !!r.refusesPressure;
+      fatwa.checked = !!r.checksFatwa;
+      cool.checked = !!r.cooldownRule;
+      spouse.checked = !!r.spouseConsult;
+      fam.checked = !!r.familyEducated;
+      simah.checked = !!r.simahCheck;
+      report.checked = !!r.reportsRedFlags;
+      notes.value = r.notes || '';
+      if (defEl) defEl.textContent = (levelLabels[r.defenseLevel] || '—') + ' · ' + r.defenseScore + '/١٠٠ · ' + r.enabledCount + '/' + r.maxOptions + ' ضوابط';
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await App.api('PUT', '/app/me/scam-defense', {
+            active: active.checked,
+            everScammed: ever.checked,
+            lastIncidentTier: tier.value,
+            largestApproachAmount: Number(amt.value || 0),
+            verifiesLicense: lic.checked,
+            refusesPressure: press.checked,
+            checksFatwa: fatwa.checked,
+            cooldownRule: cool.checked,
+            spouseConsult: spouse.checked,
+            familyEducated: fam.checked,
+            simahCheck: simah.checked,
+            reportsRedFlags: report.checked,
+            notes: notes.value || '',
+          });
+          if (res && res.ok) {
+            App.toast('💾 حُفظت خطّة الحماية', 'success');
+            const r2 = await App.api('GET', '/app/me/scam-defense');
+            if (defEl) defEl.textContent = (levelLabels[r2.defenseLevel] || '—') + ' · ' + r2.defenseScore + '/١٠٠ · ' + r2.enabledCount + '/' + r2.maxOptions + ' ضوابط';
+          } else {
+            App.toast('تعذّر الحفظ', 'error');
+          }
+        } catch (e) {
+          App.toast('خطأ في الحفظ', 'error');
+        }
       });
     } catch (e) {}
   })();
