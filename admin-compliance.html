@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>الامتثال والمخاطر — إدارة مُرابحة</title>
+<meta name="description" content="لوحة إدارة: مراجعة تنبيهات الامتثال ومخاطر غسل الأموال وحالات التحقيق." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{border-radius:14px;padding:18px;border:1px solid var(--line);}
+  .kpi-red{background:#fdecea;border-color:#f8d7da;}
+  .kpi-yellow{background:#fff8e1;border-color:#ffe082;}
+  .kpi-green{background:#e8f5e9;border-color:#a5d6a7;}
+  .kpi-blue{background:#e3f2fd;border-color:#90caf9;}
+  .kpi-val{font:900 26px Cairo,sans-serif;}
+  .kpi-red .kpi-val{color:#c54a3a;}
+  .kpi-yellow .kpi-val{color:#a07020;}
+  .kpi-green .kpi-val{color:#2e7d32;}
+  .kpi-blue .kpi-val{color:#1565c0;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .flags-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .flag-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;}
+  .flag-item:last-child{margin-bottom:0;}
+  .flag-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;}
+  .flag-user{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .flag-id{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .flag-severity{border-radius:5px;padding:2px 9px;font:700 9px Cairo,sans-serif;}
+  .sev-high{background:#fdecea;color:#c54a3a;}
+  .sev-medium{background:#fff8e1;color:#a07020;}
+  .sev-low{background:#e8f5e9;color:#2e7d32;}
+  .flag-type{font:700 11px Cairo,sans-serif;color:var(--ink);margin-bottom:4px;}
+  .flag-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.5;}
+  .flag-meta{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:6px;}
+  .flag-actions{display:flex;gap:8px;margin-top:10px;}
+  .btn-resolve{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:7px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;color:#2e7d32;}
+  .btn-resolve:hover{background:#c8e6c9;}
+  .btn-escalate{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:7px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;color:#a07020;}
+  .btn-escalate:hover{background:#fff3e0;}
+  .note-input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:7px 12px;font:500 11px Tajawal,sans-serif;color:var(--ink);}
+  .note-input:focus{outline:none;border-color:var(--green);}
+  .resolved-badge{background:#e8f5e9;border-radius:5px;padding:3px 10px;font:700 9px Cairo,sans-serif;color:#2e7d32;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>الامتثال والمخاطر</h1>
+    <p>مراجعة تنبيهات مكافحة غسل الأموال والمعاملات المشبوهة وحالات الامتثال التنظيمي.</p>
+    <div class="admin-badge">لوحة الإدارة — سري</div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="flags-card">
+    <div class="card-title">التنبيهات النشطة</div>
+    <div id="flagsList"></div>
+  </div>
+
+  <div class="flags-card">
+    <div class="card-title">المحلولة مؤخراً</div>
+    <div id="resolvedList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+  function sevCls(s){ return 'flag-severity '+(s==='high'?'sev-high':s==='low'?'sev-low':'sev-medium'); }
+  function sevLabel(s){ const m={high:'عالية',medium:'متوسطة',low:'منخفضة'}; return m[s]||s||'—'; }
+
+  function renderFlag(flag, container, resolved){
+    const item=document.createElement('div'); item.className='flag-item'; item.id='flag-'+flag.id;
+    const hdr=document.createElement('div'); hdr.className='flag-header';
+    const left=document.createElement('div');
+    const user=document.createElement('div'); user.className='flag-user'; user.textContent=(flag.userName||'مستخدم')+' · #'+flag.id;
+    const fid=document.createElement('div'); fid.className='flag-id'; fid.textContent='مرجع: '+(flag.referenceId||'—');
+    left.appendChild(user); left.appendChild(fid);
+    const sev=document.createElement('div'); sev.className=sevCls(flag.severity); sev.textContent='خطورة '+sevLabel(flag.severity);
+    hdr.appendChild(left); hdr.appendChild(sev);
+    const type=document.createElement('div'); type.className='flag-type'; type.textContent=flag.flagType||'تنبيه';
+    const desc=document.createElement('div'); desc.className='flag-desc'; desc.textContent=flag.description||'—';
+    const meta=document.createElement('div'); meta.className='flag-meta'; meta.textContent='المبلغ: '+(flag.amount?flag.amount.toLocaleString('ar-SA')+' ر.س':'—')+' · التاريخ: '+(flag.date||'—');
+    item.appendChild(hdr); item.appendChild(type); item.appendChild(desc); item.appendChild(meta);
+
+    if(!resolved){
+      const actions=document.createElement('div'); actions.className='flag-actions';
+      const noteInp=document.createElement('input'); noteInp.className='note-input'; noteInp.type='text'; noteInp.placeholder='ملاحظة القرار…';
+      const resBtn=document.createElement('button'); resBtn.className='btn-resolve'; resBtn.textContent='حل وإغلاق';
+      const escBtn=document.createElement('button'); escBtn.className='btn-escalate'; escBtn.textContent='تصعيد';
+      const fid2=flag.id;
+      resBtn.addEventListener('click', async()=>{
+        resBtn.disabled=true;
+        try{
+          const r=await fetch('/app/admin/compliance/'+encodeURIComponent(fid2)+'/resolve',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({resolution:'resolved',note:noteInp.value.trim()})});
+          if(!r.ok){ resBtn.disabled=false; showToast('تعذّر الإغلاق.'); return; }
+          const el=document.getElementById('flag-'+fid2);
+          if(el){ el.querySelector('.flag-actions').remove(); const b=document.createElement('div'); b.className='resolved-badge'; b.textContent='محلول'; el.appendChild(b); }
+          showToast('تم إغلاق التنبيه.');
+        }catch{ resBtn.disabled=false; showToast('خطأ.'); }
+      });
+      escBtn.addEventListener('click', async()=>{
+        escBtn.disabled=true;
+        try{
+          const r=await fetch('/app/admin/compliance/'+encodeURIComponent(fid2)+'/resolve',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({resolution:'escalated',note:noteInp.value.trim()})});
+          if(!r.ok){ escBtn.disabled=false; showToast('تعذّر التصعيد.'); return; }
+          showToast('تم التصعيد للمراجعة العليا.');
+          escBtn.textContent='مُصعَّد'; escBtn.disabled=true;
+        }catch{ escBtn.disabled=false; showToast('خطأ.'); }
+      });
+      actions.appendChild(noteInp); actions.appendChild(resBtn); actions.appendChild(escBtn); item.appendChild(actions);
+    } else {
+      const rb=document.createElement('div'); rb.className='resolved-badge'; rb.textContent=flag.resolution==='escalated'?'مُصعَّد':'محلول'; item.appendChild(rb);
+    }
+    container.appendChild(item);
+  }
+
+  (async function load(){
+    const flagsList=document.getElementById('flagsList');
+    const resolvedList=document.getElementById('resolvedList');
+    const kpiRow=document.getElementById('kpiRow');
+    placeholder(flagsList,'جارٍ التحميل…'); placeholder(resolvedList,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/admin/compliance');
+      if(!r.ok){ placeholder(flagsList,r.status===403?'غير مصرح.':'تعذّر التحميل.'); placeholder(resolvedList,'—'); return; }
+      const d=await r.json();
+
+      const kpis=[
+        {lbl:'تنبيهات نشطة',val:String(d.activeCount||0),cls:'kpi-red'},
+        {lbl:'عالية الخطورة',val:String(d.highSeverityCount||0),cls:'kpi-red'},
+        {lbl:'محلولة هذا الشهر',val:String(d.resolvedMonthCount||0),cls:'kpi-green'},
+        {lbl:'متوسط وقت الحل',val:(d.avgResolutionHours||0)+'س',cls:'kpi-blue'}
+      ];
+      kpis.forEach(k=>{
+        const div=document.createElement('div'); div.className='kpi '+k.cls;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+        div.appendChild(val); div.appendChild(lbl); kpiRow.appendChild(div);
+      });
+
+      const active=d.flags||[];
+      flagsList.textContent='';
+      if(!active.length){ placeholder(flagsList,'لا توجد تنبيهات نشطة.'); }
+      else{ active.forEach(f=>renderFlag(f,flagsList,false)); }
+
+      const resolved=d.recentResolved||[];
+      resolvedList.textContent='';
+      if(!resolved.length){ placeholder(resolvedList,'لا توجد حالات محلولة مؤخراً.'); }
+      else{ resolved.forEach(f=>renderFlag(f,resolvedList,true)); }
+    }catch{ placeholder(flagsList,'خطأ في الاتصال.'); placeholder(resolvedList,'—'); }
+  }());
+}());
+</script>
+</body>
+</html>

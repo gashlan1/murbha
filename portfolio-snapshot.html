@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>لقطة المحفظة — مُرابحة</title>
+<meta name="description" content="عرض شامل وفوري لأداء محفظتك الاستثمارية مع مؤشرات الأداء والتوزيع القطاعي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:800px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .refresh-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding:0 4px;}
+  .refresh-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .btn-refresh{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:8px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-refresh:hover{background:var(--green);}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 16px;}
+  .kpi-val{font:900 24px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-val.pos{color:#2e7d32;}
+  .kpi-val.neg{color:#c54a3a;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .kpi-sub{font:700 10px Cairo,sans-serif;margin-top:3px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Sector chart */
+  .sector-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .sector-name{font:700 11px Cairo,sans-serif;color:var(--ink);width:100px;flex-shrink:0;text-align:right;}
+  .sector-bar-bg{flex:1;height:10px;background:#f0ece0;border-radius:5px;overflow:hidden;}
+  .sector-bar{height:100%;border-radius:5px;background:var(--green);transition:width .4s;}
+  .sector-amt{font:900 11px Cairo,sans-serif;color:var(--green-dark);width:90px;text-align:left;flex-shrink:0;}
+  /* Active deals */
+  .deal-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:10px;}
+  .deal-item:last-child{margin-bottom:0;}
+  .deal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .deal-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .deal-sector{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .deal-badge{border-radius:5px;padding:3px 10px;font:700 10px Cairo,sans-serif;}
+  .badge-active{background:#e8f5e9;color:#2e7d32;}
+  .badge-closing{background:#fff8e1;color:#a07020;}
+  .badge-late{background:#fdecea;color:#c54a3a;}
+  .deal-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .dm{background:#f9f7f2;border-radius:8px;padding:9px;}
+  .dm-key{font:700 9px Cairo,sans-serif;color:var(--muted);}
+  .dm-val{font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-top:2px;}
+  /* Progress bar */
+  .progress-wrap{margin-top:10px;}
+  .progress-lbl{display:flex;justify-content:space-between;font:500 9px Tajawal,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .progress-bg{height:6px;background:#f0ece0;border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:3px;background:var(--gold);}
+  /* Performance chart placeholder */
+  .perf-chart{background:#f9f7f2;border-radius:10px;padding:20px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;}
+  .perf-chart-lbl{font:500 12px Tajawal,sans-serif;color:var(--muted);}
+  /* Returns table */
+  .returns-table{width:100%;border-collapse:collapse;}
+  .returns-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:8px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .returns-table td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);}
+  .returns-table tr:last-child td{border-bottom:none;}
+  .td-pos{font:900 12px Cairo,sans-serif;color:#2e7d32;}
+  .td-neg{font:900 12px Cairo,sans-serif;color:#c54a3a;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  @media(max-width:560px){.deal-metrics{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>لقطة المحفظة</h1>
+    <p>نظرة شاملة وآنية على أداء محفظتك الاستثمارية والتوزيع القطاعي والعوائد المتراكمة.</p>
+  </div>
+
+  <div class="refresh-bar">
+    <span class="refresh-lbl" id="lastUpdated">جارٍ التحميل…</span>
+    <button class="btn-refresh" id="refreshBtn">تحديث الآن</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-title">التوزيع القطاعي</div>
+    <div id="sectorChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">الصفقات النشطة</div>
+    <div id="dealsList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">العوائد الموزَّعة</div>
+    <table class="returns-table">
+      <thead><tr><th>الصفقة</th><th>تاريخ التوزيع</th><th>المبلغ</th><th>العائد ٪</th></tr></thead>
+      <tbody id="returnsBody"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function fmtPct(n){ return (Number(n||0).toFixed(2))+'٪'; }
+
+  function placeholder(el, msg){
+    el.textContent='';
+    const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg;
+    el.appendChild(p);
+  }
+
+  function renderKPIs(d){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    const items=[
+      {lbl:'إجمالي المستثمَر',val:fmt(d.totalInvested||0)+' ر.س',sub:'',cls:''},
+      {lbl:'القيمة الحالية',val:fmt(d.currentValue||0)+' ر.س',sub:'',cls:'pos'},
+      {lbl:'العائد المتراكم',val:fmt(d.totalReturns||0)+' ر.س',sub:fmtPct(d.returnsPct||0),cls:(d.returnsPct||0)>=0?'pos':'neg'},
+      {lbl:'الصفقات النشطة',val:String(d.activeDeals||0),sub:'صفقة',cls:''}
+    ];
+    items.forEach(it=>{
+      const kpi=document.createElement('div'); kpi.className='kpi';
+      const val=document.createElement('div'); val.className='kpi-val'+(it.cls?' '+it.cls:''); val.textContent=it.val;
+      const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=it.lbl;
+      kpi.appendChild(val); kpi.appendChild(lbl);
+      if(it.sub){ const sub=document.createElement('div'); sub.className='kpi-sub'; sub.textContent=it.sub; kpi.appendChild(sub); }
+      row.appendChild(kpi);
+    });
+  }
+
+  function renderSectors(sectors){
+    const chart=document.getElementById('sectorChart'); chart.textContent='';
+    if(!sectors||!sectors.length){ placeholder(chart,'لا توجد بيانات قطاعية.'); return; }
+    const max=Math.max(...sectors.map(s=>s.amount||0))||1;
+    sectors.forEach(s=>{
+      const row=document.createElement('div'); row.className='sector-row';
+      const name=document.createElement('div'); name.className='sector-name'; name.textContent=s.sector||'—';
+      const bg=document.createElement('div'); bg.className='sector-bar-bg';
+      const bar=document.createElement('div'); bar.className='sector-bar';
+      bar.style.width=Math.round(((s.amount||0)/max)*100)+'%';
+      bg.appendChild(bar);
+      const amt=document.createElement('div'); amt.className='sector-amt'; amt.textContent=fmt(s.amount||0)+' ر.س';
+      row.appendChild(name); row.appendChild(bg); row.appendChild(amt);
+      chart.appendChild(row);
+    });
+  }
+
+  function renderDeals(deals){
+    const list=document.getElementById('dealsList'); list.textContent='';
+    if(!deals||!deals.length){ placeholder(list,'لا توجد صفقات نشطة.'); return; }
+    deals.forEach(deal=>{
+      const item=document.createElement('div'); item.className='deal-item';
+
+      const top=document.createElement('div'); top.className='deal-top';
+      const info=document.createElement('div');
+      const name=document.createElement('div'); name.className='deal-name'; name.textContent=deal.name||'—';
+      const sector=document.createElement('div'); sector.className='deal-sector'; sector.textContent=deal.sector||'—';
+      info.appendChild(name); info.appendChild(sector);
+      const bstat=deal.status||'active';
+      const badge=document.createElement('div');
+      badge.className='deal-badge '+(bstat==='late'?'badge-late':bstat==='closing'?'badge-closing':'badge-active');
+      const labels={active:'نشطة',closing:'تقترب من الاستحقاق',late:'متأخرة'};
+      badge.textContent=labels[bstat]||bstat;
+      top.appendChild(info); top.appendChild(badge);
+
+      const metrics=document.createElement('div'); metrics.className='deal-metrics';
+      const mdata=[
+        ['المستثمَر',fmt(deal.invested||0)+' ر.س'],
+        ['العائد المتوقع',fmtPct(deal.expectedYield||0)],
+        ['العائد المكتسب',fmt(deal.earnedReturn||0)+' ر.س'],
+        ['الاستحقاق',deal.maturityDate||'—']
+      ];
+      mdata.forEach(([k,v])=>{
+        const dm=document.createElement('div'); dm.className='dm';
+        const key=document.createElement('div'); key.className='dm-key'; key.textContent=k;
+        const val=document.createElement('div'); val.className='dm-val'; val.textContent=v;
+        dm.appendChild(key); dm.appendChild(val); metrics.appendChild(dm);
+      });
+
+      const progress=document.createElement('div'); progress.className='progress-wrap';
+      const pct=Math.min(100,Math.max(0,deal.progressPct||0));
+      const plbl=document.createElement('div'); plbl.className='progress-lbl';
+      const pl1=document.createElement('span'); pl1.textContent='تقدم الصفقة';
+      const pl2=document.createElement('span'); pl2.textContent=pct+'٪';
+      plbl.appendChild(pl1); plbl.appendChild(pl2);
+      const pbg=document.createElement('div'); pbg.className='progress-bg';
+      const pfill=document.createElement('div'); pfill.className='progress-fill'; pfill.style.width=pct+'%';
+      pbg.appendChild(pfill);
+      progress.appendChild(plbl); progress.appendChild(pbg);
+
+      item.appendChild(top); item.appendChild(metrics); item.appendChild(progress);
+      list.appendChild(item);
+    });
+  }
+
+  function renderReturns(returns){
+    const body=document.getElementById('returnsBody'); body.textContent='';
+    if(!returns||!returns.length){
+      const tr=document.createElement('tr');
+      const td=document.createElement('td'); td.colSpan=4; td.className='placeholder-msg'; td.textContent='لا توجد عوائد موزَّعة بعد.';
+      tr.appendChild(td); body.appendChild(tr); return;
+    }
+    returns.forEach(r=>{
+      const tr=document.createElement('tr');
+      const tdDeal=document.createElement('td'); tdDeal.textContent=r.dealName||'—';
+      const tdDate=document.createElement('td'); tdDate.textContent=r.date||'—';
+      const tdAmt=document.createElement('td'); tdAmt.className='td-pos'; tdAmt.textContent=fmt(r.amount||0)+' ر.س';
+      const tdPct=document.createElement('td'); tdPct.className='td-pos'; tdPct.textContent=fmtPct(r.yieldPct||0);
+      tr.appendChild(tdDeal); tr.appendChild(tdDate); tr.appendChild(tdAmt); tr.appendChild(tdPct);
+      body.appendChild(tr);
+    });
+  }
+
+  async function load(){
+    document.getElementById('lastUpdated').textContent='جارٍ التحميل…';
+    try{
+      const r=await fetch('/app/me/portfolio-snapshot');
+      if(!r.ok){
+        placeholder(document.getElementById('sectorChart'),'تعذّر التحميل.');
+        placeholder(document.getElementById('dealsList'),'تعذّر التحميل.');
+        return;
+      }
+      const d=await r.json();
+      renderKPIs(d);
+      renderSectors(d.sectors||[]);
+      renderDeals(d.activeDeals||[]);
+      renderReturns(d.recentReturns||[]);
+      const now=new Date().toLocaleTimeString('ar-SA');
+      document.getElementById('lastUpdated').textContent='آخر تحديث: '+now;
+    }catch{
+      placeholder(document.getElementById('sectorChart'),'خطأ في الاتصال.');
+      placeholder(document.getElementById('dealsList'),'خطأ في الاتصال.');
+    }
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', load);
+  load();
+}());
+</script>
+</body>
+</html>
