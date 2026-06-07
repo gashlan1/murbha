@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>طلب السحب — مُرابحة</title>
+<meta name="description" content="تقديم طلب سحب رصيد محفظتك إلى حسابك البنكي مع متابعة حالة الطلب." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .balance-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+  .balance-info{}
+  .balance-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .balance-val{font:900 28px Cairo,sans-serif;color:var(--green-dark);margin-top:3px;}
+  .balance-note{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .btn-max{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);}
+  .form-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .form-group{margin-bottom:16px;}
+  .form-lbl{font:700 12px Cairo,sans-serif;color:var(--ink);margin-bottom:6px;display:block;}
+  .form-input,.form-select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-input:focus,.form-select:focus{outline:none;border-color:var(--green);}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:5px;}
+  .form-hint.warn{color:#a07020;}
+  .chips-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+  .chip-btn{border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;background:var(--paper);color:var(--muted);}
+  .chip-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .btn-submit{width:100%;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:12px;padding:14px;font:900 14px Cairo,sans-serif;cursor:pointer;margin-top:4px;}
+  .btn-submit:hover{background:var(--green);}
+  .btn-submit:disabled{opacity:.5;cursor:default;}
+  /* History / timeline */
+  .history-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .history-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .timeline{display:grid;gap:14px;}
+  .tl-item{display:flex;gap:14px;}
+  .tl-line{display:flex;flex-direction:column;align-items:center;gap:0;}
+  .tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .tl-dot.done{background:var(--green);}
+  .tl-dot.pending{background:var(--gold);}
+  .tl-dot.failed{background:#c54a3a;}
+  .tl-connector{width:2px;flex:1;background:var(--line);min-height:20px;}
+  .tl-body{flex:1;}
+  .tl-ref{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .tl-meta{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .tl-amount{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .tl-status{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;margin-top:4px;display:inline-block;}
+  .tl-done{background:#e8f5e9;color:#2e7d32;}
+  .tl-pending{background:#fff8e1;color:#a07020;}
+  .tl-failed{background:#fdecea;color:#c54a3a;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>💸 طلب السحب</h1>
+    <p>اسحب أرباحك أو رأس مالك المتاح إلى حسابك البنكي في غضون يوم عمل.</p>
+  </div>
+
+  <div class="balance-card">
+    <div class="balance-info">
+      <div class="balance-lbl">الرصيد المتاح للسحب</div>
+      <div class="balance-val" id="availableBalance">—</div>
+      <div class="balance-note">لا يشمل الأموال المستثمرة في صفقات نشطة</div>
+    </div>
+    <button class="btn-max" id="maxBtn">سحب الكل</button>
+  </div>
+
+  <div class="form-card">
+    <div class="form-group">
+      <label class="form-lbl" for="bankSelect">الحساب البنكي</label>
+      <select class="form-select" id="bankSelect"><option value="">جارٍ التحميل…</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl">مبلغ سريع</label>
+      <div class="chips-row" id="quickChips"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" for="amountInput">المبلغ (ر.س)</label>
+      <input class="form-input" id="amountInput" type="number" min="100" placeholder="1000" />
+      <div class="form-hint">الحد الأدنى 100 ر.س — يُحوَّل خلال يوم عمل</div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" for="noteInput">ملاحظة (اختياري)</label>
+      <input class="form-input" id="noteInput" type="text" maxlength="120" placeholder="ملاحظة للمرجعية الداخلية…" />
+    </div>
+    <button class="btn-submit" id="submitBtn">تأكيد طلب السحب</button>
+  </div>
+
+  <div class="history-card">
+    <div class="history-title">📋 سجل طلبات السحب</div>
+    <div id="withdrawalHistory"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  let availableBalance=0;
+
+  function setAmount(v){
+    document.getElementById('amountInput').value=v;
+    document.querySelectorAll('.chip-btn').forEach(c=>c.classList.toggle('active',Number(c.dataset.val)===v));
+  }
+
+  document.getElementById('maxBtn').addEventListener('click',()=>setAmount(availableBalance));
+
+  async function submitWithdrawal(){
+    const amount=parseFloat(document.getElementById('amountInput').value);
+    const bankId=document.getElementById('bankSelect').value;
+    const note=document.getElementById('noteInput').value.trim();
+    if(!amount||amount<100){ showToast('الحد الأدنى للسحب 100 ر.س.'); return; }
+    if(amount>availableBalance){ showToast('المبلغ يتجاوز الرصيد المتاح.'); return; }
+    if(!bankId){ showToast('الرجاء اختيار الحساب البنكي.'); return; }
+    const btn=document.getElementById('submitBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/withdrawals',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({amount,bankId,note})});
+      if(!r.ok){ btn.disabled=false; showToast('تعذّر تقديم الطلب.'); return; }
+      showToast('تم تقديم طلب السحب بنجاح ✅');
+      document.getElementById('amountInput').value='';
+      availableBalance=Math.max(0,availableBalance-amount);
+      document.getElementById('availableBalance').textContent=fmt(availableBalance)+' ر.س';
+      btn.disabled=false;
+      loadHistory();
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click',submitWithdrawal);
+
+  function renderHistory(withdrawals){
+    const area=document.getElementById('withdrawalHistory'); area.textContent='';
+    if(!withdrawals.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='لا توجد طلبات سحب سابقة.'; area.appendChild(m); return; }
+    const tl=document.createElement('div'); tl.className='timeline';
+    withdrawals.forEach((w,idx)=>{
+      const item=document.createElement('div'); item.className='tl-item';
+      const lineCol=document.createElement('div'); lineCol.className='tl-line';
+      const dot=document.createElement('div'); dot.className='tl-dot '+(w.status==='completed'?'done':w.status==='failed'?'failed':'pending');
+      lineCol.appendChild(dot);
+      if(idx<withdrawals.length-1){ const conn=document.createElement('div'); conn.className='tl-connector'; lineCol.appendChild(conn); }
+      const body=document.createElement('div'); body.className='tl-body';
+      const ref=document.createElement('div'); ref.className='tl-ref'; ref.textContent='طلب سحب #'+(w.id||'—');
+      const meta=document.createElement('div'); meta.className='tl-meta'; meta.textContent=(w.date||'—')+' · '+(w.bankName||'—');
+      const amt=document.createElement('div'); amt.className='tl-amount'; amt.textContent=fmt(w.amount||0)+' ر.س';
+      const badge=document.createElement('div'); badge.className='tl-status tl-'+(w.status==='completed'?'done':w.status==='failed'?'failed':'pending');
+      badge.textContent=w.status==='completed'?'تم التحويل':w.status==='failed'?'فشل':'قيد المعالجة';
+      body.appendChild(ref); body.appendChild(meta); body.appendChild(amt); body.appendChild(badge);
+      item.appendChild(lineCol); item.appendChild(body); tl.appendChild(item);
+    });
+    area.appendChild(tl);
+  }
+
+  async function loadHistory(){
+    try{
+      const r=await fetch('/app/me/withdrawals');
+      if(!r.ok){ document.getElementById('withdrawalHistory').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; document.getElementById('withdrawalHistory').appendChild(m); return; }
+      const d=await r.json(); renderHistory(d.withdrawals||[]);
+    }catch{}
+  }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/wallet');
+      if(!r.ok) return;
+      const d=await r.json();
+      availableBalance=d.available||0;
+      document.getElementById('availableBalance').textContent=fmt(availableBalance)+' ر.س';
+      const chips=[Math.round(availableBalance*0.25),Math.round(availableBalance*0.5),Math.round(availableBalance*0.75),availableBalance].filter(v=>v>=100);
+      const chipsRow=document.getElementById('quickChips');
+      [...new Set(chips)].forEach(v=>{
+        const btn=document.createElement('button'); btn.className='chip-btn'; btn.dataset.val=v; btn.textContent=fmt(v)+' ر.س';
+        btn.addEventListener('click',()=>setAmount(v)); chipsRow.appendChild(btn);
+      });
+      const sel=document.getElementById('bankSelect'); sel.textContent='';
+      const def=document.createElement('option'); def.value=''; def.textContent='اختر حساباً بنكياً'; sel.appendChild(def);
+      (d.bankAccounts||[]).forEach(ba=>{
+        const opt=document.createElement('option'); opt.value=ba.id; opt.textContent=(ba.bankName||'بنك')+' — '+( ba.iban||'').slice(-8);
+        sel.appendChild(opt);
+      });
+    }catch{}
+    loadHistory();
+  }());
+}());
+</script>
+</body>
+</html>

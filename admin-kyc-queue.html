@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>طابور KYC — مُرابحة</title>
+<meta name="description" content="مراجعة واعتماد أو رفض طلبات التحقق من الهوية KYC للمستثمرين." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:18px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.8;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:10px;}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;flex:1;min-width:120px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .search-input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .filter-select{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:500 11px Tajawal,sans-serif;background:var(--paper);}
+  .queue-list{display:grid;gap:14px;}
+  .kyc-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;}
+  .kyc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .kyc-name{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .kyc-email{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .kyc-submitted{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .wait-badge{border-radius:99px;padding:4px 12px;font:700 10px Cairo,sans-serif;}
+  .wait-urgent{background:#fdecea;color:#c54a3a;}
+  .wait-normal{background:#fff8e1;color:#a07020;}
+  .wait-fresh{background:#e8f5e9;color:#2e7d32;}
+  .docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px;}
+  .doc-chip{background:var(--paper);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+  .doc-chip:hover{background:#f0ede4;}
+  .doc-icon{font-size:18px;flex-shrink:0;}
+  .doc-info{flex:1;min-width:0;}
+  .doc-name{font:700 10px Cairo,sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .doc-type{font:500 9px Tajawal,sans-serif;color:var(--muted);}
+  .kyc-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-approve{background:#e8f5e9;border:1px solid #81c784;color:#2e7d32;border-radius:8px;padding:8px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-reject{background:#fdecea;border:1px solid #ef9a9a;color:#c54a3a;border-radius:8px;padding:8px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-request{background:var(--paper);border:1px solid var(--line);color:var(--green-dark);border-radius:8px;padding:8px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .reject-reason{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:500 11px Tajawal,sans-serif;width:100%;margin-top:8px;display:none;}
+  .reject-reason.visible{display:block;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>🪪 طابور مراجعة KYC</h1>
+    <p>مراجعة طلبات التحقق من الهوية واعتمادها أو رفضها مع ذكر السبب.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">قيد الانتظار</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">متوسط الانتظار (ساعة)</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">معتمد اليوم</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">مرفوض اليوم</div></div>
+  </div>
+
+  <div class="controls">
+    <input class="search-input" id="searchInput" type="text" placeholder="بحث بالاسم أو البريد…" />
+    <select class="filter-select" id="filterWait">
+      <option value="">كل الطلبات</option>
+      <option value="urgent">عاجل (+48 ساعة)</option>
+      <option value="normal">عادي (24-48 ساعة)</option>
+      <option value="fresh">جديد (-24 ساعة)</option>
+    </select>
+  </div>
+
+  <div class="queue-list" id="queueList"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+  const DOC_LABELS={national_id:'هوية وطنية',passport:'جواز سفر',selfie:'صورة شخصية',address_proof:'إثبات العنوان',bank_statement:'كشف بنكي'};
+
+  let allItems=[], filtered=[];
+
+  function waitClass(hours){
+    if(hours>48) return 'urgent';
+    if(hours>24) return 'normal';
+    return 'fresh';
+  }
+  function waitLabel(hours){
+    if(hours>48) return 'عاجل · '+hours+' ساعة';
+    if(hours>24) return hours+' ساعة';
+    return 'جديد · '+hours+' ساعة';
+  }
+
+  function renderKPIs(data){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    [{val:data.pending||0,lbl:'قيد الانتظار'},{val:(data.avgWaitHours||0)+'h',lbl:'متوسط الانتظار'},{val:data.approvedToday||0,lbl:'معتمد اليوم'},{val:data.rejectedToday||0,lbl:'مرفوض اليوم'}].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); row.appendChild(k);
+    });
+  }
+
+  function renderQueue(items){
+    const list=document.getElementById('queueList'); list.textContent='';
+    if(!items.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='لا توجد طلبات معلّقة.'; list.appendChild(m); return; }
+    items.forEach(item=>{
+      const card=document.createElement('div'); card.className='kyc-card';
+      const top=document.createElement('div'); top.className='kyc-top';
+      const info=document.createElement('div');
+      const nm=document.createElement('div'); nm.className='kyc-name'; nm.textContent=item.name||'—';
+      const em=document.createElement('div'); em.className='kyc-email'; em.textContent=item.email||'';
+      const sub=document.createElement('div'); sub.className='kyc-submitted'; sub.textContent='تقدّم بطلب: '+(item.submittedAt||'—');
+      info.appendChild(nm); info.appendChild(em); info.appendChild(sub);
+      const wc=waitClass(item.waitHours||0);
+      const wb=document.createElement('div'); wb.className='wait-badge wait-'+wc; wb.textContent=waitLabel(item.waitHours||0);
+      top.appendChild(info); top.appendChild(wb); card.appendChild(top);
+
+      const docsGrid=document.createElement('div'); docsGrid.className='docs-grid';
+      (item.documents||[]).forEach(doc=>{
+        const chip=document.createElement('div'); chip.className='doc-chip';
+        chip.setAttribute('role','button');
+        chip.addEventListener('click',()=>showToast('عرض الوثيقة: '+doc.name));
+        const icon=document.createElement('div'); icon.className='doc-icon'; icon.textContent='📄';
+        const di=document.createElement('div'); di.className='doc-info';
+        const dn=document.createElement('div'); dn.className='doc-name'; dn.textContent=DOC_LABELS[doc.type]||doc.name||doc.type||'وثيقة';
+        const dt=document.createElement('div'); dt.className='doc-type'; dt.textContent=doc.size||'PDF';
+        di.appendChild(dn); di.appendChild(dt); chip.appendChild(icon); chip.appendChild(di); docsGrid.appendChild(chip);
+      });
+      card.appendChild(docsGrid);
+
+      const textarea=document.createElement('textarea'); textarea.className='reject-reason'; textarea.placeholder='سبب الرفض…'; textarea.rows=2;
+      card.appendChild(textarea);
+
+      const acts=document.createElement('div'); acts.className='kyc-actions';
+      const approveBtn=document.createElement('button'); approveBtn.className='btn-approve'; approveBtn.textContent='✅ اعتماد';
+      approveBtn.addEventListener('click',()=>submitDecision(item.id,'approved','',card));
+      const rejectBtn=document.createElement('button'); rejectBtn.className='btn-reject'; rejectBtn.textContent='❌ رفض';
+      rejectBtn.addEventListener('click',()=>{
+        textarea.classList.toggle('visible');
+        if(textarea.classList.contains('visible') && textarea.value.trim()){
+          submitDecision(item.id,'rejected',textarea.value.trim(),card);
+        }
+      });
+      const reqBtn=document.createElement('button'); reqBtn.className='btn-request'; reqBtn.textContent='📋 طلب وثائق';
+      reqBtn.addEventListener('click',()=>showToast('تم إرسال طلب وثائق إضافية.'));
+      acts.appendChild(approveBtn); acts.appendChild(rejectBtn); acts.appendChild(reqBtn);
+      card.appendChild(acts); list.appendChild(card);
+    });
+  }
+
+  async function submitDecision(id, decision, reason, card){
+    try{
+      const r=await fetch('/app/admin/kyc/'+encodeURIComponent(id)+'/decision',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({decision,reason})});
+      if(!r.ok){ showToast('تعذّر التحديث.'); return; }
+      showToast(decision==='approved'?'تم اعتماد الطلب ✅':'تم رفض الطلب');
+      card.style.opacity='.4'; card.style.pointerEvents='none';
+      allItems=allItems.filter(i=>i.id!==id); applyFilter();
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  function applyFilter(){
+    const q=document.getElementById('searchInput').value.trim().toLowerCase();
+    const w=document.getElementById('filterWait').value;
+    filtered=allItems.filter(item=>{
+      if(q && !(item.name||'').toLowerCase().includes(q) && !(item.email||'').toLowerCase().includes(q)) return false;
+      if(w && waitClass(item.waitHours||0)!==w) return false;
+      return true;
+    });
+    renderQueue(filtered);
+  }
+
+  document.getElementById('searchInput').addEventListener('input',applyFilter);
+  document.getElementById('filterWait').addEventListener('change',applyFilter);
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/admin/kyc-queue');
+      if(!r.ok){ document.getElementById('queueList').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.'; document.getElementById('queueList').appendChild(m); return; }
+      const d=await r.json();
+      renderKPIs(d);
+      allItems=d.items||[]; filtered=[...allItems]; renderQueue(filtered);
+    }catch{ document.getElementById('queueList').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; document.getElementById('queueList').appendChild(m); }
+  }());
+}());
+</script>
+</body>
+</html>
