@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>الاستثمار الدوري — مُرابحة</title>
+<meta name="description" content="أنشئ خطة استثمار دورية تلقائية وفق ميزانيتك الشهرية ومعاييرك المفضلة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .new-plan-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .form-input,.form-select{border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-input:focus,.form-select:focus{outline:none;border-color:var(--green);}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-create{width:100%;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:11px;padding:13px;font:900 14px Cairo,sans-serif;cursor:pointer;margin-top:14px;}
+  .btn-create:hover{background:var(--green);}
+  .btn-create:disabled{opacity:.5;cursor:default;}
+  .plans-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .plans-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .plan-item{border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px;}
+  .plan-item:last-child{margin-bottom:0;}
+  .plan-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .plan-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .plan-status{border-radius:6px;padding:3px 9px;font:700 9px Cairo,sans-serif;}
+  .s-active{background:#e8f5e9;color:#2e7d32;}
+  .s-paused{background:#fff8e1;color:#a07020;}
+  .plan-stats{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;}
+  .plan-stat{display:flex;flex-direction:column;gap:2px;}
+  .stat-lbl{font:500 9px Tajawal,sans-serif;color:var(--muted);}
+  .stat-val{font:900 12px Cairo,sans-serif;color:var(--ink);}
+  .plan-actions{display:flex;gap:8px;}
+  .btn-pause{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;color:var(--muted);}
+  .btn-del{background:#fdecea;border:1px solid #f8d7da;border-radius:8px;padding:7px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;color:#c54a3a;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>الاستثمار الدوري</h1>
+    <p>أنشئ خطة استثمار تلقائية شهرية أو ربع سنوية تُوجَّه فيها مبالغ ثابتة إلى الصفقات التي تناسب معاييرك.</p>
+  </div>
+
+  <div class="new-plan-card">
+    <div class="card-title">إنشاء خطة جديدة</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-lbl" for="planName">اسم الخطة</label>
+        <input class="form-input" id="planName" type="text" maxlength="60" placeholder="مثال: مدخرات التقاعد" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="planAmount">المبلغ الدوري (ر.س)</label>
+        <input class="form-input" id="planAmount" type="number" min="500" placeholder="5000" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="planFreq">الدورية</label>
+        <select class="form-select" id="planFreq">
+          <option value="monthly">شهرياً</option>
+          <option value="quarterly">ربع سنوي</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="planSector">القطاع المفضل</label>
+        <select class="form-select" id="planSector">
+          <option value="">أي قطاع</option>
+          <option value="تجزئة">تجزئة</option>
+          <option value="عقارات">عقارات</option>
+          <option value="صناعة">صناعة</option>
+          <option value="تقنية">تقنية</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="planMinYield">الحد الأدنى للعائد (٪)</label>
+        <input class="form-input" id="planMinYield" type="number" min="0" max="30" step="0.5" placeholder="10" />
+        <div class="form-hint">يُوجَّه الاستثمار فقط للصفقات التي تتجاوز هذا العائد</div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="planMaxDuration">أقصى مدة قبول (أشهر)</label>
+        <select class="form-select" id="planMaxDuration">
+          <option value="6">6 أشهر</option>
+          <option value="12">12 شهراً</option>
+          <option value="24">24 شهراً</option>
+          <option value="0">بلا حد</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-create" id="createBtn">إنشاء الخطة</button>
+  </div>
+
+  <div class="plans-card">
+    <div class="plans-title">خططك الدورية</div>
+    <div id="plansList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+  function freqLabel(f){ return f==='quarterly'?'ربع سنوي':'شهري'; }
+
+  function renderPlan(plan, list){
+    const item=document.createElement('div'); item.className='plan-item'; item.id='plan-'+plan.id;
+    const hdr=document.createElement('div'); hdr.className='plan-header';
+    const name=document.createElement('div'); name.className='plan-name'; name.textContent=plan.name||'خطة';
+    const badge=document.createElement('div'); badge.className='plan-status '+(plan.status==='active'?'s-active':'s-paused');
+    badge.textContent=plan.status==='active'?'نشطة':'موقوفة';
+    hdr.appendChild(name); hdr.appendChild(badge);
+    const stats=document.createElement('div'); stats.className='plan-stats';
+    [[fmt(plan.amount||0)+' ر.س',freqLabel(plan.frequency)],[plan.sector||'أي قطاع','القطاع'],[(plan.minYield||0)+'٪','الحد الأدنى'],[fmt(plan.totalInvested||0)+' ر.س','مُستثمر حتى الآن']].forEach(([v,l])=>{
+      const s=document.createElement('div'); s.className='plan-stat';
+      const sv=document.createElement('div'); sv.className='stat-val'; sv.textContent=v;
+      const sl=document.createElement('div'); sl.className='stat-lbl'; sl.textContent=l;
+      s.appendChild(sv); s.appendChild(sl); stats.appendChild(s);
+    });
+    const actions=document.createElement('div'); actions.className='plan-actions';
+    const pauseBtn=document.createElement('button'); pauseBtn.className='btn-pause';
+    pauseBtn.textContent=plan.status==='active'?'إيقاف مؤقت':'استئناف';
+    const pid=plan.id;
+    pauseBtn.addEventListener('click', async()=>{
+      const newStatus=plan.status==='active'?'paused':'active';
+      try{
+        const r=await fetch('/app/me/scheduled-investments/'+encodeURIComponent(pid)+'/toggle',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({status:newStatus})});
+        if(!r.ok){ showToast('تعذّر التحديث.'); return; }
+        plan.status=newStatus; badge.className='plan-status '+(newStatus==='active'?'s-active':'s-paused');
+        badge.textContent=newStatus==='active'?'نشطة':'موقوفة'; pauseBtn.textContent=newStatus==='active'?'إيقاف مؤقت':'استئناف';
+        showToast(newStatus==='active'?'تم الاستئناف.':'تم الإيقاف المؤقت.');
+      }catch{ showToast('خطأ.'); }
+    });
+    const delBtn=document.createElement('button'); delBtn.className='btn-del'; delBtn.textContent='حذف';
+    delBtn.addEventListener('click', async()=>{
+      if(!confirm('هل أنت متأكد من حذف الخطة؟')) return;
+      try{
+        const r=await fetch('/app/me/scheduled-investments/'+encodeURIComponent(pid),{method:'DELETE',headers:{'X-CSRF-Token':csrf()}});
+        if(!r.ok){ showToast('تعذّر الحذف.'); return; }
+        document.getElementById('plan-'+pid)?.remove();
+        if(!document.querySelector('.plan-item')) placeholder(list,'لا توجد خطط دورية.');
+        showToast('تم الحذف.');
+      }catch{ showToast('خطأ.'); }
+    });
+    item.appendChild(hdr); item.appendChild(stats); actions.appendChild(pauseBtn); actions.appendChild(delBtn); item.appendChild(actions);
+    list.appendChild(item);
+  }
+
+  async function loadPlans(){
+    const list=document.getElementById('plansList');
+    placeholder(list,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/me/scheduled-investments');
+      if(!r.ok){ placeholder(list,r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      list.textContent='';
+      const plans=d.plans||[];
+      if(!plans.length){ placeholder(list,'لا توجد خطط دورية. أنشئ خطتك الأولى أعلاه.'); }
+      else{ plans.forEach(p=>renderPlan(p,list)); }
+    }catch{ placeholder(document.getElementById('plansList'),'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('createBtn').addEventListener('click', async()=>{
+    const name=document.getElementById('planName').value.trim();
+    const amount=parseFloat(document.getElementById('planAmount').value);
+    const frequency=document.getElementById('planFreq').value;
+    const sector=document.getElementById('planSector').value;
+    const minYield=parseFloat(document.getElementById('planMinYield').value)||0;
+    const maxDuration=parseInt(document.getElementById('planMaxDuration').value)||0;
+    if(!name){ showToast('الرجاء إدخال اسم الخطة.'); return; }
+    if(!amount||amount<500){ showToast('الحد الأدنى للمبلغ الدوري 500 ر.س.'); return; }
+    const btn=document.getElementById('createBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/scheduled-investments',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({name,amount,frequency,sector,minYield,maxDuration})});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر الإنشاء.'); return; }
+      showToast('تم إنشاء الخطة بنجاح.');
+      document.getElementById('planName').value=''; document.getElementById('planAmount').value='';
+      loadPlans();
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  loadPlans();
+}());
+</script>
+</body>
+</html>
