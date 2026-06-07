@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>سجل المعاملات — إدارة مُرابحة</title>
+<meta name="description" content="لوحة إدارة: عرض جميع معاملات المنصة مع التصفية حسب النوع والحالة والتاريخ." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .filter-bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .filter-sel{border:1.5px solid var(--line);border-radius:9px;padding:8px 12px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:var(--paper);}
+  .filter-sel:focus{outline:none;border-color:var(--green);}
+  .filter-input{border:1.5px solid var(--line);border-radius:9px;padding:8px 12px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:var(--paper);width:180px;}
+  .filter-input:focus{outline:none;border-color:var(--green);}
+  .btn-search{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:9px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-search:hover{background:var(--green);}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);margin-top:3px;}
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:18px;}
+  table{width:100%;border-collapse:collapse;}
+  thead{background:#f5f0e8;}
+  th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);}
+  td{font:500 11px Tajawal,sans-serif;color:var(--ink);padding:11px 12px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#fafaf7;}
+  .td-id{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .td-amount{font:900 12px Cairo,sans-serif;}
+  .td-credit{color:#2e7d32;}
+  .td-debit{color:#c54a3a;}
+  .tx-type{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .type-deposit{background:#e8f5e9;color:#2e7d32;}
+  .type-withdrawal{background:#fdecea;color:#c54a3a;}
+  .type-profit{background:#e3f2fd;color:#1565c0;}
+  .type-fee{background:#fff3e0;color:#a07020;}
+  .type-investment{background:#f3e5f5;color:#6a1b9a;}
+  .type-refund{background:#e8f5e9;color:#2e7d32;}
+  .tx-status{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .status-completed{background:#e8f5e9;color:#2e7d32;}
+  .status-pending{background:#fff8e1;color:#a07020;}
+  .status-failed{background:#fdecea;color:#c54a3a;}
+  .pagination{display:flex;justify-content:center;gap:8px;padding:14px;}
+  .page-btn{border:1px solid var(--line);border-radius:7px;padding:6px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;background:var(--paper);color:var(--ink);}
+  .page-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .page-btn:hover:not(.active){background:#f0ebe0;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>سجل المعاملات</h1>
+    <p>جميع معاملات المنصة: إيداعات، سحوبات، أرباح، رسوم، واستثمارات.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="filter-bar">
+    <select class="filter-sel" id="typeFilter">
+      <option value="">جميع الأنواع</option>
+      <option value="deposit">إيداع</option>
+      <option value="withdrawal">سحب</option>
+      <option value="profit">ربح</option>
+      <option value="fee">رسوم</option>
+      <option value="investment">استثمار</option>
+      <option value="refund">استرداد</option>
+    </select>
+    <select class="filter-sel" id="statusFilter">
+      <option value="">جميع الحالات</option>
+      <option value="completed">مكتملة</option>
+      <option value="pending">قيد المعالجة</option>
+      <option value="failed">فاشلة</option>
+    </select>
+    <input class="filter-input" id="userFilter" type="text" placeholder="بحث بالمستخدم أو المرجع…" />
+    <button class="btn-search" id="searchBtn">بحث</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="table-card">
+    <div id="txTableWrap"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  let currentPage=1;
+  const PAGE_SIZE=20;
+
+  function typeLabel(t){
+    const map={deposit:'إيداع',withdrawal:'سحب',profit:'ربح',fee:'رسوم',investment:'استثمار',refund:'استرداد'};
+    return map[t]||t||'—';
+  }
+  function typeCls(t){ return 'tx-type type-'+(t||'deposit'); }
+  function statusLabel(s){ const m={completed:'مكتملة',pending:'قيد المعالجة',failed:'فاشلة'}; return m[s]||s||'—'; }
+  function statusCls(s){ return 'tx-status status-'+(s||'pending'); }
+  function isCredit(t){ return t==='deposit'||t==='profit'||t==='refund'; }
+
+  async function loadTransactions(page){
+    const type=document.getElementById('typeFilter').value;
+    const status=document.getElementById('statusFilter').value;
+    const user=document.getElementById('userFilter').value.trim();
+    const txWrap=document.getElementById('txTableWrap');
+    const kpiRow=document.getElementById('kpiRow');
+    placeholder(txWrap,'جارٍ التحميل…');
+    kpiRow.textContent='';
+
+    let url='/app/admin/transactions?page='+page+'&limit='+PAGE_SIZE;
+    if(type) url+='&type='+encodeURIComponent(type);
+    if(status) url+='&status='+encodeURIComponent(status);
+    if(user) url+='&q='+encodeURIComponent(user);
+
+    try{
+      const r=await fetch(url);
+      if(!r.ok){ placeholder(txWrap, r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      const kpis=[
+        {lbl:'إجمالي المعاملات',val:fmt(d.totalCount||0)},
+        {lbl:'حجم الإيداعات',val:fmt(d.totalDeposits||0)+' ر.س'},
+        {lbl:'حجم السحوبات',val:fmt(d.totalWithdrawals||0)+' ر.س'},
+        {lbl:'إجمالي الأرباح الموزعة',val:fmt(d.totalProfits||0)+' ر.س'}
+      ];
+      kpis.forEach(k=>{
+        const div=document.createElement('div'); div.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        div.appendChild(lbl); div.appendChild(val); kpiRow.appendChild(div);
+      });
+
+      const txs=d.transactions||[];
+      txWrap.textContent='';
+      if(!txs.length){ placeholder(txWrap,'لا توجد معاملات تطابق الفلتر.'); }
+      else{
+        const tbl=document.createElement('table');
+        const thead=document.createElement('thead');
+        const hdr=document.createElement('tr');
+        ['المرجع','المستخدم','النوع','المبلغ (ر.س)','الحالة','التاريخ'].forEach(h=>{
+          const th=document.createElement('th'); th.textContent=h; hdr.appendChild(th);
+        });
+        thead.appendChild(hdr); tbl.appendChild(thead);
+        const tbody=document.createElement('tbody');
+        txs.forEach(tx=>{
+          const tr=document.createElement('tr');
+          const tdId=document.createElement('td'); tdId.className='td-id'; tdId.textContent=tx.id||'—'; tr.appendChild(tdId);
+          const tdUser=document.createElement('td'); tdUser.textContent=tx.userName||tx.userId||'—'; tr.appendChild(tdUser);
+          const tdType=document.createElement('td');
+          const badge=document.createElement('span'); badge.className=typeCls(tx.type); badge.textContent=typeLabel(tx.type); tdType.appendChild(badge); tr.appendChild(tdType);
+          const tdAmt=document.createElement('td'); tdAmt.className='td-amount '+(isCredit(tx.type)?'td-credit':'td-debit');
+          tdAmt.textContent=(isCredit(tx.type)?'+':'-')+fmt(tx.amount||0); tr.appendChild(tdAmt);
+          const tdSt=document.createElement('td');
+          const sBadge=document.createElement('span'); sBadge.className=statusCls(tx.status); sBadge.textContent=statusLabel(tx.status); tdSt.appendChild(sBadge); tr.appendChild(tdSt);
+          const tdDate=document.createElement('td'); tdDate.textContent=tx.date||'—'; tr.appendChild(tdDate);
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        txWrap.appendChild(tbl);
+      }
+
+      renderPagination(d.totalCount||0, page);
+    }catch{ placeholder(txWrap,'خطأ في الاتصال.'); }
+  }
+
+  function renderPagination(total, current){
+    const pag=document.getElementById('pagination'); pag.textContent='';
+    const totalPages=Math.ceil(total/PAGE_SIZE)||1;
+    if(totalPages<=1) return;
+    for(let i=1;i<=Math.min(totalPages,8);i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===current?' active':''); btn.textContent=i;
+      const p=i;
+      btn.addEventListener('click',()=>{ currentPage=p; loadTransactions(p); });
+      pag.appendChild(btn);
+    }
+  }
+
+  document.getElementById('searchBtn').addEventListener('click',()=>{ currentPage=1; loadTransactions(1); });
+  document.getElementById('userFilter').addEventListener('keydown', e=>{ if(e.key==='Enter'){ currentPage=1; loadTransactions(1); }});
+
+  loadTransactions(1);
+}());
+</script>
+</body>
+</html>

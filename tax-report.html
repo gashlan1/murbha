@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>التقرير الضريبي والزكاة — مُرابحة</title>
+<meta name="description" content="ملخص الدخل الاستثماري واحتساب الزكاة الواجبة للعام الهجري الحالي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .year-bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .year-lbl{font:700 12px Cairo,sans-serif;color:var(--muted);flex-shrink:0;}
+  .year-select{border:1.5px solid var(--line);border-radius:9px;padding:8px 14px;font:700 13px Cairo,sans-serif;color:var(--green-dark);background:var(--paper);cursor:pointer;}
+  .year-select:focus{outline:none;border-color:var(--green);}
+  .btn-print{margin-inline-start:auto;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:9px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-print:hover{background:var(--green);}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 16px;}
+  .kpi-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-top:4px;}
+  .kpi-sub{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .section-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;}
+  th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);}
+  td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:10px 10px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .td-amount{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .zakat-box{background:#fff8e1;border:2px solid var(--gold);border-radius:14px;padding:22px;margin-bottom:18px;display:none;}
+  .zakat-title{font:900 14px Cairo,sans-serif;color:var(--gold);margin-bottom:10px;}
+  .zakat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);}
+  .zakat-row:last-of-type{border-bottom:none;}
+  .zakat-key{font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .zakat-val{font:900 14px Cairo,sans-serif;color:var(--gold);}
+  .zakat-total-val{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .disclaimer{font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.7;padding:14px;background:var(--paper);border-radius:10px;margin-top:14px;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  @media print{
+    .year-bar,.btn-print{display:none;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📊 التقرير الضريبي والزكاة</h1>
+    <p>ملخص شامل لدخلك الاستثماري واحتساب زكاة المال الواجبة وفق الفقه الإسلامي.</p>
+  </div>
+
+  <div class="year-bar">
+    <div class="year-lbl">السنة الهجرية</div>
+    <select class="year-select" id="yearSelect"></select>
+    <button class="btn-print" id="printBtn">طباعة التقرير</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="zakat-box" id="zakatBox"></div>
+
+  <div class="section-card">
+    <div class="section-title">تفصيل الدخل الاستثماري</div>
+    <div id="incomeArea"></div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">ملخص الصفقات</div>
+    <div id="dealsArea"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+
+  const currentHijriYear = 1447;
+  const yearSel = document.getElementById('yearSelect');
+  for(let y=currentHijriYear; y>=currentHijriYear-4; y--){
+    const opt = document.createElement('option'); opt.value=y; opt.textContent=y+' هـ'; yearSel.appendChild(opt);
+  }
+  yearSel.addEventListener('change', ()=>loadReport(yearSel.value));
+
+  async function loadReport(year){
+    const kpiRow = document.getElementById('kpiRow');
+    const zakatBox = document.getElementById('zakatBox');
+    const incomeArea = document.getElementById('incomeArea');
+    const dealsArea = document.getElementById('dealsArea');
+    kpiRow.textContent=''; zakatBox.style.display='none'; zakatBox.textContent='';
+    placeholder(incomeArea,'جارٍ التحميل…'); placeholder(dealsArea,'جارٍ التحميل…');
+
+    try{
+      const r = await fetch('/app/me/tax-report?year='+encodeURIComponent(year));
+      if(!r.ok){ placeholder(incomeArea,'تعذّر التحميل.'); placeholder(dealsArea,'—'); return; }
+      const d = await r.json();
+
+      const kpis = [
+        { lbl:'إجمالي الدخل الاستثماري', val:fmt(d.totalIncome||0)+' ر.س', sub:'أرباح مُرابحة ومُشاركة' },
+        { lbl:'صافي الأرباح', val:fmt(d.netProfit||0)+' ر.س', sub:'بعد الرسوم الإدارية' },
+        { lbl:'الزكاة الواجبة', val:fmt(d.zakatDue||0)+' ر.س', sub:'ربع العُشر من وعاء الزكاة' },
+        { lbl:'صفقات مكتملة', val:String(d.closedDeals||0), sub:'خلال العام الهجري' }
+      ];
+      kpis.forEach(k=>{
+        const div=document.createElement('div'); div.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        const sub=document.createElement('div'); sub.className='kpi-sub'; sub.textContent=k.sub;
+        div.appendChild(lbl); div.appendChild(val); div.appendChild(sub); kpiRow.appendChild(div);
+      });
+
+      zakatBox.style.display='block';
+      const zt=document.createElement('div'); zt.className='zakat-title'; zt.textContent='احتساب الزكاة'; zakatBox.appendChild(zt);
+      const zakatRows=[
+        {k:'رأس المال المستثمر', v:fmt(d.capitalInvested||0)+' ر.س', total:false},
+        {k:'الأرباح المتراكمة', v:fmt(d.accumulatedProfit||0)+' ر.س', total:false},
+        {k:'الرصيد النقدي في المحفظة', v:fmt(d.cashBalance||0)+' ر.س', total:false},
+        {k:'وعاء الزكاة الإجمالي', v:fmt(d.zakatBase||0)+' ر.س', total:false},
+        {k:'نسبة الزكاة (ربع العُشر)', v:'2.5٪', total:false},
+        {k:'الزكاة الواجبة', v:fmt(d.zakatDue||0)+' ر.س', total:true}
+      ];
+      zakatRows.forEach(row=>{
+        const rDiv=document.createElement('div'); rDiv.className='zakat-row';
+        const k=document.createElement('div'); k.className='zakat-key'; k.textContent=row.k;
+        const v=document.createElement('div'); v.className=row.total?'zakat-total-val':'zakat-val'; v.textContent=row.v;
+        rDiv.appendChild(k); rDiv.appendChild(v); zakatBox.appendChild(rDiv);
+      });
+      const disc=document.createElement('div'); disc.className='disclaimer';
+      disc.textContent='* هذا الاحتساب تقريبي وفق الفقه الحنبلي. يُنصح بمراجعة العالم الشرعي لإخراج زكاة دقيقة تراعي ظروفك الخاصة.';
+      zakatBox.appendChild(disc);
+
+      const income = d.incomeBreakdown||[];
+      incomeArea.textContent='';
+      if(!income.length){ placeholder(incomeArea,'لا توجد بيانات دخل.'); }
+      else{
+        const tbl=document.createElement('table');
+        const hdr=document.createElement('tr');
+        ['الصفقة','النوع','الدخل (ر.س)','الرسوم (ر.س)','الصافي (ر.س)'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hdr.appendChild(th); });
+        tbl.appendChild(hdr);
+        income.forEach(row=>{
+          const tr=document.createElement('tr');
+          [[row.dealName||'—',false],[row.type||'مُرابحة',false],[fmt(row.income||0),true],[fmt(row.fees||0),true],[fmt(row.net||0),true]].forEach(([v,amt])=>{
+            const td=document.createElement('td'); if(amt) td.className='td-amount'; td.textContent=v; tr.appendChild(td);
+          });
+          tbl.appendChild(tr);
+        });
+        incomeArea.appendChild(tbl);
+      }
+
+      const deals = d.deals||[];
+      dealsArea.textContent='';
+      if(!deals.length){ placeholder(dealsArea,'لا توجد صفقات مكتملة.'); }
+      else{
+        const tbl2=document.createElement('table');
+        const hdr2=document.createElement('tr');
+        ['الصفقة','تاريخ الإغلاق','رأس المال','العائد'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hdr2.appendChild(th); });
+        tbl2.appendChild(hdr2);
+        deals.forEach(deal=>{
+          const tr=document.createElement('tr');
+          [[deal.name||'—',false],[deal.closeDate||'—',false],[fmt(deal.capital||0)+' ر.س',true],[fmt(deal.return||0)+' ر.س',true]].forEach(([v,amt])=>{
+            const td=document.createElement('td'); if(amt) td.className='td-amount'; td.textContent=v; tr.appendChild(td);
+          });
+          tbl2.appendChild(tr);
+        });
+        dealsArea.appendChild(tbl2);
+      }
+    }catch{ placeholder(incomeArea,'خطأ في الاتصال.'); placeholder(dealsArea,'—'); }
+  }
+
+  loadReport(currentHijriYear);
+}());
+</script>
+</body>
+</html>
