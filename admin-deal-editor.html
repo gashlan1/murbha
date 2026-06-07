@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>محرر الصفقات — إدارة مُرابحة</title>
+<meta name="description" content="لوحة إدارة: إنشاء صفقة جديدة أو تعديل تفاصيل صفقة قائمة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 80px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .deal-sel-bar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .sel-lbl{font:700 12px Cairo,sans-serif;color:var(--muted);flex-shrink:0;}
+  .deal-select{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:9px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:var(--paper);}
+  .deal-select:focus{outline:none;border-color:var(--green);}
+  .btn-new{background:var(--gold);color:#fff;border:none;border-radius:9px;padding:9px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-new:hover{background:#a07020;}
+  .editor-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid.single{grid-template-columns:1fr;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .form-input,.form-select,.form-textarea{border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--green);}
+  .form-textarea{resize:vertical;min-height:80px;}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .docs-list{display:grid;gap:8px;margin-top:8px;}
+  .doc-chip{display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 12px;}
+  .doc-name{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .doc-type{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-del-doc{background:transparent;border:none;cursor:pointer;color:#c54a3a;font:700 12px Cairo,sans-serif;}
+  .btn-add-doc{background:var(--paper);border:1px dashed var(--line);border-radius:8px;padding:8px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;color:var(--muted);width:100%;text-align:center;margin-top:6px;}
+  .btn-add-doc:hover{border-color:var(--green);color:var(--green);}
+  .save-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:14px 18px;display:flex;gap:12px;justify-content:center;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:11px;padding:13px 36px;font:900 14px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-save:disabled{opacity:.5;cursor:default;}
+  .btn-cancel{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:13px 22px;font:700 13px Cairo,sans-serif;cursor:pointer;color:var(--muted);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>محرر الصفقات</h1>
+    <p>أنشئ صفقة جديدة أو عدّل تفاصيل صفقة قائمة: العنوان، القطاع، الشروط المالية، والوثائق.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="deal-sel-bar">
+    <div class="sel-lbl">اختر صفقة للتعديل</div>
+    <select class="deal-select" id="dealSelect"><option value="">جارٍ التحميل…</option></select>
+    <button class="btn-new" id="newDealBtn">إنشاء صفقة جديدة</button>
+  </div>
+
+  <div id="editorWrap">
+    <div class="placeholder-msg">اختر صفقة من القائمة أو أنشئ صفقة جديدة.</div>
+  </div>
+</main>
+<div class="save-bar" id="saveBar" style="display:none">
+  <button class="btn-cancel" id="cancelBtn">إلغاء</button>
+  <button class="btn-save" id="saveBtn">حفظ التغييرات</button>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+  let currentDealId = null;
+  let docItems = [];
+
+  function val(id){ return document.getElementById(id) ? document.getElementById(id).value : ''; }
+  function setVal(id, v){ const el=document.getElementById(id); if(el) el.value=v||''; }
+
+  function renderDocs(){
+    const list=document.getElementById('docsList'); if(!list) return; list.textContent='';
+    docItems.forEach((doc, idx)=>{
+      const chip=document.createElement('div'); chip.className='doc-chip';
+      const info=document.createElement('div');
+      const name=document.createElement('div'); name.className='doc-name'; name.textContent=doc.name||'وثيقة';
+      const type=document.createElement('div'); type.className='doc-type'; type.textContent=doc.type||'—';
+      info.appendChild(name); info.appendChild(type);
+      const del=document.createElement('button'); del.className='btn-del-doc'; del.textContent='حذف';
+      const i=idx; del.addEventListener('click',()=>{ docItems.splice(i,1); renderDocs(); });
+      chip.appendChild(info); chip.appendChild(del); list.appendChild(chip);
+    });
+  }
+
+  function buildEditor(deal){
+    const wrap=document.getElementById('editorWrap'); wrap.textContent='';
+    docItems = (deal && deal.documents) ? [...deal.documents] : [];
+
+    const card=document.createElement('div'); card.className='editor-card';
+    const t=document.createElement('div'); t.className='section-title'; t.textContent='المعلومات الأساسية'; card.appendChild(t);
+    const grid1=document.createElement('div'); grid1.className='form-grid';
+    [
+      {id:'fldName',lbl:'اسم الصفقة',val:deal&&deal.name,ph:'مثال: صفقة تمويل التجزئة 2026'},
+      {id:'fldSector',lbl:'القطاع',val:deal&&deal.sector,ph:'مثال: تجزئة'},
+      {id:'fldCity',lbl:'المدينة',val:deal&&deal.city,ph:'الرياض'},
+      {id:'fldType',lbl:'نوع التمويل',val:deal&&deal.type,ph:'مُرابحة'}
+    ].forEach(f=>{
+      const g=document.createElement('div'); g.className='form-group';
+      const lbl=document.createElement('label'); lbl.className='form-lbl'; lbl.setAttribute('for',f.id); lbl.textContent=f.lbl;
+      const inp=document.createElement('input'); inp.className='form-input'; inp.id=f.id; inp.type='text'; inp.placeholder=f.ph||''; inp.value=f.val||'';
+      g.appendChild(lbl); g.appendChild(inp); grid1.appendChild(g);
+    });
+    card.appendChild(grid1);
+
+    const t2=document.createElement('div'); t2.className='section-title'; t2.style.marginTop='18px'; t2.textContent='الشروط المالية'; card.appendChild(t2);
+    const grid2=document.createElement('div'); grid2.className='form-grid';
+    [
+      {id:'fldTarget',lbl:'مبلغ التمويل المستهدف (ر.س)',val:deal&&deal.targetAmount,ph:'500000'},
+      {id:'fldMin',lbl:'الحد الأدنى للاستثمار (ر.س)',val:deal&&deal.minInvestment,ph:'5000'},
+      {id:'fldYield',lbl:'العائد المتوقع (٪)',val:deal&&deal.expectedYield,ph:'12'},
+      {id:'fldDuration',lbl:'مدة الصفقة (أشهر)',val:deal&&deal.durationMonths,ph:'12'}
+    ].forEach(f=>{
+      const g=document.createElement('div'); g.className='form-group';
+      const lbl=document.createElement('label'); lbl.className='form-lbl'; lbl.setAttribute('for',f.id); lbl.textContent=f.lbl;
+      const inp=document.createElement('input'); inp.className='form-input'; inp.id=f.id; inp.type='number'; inp.placeholder=f.ph||''; inp.value=f.val||'';
+      g.appendChild(lbl); g.appendChild(inp); grid2.appendChild(g);
+    });
+    card.appendChild(grid2);
+
+    const t3=document.createElement('div'); t3.className='section-title'; t3.style.marginTop='18px'; t3.textContent='الوصف والمخاطرة'; card.appendChild(t3);
+    const g3=document.createElement('div'); g3.className='form-group form-grid single';
+    const lDesc=document.createElement('label'); lDesc.className='form-lbl'; lDesc.setAttribute('for','fldDesc'); lDesc.textContent='وصف الصفقة';
+    const tDesc=document.createElement('textarea'); tDesc.className='form-textarea'; tDesc.id='fldDesc'; tDesc.placeholder='شرح تفصيلي للصفقة والعميل والضمانات…'; tDesc.value=(deal&&deal.description)||'';
+    const gRisk=document.createElement('div'); gRisk.className='form-group'; gRisk.style.marginTop='10px';
+    const lRisk=document.createElement('label'); lRisk.className='form-lbl'; lRisk.setAttribute('for','fldRisk'); lRisk.textContent='مستوى المخاطرة';
+    const sRisk=document.createElement('select'); sRisk.className='form-select'; sRisk.id='fldRisk';
+    ['منخفض','متوسط','مرتفع'].forEach(opt=>{ const o=document.createElement('option'); o.value=opt; o.textContent=opt; if((deal&&deal.riskLevel)===opt) o.selected=true; sRisk.appendChild(o); });
+    g3.appendChild(lDesc); g3.appendChild(tDesc); card.appendChild(g3);
+    gRisk.appendChild(lRisk); gRisk.appendChild(sRisk); card.appendChild(gRisk);
+
+    const t4=document.createElement('div'); t4.className='section-title'; t4.style.marginTop='18px'; t4.textContent='وثائق الصفقة'; card.appendChild(t4);
+    const docsList=document.createElement('div'); docsList.id='docsList'; card.appendChild(docsList);
+    const addDocBtn=document.createElement('button'); addDocBtn.className='btn-add-doc'; addDocBtn.textContent='+ إضافة وثيقة';
+    addDocBtn.addEventListener('click',()=>{
+      const name=prompt('اسم الوثيقة:'); if(!name) return;
+      const type=prompt('نوع الوثيقة (مثال: PDF):'); if(!type) return;
+      docItems.push({name,type}); renderDocs();
+    });
+    card.appendChild(addDocBtn);
+
+    wrap.appendChild(card);
+    renderDocs();
+    document.getElementById('saveBar').style.display='flex';
+  }
+
+  document.getElementById('newDealBtn').addEventListener('click',()=>{
+    currentDealId=null; buildEditor(null);
+    document.getElementById('dealSelect').value='';
+  });
+
+  document.getElementById('dealSelect').addEventListener('change', async()=>{
+    const id=document.getElementById('dealSelect').value;
+    if(!id){ document.getElementById('editorWrap').textContent=''; document.getElementById('editorWrap').appendChild(Object.assign(document.createElement('div'),{className:'placeholder-msg',textContent:'اختر صفقة من القائمة.'})); document.getElementById('saveBar').style.display='none'; return; }
+    currentDealId=id;
+    try{
+      const r=await fetch('/app/admin/deals/'+encodeURIComponent(id)+'/edit');
+      if(!r.ok){ showToast('تعذّر التحميل.'); return; }
+      const d=await r.json(); buildEditor(d);
+    }catch{ showToast('خطأ في الاتصال.'); }
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click',()=>{
+    document.getElementById('editorWrap').textContent='';
+    const p=document.createElement('div'); p.className='placeholder-msg'; p.textContent='اختر صفقة من القائمة أو أنشئ صفقة جديدة.';
+    document.getElementById('editorWrap').appendChild(p);
+    document.getElementById('saveBar').style.display='none'; currentDealId=null;
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async()=>{
+    const payload={
+      name:val('fldName'), sector:val('fldSector'), city:val('fldCity'), type:val('fldType'),
+      targetAmount:Number(val('fldTarget')), minInvestment:Number(val('fldMin')),
+      expectedYield:Number(val('fldYield')), durationMonths:Number(val('fldDuration')),
+      description:val('fldDesc'), riskLevel:val('fldRisk'), documents:docItems
+    };
+    if(!payload.name){ showToast('الرجاء إدخال اسم الصفقة.'); return; }
+    const btn=document.getElementById('saveBtn'); btn.disabled=true;
+    const url=currentDealId?'/app/admin/deals/'+encodeURIComponent(currentDealId):'/app/admin/deals/new';
+    const method=currentDealId?'PUT':'POST';
+    try{
+      const r=await fetch(url,{method,headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر الحفظ.'); return; }
+      const d=await r.json();
+      if(!currentDealId && d.id){
+        currentDealId=d.id;
+        const opt=document.createElement('option'); opt.value=d.id; opt.textContent=payload.name; opt.selected=true;
+        document.getElementById('dealSelect').appendChild(opt);
+      }
+      showToast('تم حفظ الصفقة بنجاح.');
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  (async function loadDeals(){
+    const sel=document.getElementById('dealSelect'); sel.textContent='';
+    const def=document.createElement('option'); def.value=''; def.textContent='اختر صفقة للتعديل…'; sel.appendChild(def);
+    try{
+      const r=await fetch('/app/admin/deals');
+      if(!r.ok) return;
+      const d=await r.json();
+      (d.deals||[]).forEach(deal=>{
+        const opt=document.createElement('option'); opt.value=deal.id; opt.textContent=deal.name||deal.id; sel.appendChild(opt);
+      });
+    }catch{}
+  }());
+}());
+</script>
+</body>
+</html>
