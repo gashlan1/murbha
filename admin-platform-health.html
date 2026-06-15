@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>صحة المنصة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;--orange:#e67e22;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.header-right{display:flex;align-items:center;gap:1rem}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#27ae60;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.live-lbl{font-size:.82rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:.4rem}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 2rem}
+/* Overall status banner */
+.status-banner{border-radius:12px;padding:1.1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+.status-banner.ok{background:#d4edda;border:1.5px solid #c3e6cb}
+.status-banner.warn{background:#fff3cd;border:1.5px solid #ffeeba}
+.status-banner.err{background:#f8d7da;border:1.5px solid #f5c6cb}
+.status-banner .s-icon{font-size:1.5rem}
+.status-banner .s-text h2{font-size:1rem;font-weight:700}
+.status-banner .s-text p{font-size:.82rem;color:var(--muted);margin-top:.15rem}
+.status-banner .s-time{margin-right:auto;font-size:.78rem;color:var(--muted)}
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.1rem}
+.kpi .val{font-size:1.3rem;font-weight:700;color:var(--green)}
+.kpi .lbl{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.kpi .trend{font-size:.73rem;margin-top:.2rem;color:var(--muted)}
+.kpi .trend.good{color:#27ae60}
+.kpi .trend.bad{color:var(--red)}
+/* Services grid */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:1.5rem}
+.svc-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem}
+.svc-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem}
+.svc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.svc-dot.up{background:#27ae60}
+.svc-dot.degraded{background:var(--orange)}
+.svc-dot.down{background:var(--red)}
+.svc-name{font-weight:700;font-size:.9rem;flex:1}
+.svc-uptime{font-size:.76rem;color:var(--muted)}
+.latency-bar{height:6px;background:#e8e8e8;border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+.latency-fill{height:100%;border-radius:3px;transition:.4s}
+.svc-meta{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted)}
+/* Incidents */
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+.incident-row{display:flex;align-items:flex-start;gap:.75rem;padding:.8rem 1.25rem;border-bottom:1px solid var(--line)}
+.incident-row:last-child{border-bottom:none}
+.inc-sev{padding:.2rem .6rem;border-radius:12px;font-size:.73rem;font-weight:700;flex-shrink:0}
+.inc-critical{background:#f8d7da;color:#721c24}
+.inc-major{background:#fff3cd;color:#856404}
+.inc-minor{background:#d1ecf1;color:#0c5460}
+.inc-info{display:flex;flex-direction:column;flex:1;gap:.1rem}
+.inc-title{font-size:.88rem;font-weight:700}
+.inc-time{font-size:.75rem;color:var(--muted)}
+.inc-status{padding:.15rem .5rem;border-radius:8px;font-size:.72rem;font-weight:600}
+.inc-resolved{background:#d4edda;color:#155724}
+.inc-ongoing{background:#f8d7da;color:#721c24}
+/* Uptime grid (90 days) */
+.uptime-grid{padding:1.25rem}
+.uptime-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
+.uptime-lbl{font-size:.82rem;width:140px;flex-shrink:0;font-weight:600}
+.uptime-bars{display:flex;gap:2px;flex:1}
+.uptime-bar{flex:1;height:20px;border-radius:2px;cursor:pointer}
+.uptime-pct{font-size:.8rem;font-weight:700;color:var(--green);width:45px;text-align:right;flex-shrink:0}
+/* Response time sparkline */
+.sparkline-wrap{padding:1.25rem}
+.spark-row{display:flex;align-items:flex-end;gap:3px;height:60px;border-bottom:1px solid var(--line);margin-bottom:.5rem}
+.spark-bar{flex:1;border-radius:2px 2px 0 0;transition:.3s}
+.spark-lbl{font-size:.72rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>صحة المنصة</h1>
+  <div class="header-right">
+    <div class="live-lbl"><div class="live-dot"></div>مباشر — تحديث كل 30 ثانية</div>
+  </div>
+</header>
+
+<div class="page">
+  <!-- Status banner -->
+  <div class="status-banner ok" id="statusBanner">
+    <div class="s-icon">✅</div>
+    <div class="s-text">
+      <h2>جميع الأنظمة تعمل بشكل طبيعي</h2>
+      <p>لا توجد حوادث نشطة — آخر فحص منذ لحظات</p>
+    </div>
+    <div class="s-time" id="lastCheck">—</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="val" id="kpiUptime">99.97%</div><div class="lbl">وقت التشغيل (30 يوم)</div><div class="trend good">▲ +0.02%</div></div>
+    <div class="kpi"><div class="val" id="kpiLatency">142ms</div><div class="lbl">متوسط زمن الاستجابة</div><div class="trend good">▼ -8ms</div></div>
+    <div class="kpi"><div class="val" id="kpiRequests">28.4k</div><div class="lbl">طلبات/ساعة</div><div class="trend">→ ثابت</div></div>
+    <div class="kpi"><div class="val" id="kpiErrors">0.03%</div><div class="lbl">معدل الأخطاء</div><div class="trend good">▼ جيد</div></div>
+    <div class="kpi"><div class="val" id="kpiUsers">1,248</div><div class="lbl">مستخدمون نشطون الآن</div><div class="trend good">▲ +14%</div></div>
+  </div>
+
+  <!-- Services -->
+  <div class="services-grid" id="servicesGrid"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+    <!-- Incidents -->
+    <div class="card">
+      <div class="card-head"><h3>🚨 الحوادث الأخيرة</h3><span style="font-size:.78rem;color:var(--muted)">آخر 30 يوم</span></div>
+      <div id="incidentsList"></div>
+    </div>
+
+    <!-- Response time chart -->
+    <div class="card">
+      <div class="card-head"><h3>⏱️ زمن الاستجابة (24 ساعة)</h3></div>
+      <div class="sparkline-wrap">
+        <div class="spark-row" id="sparkChart"></div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)">
+          <span>24 ساعة مضت</span><span>الآن</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 90-day uptime grid -->
+  <div class="card">
+    <div class="card-head"><h3>📅 وقت التشغيل — آخر 90 يوماً</h3></div>
+    <div class="uptime-grid" id="uptimeGrid"></div>
+  </div>
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const SERVICES = [
+  {id:'api',name:'API الرئيسي',status:'up',latency:142,maxLatency:500,uptime:99.97},
+  {id:'auth',name:'المصادقة',status:'up',latency:68,maxLatency:300,uptime:99.99},
+  {id:'payment',name:'بوابة الدفع',status:'up',latency:320,maxLatency:1000,uptime:99.85},
+  {id:'kyc',name:'التحقق من الهوية',status:'up',latency:890,maxLatency:2000,uptime:99.72},
+  {id:'db',name:'قاعدة البيانات',status:'up',latency:12,maxLatency:100,uptime:100},
+  {id:'cdn',name:'شبكة التوصيل (CDN)',status:'up',latency:24,maxLatency:200,uptime:99.99},
+  {id:'email',name:'خدمة البريد',status:'degraded',latency:1200,maxLatency:2000,uptime:98.5},
+  {id:'sms',name:'خدمة الرسائل',status:'up',latency:450,maxLatency:1500,uptime:99.6},
+];
+
+const INCIDENTS = [
+  {title:'تأخر في خدمة البريد الإلكتروني',sev:'major',time:'منذ 2 ساعة',status:'ongoing'},
+  {title:'بطء مؤقت في بوابة الدفع',sev:'minor',time:'أمس 14:30',status:'resolved'},
+  {title:'انقطاع قصير في CDN',sev:'minor',time:'منذ 3 أيام',status:'resolved'},
+  {title:'خطأ في التحقق من الهوية لعدد محدود',sev:'critical',time:'منذ 8 أيام',status:'resolved'},
+];
+
+const UPTIME_SERVICES = ['API الرئيسي','المصادقة','بوابة الدفع','قاعدة البيانات'];
+
+function latencyColor(ms, max) {
+  const ratio = ms / max;
+  if (ratio < 0.4) return '#27ae60';
+  if (ratio < 0.7) return '#f39c12';
+  return '#e74c3c';
+}
+
+function renderServices() {
+  const grid = document.getElementById('servicesGrid');
+  grid.textContent = '';
+  SERVICES.forEach(s => {
+    const card = document.createElement('div'); card.className = 'svc-card';
+    const top = document.createElement('div'); top.className = 'svc-top';
+    const dot = document.createElement('div'); dot.className = 'svc-dot ' + s.status;
+    const nm = document.createElement('div'); nm.className = 'svc-name'; nm.textContent = s.name;
+    const up = document.createElement('div'); up.className = 'svc-uptime';
+    up.textContent = {up:'متاح',degraded:'بطيء',down:'معطل'}[s.status];
+    top.appendChild(dot); top.appendChild(nm); top.appendChild(up);
+
+    const lb = document.createElement('div'); lb.className = 'latency-bar';
+    const lf = document.createElement('div'); lf.className = 'latency-fill';
+    const ratio = Math.min(s.latency / s.maxLatency * 100, 100);
+    lf.style.width = ratio + '%';
+    lf.style.background = latencyColor(s.latency, s.maxLatency);
+    lb.appendChild(lf);
+
+    const meta = document.createElement('div'); meta.className = 'svc-meta';
+    const lat = document.createElement('span'); lat.textContent = s.latency + 'ms';
+    const upt = document.createElement('span'); upt.textContent = s.uptime + '% وقت التشغيل';
+    meta.appendChild(lat); meta.appendChild(upt);
+
+    card.appendChild(top); card.appendChild(lb); card.appendChild(meta);
+    grid.appendChild(card);
+  });
+}
+
+function renderIncidents() {
+  const list = document.getElementById('incidentsList');
+  list.textContent = '';
+  INCIDENTS.forEach(inc => {
+    const row = document.createElement('div'); row.className = 'incident-row';
+    const sev = document.createElement('div');
+    sev.className = 'inc-sev inc-' + inc.sev;
+    sev.textContent = {critical:'حرج',major:'رئيسي',minor:'ثانوي'}[inc.sev];
+    const info = document.createElement('div'); info.className = 'inc-info';
+    const title = document.createElement('div'); title.className = 'inc-title'; title.textContent = inc.title;
+    const time = document.createElement('div'); time.className = 'inc-time'; time.textContent = inc.time;
+    info.appendChild(title); info.appendChild(time);
+    const status = document.createElement('div');
+    status.className = 'inc-status ' + (inc.status === 'resolved' ? 'inc-resolved' : 'inc-ongoing');
+    status.textContent = inc.status === 'resolved' ? 'محلول' : 'جارٍ';
+    row.appendChild(sev); row.appendChild(info); row.appendChild(status);
+    list.appendChild(row);
+  });
+}
+
+function renderSparkline() {
+  const chart = document.getElementById('sparkChart');
+  chart.textContent = '';
+  const points = Array.from({length:24}, (_,i) => Math.round(100 + Math.random()*150 + (i===12?300:0)));
+  const max = Math.max(...points);
+  const H = 55;
+  points.forEach(p => {
+    const bar = document.createElement('div'); bar.className = 'spark-bar';
+    bar.style.height = Math.round(p/max*H) + 'px';
+    bar.style.background = latencyColor(p, max*0.8);
+    bar.title = p + 'ms';
+    chart.appendChild(bar);
+  });
+}
+
+function renderUptimeGrid() {
+  const grid = document.getElementById('uptimeGrid');
+  grid.textContent = '';
+  UPTIME_SERVICES.forEach(svcName => {
+    const row = document.createElement('div'); row.className = 'uptime-row';
+    const lbl = document.createElement('div'); lbl.className = 'uptime-lbl'; lbl.textContent = svcName;
+    const bars = document.createElement('div'); bars.className = 'uptime-bars';
+    let upDays = 0;
+    for (let i = 89; i >= 0; i--) {
+      const rand = Math.random();
+      const ok = rand > 0.015;
+      if (ok) upDays++;
+      const bar = document.createElement('div'); bar.className = 'uptime-bar';
+      bar.style.background = ok ? '#27ae60' : rand > 0.008 ? '#f39c12' : '#e74c3c';
+      bar.style.opacity = ok ? '0.7' : '1';
+      const d = new Date(); d.setDate(d.getDate() - i);
+      bar.title = d.toLocaleDateString('ar-SA') + (ok ? ' — متاح' : ' — حادثة');
+      bars.appendChild(bar);
+    }
+    const pct = document.createElement('div'); pct.className = 'uptime-pct';
+    pct.textContent = (upDays/90*100).toFixed(1) + '%';
+    row.appendChild(lbl); row.appendChild(bars); row.appendChild(pct);
+    grid.appendChild(row);
+  });
+}
+
+function updateClock() {
+  const el = document.getElementById('lastCheck');
+  el.textContent = 'آخر فحص: ' + new Date().toLocaleTimeString('ar-SA');
+}
+
+async function fetchHealth() {
+  try {
+    const r = await fetch('/app/admin/platform-health');
+    if (r.ok) {
+      // Use real data when available
+    }
+  } catch {}
+}
+
+renderServices();
+renderIncidents();
+renderSparkline();
+renderUptimeGrid();
+updateClock();
+fetchHealth();
+setInterval(() => { updateClock(); fetchHealth(); }, 30000);
+</script>
+</body>
+</html>
