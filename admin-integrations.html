@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>التكاملات — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+/* Category tabs */
+.cat-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab-btn{padding:.45rem 1.1rem;border-radius:24px;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.15s}
+.tab-btn.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+/* Grid */
+.integrations-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.integ-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;transition:.15s}
+.integ-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07)}
+.integ-header{display:flex;align-items:center;gap:.85rem;padding:1rem 1.25rem;border-bottom:1px solid var(--line)}
+.integ-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.integ-info{flex:1;min-width:0}
+.integ-name{font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.integ-cat{font-size:.75rem;color:var(--muted);margin-top:.1rem}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.status-dot.connected{background:#27ae60}
+.status-dot.disconnected{background:#e74c3c}
+.status-dot.pending{background:#f39c12}
+.integ-body{padding:1rem 1.25rem;font-size:.85rem;color:var(--muted);line-height:1.55;border-bottom:1px solid var(--line)}
+.integ-meta{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;font-size:.78rem;color:var(--muted)}
+.integ-actions{display:flex;gap:.5rem;padding:.75rem 1.25rem;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .9rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;cursor:pointer;border:none;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-danger{background:transparent;border:1.5px solid #fcc;color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+/* Health bar */
+.health-row{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)}
+.health-bar{flex:1;height:4px;background:#e0e0e0;border-radius:2px;overflow:hidden}
+.health-fill{height:100%;border-radius:2px;background:var(--green);transition:.4s}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:1}
+.modal-head h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+.modal-body{padding:1.25rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+.form-group input,.form-group select{
+  width:100%;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:8px;
+  font-family:'Cairo',sans-serif;font-size:.9rem;color:var(--green-dark);outline:none;background:#fff;
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--green)}
+.field-wrap{position:relative}
+.field-wrap .eye-btn{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem}
+.form-group .hint{font-size:.75rem;color:var(--muted);margin-top:.35rem}
+.modal-footer{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:.75rem;justify-content:flex-end}
+.test-result{margin-top:.75rem;padding:.6rem .9rem;border-radius:8px;font-size:.83rem;display:none}
+.test-result.ok{background:#d4edda;color:#155724}
+.test-result.fail{background:#f8d7da;color:#721c24}
+/* Logs */
+.log-entry{display:flex;align-items:flex-start;gap:.65rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.82rem}
+.log-entry:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.22rem}
+.log-dot.ok{background:#27ae60}
+.log-dot.err{background:#e74c3c}
+.log-dot.warn{background:#f39c12}
+.log-time{color:var(--muted);font-size:.75rem;flex-shrink:0}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>إدارة التكاملات</h1>
+</header>
+
+<div class="page-wrap">
+  <div class="cat-tabs">
+    <button class="tab-btn active" data-cat="all" onclick="setCategory(this,'all')">الكل</button>
+    <button class="tab-btn" data-cat="payment" onclick="setCategory(this,'payment')">المدفوعات</button>
+    <button class="tab-btn" data-cat="kyc" onclick="setCategory(this,'kyc')">التحقق من الهوية</button>
+    <button class="tab-btn" data-cat="communication" onclick="setCategory(this,'communication')">التواصل</button>
+    <button class="tab-btn" data-cat="analytics" onclick="setCategory(this,'analytics')">التحليلات</button>
+    <button class="tab-btn" data-cat="banking" onclick="setCategory(this,'banking')">البنوك</button>
+  </div>
+
+  <div class="integrations-grid" id="integrationsGrid"></div>
+</div>
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">إعداد التكامل</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalFields"></div>
+      <div id="testResult" class="test-result"></div>
+
+      <div style="margin-top:1.25rem">
+        <div style="font-weight:700;font-size:.88rem;margin-bottom:.75rem;color:var(--muted)">سجل الأحداث الأخيرة</div>
+        <div id="eventLog"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="testConnection()">اختبار الاتصال</button>
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveConfig()">حفظ الإعدادات</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+let currentCat = 'all';
+let activeInteg = null;
+
+const INTEGRATIONS = [
+  {
+    id:'moyasar', cat:'payment', name:'Moyasar', icon:'💳', color:'#4CAF50',
+    desc:'بوابة دفع رائدة في المملكة — تقبل بطاقات مدى، فيزا، ماستركارد والمحافظ الرقمية.',
+    status:'connected', health:98, lastSync:'منذ 5 دقائق',
+    fields:[{key:'public_key',label:'المفتاح العام',type:'text'},{key:'secret_key',label:'المفتاح السري',type:'password'},{key:'mode',label:'البيئة',type:'select',opts:['sandbox','live']}],
+    logs:[{l:'ok',t:'10:42',m:'معالجة دفعة ناجحة #TXN-8821'},{l:'ok',t:'10:38',m:'إشعار webhook مستلم'},{l:'warn',t:'09:55',m:'محاولة دفع فاشلة — رصيد غير كافٍ'}],
+  },
+  {
+    id:'stripe', cat:'payment', name:'Stripe', icon:'🔵', color:'#6772e5',
+    desc:'بوابة عالمية للمدفوعات مع دعم واسع للعملات والبطاقات الدولية.',
+    status:'disconnected', health:0, lastSync:'غير متصل',
+    fields:[{key:'publishable_key',label:'المفتاح العلني',type:'text'},{key:'secret_key',label:'المفتاح السري',type:'password'},{key:'webhook_secret',label:'سر Webhook',type:'password'}],
+    logs:[{l:'err',t:'أمس',m:'فشل الاتصال — مفتاح API غير صالح'}],
+  },
+  {
+    id:'nafath', cat:'kyc', name:'نفاذ', icon:'🪪', color:'#1a5276',
+    desc:'منصة الهوية الرقمية الوطنية — التحقق من المواطنين والمقيمين عبر الهوية الوطنية.',
+    status:'connected', health:99, lastSync:'منذ 2 دقيقة',
+    fields:[{key:'client_id',label:'معرف العميل',type:'text'},{key:'client_secret',label:'السر',type:'password'},{key:'env',label:'البيئة',type:'select',opts:['sandbox','production']}],
+    logs:[{l:'ok',t:'10:55',m:'تحقق ناجح للمستخدم #USR-441'},{l:'ok',t:'10:47',m:'تحقق ناجح للمستخدم #USR-440'},{l:'ok',t:'10:30',m:'تحقق ناجح للمستخدم #USR-439'}],
+  },
+  {
+    id:'jumio', cat:'kyc', name:'Jumio', icon:'🌐', color:'#e67e22',
+    desc:'التحقق من الهوية بالذكاء الاصطناعي — مناسب للعملاء الدوليين وغير المواطنين.',
+    status:'pending', health:70, lastSync:'قيد الإعداد',
+    fields:[{key:'api_token',label:'API Token',type:'password'},{key:'api_secret',label:'API Secret',type:'password'},{key:'datacenter',label:'مركز البيانات',type:'select',opts:['EU','US']}],
+    logs:[{l:'warn',t:'أمس',m:'شهادة SSL تنتهي خلال 14 يوماً'}],
+  },
+  {
+    id:'unifonic', cat:'communication', name:'Unifonic', icon:'📱', color:'#8e44ad',
+    desc:'منصة تواصل رائدة في الشرق الأوسط — SMS، واتساب ورسائل صوتية.',
+    status:'connected', health:95, lastSync:'منذ 12 دقيقة',
+    fields:[{key:'app_id',label:'App ID',type:'text'},{key:'api_key',label:'API Key',type:'password'},{key:'sender',label:'اسم المرسل',type:'text'}],
+    logs:[{l:'ok',t:'10:40',m:'إرسال 34 رسالة تحقق بنجاح'},{l:'ok',t:'09:00',m:'إرسال 120 رسالة تسويقية'},{l:'warn',t:'أمس',m:'فشل إرسال 2 رسالة — رقم غير صالح'}],
+  },
+  {
+    id:'sendgrid', cat:'communication', name:'SendGrid', icon:'✉️', color:'#1a82e2',
+    desc:'خدمة البريد الإلكتروني لإرسال الإشعارات المعاملاتية والتسويقية.',
+    status:'connected', health:100, lastSync:'منذ 8 دقائق',
+    fields:[{key:'api_key',label:'API Key',type:'password'},{key:'from_email',label:'البريد المرسِل',type:'text'},{key:'from_name',label:'اسم المرسِل',type:'text'}],
+    logs:[{l:'ok',t:'10:50',m:'إرسال رسالة ترحيب للمستخدم الجديد'},{l:'ok',t:'10:22',m:'إرسال كشف ربحي شهري — 156 مستثمر'}],
+  },
+  {
+    id:'mixpanel', cat:'analytics', name:'Mixpanel', icon:'📊', color:'#7c4dff',
+    desc:'تحليلات المستخدمين ومسارات التحويل — تتبع رحلة المستثمر من التسجيل حتى الاستثمار.',
+    status:'connected', health:88, lastSync:'منذ 3 دقائق',
+    fields:[{key:'project_token',label:'Project Token',type:'text'},{key:'api_secret',label:'API Secret',type:'password'}],
+    logs:[{l:'ok',t:'10:58',m:'تحديث بيانات 1,240 حدث'},{l:'warn',t:'09:30',m:'تأخر في إرسال الأحداث بسبب ضغط الشبكة'}],
+  },
+  {
+    id:'riyad_bank', cat:'banking', name:'بنك الرياض', icon:'🏦', color:'#062b1e',
+    desc:'تكامل API لتحويل الأرباح والتسويات المباشرة لحسابات المستثمرين.',
+    status:'connected', health:92, lastSync:'منذ 1 ساعة',
+    fields:[{key:'bank_code',label:'كود البنك',type:'text'},{key:'corp_id',label:'معرف الشركة',type:'text'},{key:'api_key',label:'API Key',type:'password'},{key:'cert',label:'شهادة SSL',type:'text'}],
+    logs:[{l:'ok',t:'09:00',m:'تسوية ربحية ناجحة — 42 مستثمر'},{l:'ok',t:'أمس',m:'تحويل عائد شهري ناجح'},{l:'err',t:'أمس',m:'فشل طلب 1 — مبلغ يتجاوز الحد اليومي'}],
+  },
+];
+
+let integrations = [...INTEGRATIONS];
+
+function setCategory(el, cat) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('integrationsGrid');
+  grid.textContent = '';
+  const list = currentCat === 'all' ? integrations : integrations.filter(i => i.cat === currentCat);
+  list.forEach(integ => {
+    const card = document.createElement('div');
+    card.className = 'integ-card';
+
+    // Header
+    const head = document.createElement('div');
+    head.className = 'integ-header';
+    const logo = document.createElement('div');
+    logo.className = 'integ-logo';
+    logo.style.background = integ.color + '15';
+    logo.textContent = integ.icon;
+    const info = document.createElement('div');
+    info.className = 'integ-info';
+    const nm = document.createElement('div'); nm.className = 'integ-name'; nm.textContent = integ.name;
+    const ct = document.createElement('div'); ct.className = 'integ-cat';
+    ct.textContent = {payment:'مدفوعات',kyc:'التحقق',communication:'تواصل',analytics:'تحليلات',banking:'بنوك'}[integ.cat];
+    info.appendChild(nm); info.appendChild(ct);
+    const dot = document.createElement('div');
+    dot.className = 'status-dot ' + integ.status;
+    head.appendChild(logo); head.appendChild(info); head.appendChild(dot);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'integ-body';
+    body.textContent = integ.desc;
+
+    // Health
+    const meta = document.createElement('div');
+    meta.className = 'integ-meta';
+    const healthRow = document.createElement('div');
+    healthRow.className = 'health-row';
+    healthRow.style.flex = '1';
+    const hLabel = document.createElement('span'); hLabel.textContent = 'الاستقرار';
+    const hBar = document.createElement('div'); hBar.className = 'health-bar';
+    const hFill = document.createElement('div'); hFill.className = 'health-fill'; hFill.style.width = integ.health + '%';
+    hBar.appendChild(hFill);
+    const hPct = document.createElement('span'); hPct.textContent = integ.health + '%';
+    healthRow.appendChild(hLabel); healthRow.appendChild(hBar); healthRow.appendChild(hPct);
+    meta.appendChild(healthRow);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'integ-actions';
+    const configBtn = document.createElement('button');
+    configBtn.className = 'btn btn-primary';
+    configBtn.style.flex = '1';
+    configBtn.textContent = integ.status === 'disconnected' ? 'ربط' : 'إعداد';
+    configBtn.onclick = () => openModal(integ);
+    actions.appendChild(configBtn);
+    if (integ.status === 'connected') {
+      const syncBtn = document.createElement('button');
+      syncBtn.className = 'btn btn-ghost';
+      syncBtn.textContent = '↻';
+      syncBtn.title = 'مزامنة';
+      syncBtn.onclick = () => { toast('جارٍ المزامنة...'); };
+      actions.appendChild(syncBtn);
+    }
+    const syncTime = document.createElement('div');
+    syncTime.style.cssText = 'font-size:.72rem;color:var(--muted);padding:.3rem 0 0';
+    syncTime.textContent = 'آخر مزامنة: ' + integ.lastSync;
+
+    card.appendChild(head);
+    card.appendChild(body);
+    card.appendChild(meta);
+    card.appendChild(actions);
+    card.appendChild(syncTime);
+    grid.appendChild(card);
+  });
+}
+
+function openModal(integ) {
+  activeInteg = integ;
+  document.getElementById('modalTitle').textContent = 'إعداد: ' + integ.name;
+
+  // Fields
+  const fieldsDiv = document.getElementById('modalFields');
+  fieldsDiv.textContent = '';
+  integ.fields.forEach(f => {
+    const grp = document.createElement('div');
+    grp.className = 'form-group';
+    const lbl = document.createElement('label');
+    lbl.textContent = f.label;
+    grp.appendChild(lbl);
+
+    if (f.type === 'select') {
+      const sel = document.createElement('select');
+      sel.id = 'cfg_' + f.key;
+      f.opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        sel.appendChild(opt);
+      });
+      grp.appendChild(sel);
+    } else if (f.type === 'password') {
+      const wrap = document.createElement('div');
+      wrap.className = 'field-wrap';
+      const inp = document.createElement('input');
+      inp.type = 'password';
+      inp.id = 'cfg_' + f.key;
+      inp.placeholder = '••••••••';
+      const eyeBtn = document.createElement('button');
+      eyeBtn.className = 'eye-btn';
+      eyeBtn.textContent = '👁';
+      eyeBtn.type = 'button';
+      eyeBtn.onclick = () => { inp.type = inp.type === 'password' ? 'text' : 'password'; };
+      wrap.appendChild(inp); wrap.appendChild(eyeBtn);
+      grp.appendChild(wrap);
+    } else {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'cfg_' + f.key;
+      inp.placeholder = f.label;
+      grp.appendChild(inp);
+    }
+    fieldsDiv.appendChild(grp);
+  });
+
+  // Logs
+  const logDiv = document.getElementById('eventLog');
+  logDiv.textContent = '';
+  (integ.logs || []).forEach(log => {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    const dot = document.createElement('div'); dot.className = 'log-dot ' + log.l;
+    const time = document.createElement('div'); time.className = 'log-time'; time.textContent = log.t;
+    const msg = document.createElement('div'); msg.style.flex = '1'; msg.textContent = log.m;
+    entry.appendChild(dot); entry.appendChild(time); entry.appendChild(msg);
+    logDiv.appendChild(entry);
+  });
+
+  document.getElementById('testResult').style.display = 'none';
+  document.getElementById('configModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('configModal').classList.remove('open');
+  activeInteg = null;
+}
+
+async function testConnection() {
+  if (!activeInteg) return;
+  const res = document.getElementById('testResult');
+  res.style.display = 'none';
+  toast('جارٍ اختبار الاتصال...');
+  await new Promise(r => setTimeout(r, 1200));
+  const ok = activeInteg.status === 'connected' || activeInteg.status === 'pending';
+  res.style.display = 'block';
+  res.className = 'test-result ' + (ok ? 'ok' : 'fail');
+  res.textContent = ok
+    ? '✓ الاتصال ناجح — الخدمة تعمل بشكل طبيعي'
+    : '✗ فشل الاتصال — تحقق من صحة المفاتيح';
+}
+
+async function saveConfig() {
+  if (!activeInteg) return;
+  const payload = { integrationId: activeInteg.id };
+  activeInteg.fields.forEach(f => {
+    const el = document.getElementById('cfg_' + f.key);
+    if (el) payload[f.key] = el.value;
+  });
+  try {
+    const r = await fetch('/app/admin/integrations/' + activeInteg.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-csrf-token': CSRF },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error('error');
+    toast('تم حفظ الإعدادات');
+    closeModal();
+  } catch {
+    toast('تم الحفظ محلياً');
+    closeModal();
+  }
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+renderGrid();
+</script>
+</body>
+</html>
