@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>مقارنة المحافظ — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --blue:#2471a3;--purple:#8e44ad;--red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+/* Compare header */
+.compare-header{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:1rem;align-items:center;margin-bottom:1.5rem}
+.compare-header .lbl-col{font-size:.82rem;font-weight:700;color:var(--muted)}
+.portfolio-col{background:#fff;border-radius:12px;border:1px solid var(--line);padding:.85rem 1rem;text-align:center}
+.portfolio-col .p-name{font-size:.95rem;font-weight:700}
+.portfolio-col .p-type{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.portfolio-col .p-color{width:12px;height:12px;border-radius:50%;margin:0 auto .4rem;display:block}
+/* Metric rows */
+.metric-grid{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:.5rem 1rem;margin-bottom:1.5rem}
+.metric-label{font-size:.85rem;color:var(--muted);font-weight:600;display:flex;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--line)}
+.metric-cell{background:#fff;border-radius:8px;border:1px solid var(--line);padding:.65rem 1rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.metric-cell .val{font-size:1rem;font-weight:700}
+.metric-cell .sub{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+.metric-cell.best{border-color:var(--green);background:#f0faf5}
+.metric-cell.best .val{color:var(--green)}
+.metric-cell.worst .val{color:var(--red)}
+/* Chart section */
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+/* Growth chart */
+.growth-chart{padding:1.25rem}
+.chart-area{position:relative;height:160px;border-bottom:2px solid var(--line);border-right:1px solid var(--line);margin-bottom:.5rem}
+.chart-line{position:absolute;bottom:0;left:0;right:0;top:0}
+.chart-svg{width:100%;height:100%}
+.legend{display:flex;gap:1.25rem;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* Allocation comparison */
+.alloc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem}
+.alloc-col{display:flex;flex-direction:column;gap:.5rem}
+.alloc-title{font-size:.8rem;font-weight:700;color:var(--muted);text-align:center;margin-bottom:.25rem}
+.alloc-bar-row{display:flex;align-items:center;gap:.5rem;font-size:.78rem}
+.alloc-lbl{width:80px;flex-shrink:0;color:var(--muted);text-align:right}
+.alloc-bar{flex:1;height:8px;border-radius:4px;overflow:hidden;background:#e8e8e8}
+.alloc-fill{height:100%;border-radius:4px}
+.alloc-pct{width:32px;flex-shrink:0;font-weight:700;font-size:.75rem}
+/* Risk radar labels */
+.risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem}
+.risk-col{border-radius:10px;border:1px solid var(--line);padding:.85rem}
+.risk-col .r-name{font-size:.8rem;font-weight:700;text-align:center;margin-bottom:.75rem}
+.risk-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;font-size:.76rem}
+.risk-bar{flex:1;height:6px;border-radius:3px;overflow:hidden;background:#e8e8e8}
+.risk-fill{height:100%;border-radius:3px}
+.risk-lbl{color:var(--muted);width:80px;flex-shrink:0}
+.risk-val{font-weight:700;width:28px;text-align:right}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>مقارنة المحافظ الاستثمارية</h1>
+</header>
+
+<div class="page">
+
+  <!-- Portfolio headers -->
+  <div class="compare-header">
+    <div class="lbl-col">المقياس</div>
+    <div class="portfolio-col">
+      <span class="p-color" style="background:#0a4d36"></span>
+      <div class="p-name">المحفظة المتحفظة</div>
+      <div class="p-type">مرابحة قصيرة المدى</div>
+    </div>
+    <div class="portfolio-col">
+      <span class="p-color" style="background:#2471a3"></span>
+      <div class="p-name">المحفظة المتوازنة</div>
+      <div class="p-type">متنوعة — 12 شهر</div>
+    </div>
+    <div class="portfolio-col">
+      <span class="p-color" style="background:#b08840"></span>
+      <div class="p-name">المحفظة النمو</div>
+      <div class="p-type">عقارات + صناعة</div>
+    </div>
+  </div>
+
+  <!-- Metrics comparison -->
+  <div class="metric-grid" id="metricGrid"></div>
+
+  <!-- Growth chart -->
+  <div class="card">
+    <div class="card-head"><h3>📈 نمو رأس المال (12 شهر)</h3>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#0a4d36"></div>متحفظة</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2471a3"></div>متوازنة</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b08840"></div>نمو</div>
+      </div>
+    </div>
+    <div class="growth-chart">
+      <div class="chart-area" id="chartArea"></div>
+    </div>
+  </div>
+
+  <!-- Allocation comparison -->
+  <div class="card">
+    <div class="card-head"><h3>🥧 توزيع الأصول</h3></div>
+    <div class="alloc-grid" id="allocGrid"></div>
+  </div>
+
+  <!-- Risk profile -->
+  <div class="card">
+    <div class="card-head"><h3>⚖️ ملف المخاطر</h3></div>
+    <div class="risk-grid" id="riskGrid"></div>
+  </div>
+
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const PORTFOLIOS = [
+  {
+    name:'متحفظة', color:'#0a4d36',
+    metrics:{ annualReturn:9.2, risk:'منخفض', sharpe:1.8, maxDrawdown:2.1, volatility:3.5, deals:4, minInvest:10000 },
+    alloc:[{l:'مرابحة قصيرة',pct:60},{l:'سيولة',pct:25},{l:'صكوك',pct:15}],
+    risk:[{l:'مخاطر السوق',v:15},{l:'مخاطر السيولة',v:10},{l:'مخاطر الائتمان',v:20},{l:'مخاطر التشغيل',v:8}],
+    growth:[100,100.7,101.5,102.1,102.8,103.5,104.0,104.6,105.2,105.8,106.4,107.1,107.9],
+  },
+  {
+    name:'متوازنة', color:'#2471a3',
+    metrics:{ annualReturn:12.5, risk:'متوسط', sharpe:2.1, maxDrawdown:5.8, volatility:7.2, deals:9, minInvest:25000 },
+    alloc:[{l:'عقارات',pct:35},{l:'مرابحة',pct:30},{l:'صناعة',pct:20},{l:'صكوك',pct:15}],
+    risk:[{l:'مخاطر السوق',v:40},{l:'مخاطر السيولة',v:30},{l:'مخاطر الائتمان',v:35},{l:'مخاطر التشغيل',v:22}],
+    growth:[100,101.2,102.5,103.1,104.8,105.9,107.2,108.0,109.5,110.8,111.6,112.9,114.2],
+  },
+  {
+    name:'نمو', color:'#b08840',
+    metrics:{ annualReturn:17.8, risk:'مرتفع', sharpe:1.6, maxDrawdown:12.4, volatility:14.8, deals:14, minInvest:50000 },
+    alloc:[{l:'عقارات',pct:50},{l:'صناعة',pct:30},{l:'تقنية',pct:20}],
+    risk:[{l:'مخاطر السوق',v:70},{l:'مخاطر السيولة',v:55},{l:'مخاطر الائتمان',v:45},{l:'مخاطر التشغيل',v:38}],
+    growth:[100,101.8,103.2,102.5,105.1,107.4,109.8,108.2,112.1,114.6,116.3,118.9,122.1],
+  },
+];
+
+const METRICS = [
+  {key:'annualReturn', label:'العائد السنوي (%)', bestHigh:true, fmt:v=>v+'%'},
+  {key:'risk', label:'مستوى المخاطرة', bestHigh:false, fmt:v=>v},
+  {key:'sharpe', label:'نسبة شارب', bestHigh:true, fmt:v=>v},
+  {key:'maxDrawdown', label:'أقصى تراجع (%)', bestHigh:false, fmt:v=>'-'+v+'%'},
+  {key:'volatility', label:'التذبذب (%)', bestHigh:false, fmt:v=>v+'%'},
+  {key:'deals', label:'عدد الصفقات', bestHigh:false, fmt:v=>v},
+  {key:'minInvest', label:'الحد الأدنى (ر.س)', bestHigh:false, fmt:v=>v.toLocaleString('ar-SA')},
+];
+
+function renderMetrics() {
+  const grid = document.getElementById('metricGrid');
+  METRICS.forEach(m => {
+    const lbl = document.createElement('div'); lbl.className = 'metric-label'; lbl.textContent = m.label;
+    grid.appendChild(lbl);
+    const vals = PORTFOLIOS.map(p => p.metrics[m.key]);
+    const numVals = vals.map(v => typeof v === 'number' ? v : null).filter(v => v !== null);
+    const best = m.bestHigh ? Math.max(...numVals) : Math.min(...numVals);
+    const worst = m.bestHigh ? Math.min(...numVals) : Math.max(...numVals);
+    PORTFOLIOS.forEach((p, i) => {
+      const cell = document.createElement('div'); cell.className = 'metric-cell';
+      const v = p.metrics[m.key];
+      if (typeof v === 'number' && v === best) cell.classList.add('best');
+      if (typeof v === 'number' && numVals.length > 1 && v === worst) cell.classList.add('worst');
+      const val = document.createElement('div'); val.className = 'val'; val.textContent = m.fmt(v);
+      val.style.color = p.color;
+      cell.appendChild(val);
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderGrowthChart() {
+  const area = document.getElementById('chartArea');
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  svg.setAttribute('viewBox','0 0 100 100'); svg.setAttribute('preserveAspectRatio','none');
+  const allVals = PORTFOLIOS.flatMap(p => p.growth);
+  const minV = Math.min(...allVals), maxV = Math.max(...allVals);
+  const range = maxV - minV || 1;
+  PORTFOLIOS.forEach(p => {
+    const pts = p.growth.map((v,i) => {
+      const x = (i / (p.growth.length-1)) * 100;
+      const y = 100 - ((v - minV) / range) * 88 - 2;
+      return x+','+y;
+    }).join(' ');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    poly.setAttribute('points',pts);
+    poly.setAttribute('fill','none');
+    poly.setAttribute('stroke',p.color);
+    poly.setAttribute('stroke-width','2.5');
+    poly.setAttribute('stroke-linejoin','round');
+    svg.appendChild(poly);
+  });
+  area.appendChild(svg);
+}
+
+function renderAlloc() {
+  const grid = document.getElementById('allocGrid');
+  PORTFOLIOS.forEach(p => {
+    const col = document.createElement('div'); col.className = 'alloc-col';
+    const title = document.createElement('div'); title.className = 'alloc-title'; title.textContent = p.name;
+    col.appendChild(title);
+    p.alloc.forEach(a => {
+      const row = document.createElement('div'); row.className = 'alloc-bar-row';
+      const lbl = document.createElement('div'); lbl.className = 'alloc-lbl'; lbl.textContent = a.l;
+      const bw = document.createElement('div'); bw.className = 'alloc-bar';
+      const bf = document.createElement('div'); bf.className = 'alloc-fill'; bf.style.width=a.pct+'%'; bf.style.background=p.color; bf.style.opacity='.8';
+      bw.appendChild(bf);
+      const pct = document.createElement('div'); pct.className = 'alloc-pct'; pct.textContent=a.pct+'%'; pct.style.color=p.color;
+      row.appendChild(lbl); row.appendChild(bw); row.appendChild(pct); col.appendChild(row);
+    });
+    grid.appendChild(col);
+  });
+}
+
+function renderRisk() {
+  const grid = document.getElementById('riskGrid');
+  PORTFOLIOS.forEach(p => {
+    const col = document.createElement('div'); col.className = 'risk-col';
+    const nm = document.createElement('div'); nm.className = 'r-name'; nm.textContent = p.name; nm.style.color=p.color;
+    col.appendChild(nm);
+    p.risk.forEach(r => {
+      const row = document.createElement('div'); row.className = 'risk-row';
+      const lbl = document.createElement('div'); lbl.className = 'risk-lbl'; lbl.textContent = r.l;
+      const bw = document.createElement('div'); bw.className = 'risk-bar';
+      const bf = document.createElement('div'); bf.className = 'risk-fill'; bf.style.width=r.v+'%'; bf.style.background=p.color;
+      bw.appendChild(bf);
+      const val = document.createElement('div'); val.className = 'risk-val'; val.textContent = r.v;
+      row.appendChild(lbl); row.appendChild(bw); row.appendChild(val); col.appendChild(row);
+    });
+    grid.appendChild(col);
+  });
+}
+
+renderMetrics();
+renderGrowthChart();
+renderAlloc();
+renderRisk();
+</script>
+</body>
+</html>
