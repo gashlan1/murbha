@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متتبع الأهداف - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.goal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:2rem;}
+.goal-card{background:#fff;border-radius:14px;border:1px solid var(--line);padding:1.25rem;}
+.gc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;}
+.gc-icon{font-size:1.6rem;}
+.gc-pill{display:inline-block;padding:0.15rem 0.6rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-on-track{background:#e8f5ed;color:#1e8449;}
+.pill-behind{background:#fde8e8;color:#c0392b;}
+.pill-ahead{background:#e8f0fe;color:#1a56c4;}
+.gc-title{font-size:0.92rem;font-weight:700;margin-bottom:0.2rem;}
+.gc-target{font-size:0.75rem;color:var(--muted);margin-bottom:0.75rem;}
+.gc-progress{margin-bottom:0.5rem;}
+.gp-bar{height:10px;border-radius:5px;background:#e8e2d6;overflow:hidden;}
+.gp-fill{height:100%;border-radius:5px;background:var(--green);}
+.gp-meta{display:flex;justify-content:space-between;font-size:0.72rem;margin-top:0.3rem;}
+.gp-current{font-weight:700;color:var(--green);}
+.gp-remaining{color:var(--muted);}
+.gc-actions{display:flex;gap:0.5rem;margin-top:0.75rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.milestone-list{padding:1.25rem;}
+.ms-item{display:flex;align-items:center;gap:1rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.ms-item:last-child{border-bottom:none;}
+.ms-check{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.ms-done{background:var(--green);color:#fff;}
+.ms-pending{background:#e8e2d6;color:var(--muted);}
+.ms-content{flex:1;}
+.ms-title{font-size:0.84rem;font-weight:700;}
+.ms-date{font-size:0.7rem;color:var(--muted);}
+.ms-amount{font-size:0.82rem;font-weight:700;color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:700px){.goal-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — متتبع الأهداف</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>متتبع الأهداف المالية</h2>
+      <p>حدّد أهدافك الاستثمارية وراقب تقدمك نحو تحقيقها</p>
+    </div>
+    <button class="btn btn-primary" onclick="addGoal()">إضافة هدف جديد</button>
+  </div>
+
+  <div class="goal-grid" id="goalGrid"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>معالم الطريق نحو الأهداف</h3></div>
+    <div class="milestone-list" id="milestoneList"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="addGoal()">هدف جديد</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportGoals()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GOALS = [
+  { icon: '🏠', title: 'دفعة أولى للمنزل', target: '٢٠٠,٠٠٠ ر.س', current: 140000, total: 200000, deadline: 'ديسمبر ٢٠٢٦', pill: 'pill-on-track', label: 'في المسار' },
+  { icon: '🎓', title: 'تعليم الأبناء', target: '٥٠٠,٠٠٠ ر.س', current: 120000, total: 500000, deadline: 'يونيو ٢٠٣٠', pill: 'pill-on-track', label: 'في المسار' },
+  { icon: '🌴', title: 'صندوق التقاعد المبكر', target: '١,٠٠٠,٠٠٠ ر.س', current: 180000, total: 1000000, deadline: 'يناير ٢٠٣٥', pill: 'pill-behind', label: 'متأخر' },
+  { icon: '✈️', title: 'صندوق السفر والترفيه', target: '٣٠,٠٠٠ ر.س', current: 30000, total: 30000, deadline: 'يوليو ٢٠٢٦', pill: 'pill-ahead', label: 'متقدم' }
+];
+
+const MILESTONES = [
+  { done: true, title: 'بلوغ ٥٠٪ من هدف المنزل', date: 'فبراير ٢٠٢٦', amount: '١٠٠,٠٠٠ ر.س' },
+  { done: true, title: 'أول ١٠٠,٠٠٠ في صندوق التعليم', date: 'يناير ٢٠٢٦', amount: '١٠٠,٠٠٠ ر.س' },
+  { done: false, title: 'بلوغ ٧٥٪ من هدف المنزل', date: 'سبتمبر ٢٠٢٦', amount: '١٥٠,٠٠٠ ر.س' },
+  { done: false, title: 'إكمال هدف السفر', date: 'يوليو ٢٠٢٦', amount: '٣٠,٠٠٠ ر.س' },
+  { done: false, title: 'بلوغ ٢٠٠,٠٠٠ في صندوق التقاعد', date: 'ديسمبر ٢٠٢٦', amount: '٢٠٠,٠٠٠ ر.س' }
+];
+
+function buildGoals() {
+  const wrap = document.getElementById('goalGrid');
+  GOALS.forEach((g, i) => {
+    const card = document.createElement('div'); card.className = 'goal-card';
+    const head = document.createElement('div'); head.className = 'gc-head';
+    const icon = document.createElement('div'); icon.className = 'gc-icon'; icon.textContent = g.icon;
+    const pill = document.createElement('span'); pill.className = 'gc-pill ' + g.pill; pill.textContent = g.label;
+    head.appendChild(icon); head.appendChild(pill);
+    const title = document.createElement('div'); title.className = 'gc-title'; title.textContent = g.title;
+    const target = document.createElement('div'); target.className = 'gc-target'; target.textContent = 'الهدف: ' + g.target + ' · ' + g.deadline;
+    const prog = document.createElement('div'); prog.className = 'gc-progress';
+    const bar = document.createElement('div'); bar.className = 'gp-bar';
+    const pct = Math.round((g.current / g.total) * 100);
+    const fill = document.createElement('div'); fill.className = 'gp-fill'; fill.style.width = pct + '%';
+    if (g.pill === 'pill-behind') fill.style.background = '#c0392b';
+    if (g.pill === 'pill-ahead') fill.style.background = 'var(--gold)';
+    bar.appendChild(fill);
+    const meta = document.createElement('div'); meta.className = 'gp-meta';
+    const curr = document.createElement('span'); curr.className = 'gp-current'; curr.textContent = pct + '٪ مكتمل';
+    const rem = document.createElement('span'); rem.className = 'gp-remaining'; rem.textContent = 'متبقي: ' + (g.total - g.current).toLocaleString() + ' ر.س';
+    meta.appendChild(curr); meta.appendChild(rem);
+    prog.appendChild(bar); prog.appendChild(meta);
+    const actions = document.createElement('div'); actions.className = 'gc-actions';
+    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-sm btn-primary'; editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => editGoal(i);
+    actions.appendChild(editBtn);
+    card.appendChild(head); card.appendChild(title); card.appendChild(target); card.appendChild(prog); card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+}
+
+function buildMilestones() {
+  const wrap = document.getElementById('milestoneList');
+  MILESTONES.forEach(m => {
+    const item = document.createElement('div'); item.className = 'ms-item';
+    const check = document.createElement('div'); check.className = 'ms-check ' + (m.done ? 'ms-done' : 'ms-pending'); check.textContent = m.done ? '✓' : '○';
+    const content = document.createElement('div'); content.className = 'ms-content';
+    const title = document.createElement('div'); title.className = 'ms-title'; title.textContent = m.title; if (!m.done) title.style.color = 'var(--muted)';
+    const date = document.createElement('div'); date.className = 'ms-date'; date.textContent = m.date;
+    content.appendChild(title); content.appendChild(date);
+    const amount = document.createElement('div'); amount.className = 'ms-amount'; amount.textContent = m.amount;
+    item.appendChild(check); item.appendChild(content); item.appendChild(amount);
+    wrap.appendChild(item);
+  });
+}
+
+function addGoal() {
+  fetch('/app/me/goal-based-tracker', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'add' }) }).catch(() => {});
+  alert('جاري فتح نموذج إضافة هدف جديد...');
+}
+
+function editGoal(idx) {
+  fetch('/app/me/goal-based-tracker/' + idx, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'edit' }) }).catch(() => {});
+  alert('جاري تعديل الهدف: ' + GOALS[idx].title);
+}
+
+function exportGoals() {
+  fetch('/app/me/goal-based-tracker/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير الأهداف...');
+}
+
+buildGoals(); buildMilestones();
+</script>
+</body>
+</html>
