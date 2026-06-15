@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مصفوفة المخاطر - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.risk-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.rs-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.rs-val{font-size:1.5rem;font-weight:700;}
+.rs-val.red{color:#e74c3c;}
+.rs-val.orange{color:#e67e22;}
+.rs-val.green{color:#27ae60;}
+.rs-val.blue{color:#2980b9;}
+.rs-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.matrix-grid{padding:1.25rem;overflow-x:auto;}
+.matrix-table{width:100%;border-collapse:collapse;}
+.matrix-table th{background:var(--green-dark);color:#fff;padding:0.6rem 0.9rem;font-size:0.78rem;text-align:center;}
+.matrix-table td{padding:0.55rem 0.9rem;font-size:0.78rem;border:1px solid var(--line);text-align:center;}
+.cell-low{background:#e8f5ed;color:#1e8449;}
+.cell-med{background:#fef3cd;color:#92400e;}
+.cell-high{background:#fde8e8;color:#c0392b;}
+.cell-crit{background:#c0392b;color:#fff;font-weight:700;}
+.risk-list{padding:1.25rem;}
+.risk-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;display:flex;align-items:flex-start;gap:1rem;}
+.risk-item:last-child{margin-bottom:0;}
+.risk-badge{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;}
+.badge-crit{background:#c0392b;color:#fff;}
+.badge-high{background:#e74c3c;color:#fff;}
+.badge-med{background:#f39c12;color:#fff;}
+.badge-low{background:#27ae60;color:#fff;}
+.risk-content{}
+.risk-name{font-size:0.88rem;font-weight:700;margin-bottom:0.2rem;}
+.risk-desc{font-size:0.76rem;color:var(--muted);}
+.risk-meta{font-size:0.72rem;margin-top:0.3rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.risk-stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مصفوفة المخاطر</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مصفوفة المخاطر الشاملة</h2>
+      <p>تقييم وإدارة مخاطر المنصة والصفقات بصورة منهجية</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportMatrix()">تصدير التقرير</button>
+  </div>
+
+  <div class="risk-stats" id="riskStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>مصفوفة الاحتمالية × التأثير</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportMatrix()">تصدير</button>
+    </div>
+    <div class="matrix-grid" id="matrixGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>قائمة المخاطر التفصيلية</h3></div>
+    <div class="risk-list" id="riskList"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addRisk()">إضافة مخاطرة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportMatrix()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢', lbl: 'مخاطر حرجة', cls: 'red' },
+  { val: '٥', lbl: 'مخاطر عالية', cls: 'orange' },
+  { val: '٩', lbl: 'مخاطر متوسطة', cls: 'blue' },
+  { val: '١٢', lbl: 'مخاطر منخفضة', cls: 'green' }
+];
+
+const MATRIX_ROWS = [
+  { label: 'محتمل جداً', cells: ['cell-med','cell-high','cell-crit','cell-crit'] },
+  { label: 'محتمل', cells: ['cell-low','cell-med','cell-high','cell-crit'] },
+  { label: 'نادر', cells: ['cell-low','cell-low','cell-med','cell-high'] },
+  { label: 'نادر جداً', cells: ['cell-low','cell-low','cell-low','cell-med'] }
+];
+
+const MATRIX_COLS = ['طفيف','معتدل','خطير','كارثي'];
+const CELL_TEXT = { 'cell-low':'منخفض', 'cell-med':'متوسط', 'cell-high':'عالي', 'cell-crit':'حرج' };
+
+const RISKS = [
+  { name: 'تعثر مقترض رئيسي', desc: 'فشل مدين رئيسي في سداد التزاماته مما يؤثر على عائدات المستثمرين', meta: 'الاحتمال: نادر | التأثير: كارثي', badge: 'badge-crit', label: 'حرج' },
+  { name: 'تغيير لوائح هيئة السوق', desc: 'تعديلات تنظيمية تستوجب إعادة هيكلة بعض عمليات المنصة', meta: 'الاحتمال: محتمل | التأثير: خطير', badge: 'badge-high', label: 'عالي' },
+  { name: 'هجوم إلكتروني على البنية التحتية', desc: 'اختراق أمني محتمل يؤثر على بيانات المستخدمين أو الأصول', meta: 'الاحتمال: نادر | التأثير: كارثي', badge: 'badge-crit', label: 'حرج' },
+  { name: 'انخفاض أسعار العقارات', desc: 'تراجع السوق العقاري يخفض قيمة الضمانات المرهونة', meta: 'الاحتمال: محتمل | التأثير: معتدل', badge: 'badge-med', label: 'متوسط' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('riskStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'rs-card';
+    const val = document.createElement('div'); val.className = 'rs-val ' + s.cls; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'rs-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function buildMatrix() {
+  const wrap = document.getElementById('matrixGrid');
+  const table = document.createElement('table'); table.className = 'matrix-table';
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.textContent = 'الاحتمالية \\ التأثير';
+  headRow.appendChild(th0);
+  MATRIX_COLS.forEach(c => { const th = document.createElement('th'); th.textContent = c; headRow.appendChild(th); });
+  thead.appendChild(headRow); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  MATRIX_ROWS.forEach(r => {
+    const tr = document.createElement('tr');
+    const tdL = document.createElement('td'); tdL.textContent = r.label; tdL.style.fontWeight = '600'; tr.appendChild(tdL);
+    r.cells.forEach(cls => {
+      const td = document.createElement('td'); td.className = cls; td.textContent = CELL_TEXT[cls]; tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody); wrap.appendChild(table);
+}
+
+function buildRisks() {
+  const wrap = document.getElementById('riskList');
+  RISKS.forEach(r => {
+    const item = document.createElement('div'); item.className = 'risk-item';
+    const badge = document.createElement('div'); badge.className = 'risk-badge ' + r.badge; badge.textContent = r.label;
+    const content = document.createElement('div'); content.className = 'risk-content';
+    const name = document.createElement('div'); name.className = 'risk-name'; name.textContent = r.name;
+    const desc = document.createElement('div'); desc.className = 'risk-desc'; desc.textContent = r.desc;
+    const meta = document.createElement('div'); meta.className = 'risk-meta'; meta.style.color = 'var(--muted)'; meta.textContent = r.meta;
+    content.appendChild(name); content.appendChild(desc); content.appendChild(meta);
+    item.appendChild(badge); item.appendChild(content);
+    wrap.appendChild(item);
+  });
+}
+
+function addRisk() {
+  fetch('/app/admin/risk-matrix', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ name: 'مخاطرة جديدة' }) }).catch(() => {});
+  alert('فتح نموذج إضافة مخاطرة');
+}
+
+function exportMatrix() {
+  fetch('/app/admin/risk-matrix/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير مصفوفة المخاطر...');
+}
+
+buildStats(); buildMatrix(); buildRisks();
+</script>
+</body>
+</html>
