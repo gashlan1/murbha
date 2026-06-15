@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>التقييم الائتماني - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.sc-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.sc-val{font-size:1.6rem;font-weight:700;}
+.sc-val.green{color:#27ae60;}
+.sc-val.yellow{color:#e67e22;}
+.sc-val.red{color:#e74c3c;}
+.sc-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.score-search{padding:1.25rem;display:flex;gap:0.75rem;}
+.score-search input{flex:1;padding:0.55rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;}
+.score-search input:focus{outline:none;border-color:var(--green);}
+.score-result{padding:0 1.25rem 1.25rem;}
+.score-circle-wrap{display:flex;align-items:center;gap:2rem;padding:1rem 0;}
+.score-ring{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid #27ae60;}
+.ring-val{font-size:1.8rem;font-weight:700;color:#27ae60;line-height:1;}
+.ring-lbl{font-size:0.62rem;color:var(--muted);}
+.score-factors{}
+.factor-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;}
+.factor-lbl{font-size:0.8rem;width:130px;flex-shrink:0;}
+.factor-bar-wrap{flex:1;background:var(--line);border-radius:10px;height:7px;}
+.factor-bar{height:7px;border-radius:10px;background:var(--green);}
+.factor-score{font-size:0.78rem;font-weight:700;color:var(--green);min-width:30px;text-align:left;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.grade{display:inline-block;padding:0.2rem 0.7rem;border-radius:8px;font-size:0.75rem;font-weight:700;}
+.grade-a{background:#e8f5ed;color:#1e8449;}
+.grade-b{background:#fef3cd;color:#92400e;}
+.grade-c{background:#fde8e8;color:#c0392b;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.score-grid{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — التقييم الائتماني</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>محرك التقييم الائتماني</h2>
+      <p>تقييم ومراقبة الجدارة الائتمانية للموردين والمقترضين</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runBatch()">تشغيل تقييم دفعي</button>
+  </div>
+
+  <div class="score-grid" id="scoreGrid"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>بحث عن تقييم مورّد</h3></div>
+      <div class="score-search">
+        <input type="text" id="searchInput" placeholder="اسم الشركة أو رقم السجل التجاري">
+        <button class="btn btn-primary btn-sm" onclick="searchScore()">بحث</button>
+      </div>
+      <div class="score-result" id="scoreResult"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع الدرجات الائتمانية</h3></div>
+      <div style="padding:1.25rem;" id="distChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>آخر التقييمات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportScores()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>المورّد</th><th>الدرجة</th><th>التصنيف</th><th>آخر تحديث</th><th>التغير</th><th>إجراء</th></tr>
+      </thead>
+      <tbody id="scoresTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="runBatch()">تقييم دفعي</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportScores()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCORE_STATS = [
+  { val: '٨٤٢', cls: 'green', lbl: 'متوسط الدرجة الكلية' },
+  { val: '٦٧٪', cls: 'green', lbl: 'نسبة الدرجات الممتازة' },
+  { val: '١٢', cls: 'yellow', lbl: 'تحت المراقبة' },
+  { val: '٣', cls: 'red', lbl: 'خطر مرتفع' }
+];
+
+const SCORES_TABLE = [
+  { name: 'مجموعة التطوير العقاري', score: 892, grade: 'A+', gcls: 'grade-a', date: '٢٠٢٦/٠٦/١٠', change: '+١٢', positive: true },
+  { name: 'شركة الاستيراد والتصدير', score: 756, grade: 'B+', gcls: 'grade-b', date: '٢٠٢٦/٠٦/٠٨', change: '-٥', positive: false },
+  { name: 'مجموعة التصنيع الصناعي', score: 834, grade: 'A', gcls: 'grade-a', date: '٢٠٢٦/٠٦/٠٥', change: '+٢١', positive: true },
+  { name: 'شركة النقل والشحن', score: 621, grade: 'C+', gcls: 'grade-c', date: '٢٠٢٦/٠٦/٠١', change: '-٣٤', positive: false },
+  { name: 'مجموعة الطاقة المتجددة', score: 911, grade: 'A+', gcls: 'grade-a', date: '٢٠٢٦/٠٥/٢٨', change: '+٨', positive: true }
+];
+
+function buildGrid() {
+  const wrap = document.getElementById('scoreGrid');
+  SCORE_STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'sc-card';
+    const val = document.createElement('div'); val.className = 'sc-val ' + s.cls; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'sc-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function searchScore() {
+  const wrap = document.getElementById('scoreResult');
+  wrap.textContent = '';
+  const circleWrap = document.createElement('div'); circleWrap.className = 'score-circle-wrap';
+  const ring = document.createElement('div'); ring.className = 'score-ring';
+  const val = document.createElement('div'); val.className = 'ring-val'; val.textContent = '٨٩٢';
+  const lbl = document.createElement('div'); lbl.className = 'ring-lbl'; lbl.textContent = 'من ١٠٠٠';
+  ring.appendChild(val); ring.appendChild(lbl);
+  const factors = document.createElement('div'); factors.className = 'score-factors';
+  const FACTORS = [
+    { lbl: 'الوضع المالي', pct: 90 },
+    { lbl: 'سجل السداد', pct: 95 },
+    { lbl: 'نسبة الدين', pct: 78 },
+    { lbl: 'مدة النشاط', pct: 85 }
+  ];
+  FACTORS.forEach(f => {
+    const row = document.createElement('div'); row.className = 'factor-row';
+    const fl = document.createElement('div'); fl.className = 'factor-lbl'; fl.textContent = f.lbl;
+    const bw = document.createElement('div'); bw.className = 'factor-bar-wrap';
+    const bar = document.createElement('div'); bar.className = 'factor-bar'; bar.style.width = f.pct + '%';
+    bw.appendChild(bar);
+    const sc = document.createElement('div'); sc.className = 'factor-score'; sc.textContent = f.pct + '٪';
+    row.appendChild(fl); row.appendChild(bw); row.appendChild(sc);
+    factors.appendChild(row);
+  });
+  circleWrap.appendChild(ring); circleWrap.appendChild(factors);
+  wrap.appendChild(circleWrap);
+}
+
+function buildDistChart() {
+  const wrap = document.getElementById('distChart');
+  const grades = [{ g: 'A+', n: 18 }, { g: 'A', n: 24 }, { g: 'B+', n: 15 }, { g: 'B', n: 9 }, { g: 'C', n: 6 }];
+  const max = Math.max(...grades.map(g => g.n));
+  const chart = document.createElement('div');
+  chart.style.cssText = 'display:flex;align-items:flex-end;gap:0.75rem;height:120px;';
+  grades.forEach(g => {
+    const col = document.createElement('div');
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:0.3rem;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'width:100%;border-radius:4px 4px 0 0;background:var(--green);';
+    bar.style.height = Math.round((g.n / max) * 100) + 'px';
+    const glbl = document.createElement('div'); glbl.style.cssText = 'font-size:0.7rem;font-weight:700;'; glbl.textContent = g.g;
+    const nlbl = document.createElement('div'); nlbl.style.cssText = 'font-size:0.65rem;color:var(--muted);'; nlbl.textContent = g.n;
+    col.appendChild(bar); col.appendChild(glbl); col.appendChild(nlbl);
+    chart.appendChild(col);
+  });
+  wrap.appendChild(chart);
+}
+
+function buildTable() {
+  const tbody = document.getElementById('scoresTable');
+  SCORES_TABLE.forEach(r => {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td'); nameTd.textContent = r.name; tr.appendChild(nameTd);
+    const scoreTd = document.createElement('td'); scoreTd.textContent = r.score; scoreTd.style.fontWeight = '700'; tr.appendChild(scoreTd);
+    const gradeTd = document.createElement('td');
+    const grade = document.createElement('span'); grade.className = 'grade ' + r.gcls; grade.textContent = r.grade;
+    gradeTd.appendChild(grade); tr.appendChild(gradeTd);
+    const dateTd = document.createElement('td'); dateTd.textContent = r.date; tr.appendChild(dateTd);
+    const chgTd = document.createElement('td'); chgTd.textContent = r.change;
+    chgTd.style.color = r.positive ? '#27ae60' : '#e74c3c'; chgTd.style.fontWeight = '700';
+    tr.appendChild(chgTd);
+    const actTd = document.createElement('td');
+    const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-sm'; btn.textContent = 'تفاصيل';
+    btn.onclick = () => viewDetail(r.name);
+    actTd.appendChild(btn); tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function viewDetail(name) { alert('عرض التفاصيل الائتمانية: ' + name); }
+function runBatch() {
+  fetch('/app/admin/credit-scoring/batch', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('جاري تشغيل التقييم الائتماني الدفعي...');
+}
+function exportScores() {
+  fetch('/app/admin/credit-scoring/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير التقييمات الائتمانية...');
+}
+
+buildGrid(); searchScore(); buildDistChart(); buildTable();
+</script>
+</body>
+</html>

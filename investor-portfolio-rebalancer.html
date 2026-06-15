@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعادة توازن المحفظة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.drift-banner{background:#fff;border:2px solid #e67e22;border-radius:14px;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
+.drift-left h3{font-size:0.95rem;font-weight:700;color:#e67e22;}
+.drift-left p{font-size:0.82rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.alloc-table{padding:0 1.25rem 1.25rem;}
+.alloc-header{display:grid;grid-template-columns:1fr 80px 80px 80px 100px;font-size:0.75rem;font-weight:700;color:var(--muted);padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.alloc-row{display:grid;grid-template-columns:1fr 80px 80px 80px 100px;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(13,22,18,0.05);}
+.alloc-row:last-child{border-bottom:none;}
+.alloc-name{font-size:0.84rem;font-weight:600;}
+.alloc-pct{font-size:0.82rem;text-align:center;}
+.alloc-target{font-size:0.82rem;text-align:center;}
+.alloc-diff{font-size:0.82rem;font-weight:700;text-align:center;}
+.diff-over{color:#e74c3c;}
+.diff-under{color:#27ae60;}
+.diff-ok{color:var(--muted);}
+.alloc-bar-wrap{background:var(--line);border-radius:10px;height:7px;position:relative;}
+.alloc-bar-target{position:absolute;height:100%;border-radius:10px;background:rgba(10,77,54,0.2);}
+.alloc-bar-current{position:absolute;height:100%;border-radius:10px;background:var(--green);}
+.target-marker{position:absolute;width:2px;height:11px;background:#e67e22;top:-2px;border-radius:1px;}
+.rebal-actions{padding:1.25rem;}
+.rebal-step{display:flex;align-items:flex-start;gap:0.75rem;padding:0.7rem 0;border-bottom:1px solid var(--line);}
+.rebal-step:last-child{border-bottom:none;}
+.step-arrow{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;}
+.arrow-add{background:#e8f5ed;color:#1e8449;}
+.arrow-reduce{background:#fde8e8;color:#c0392b;}
+.step-text{}
+.step-title{font-size:0.84rem;font-weight:600;}
+.step-detail{font-size:0.73rem;color:var(--muted);margin-top:0.15rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:700px){.layout-2{grid-template-columns:1fr;}.alloc-header,.alloc-row{grid-template-columns:1fr 60px 60px 60px 80px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إعادة التوازن</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إعادة توازن المحفظة</h2>
+      <p>مقارنة التوزيع الحالي بالمستهدف واقتراح التعديلات</p>
+    </div>
+    <button class="btn btn-primary" onclick="applyRebalance()">تطبيق إعادة التوازن</button>
+  </div>
+
+  <div class="drift-banner">
+    <div class="drift-left">
+      <h3>⚠ انحراف في التوزيع</h3>
+      <p>محفظتك انحرفت عن الهدف بأكثر من ٥٪ في قطاعين — يُنصح بإعادة التوازن</p>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="applyRebalance()">تطبيق الآن</button>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>التوزيع الحالي مقابل المستهدف</h3></div>
+      <div class="alloc-table">
+        <div class="alloc-header">
+          <span>القطاع</span><span style="text-align:center;">الحالي</span><span style="text-align:center;">المستهدف</span><span style="text-align:center;">الفارق</span><span>شريط التوزيع</span>
+        </div>
+        <div id="allocRows"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>خطوات إعادة التوازن المقترحة</h3></div>
+      <div class="rebal-actions" id="rebalSteps"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>إعدادات التوزيع المستهدف</h3></div>
+    <div class="alloc-table">
+      <div class="alloc-header">
+        <span>القطاع</span><span style="text-align:center;">الحالي</span><span style="text-align:center;">المستهدف</span><span style="text-align:center;">الفارق</span><span>تعديل</span>
+      </div>
+      <div id="targetRows"></div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="saveTarget()">حفظ الأهداف</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="resetTarget()">إعادة تعيين</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTORS = [
+  { name: 'عقار', current: 45, target: 35 },
+  { name: 'تجاري', current: 20, target: 25 },
+  { name: 'صناعي', current: 18, target: 20 },
+  { name: 'طاقة', current: 8, target: 10 },
+  { name: 'تقنية', current: 9, target: 10 }
+];
+
+const REBAL_STEPS = [
+  { arrow: 'arrow-reduce', sym: '↓', title: 'تخفيض التخصيص العقاري', detail: 'من ٤٥٪ إلى ٣٥٪ — تحرير ٢٨,٠٠٠ ر.س' },
+  { arrow: 'arrow-add', sym: '↑', title: 'زيادة التخصيص التجاري', detail: 'من ٢٠٪ إلى ٢٥٪ — إضافة ١٤,٠٠٠ ر.س' },
+  { arrow: 'arrow-add', sym: '↑', title: 'زيادة التخصيص الصناعي', detail: 'من ١٨٪ إلى ٢٠٪ — إضافة ٥,٦٠٠ ر.س' },
+  { arrow: 'arrow-add', sym: '↑', title: 'زيادة قطاع الطاقة', detail: 'من ٨٪ إلى ١٠٪ — إضافة ٥,٦٠٠ ر.س' },
+  { arrow: 'arrow-add', sym: '↑', title: 'زيادة قطاع التقنية', detail: 'من ٩٪ إلى ١٠٪ — إضافة ٢,٨٠٠ ر.س' }
+];
+
+function buildAllocRows() {
+  const wrap = document.getElementById('allocRows');
+  SECTORS.forEach(s => {
+    const diff = s.current - s.target;
+    const row = document.createElement('div'); row.className = 'alloc-row';
+    const name = document.createElement('div'); name.className = 'alloc-name'; name.textContent = s.name;
+    const cur = document.createElement('div'); cur.className = 'alloc-pct'; cur.textContent = s.current + '٪';
+    const tgt = document.createElement('div'); tgt.className = 'alloc-pct'; tgt.textContent = s.target + '٪';
+    const dif = document.createElement('div');
+    dif.className = 'alloc-diff ' + (diff > 2 ? 'diff-over' : diff < -2 ? 'diff-under' : 'diff-ok');
+    dif.textContent = (diff > 0 ? '+' : '') + diff + '٪';
+    const barWrap = document.createElement('div'); barWrap.className = 'alloc-bar-wrap'; barWrap.style.position = 'relative';
+    const tgtBar = document.createElement('div'); tgtBar.className = 'alloc-bar-target'; tgtBar.style.width = s.target + '%';
+    const curBar = document.createElement('div'); curBar.className = 'alloc-bar-current'; curBar.style.width = s.current + '%';
+    barWrap.appendChild(tgtBar); barWrap.appendChild(curBar);
+    row.appendChild(name); row.appendChild(cur); row.appendChild(tgt); row.appendChild(dif); row.appendChild(barWrap);
+    wrap.appendChild(row);
+  });
+}
+
+function buildTargetRows() {
+  const wrap = document.getElementById('targetRows');
+  SECTORS.forEach(s => {
+    const diff = s.current - s.target;
+    const row = document.createElement('div'); row.className = 'alloc-row';
+    const name = document.createElement('div'); name.className = 'alloc-name'; name.textContent = s.name;
+    const cur = document.createElement('div'); cur.className = 'alloc-pct'; cur.textContent = s.current + '٪';
+    const tgtInput = document.createElement('input');
+    tgtInput.type = 'number'; tgtInput.value = s.target; tgtInput.min = 0; tgtInput.max = 100;
+    tgtInput.style.cssText = 'width:60px;padding:0.3rem 0.5rem;border:1.5px solid var(--line);border-radius:6px;font-family:Cairo,sans-serif;font-size:0.82rem;text-align:center;';
+    const dif = document.createElement('div');
+    dif.className = 'alloc-diff ' + (diff > 2 ? 'diff-over' : diff < -2 ? 'diff-under' : 'diff-ok');
+    dif.textContent = (diff > 0 ? '+' : '') + diff + '٪';
+    const placeholder = document.createElement('div');
+    row.appendChild(name); row.appendChild(cur); row.appendChild(tgtInput); row.appendChild(dif); row.appendChild(placeholder);
+    wrap.appendChild(row);
+  });
+}
+
+function buildRebalSteps() {
+  const wrap = document.getElementById('rebalSteps');
+  REBAL_STEPS.forEach(s => {
+    const row = document.createElement('div'); row.className = 'rebal-step';
+    const arrow = document.createElement('div'); arrow.className = 'step-arrow ' + s.arrow; arrow.textContent = s.sym;
+    const text = document.createElement('div'); text.className = 'step-text';
+    const title = document.createElement('div'); title.className = 'step-title'; title.textContent = s.title;
+    const detail = document.createElement('div'); detail.className = 'step-detail'; detail.textContent = s.detail;
+    text.appendChild(title); text.appendChild(detail);
+    row.appendChild(arrow); row.appendChild(text);
+    wrap.appendChild(row);
+  });
+}
+
+function applyRebalance() {
+  fetch('/app/me/portfolio/rebalance', {
+    method: 'POST', headers: { 'x-csrf-token': 'demo-token', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sectors: SECTORS })
+  }).catch(() => {});
+  alert('تم تطبيق إعادة التوازن — سيتم تنفيذ الأوامر خلال ٢٤ ساعة');
+}
+
+function saveTarget() {
+  fetch('/app/me/portfolio/rebalance/target', {
+    method: 'PUT', headers: { 'x-csrf-token': 'demo-token', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sectors: SECTORS })
+  }).catch(() => {});
+  alert('تم حفظ التوزيع المستهدف');
+}
+
+function resetTarget() { alert('تمت إعادة تعيين الأهداف للقيم الافتراضية'); }
+
+buildAllocRows(); buildRebalSteps(); buildTargetRows();
+</script>
+</body>
+</html>

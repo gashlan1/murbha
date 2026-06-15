@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الضمان - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.escrow-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.es-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.es-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.es-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-held{background:#e8f0fd;color:#1a56a0;}
+.pill-released{background:#e8f5ed;color:#1e8449;}
+.pill-disputed{background:#fde8e8;color:#c0392b;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.escrow-detail{padding:1.25rem;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.detail-row:last-child{border-bottom:none;}
+.detail-lbl{font-size:0.82rem;color:var(--muted);}
+.detail-val{font-size:0.85rem;font-weight:700;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.escrow-summary{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة الضمان</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة حسابات الضمان (Escrow)</h2>
+      <p>مراقبة وإدارة الأموال المحتجزة لجميع الصفقات</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportEscrow()">تصدير التقرير</button>
+  </div>
+
+  <div class="escrow-summary" id="escrowSummary"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>حسابات الضمان النشطة</h3>
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.7);">٢٨ حساب</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>رقم الصفقة</th><th>اسم الصفقة</th><th>المبلغ المحتجز</th><th>تاريخ الإيداع</th><th>تاريخ الإفراج</th><th>الحالة</th><th>إجراء</th></tr>
+      </thead>
+      <tbody id="escrowTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="releaseSelected()">إفراج عن المحدد</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportEscrow()">تصدير</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>ملخص حساب الضمان الرئيسي</h3></div>
+    <div class="escrow-detail" id="escrowDetail"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="reconcile()">تسوية الحسابات</button>
+      <button class="btn btn-danger btn-sm" onclick="freezeAccount()">تجميد الحساب</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUMMARY = [
+  { val: '٤٢م ر.س', lbl: 'إجمالي المحتجز' },
+  { val: '٢٨', lbl: 'حساب ضمان نشط' },
+  { val: '٢', lbl: 'إفراج مجدول اليوم' },
+  { val: '١', lbl: 'نزاع قيد الحل' }
+];
+
+const ESCROW_ROWS = [
+  { id: '#4920', name: 'مرابحة عقارية الرياض', amount: '٣,٠٠٠,٠٠٠', deposit: '٢٠٢٥/٠١/١٠', release: '٢٠٢٦/١٢/٠١', pill: 'pill-held', status: 'محتجز' },
+  { id: '#4921', name: 'مرابحة تجارية جدة', amount: '٢,٠٠٠,٠٠٠', deposit: '٢٠٢٥/٠٧/٠١', release: '٢٠٢٦/٠٧/٠١', pill: 'pill-released', status: 'مُفرج عنه' },
+  { id: '#4922', name: 'مرابحة صناعية الدمام', amount: '٥,٠٠٠,٠٠٠', deposit: '٢٠٢٤/١١/١٥', release: '٢٠٢٦/٠٩/١٥', pill: 'pill-held', status: 'محتجز' },
+  { id: '#4918', name: 'مرابحة لوجستية', amount: '١,٥٠٠,٠٠٠', deposit: '٢٠٢٥/٠٧/١٤', release: '٢٠٢٦/٠٧/١٤', pill: 'pill-pending', status: 'قيد المراجعة' },
+  { id: '#4915', name: 'مرابحة تقنية', amount: '٤,٠٠٠,٠٠٠', deposit: '٢٠٢٤/٠٣/٠١', release: '٢٠٢٦/١٢/٠١', pill: 'pill-disputed', status: 'نزاع' }
+];
+
+const DETAIL_ROWS = [
+  { lbl: 'رقم الحساب الضمان', val: 'ESC-2024-SA-0001' },
+  { lbl: 'البنك المحتجز', val: 'بنك الراجحي — حساب ضمان' },
+  { lbl: 'إجمالي الرصيد', val: '٤٢,٠٠٠,٠٠٠ ر.س' },
+  { lbl: 'آخر تسوية', val: '٢٠٢٦/٠٦/١٠' },
+  { lbl: 'العائد على الضمان', val: '٢.٥٪ سنوياً' },
+  { lbl: 'حالة الحساب', val: '✓ نشط ومعتمد' }
+];
+
+function buildSummary() {
+  const wrap = document.getElementById('escrowSummary');
+  SUMMARY.forEach(s => {
+    const card = document.createElement('div'); card.className = 'es-card';
+    const val = document.createElement('div'); val.className = 'es-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'es-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const tbody = document.getElementById('escrowTable');
+  ESCROW_ROWS.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.id, r.name, r.amount + ' ر.س', r.deposit, r.release].forEach(t => {
+      const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+    });
+    const pillTd = document.createElement('td');
+    const pill = document.createElement('span'); pill.className = 'pill ' + r.pill; pill.textContent = r.status;
+    pillTd.appendChild(pill); tr.appendChild(pillTd);
+    const actTd = document.createElement('td');
+    const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-sm'; btn.textContent = 'إفراج';
+    btn.onclick = () => releaseEscrow(r.id);
+    actTd.appendChild(btn); tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildDetail() {
+  const wrap = document.getElementById('escrowDetail');
+  DETAIL_ROWS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'detail-row';
+    const lbl = document.createElement('div'); lbl.className = 'detail-lbl'; lbl.textContent = r.lbl;
+    const val = document.createElement('div'); val.className = 'detail-val'; val.textContent = r.val;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function releaseEscrow(id) {
+  fetch('/app/admin/escrow/' + id + '/release', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم الإفراج عن الضمان للصفقة ' + id);
+}
+function releaseSelected() {
+  fetch('/app/admin/escrow/batch-release', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم الإفراج عن الحسابات المحددة');
+}
+function reconcile() {
+  fetch('/app/admin/escrow/reconcile', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('جاري إجراء تسوية الحسابات...');
+}
+function freezeAccount() { if (confirm('هل أنت متأكد من تجميد الحساب؟')) alert('تم تجميد الحساب'); }
+function exportEscrow() {
+  fetch('/app/admin/escrow/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير الضمان...');
+}
+
+buildSummary(); buildTable(); buildDetail();
+</script>
+</body>
+</html>
