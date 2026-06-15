@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة Webhooks - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.webhook-list{display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem;}
+.webhook-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.wh-head{padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;}
+.wh-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-active{background:#27ae60;}
+.dot-inactive{background:#ccc;}
+.dot-error{background:#c0392b;}
+.wh-info{flex:1;}
+.wh-url{font-size:0.88rem;font-weight:700;color:var(--green-dark);word-break:break-all;}
+.wh-meta{font-size:0.74rem;color:var(--muted);margin-top:0.15rem;}
+.wh-actions{display:flex;gap:0.5rem;flex-shrink:0;}
+.wh-events{display:flex;gap:0.4rem;padding:0 1.25rem 0.75rem;flex-wrap:wrap;}
+.event-tag{padding:0.15rem 0.5rem;background:#f5f0e8;border-radius:6px;font-size:0.7rem;font-weight:600;color:var(--green-dark);}
+.wh-footer{padding:0.6rem 1.25rem;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;font-size:0.78rem;color:var(--muted);}
+.success-rate{color:#27ae60;font-weight:700;}
+.error-rate{color:#c0392b;font-weight:700;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;width:520px;max-width:95vw;overflow:hidden;}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+.modal-body{padding:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.3rem;}
+.field input{width:100%;padding:0.55rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;background:#fff;color:var(--green-dark);}
+.event-checkboxes{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+.event-check{display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;cursor:pointer;}
+.event-check input{width:16px;height:16px;accent-color:var(--green);}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+.log-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.log-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.log-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.8rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1rem;border-bottom:1px solid var(--line);font-size:0.83rem;}
+tr:last-child td{border-bottom:none;}
+.status-2xx{color:#27ae60;font-weight:700;}
+.status-4xx,.status-5xx{color:#c0392b;font-weight:700;}
+.mono{font-family:monospace;font-size:0.78rem;color:var(--muted);}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة Webhooks</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة Webhooks</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ إضافة Webhook</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="webhook-list" id="webhookList"></div>
+
+  <div class="log-card">
+    <div class="log-head"><h3>سجل الطلبات الأخيرة</h3></div>
+    <table>
+      <thead>
+        <tr><th>الحدث</th><th>URL الوجهة</th><th>الوقت</th><th>رمز الاستجابة</th><th>مدة الاستجابة</th></tr>
+      </thead>
+      <tbody id="logTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إضافة Webhook جديد</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>URL الوجهة</label>
+        <input type="url" id="whUrl" placeholder="https://yourapp.com/webhook">
+      </div>
+      <div class="field">
+        <label>Secret Key (للتوقيع)</label>
+        <input type="text" id="whSecret" placeholder="سيتم توليد مفتاح تلقائياً">
+      </div>
+      <div class="field">
+        <label>الأحداث المُفعّلة</label>
+        <div class="event-checkboxes" id="eventChecks"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary btn-sm" onclick="saveWebhook()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'Webhooks نشطة',value:'٤',sub:'من أصل ٥'},
+  {label:'طلبات اليوم',value:'٢٤٨',sub:''},
+  {label:'معدل النجاح',value:'٩٩.٢٪',sub:'آخر ٢٤ ساعة'},
+  {label:'متوسط وقت الاستجابة',value:'٢١٨ ms',sub:''},
+];
+
+const webhooks = [
+  {url:'https://erp.company.sa/api/murbaha/events',events:['deal.funded','dividend.paid','investor.kyc'],status:'active',successRate:'١٠٠٪',lastDelivery:'قبل ٣ دقائق'},
+  {url:'https://crm.company.sa/webhooks/murabaha',events:['investor.registered','investor.upgraded'],status:'active',successRate:'٩٨.٥٪',lastDelivery:'قبل ساعة'},
+  {url:'https://accounting.company.sa/hooks/income',events:['dividend.paid','deal.matured'],status:'active',successRate:'١٠٠٪',lastDelivery:'أمس'},
+  {url:'https://notifications.company.sa/push',events:['deal.launched','deal.funded'],status:'error',successRate:'٧٢٪',lastDelivery:'قبل ٦ ساعات'},
+  {url:'https://archive.company.sa/compliance/log',events:['audit.event','kyc.completed'],status:'inactive',successRate:'—',lastDelivery:'—'},
+];
+
+const eventTypes = ['deal.launched','deal.funded','deal.matured','dividend.paid','investor.registered','investor.kyc','investor.upgraded','audit.event'];
+
+const logs = [
+  {event:'dividend.paid',url:'erp.company.sa',time:'٠٩:٤١',code:'200',dur:'١٤٢ms'},
+  {event:'deal.funded',url:'notifications.company.sa',time:'٠٨:٢٢',code:'500',dur:'٣,٢١٠ms'},
+  {event:'investor.kyc',url:'crm.company.sa',time:'٠٧:٥٥',code:'200',dur:'٩٨ms'},
+  {event:'deal.launched',url:'erp.company.sa',time:'٠٦:٣٠',code:'200',dur:'١٨٨ms'},
+  {event:'audit.event',url:'archive.company.sa',time:'—',code:'—',dur:'—'},
+];
+
+const dotCls = {active:'dot-active',inactive:'dot-inactive',error:'dot-error'};
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderWebhooks(){
+  const list = document.getElementById('webhookList');
+  list.textContent = '';
+  webhooks.forEach((wh, i) => {
+    const card = document.createElement('div');
+    card.className = 'webhook-card';
+    const head = document.createElement('div');
+    head.className = 'wh-head';
+    const dot = document.createElement('div');
+    dot.className = 'wh-status-dot ' + (dotCls[wh.status] || '');
+    const info = document.createElement('div');
+    info.className = 'wh-info';
+    const url = document.createElement('div');
+    url.className = 'wh-url';
+    url.textContent = wh.url;
+    const meta = document.createElement('div');
+    meta.className = 'wh-meta';
+    meta.textContent = wh.events.length + ' أحداث مُفعّلة · آخر تسليم: ' + wh.lastDelivery;
+    info.appendChild(url);
+    info.appendChild(meta);
+    const actions = document.createElement('div');
+    actions.className = 'wh-actions';
+    const testBtn = document.createElement('button');
+    testBtn.className = 'btn btn-sm btn-secondary';
+    testBtn.textContent = 'اختبار';
+    testBtn.onclick = () => testWebhook(i);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm';
+    delBtn.style.cssText = 'background:#fde9e9;color:#c0392b;border:none;border-radius:8px;padding:0.35rem 0.8rem;font-size:0.82rem;font-weight:600;font-family:Cairo,sans-serif;cursor:pointer;';
+    delBtn.textContent = 'حذف';
+    delBtn.onclick = () => deleteWebhook(i);
+    actions.appendChild(testBtn);
+    actions.appendChild(delBtn);
+    head.appendChild(dot);
+    head.appendChild(info);
+    head.appendChild(actions);
+    const eventsWrap = document.createElement('div');
+    eventsWrap.className = 'wh-events';
+    wh.events.forEach(ev => {
+      const tag = document.createElement('span');
+      tag.className = 'event-tag';
+      tag.textContent = ev;
+      eventsWrap.appendChild(tag);
+    });
+    const footer = document.createElement('div');
+    footer.className = 'wh-footer';
+    const rateEl = document.createElement('span');
+    rateEl.textContent = 'معدل النجاح: ';
+    const rateVal = document.createElement('span');
+    rateVal.className = parseFloat(wh.successRate) >= 90 ? 'success-rate' : 'error-rate';
+    rateVal.textContent = wh.successRate;
+    rateEl.appendChild(rateVal);
+    const statusEl = document.createElement('span');
+    statusEl.textContent = wh.status === 'active' ? '● نشط' : wh.status === 'error' ? '● خطأ' : '○ معطّل';
+    statusEl.style.color = wh.status === 'active' ? '#27ae60' : wh.status === 'error' ? '#c0392b' : 'var(--muted)';
+    footer.appendChild(rateEl);
+    footer.appendChild(statusEl);
+    card.appendChild(head);
+    card.appendChild(eventsWrap);
+    card.appendChild(footer);
+    list.appendChild(card);
+  });
+}
+
+function renderEventChecks(){
+  const cont = document.getElementById('eventChecks');
+  cont.textContent = '';
+  eventTypes.forEach(ev => {
+    const lbl = document.createElement('label');
+    lbl.className = 'event-check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = ev;
+    const txt = document.createTextNode(ev);
+    lbl.appendChild(cb);
+    lbl.appendChild(txt);
+    cont.appendChild(lbl);
+  });
+}
+
+function renderLogs(){
+  const tbody = document.getElementById('logTable');
+  tbody.textContent = '';
+  logs.forEach(l => {
+    const tr = document.createElement('tr');
+    const evTd = document.createElement('td');
+    const tag = document.createElement('span');
+    tag.className = 'event-tag';
+    tag.textContent = l.event;
+    evTd.appendChild(tag);
+    tr.appendChild(evTd);
+    const urlTd = document.createElement('td');
+    urlTd.className = 'mono';
+    urlTd.textContent = l.url;
+    tr.appendChild(urlTd);
+    [l.time].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const codeTd = document.createElement('td');
+    codeTd.className = l.code.startsWith('2') ? 'status-2xx' : (l.code.startsWith('4') || l.code.startsWith('5')) ? 'status-5xx' : '';
+    codeTd.textContent = l.code;
+    tr.appendChild(codeTd);
+    const durTd = document.createElement('td');
+    durTd.textContent = l.dur;
+    tr.appendChild(durTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function openModal(){ document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+async function saveWebhook(){
+  const url = document.getElementById('whUrl').value;
+  const secret = document.getElementById('whSecret').value;
+  const events = [...document.querySelectorAll('#eventChecks input:checked')].map(cb => cb.value);
+  if(!url) return;
+  try {
+    await fetch('/app/admin/webhooks', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({url, secret, events})
+    });
+  } catch(e){}
+  closeModal();
+}
+
+async function testWebhook(idx){
+  try {
+    await fetch('/app/admin/webhooks/' + idx + '/test', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function deleteWebhook(idx){
+  try {
+    await fetch('/app/admin/webhooks/' + idx, {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+renderKpis();
+renderWebhooks();
+renderEventChecks();
+renderLogs();
+</script>
+</body>
+</html>
