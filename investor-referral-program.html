@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>برنامج الإحالة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.hero{background:linear-gradient(135deg,#062b1e 0%,#0a4d36 100%);border-radius:16px;padding:2.5rem 2rem;color:#fff;text-align:center;margin-bottom:2rem;}
+.hero h3{font-size:1.6rem;font-weight:700;margin-bottom:0.5rem;}
+.hero p{font-size:0.9rem;color:rgba(255,255,255,0.75);margin-bottom:1.5rem;}
+.ref-link-box{display:flex;align-items:center;gap:0.75rem;background:rgba(255,255,255,0.12);border-radius:10px;padding:0.75rem 1rem;max-width:480px;margin:0 auto;}
+.ref-link-text{flex:1;font-size:0.85rem;color:rgba(255,255,255,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#9a7330;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.btn-outline{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.btn-outline:hover{background:rgba(255,255,255,0.25);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.2rem;text-align:center;}
+.stat-value{font-size:1.8rem;font-weight:700;color:var(--green);}
+.stat-label{font-size:0.78rem;color:var(--muted);margin-top:0.25rem;}
+.tiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:2rem;}
+.tier-card{background:#fff;border-radius:14px;border:2px solid var(--line);padding:1.5rem;text-align:center;position:relative;overflow:hidden;}
+.tier-card.active{border-color:var(--gold);}
+.tier-badge{display:inline-block;padding:0.3rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;margin-bottom:0.75rem;}
+.badge-bronze{background:#f5e6d0;color:#a0522d;}
+.badge-silver{background:#e8e8ee;color:#555;}
+.badge-gold{background:#fef3cd;color:var(--gold);}
+.tier-reward{font-size:2rem;font-weight:700;color:var(--green-dark);margin-bottom:0.4rem;}
+.tier-desc{font-size:0.8rem;color:var(--muted);}
+.tier-min{font-size:0.75rem;color:var(--muted);margin-top:0.5rem;border-top:1px solid var(--line);padding-top:0.5rem;}
+.active-tag{position:absolute;top:0.75rem;left:0.75rem;background:var(--gold);color:#fff;font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:4px;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:0;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1.25rem;background:#f5f0e8;font-size:0.78rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1.25rem;border-bottom:1px solid var(--line);font-size:0.84rem;}
+tr:last-child td{border-bottom:none;}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:0.4rem;}
+.dot-green{background:#27ae60;}
+.dot-yellow{background:#f39c12;}
+.dot-gray{background:#bbb;}
+.reward-val{color:#27ae60;font-weight:700;}
+.empty-state{padding:2.5rem;text-align:center;color:var(--muted);font-size:0.88rem;}
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr);}.tiers-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — برنامج الإحالة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>برنامج الإحالة</h2>
+    <p>ادعُ أصدقاءك واحصل على مكافأة عند استثمارهم الأول</p>
+  </div>
+
+  <div class="hero">
+    <h3>شارك وأربح معاً</h3>
+    <p>احصل على مكافأة نقدية لكل صديق يسجّل ويستثمر عبر رابط الإحالة الخاص بك</p>
+    <div class="ref-link-box">
+      <span class="ref-link-text" id="refLink">https://murabaha.example.sa/?ref=MHMD2024</span>
+      <button class="btn btn-outline btn-sm" onclick="copyLink()">نسخ</button>
+      <button class="btn btn-gold btn-sm" onclick="shareLink()">مشاركة</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="tiers-grid" id="tiersGrid"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>سجل الإحالات</h3></div>
+    <div class="card-body">
+      <table>
+        <thead><tr><th>المُحال</th><th>تاريخ التسجيل</th><th>حالة الاستثمار</th><th>المكافأة</th><th>الحالة</th></tr></thead>
+        <tbody id="referralTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>سجل المكافآت المحوّلة</h3></div>
+    <div class="card-body">
+      <table>
+        <thead><tr><th>التاريخ</th><th>المبلغ</th><th>المصدر</th><th>الحالة</th></tr></thead>
+        <tbody id="rewardTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { value: '٧', label: 'إجمالي الإحالات' },
+  { value: '٤', label: 'استثماريات مؤهلة' },
+  { value: '١٬٢٠٠', label: 'ر.س مكافآت مكتسبة' },
+  { value: '٨٠٠', label: 'ر.س جاهزة للسحب' }
+];
+
+const TIERS = [
+  { badge: 'badge-bronze', label: 'برونزي', reward: '١٥٠ ر.س', desc: 'مكافأة لكل إحالة مؤهلة', min: 'استثمار لا يقل عن ٥٬٠٠٠ ر.س', active: false },
+  { badge: 'badge-silver', label: 'فضي', reward: '٢٥٠ ر.س', desc: 'مكافأة لكل إحالة مؤهلة', min: 'بعد ٥ إحالات مؤهلة', active: true },
+  { badge: 'badge-gold', label: 'ذهبي', reward: '٤٠٠ ر.س', desc: 'مكافأة لكل إحالة مؤهلة', min: 'بعد ١٠ إحالات مؤهلة', active: false }
+];
+
+const REFERRALS = [
+  { name: 'أحمد سعيد', date: '١٠ يونيو ٢٠٢٦', invested: true, reward: '٢٥٠ ر.س', status: 'محوّلة' },
+  { name: 'سارة خالد', date: '٢ يونيو ٢٠٢٦', invested: true, reward: '٢٥٠ ر.س', status: 'محوّلة' },
+  { name: 'فيصل العمري', date: '٢٨ مايو ٢٠٢٦', invested: false, reward: '—', status: 'قيد الانتظار' },
+  { name: 'نورة الغامدي', date: '١٥ مايو ٢٠٢٦', invested: true, reward: '٢٥٠ ر.س', status: 'محوّلة' }
+];
+
+const REWARDS = [
+  { date: '١٠ يونيو ٢٠٢٦', amount: '٢٥٠ ر.س', source: 'إحالة: أحمد سعيد', status: 'مُضافة' },
+  { date: '٢ يونيو ٢٠٢٦', amount: '٢٥٠ ر.س', source: 'إحالة: سارة خالد', status: 'مُضافة' },
+  { date: '١٥ مايو ٢٠٢٦', amount: '٢٥٠ ر.س', source: 'إحالة: نورة الغامدي', status: 'مُضافة' }
+];
+
+function buildStats() {
+  const grid = document.getElementById('statsGrid');
+  STATS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    const val = document.createElement('div');
+    val.className = 'stat-value';
+    val.textContent = s.value;
+    const lbl = document.createElement('div');
+    lbl.className = 'stat-label';
+    lbl.textContent = s.label;
+    card.appendChild(val);
+    card.appendChild(lbl);
+    grid.appendChild(card);
+  });
+}
+
+function buildTiers() {
+  const grid = document.getElementById('tiersGrid');
+  TIERS.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tier-card' + (t.active ? ' active' : '');
+    if (t.active) {
+      const tag = document.createElement('span');
+      tag.className = 'active-tag';
+      tag.textContent = 'مستواك الحالي';
+      card.appendChild(tag);
+    }
+    const badge = document.createElement('span');
+    badge.className = 'tier-badge ' + t.badge;
+    badge.textContent = t.label;
+    const reward = document.createElement('div');
+    reward.className = 'tier-reward';
+    reward.textContent = t.reward;
+    const desc = document.createElement('div');
+    desc.className = 'tier-desc';
+    desc.textContent = t.desc;
+    const min = document.createElement('div');
+    min.className = 'tier-min';
+    min.textContent = t.min;
+    card.appendChild(badge);
+    card.appendChild(reward);
+    card.appendChild(desc);
+    card.appendChild(min);
+    grid.appendChild(card);
+  });
+}
+
+function buildReferrals() {
+  const tbody = document.getElementById('referralTable');
+  if (!REFERRALS.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.className = 'empty-state';
+    td.textContent = 'لا توجد إحالات بعد — شارك رابطك الآن!';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  REFERRALS.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.name, r.date].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const investedTd = document.createElement('td');
+    const dot = document.createElement('span');
+    dot.className = 'status-dot ' + (r.invested ? 'dot-green' : 'dot-yellow');
+    investedTd.appendChild(dot);
+    investedTd.appendChild(document.createTextNode(r.invested ? 'استثمر' : 'لم يستثمر بعد'));
+    tr.appendChild(investedTd);
+    const rewardTd = document.createElement('td');
+    rewardTd.className = r.reward !== '—' ? 'reward-val' : '';
+    rewardTd.textContent = r.reward;
+    tr.appendChild(rewardTd);
+    const statusTd = document.createElement('td');
+    statusTd.textContent = r.status;
+    tr.appendChild(statusTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildRewards() {
+  const tbody = document.getElementById('rewardTable');
+  REWARDS.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.date, r.amount, r.source, r.status].forEach((v, i) => {
+      const td = document.createElement('td');
+      if (i === 1) td.className = 'reward-val';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function copyLink() {
+  const link = document.getElementById('refLink').textContent;
+  navigator.clipboard.writeText(link).then(() => alert('تم نسخ رابط الإحالة!')).catch(() => {});
+}
+
+function shareLink() {
+  const link = document.getElementById('refLink').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'انضم لمُرابحة', text: 'استثمر معي في مُرابحة واحصل على عائد إسلامي', url: link });
+  } else {
+    copyLink();
+  }
+}
+
+buildStats();
+buildTiers();
+buildReferrals();
+buildRewards();
+</script>
+</body>
+</html>

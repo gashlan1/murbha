@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل التدقيق - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem 1.2rem;}
+.stat-val{font-size:1.6rem;font-weight:700;color:var(--green-dark);}
+.stat-lbl{font-size:0.76rem;color:var(--muted);margin-top:0.2rem;}
+.filters-bar{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem;display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;}
+.filters-bar select,.filters-bar input{padding:0.45rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.85rem;background:#fff;color:var(--green-dark);}
+.filters-bar select:focus,.filters-bar input:focus{outline:none;border-color:var(--green);}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1rem;background:#f5f0e8;font-size:0.77rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1rem;border-bottom:1px solid var(--line);font-size:0.82rem;vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#faf7f0;}
+.event-badge{display:inline-block;padding:0.18rem 0.55rem;border-radius:4px;font-size:0.71rem;font-weight:700;}
+.ev-auth{background:#e8f0fe;color:#1a56db;}
+.ev-data{background:#fef3cd;color:#92400e;}
+.ev-admin{background:#fde8e8;color:#c0392b;}
+.ev-invest{background:#e8f5ed;color:#1e8449;}
+.ev-system{background:#f0ebe0;color:var(--muted);}
+.severity-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:0.35rem;}
+.sev-info{background:#3498db;}
+.sev-warn{background:#f39c12;}
+.sev-crit{background:#e74c3c;}
+.meta-text{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.pagination{display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:1rem;border-top:1px solid var(--line);}
+.page-btn{padding:0.35rem 0.75rem;border:1.5px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.82rem;font-weight:600;}
+.page-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — سجل التدقيق</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>سجل التدقيق والمراقبة</h2>
+      <p>تتبع جميع الأحداث والعمليات الحساسة في النظام</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportLog()">تصدير السجل</button>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="filters-bar">
+    <select id="filterType" onchange="applyFilter()">
+      <option value="">جميع الأحداث</option>
+      <option value="auth">مصادقة</option>
+      <option value="data">بيانات</option>
+      <option value="admin">إدارة</option>
+      <option value="invest">استثمار</option>
+      <option value="system">نظام</option>
+    </select>
+    <select id="filterSeverity" onchange="applyFilter()">
+      <option value="">كل المستويات</option>
+      <option value="info">معلوماتي</option>
+      <option value="warn">تحذير</option>
+      <option value="crit">حرج</option>
+    </select>
+    <input type="date" id="filterDate" onchange="applyFilter()">
+    <input type="text" id="filterSearch" placeholder="بحث في السجل..." oninput="applyFilter()" style="flex:1;min-width:180px;">
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>أحداث النظام</h3>
+      <span id="countLabel" style="font-size:0.82rem;color:rgba(255,255,255,0.7);"></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>الوقت</th>
+          <th>نوع الحدث</th>
+          <th>المستخدم</th>
+          <th>العملية</th>
+          <th>عنوان IP</th>
+          <th>المستوى</th>
+        </tr>
+      </thead>
+      <tbody id="logTable"></tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<script>
+const STATS_DATA = [
+  { val: '١٢٬٤٥٦', lbl: 'إجمالي الأحداث اليوم' },
+  { val: '٣', lbl: 'أحداث حرجة' },
+  { val: '٢٧', lbl: 'تحذيرات' },
+  { val: '١٤٢', lbl: 'تسجيلات دخول' }
+];
+
+const LOG_DATA = [
+  { time: '٢٠٢٦-٠٦-١٥ ١٤:٢٢:١١', type: 'auth', typeLbl: 'مصادقة', user: 'ahmed@example.com', action: 'تسجيل دخول ناجح', ip: '185.42.10.1', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٤:١٨:٣٣', type: 'admin', typeLbl: 'إدارة', user: 'admin@murbha.sa', action: 'تعديل حد الاستثمار للصفقة #4892', ip: '10.0.0.5', sev: 'warn' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٤:١٥:٠٠', type: 'invest', typeLbl: 'استثمار', user: 'sara@example.com', action: 'استثمار جديد ٢٥٬٠٠٠ ر.س في صفقة #4892', ip: '91.190.2.14', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٤:١٠:٤٥', type: 'auth', typeLbl: 'مصادقة', user: 'unknown', action: 'محاولة تسجيل دخول فاشلة (٥ محاولات)', ip: '203.0.113.42', sev: 'crit' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:٥٥:١٢', type: 'data', typeLbl: 'بيانات', user: 'admin@murbha.sa', action: 'تصدير بيانات المستثمرين (٤٢٠ سجل)', ip: '10.0.0.5', sev: 'warn' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:٤٠:٠٠', type: 'system', typeLbl: 'نظام', user: 'system', action: 'نسخ احتياطي تلقائي مكتمل', ip: '10.0.0.1', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:٣٠:٢٢', type: 'invest', typeLbl: 'استثمار', user: 'khalid@example.com', action: 'طلب سحب ١٠٬٠٠٠ ر.س', ip: '77.14.3.88', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:٢٠:٠٠', type: 'admin', typeLbl: 'إدارة', user: 'admin@murbha.sa', action: 'تفعيل صفقة مرابحة جديدة #4900', ip: '10.0.0.5', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:١٠:١٥', type: 'auth', typeLbl: 'مصادقة', user: 'nora@example.com', action: 'تغيير كلمة المرور بنجاح', ip: '41.130.10.9', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٣:٠٠:٠٥', type: 'data', typeLbl: 'بيانات', user: 'system', action: 'تحديث أسعار العملات والمعدلات', ip: '10.0.0.1', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٢:٥٠:٣٣', type: 'system', typeLbl: 'نظام', user: 'system', action: 'تنظيف الجلسات المنتهية', ip: '10.0.0.1', sev: 'info' },
+  { time: '٢٠٢٦-٠٦-١٥ ١٢:٤٠:١١', type: 'admin', typeLbl: 'إدارة', user: 'admin@murbha.sa', action: 'تعديل إعدادات Webhook #3', ip: '10.0.0.5', sev: 'info' }
+];
+
+const TYPE_CLASS = { auth:'ev-auth', data:'ev-data', admin:'ev-admin', invest:'ev-invest', system:'ev-system' };
+const SEV_CLASS = { info:'sev-info', warn:'sev-warn', crit:'sev-crit' };
+const SEV_LBL = { info:'معلوماتي', warn:'تحذير', crit:'حرج' };
+
+const PAGE_SIZE = 8;
+let filtered = [...LOG_DATA];
+let page = 1;
+
+function buildStats() {
+  const grid = document.getElementById('statsGrid');
+  STATS_DATA.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    const v = document.createElement('div');
+    v.className = 'stat-val';
+    v.textContent = s.val;
+    const l = document.createElement('div');
+    l.className = 'stat-lbl';
+    l.textContent = s.lbl;
+    card.appendChild(v);
+    card.appendChild(l);
+    grid.appendChild(card);
+  });
+}
+
+function applyFilter() {
+  const type = document.getElementById('filterType').value;
+  const sev = document.getElementById('filterSeverity').value;
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+  filtered = LOG_DATA.filter(e =>
+    (!type || e.type === type) &&
+    (!sev || e.sev === sev) &&
+    (!search || e.user.toLowerCase().includes(search) || e.action.toLowerCase().includes(search) || e.ip.includes(search))
+  );
+  page = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('logTable');
+  tbody.textContent = '';
+  const start = (page - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('countLabel').textContent = filtered.length + ' حدث';
+
+  if (!slice.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    td.style.textAlign = 'center';
+    td.style.padding = '2rem';
+    td.style.color = 'var(--muted)';
+    td.textContent = 'لا توجد نتائج';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    renderPagination();
+    return;
+  }
+
+  slice.forEach(e => {
+    const tr = document.createElement('tr');
+
+    const timeTd = document.createElement('td');
+    timeTd.textContent = e.time;
+    timeTd.style.fontSize = '0.78rem';
+    timeTd.style.color = 'var(--muted)';
+    tr.appendChild(timeTd);
+
+    const typeTd = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'event-badge ' + (TYPE_CLASS[e.type] || '');
+    badge.textContent = e.typeLbl;
+    typeTd.appendChild(badge);
+    tr.appendChild(typeTd);
+
+    const userTd = document.createElement('td');
+    userTd.textContent = e.user;
+    tr.appendChild(userTd);
+
+    const actionTd = document.createElement('td');
+    actionTd.textContent = e.action;
+    tr.appendChild(actionTd);
+
+    const ipTd = document.createElement('td');
+    ipTd.textContent = e.ip;
+    ipTd.style.fontFamily = 'monospace';
+    ipTd.style.fontSize = '0.8rem';
+    tr.appendChild(ipTd);
+
+    const sevTd = document.createElement('td');
+    const dot = document.createElement('span');
+    dot.className = 'severity-dot ' + (SEV_CLASS[e.sev] || '');
+    sevTd.appendChild(dot);
+    sevTd.appendChild(document.createTextNode(SEV_LBL[e.sev] || e.sev));
+    tr.appendChild(sevTd);
+
+    tbody.appendChild(tr);
+  });
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const pages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pag = document.getElementById('pagination');
+  pag.textContent = '';
+  if (pages <= 1) return;
+  for (let i = 1; i <= pages; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
+    btn.textContent = i;
+    btn.onclick = () => { page = i; renderTable(); };
+    pag.appendChild(btn);
+  }
+}
+
+function exportLog() {
+  fetch('/app/admin/audit-log/export')
+    .then(r => r.json())
+    .then(() => alert('جاري تنزيل السجل...'))
+    .catch(() => alert('جاري تنزيل السجل... (وضع عرض)'));
+}
+
+buildStats();
+applyFilter();
+</script>
+</body>
+</html>
