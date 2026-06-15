@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اختبار ضغط المحفظة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.result-banner{border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;text-align:center;}
+.result-banner.healthy{background:linear-gradient(135deg,var(--green-dark),var(--green));}
+.result-banner.stressed{background:linear-gradient(135deg,#7d3400,#e67e22);}
+.rb-val{font-size:1.5rem;font-weight:700;color:#b8e6cf;}
+.rb-lbl{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.scenario-list{padding:1rem;}
+.scenario-item{border:1px solid var(--line);border-radius:10px;padding:0.85rem;margin-bottom:0.5rem;cursor:pointer;transition:border-color 0.15s;}
+.scenario-item:hover,.scenario-item.active{border-color:var(--green);}
+.scenario-item:last-child{margin-bottom:0;}
+.sc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;}
+.sc-name{font-size:0.86rem;font-weight:700;}
+.sc-pill{padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-mild{background:#e8f5ed;color:#1e8449;}
+.pill-mod{background:#fef3cd;color:#92400e;}
+.pill-severe{background:#fde8e8;color:#c0392b;}
+.sc-desc{font-size:0.74rem;color:var(--muted);}
+.result-table{padding:1.25rem;}
+.rt-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.rt-row:last-child{border-bottom:none;}
+.rt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.val-pos{color:var(--green);font-weight:700;}
+.val-neg{color:#c0392b;font-weight:700;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.result-banner{grid-template-columns:1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — اختبار ضغط المحفظة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>اختبار ضغط المحفظة الاستثمارية</h2>
+      <p>قيّم صمود محفظتك في ظل سيناريوهات اقتصادية ضاغطة</p>
+    </div>
+    <button class="btn btn-gold" onclick="runTest()">تشغيل اختبار الضغط</button>
+  </div>
+
+  <div class="result-banner healthy" id="resultBanner"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>سيناريوهات الاختبار</h3></div>
+      <div class="scenario-list" id="scenarioList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>نتائج التحليل</h3></div>
+      <div class="result-table" id="resultTable"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>تأثير الضغط على الصفقات الفردية</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportResults()">تصدير</button>
+    </div>
+    <div class="result-table" id="dealImpactTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="runTest()">إعادة الاختبار</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportResults()">تصدير النتائج</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BANNER = [
+  { val: '٩٢٪', lbl: 'نسبة الصمود' },
+  { val: '-١٢.٣٪', lbl: 'أقصى خسارة متوقعة' },
+  { val: 'متوسط', lbl: 'مستوى المخاطرة الكلي' }
+];
+
+const SCENARIOS = [
+  { name: 'تراجع اقتصادي طفيف', pill: 'pill-mild', label: 'خفيف', desc: 'انخفاض ٥٪ في الإيرادات لمدة ربع سنة', active: true },
+  { name: 'أزمة سيولة قطاعية', pill: 'pill-mod', label: 'متوسط', desc: 'تأخر في السداد بنسبة ٢٠٪ من الصفقات', active: false },
+  { name: 'انكماش اقتصادي حاد', pill: 'pill-severe', label: 'حاد', desc: 'تعثر ١٠٪ من الصفقات وتراجع ٣٠٪ في القيمة', active: false },
+  { name: 'أزمة نقدية إقليمية', pill: 'pill-severe', label: 'حاد', desc: 'ارتفاع حاد في تكاليف التمويل وتجمد السيولة', active: false }
+];
+
+const RESULTS = [
+  { metric: 'قيمة المحفظة الحالية', base: '٥٠٠,٠٠٠ ر.س', stressed: '٤٩٧,٥٠٠ ر.س' },
+  { metric: 'الدخل المتوقع (السنوي)', base: '٤٢,٥٠٠ ر.س', stressed: '٤٠,٣٧٥ ر.س' },
+  { metric: 'صفقات في خطر', base: '٠', stressed: '١' },
+  { metric: 'نسبة السيولة', base: '٩٨٪', stressed: '٩٥٪' }
+];
+
+const DEAL_IMPACT = [
+  { deal: 'صفقة تجهيزات #4920', current: '٨٠,٠٠٠ ر.س', stressed: '٧٨,٤٠٠ ر.س', impact: '-٢٪' },
+  { deal: 'صفقة نقل #4918', current: '٦٠,٠٠٠ ر.س', stressed: '٥٨,٨٠٠ ر.س', impact: '-٢٪' },
+  { deal: 'صفقة تقنية #4921', current: '١٠٠,٠٠٠ ر.س', stressed: '٩٧,٠٠٠ ر.س', impact: '-٣٪' },
+  { deal: 'صفقة بناء #4915', current: '١٢٠,٠٠٠ ر.س', stressed: '١١٦,٤٠٠ ر.س', impact: '-٣٪' }
+];
+
+function buildBanner() {
+  const wrap = document.getElementById('resultBanner');
+  BANNER.forEach(b => {
+    const item = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'rb-val'; val.textContent = b.val;
+    const lbl = document.createElement('div'); lbl.className = 'rb-lbl'; lbl.textContent = b.lbl;
+    item.appendChild(val); item.appendChild(lbl);
+    wrap.appendChild(item);
+  });
+}
+
+function buildScenarios() {
+  const wrap = document.getElementById('scenarioList');
+  SCENARIOS.forEach((s, i) => {
+    const item = document.createElement('div'); item.className = 'scenario-item' + (s.active ? ' active' : '');
+    item.onclick = () => {
+      document.querySelectorAll('.scenario-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+    };
+    const head = document.createElement('div'); head.className = 'sc-head';
+    const name = document.createElement('span'); name.className = 'sc-name'; name.textContent = s.name;
+    const pill = document.createElement('span'); pill.className = 'sc-pill ' + s.pill; pill.textContent = s.label;
+    head.appendChild(name); head.appendChild(pill);
+    const desc = document.createElement('div'); desc.className = 'sc-desc'; desc.textContent = s.desc;
+    item.appendChild(head); item.appendChild(desc);
+    wrap.appendChild(item);
+  });
+}
+
+function buildResults() {
+  const wrap = document.getElementById('resultTable');
+  const header = document.createElement('div'); header.className = 'rt-row rt-header';
+  ['المقياس', 'الوضع الحالي', 'تحت الضغط'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  RESULTS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'rt-row';
+    const metric = document.createElement('div'); metric.style.fontWeight = '700'; metric.textContent = r.metric;
+    const base = document.createElement('div'); base.className = 'val-pos'; base.textContent = r.base;
+    const stressed = document.createElement('div'); stressed.className = 'val-neg'; stressed.textContent = r.stressed;
+    row.appendChild(metric); row.appendChild(base); row.appendChild(stressed);
+    wrap.appendChild(row);
+  });
+}
+
+function buildDealImpact() {
+  const wrap = document.getElementById('dealImpactTable');
+  const header = document.createElement('div'); header.className = 'rt-row rt-header';
+  ['الصفقة', 'القيمة الحالية', 'التأثير'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  DEAL_IMPACT.forEach(d => {
+    const row = document.createElement('div'); row.className = 'rt-row';
+    const deal = document.createElement('div'); deal.style.fontWeight = '700'; deal.textContent = d.deal;
+    const current = document.createElement('div'); current.textContent = d.current;
+    const impact = document.createElement('div'); impact.className = 'val-neg'; impact.textContent = d.impact;
+    row.appendChild(deal); row.appendChild(current); row.appendChild(impact);
+    wrap.appendChild(row);
+  });
+}
+
+function runTest() {
+  fetch('/app/me/portfolio-stress-test', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'run' }) }).catch(() => {});
+  alert('تم تشغيل اختبار الضغط. النتائج محدّثة.');
+}
+
+function exportResults() {
+  fetch('/app/me/portfolio-stress-test/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير نتائج اختبار الضغط...');
+}
+
+buildBanner(); buildScenarios(); buildResults(); buildDealImpact();
+</script>
+</body>
+</html>

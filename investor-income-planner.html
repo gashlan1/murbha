@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مخطط الدخل - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.summary-banner{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;text-align:center;}
+.sb-val{font-size:1.6rem;font-weight:700;color:#b8e6cf;}
+.sb-lbl{font-size:0.75rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.planner-form{padding:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;}
+.result-card{background:var(--paper);border-radius:10px;padding:1rem;margin-top:1rem;border:1px solid var(--line);}
+.rc-row{display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.rc-row:last-child{border-bottom:none;}
+.rc-lbl{color:var(--muted);}
+.rc-val{font-weight:700;color:var(--green);}
+.schedule-list{padding:1.25rem;}
+.schedule-item{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.schedule-item:last-child{border-bottom:none;}
+.si-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.bar-wrap{height:4px;border-radius:2px;background:#e8e2d6;margin-top:0.4rem;}
+.bar-fill{height:100%;border-radius:2px;background:var(--gold);}
+@media(max-width:800px){.summary-banner{grid-template-columns:1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مخطط الدخل</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مخطط الدخل الاستثماري</h2>
+      <p>توقّع تدفقاتك النقدية وخطّط لدخلك من صفقات المرابحة</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportPlan()">تصدير الخطة</button>
+  </div>
+
+  <div class="summary-banner" id="summaryBanner"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>إعدادات المخطط</h3></div>
+      <div class="planner-form" id="plannerForm"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>جدول الدخل المتوقع</h3></div>
+      <div class="schedule-list" id="scheduleList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>ملخص توزيع الدخل</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportPlan()">تصدير</button>
+    </div>
+    <div class="schedule-list" id="distributionTable"></div>
+  </div>
+</div>
+
+<script>
+const SUMMARY = [
+  { val: '٤٢,٠٠٠ ر.س', lbl: 'الدخل السنوي المتوقع' },
+  { val: '٣,٥٠٠ ر.س', lbl: 'متوسط الدخل الشهري' },
+  { val: '٨.٤٪', lbl: 'معدل العائد السنوي' }
+];
+
+const PLANNER_FIELDS = [
+  { label: 'إجمالي المحفظة (ر.س)', type: 'input', value: '500000' },
+  { label: 'معدل العائد المستهدف (%)', type: 'input', value: '8.5' },
+  { label: 'مدة التخطيط', type: 'select', opts: ['١ سنة', '٢ سنة', '٣ سنوات', '٥ سنوات'] },
+  { label: 'توزيع الدخل', type: 'select', opts: ['شهري', 'ربع سنوي', 'نصف سنوي', 'سنوي'] }
+];
+
+const SCHEDULE = [
+  { period: 'يناير ٢٠٢٦', expected: '٣,٥٠٠ ر.س', deals: '٤ صفقات', pct: 80 },
+  { period: 'فبراير ٢٠٢٦', expected: '٣,٨٠٠ ر.س', deals: '٥ صفقات', pct: 88 },
+  { period: 'مارس ٢٠٢٦', expected: '٤,١٠٠ ر.س', deals: '٥ صفقات', pct: 95 },
+  { period: 'أبريل ٢٠٢٦', expected: '٣,٢٠٠ ر.س', deals: '٣ صفقات', pct: 70 },
+  { period: 'مايو ٢٠٢٦', expected: '٤,٥٠٠ ر.س', deals: '٦ صفقات', pct: 100 },
+  { period: 'يونيو ٢٠٢٦', expected: '٣,٩٠٠ ر.س', deals: '٤ صفقات', pct: 90 }
+];
+
+const DISTRIBUTION = [
+  { type: 'صفقات تجارية', amount: '١٨,٠٠٠ ر.س', pct: '٤٣٪', bar: 43 },
+  { type: 'صفقات لوجستية', amount: '١٢,٦٠٠ ر.س', pct: '٣٠٪', bar: 30 },
+  { type: 'صفقات تقنية', amount: '٧,٥٦٠ ر.س', pct: '١٨٪', bar: 18 },
+  { type: 'صفقات أخرى', amount: '٣,٨٤٠ ر.س', pct: '٩٪', bar: 9 }
+];
+
+function buildBanner() {
+  const wrap = document.getElementById('summaryBanner');
+  SUMMARY.forEach(s => {
+    const item = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'sb-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'sb-lbl'; lbl.textContent = s.lbl;
+    item.appendChild(val); item.appendChild(lbl);
+    wrap.appendChild(item);
+  });
+}
+
+function buildForm() {
+  const wrap = document.getElementById('plannerForm');
+  PLANNER_FIELDS.forEach(f => {
+    const group = document.createElement('div'); group.className = 'form-group';
+    const label = document.createElement('label'); label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+    } else {
+      input = document.createElement('input'); input.type = 'text'; input.value = f.value || '';
+    }
+    group.appendChild(label); group.appendChild(input);
+    wrap.appendChild(group);
+  });
+  const btn = document.createElement('button'); btn.className = 'btn btn-primary'; btn.style.width = '100%';
+  btn.textContent = 'احسب الدخل المتوقع';
+  btn.onclick = calculateIncome;
+  wrap.appendChild(btn);
+  const result = document.createElement('div'); result.className = 'result-card'; result.id = 'calcResult';
+  const rows = [
+    { lbl: 'الدخل السنوي المتوقع', val: '٤٢,٥٠٠ ر.س' },
+    { lbl: 'الدخل الشهري المتوقع', val: '٣,٥٤٢ ر.س' },
+    { lbl: 'العائد الفعلي المتوقع', val: '٨.٥٪' }
+  ];
+  rows.forEach(r => {
+    const row = document.createElement('div'); row.className = 'rc-row';
+    const lbl = document.createElement('span'); lbl.className = 'rc-lbl'; lbl.textContent = r.lbl;
+    const val = document.createElement('span'); val.className = 'rc-val'; val.textContent = r.val;
+    row.appendChild(lbl); row.appendChild(val);
+    result.appendChild(row);
+  });
+  wrap.appendChild(result);
+}
+
+function buildSchedule() {
+  const wrap = document.getElementById('scheduleList');
+  const header = document.createElement('div'); header.className = 'schedule-item si-header';
+  ['الفترة', 'الدخل المتوقع', 'الصفقات', 'التقدم'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  SCHEDULE.forEach(s => {
+    const item = document.createElement('div'); item.className = 'schedule-item';
+    const period = document.createElement('div'); period.style.fontWeight = '700'; period.textContent = s.period;
+    const exp = document.createElement('div'); exp.style.color = 'var(--green)'; exp.style.fontWeight = '700'; exp.textContent = s.expected;
+    const deals = document.createElement('div'); deals.style.color = 'var(--muted)'; deals.textContent = s.deals;
+    const barWrap = document.createElement('div');
+    const bar = document.createElement('div'); bar.className = 'bar-wrap';
+    const fill = document.createElement('div'); fill.className = 'bar-fill'; fill.style.width = s.pct + '%';
+    bar.appendChild(fill); barWrap.appendChild(bar);
+    item.appendChild(period); item.appendChild(exp); item.appendChild(deals); item.appendChild(barWrap);
+    wrap.appendChild(item);
+  });
+}
+
+function buildDistribution() {
+  const wrap = document.getElementById('distributionTable');
+  const header = document.createElement('div'); header.className = 'schedule-item si-header';
+  ['نوع الصفقة', 'الدخل المتوقع', 'النسبة', 'التوزيع'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  DISTRIBUTION.forEach(d => {
+    const item = document.createElement('div'); item.className = 'schedule-item';
+    const type = document.createElement('div'); type.style.fontWeight = '700'; type.textContent = d.type;
+    const amount = document.createElement('div'); amount.style.color = 'var(--green)'; amount.textContent = d.amount;
+    const pct = document.createElement('div'); pct.style.color = 'var(--gold)'; pct.style.fontWeight = '700'; pct.textContent = d.pct;
+    const barWrap = document.createElement('div');
+    const bar = document.createElement('div'); bar.className = 'bar-wrap';
+    const fill = document.createElement('div'); fill.className = 'bar-fill'; fill.style.width = d.bar + '%';
+    bar.appendChild(fill); barWrap.appendChild(bar);
+    item.appendChild(type); item.appendChild(amount); item.appendChild(pct); item.appendChild(barWrap);
+    wrap.appendChild(item);
+  });
+}
+
+function calculateIncome() {
+  fetch('/app/me/income-planner', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'calculate' }) }).catch(() => {});
+  alert('تم احتساب الدخل المتوقع بنجاح.');
+}
+
+function exportPlan() {
+  fetch('/app/me/income-planner/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير خطة الدخل...');
+}
+
+buildBanner(); buildForm(); buildSchedule(); buildDistribution();
+</script>
+</body>
+</html>

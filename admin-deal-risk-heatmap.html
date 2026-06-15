@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>خريطة مخاطر الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-val.danger{color:#c0392b;}
+.stat-val.warn{color:#e67e22;}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.heatmap-grid{padding:1.25rem;overflow-x:auto;}
+.hm-table{width:100%;border-collapse:separate;border-spacing:4px;}
+.hm-label{font-size:0.72rem;font-weight:700;color:var(--muted);text-align:center;padding:0.3rem;}
+.hm-cell{border-radius:6px;padding:0.6rem 0.4rem;text-align:center;font-size:0.72rem;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.hm-cell:hover{opacity:0.8;}
+.risk-low{background:#e8f5ed;color:#1e8449;}
+.risk-med{background:#fef3cd;color:#92400e;}
+.risk-high{background:#fde8e8;color:#c0392b;}
+.risk-crit{background:#c0392b;color:#fff;}
+.risk-none{background:#f5f0e8;color:var(--muted);}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.risk-list{padding:1.25rem;}
+.risk-item{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.risk-item:last-child{border-bottom:none;}
+.risk-name{font-weight:700;}
+.risk-badge{padding:0.15rem 0.6rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.badge-low{background:#e8f5ed;color:#1e8449;}
+.badge-med{background:#fef3cd;color:#92400e;}
+.badge-high{background:#fde8e8;color:#c0392b;}
+.badge-crit{background:#c0392b;color:#fff;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — خريطة مخاطر الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>خريطة حرارة مخاطر الصفقات</h2>
+      <p>رصد وتصنيف مستويات المخاطر عبر جميع الصفقات النشطة</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportHeatmap()">تصدير التقرير</button>
+  </div>
+
+  <div class="stats" id="hmStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>خريطة الحرارة — الاحتمالية × التأثير</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportHeatmap()">تصدير</button>
+    </div>
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الصفقات عالية الخطورة</h3></div>
+      <div class="risk-list" id="highRiskList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع مستويات الخطر</h3></div>
+      <div class="risk-list" id="riskDistList"></div>
+    </div>
+  </div>
+
+  <div class="action-bar" style="background:#fff;border-radius:14px;border:1px solid var(--line);">
+    <button class="btn btn-primary btn-sm" onclick="refreshHeatmap()">تحديث البيانات</button>
+    <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportHeatmap()">تصدير التقرير</button>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٤٨', lbl: 'إجمالي الصفقات', cls: '' },
+  { val: '٣', lbl: 'خطر حرج', cls: 'danger' },
+  { val: '٨', lbl: 'خطر عالٍ', cls: 'warn' },
+  { val: '٣٧', lbl: 'خطر منخفض-متوسط', cls: '' }
+];
+
+const HEATMAP = [
+  ['—', 'منخفض', 'متوسط', 'عالٍ', 'حرج'],
+  ['مرتفع جداً', 'risk-med', 'risk-high', 'risk-crit', 'risk-crit'],
+  ['مرتفع', 'risk-low', 'risk-med', 'risk-high', 'risk-crit'],
+  ['متوسط', 'risk-low', 'risk-low', 'risk-med', 'risk-high'],
+  ['منخفض', 'risk-none', 'risk-low', 'risk-low', 'risk-med']
+];
+
+const HM_COUNTS = [
+  [null, null, null, null, null],
+  [null, '٢', '٤', '٢', '١'],
+  [null, '٦', '٨', '٣', '٢'],
+  [null, '٩', '٧', '٢', '١'],
+  [null, '٣', '٤', '٢', '٢']
+];
+
+const HIGH_RISK = [
+  { name: 'صفقة تصنيع #4922', badge: 'badge-crit', label: 'حرج' },
+  { name: 'صفقة استيراد #4910', badge: 'badge-high', label: 'عالٍ' },
+  { name: 'صفقة إنشاء #4905', badge: 'badge-high', label: 'عالٍ' },
+  { name: 'صفقة تصدير #4919', badge: 'badge-high', label: 'عالٍ' }
+];
+
+const DIST = [
+  { label: 'خطر حرج', count: '٣', pct: '٦٪', badge: 'badge-crit' },
+  { label: 'خطر عالٍ', count: '٨', pct: '١٧٪', badge: 'badge-high' },
+  { label: 'خطر متوسط', count: '١٤', pct: '٢٩٪', badge: 'badge-med' },
+  { label: 'خطر منخفض', count: '٢٣', pct: '٤٨٪', badge: 'badge-low' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('hmStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val' + (s.cls ? ' ' + s.cls : ''); val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildHeatmap() {
+  const wrap = document.getElementById('heatmapGrid');
+  const rowLabel = document.createElement('div'); rowLabel.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;font-weight:700;'; rowLabel.textContent = 'الاحتمالية ← / التأثير ↓';
+  wrap.appendChild(rowLabel);
+  const table = document.createElement('table'); table.className = 'hm-table';
+  HEATMAP.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    row.forEach((cell, ci) => {
+      const td = document.createElement(ri === 0 || ci === 0 ? 'th' : 'td');
+      if (ri === 0 || ci === 0) {
+        td.className = 'hm-label'; td.textContent = cell;
+      } else {
+        const cls = cell;
+        td.className = 'hm-cell ' + cls;
+        const count = HM_COUNTS[ri][ci];
+        td.textContent = count || '—';
+      }
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+  wrap.appendChild(table);
+  const legend = document.createElement('div'); legend.style.cssText = 'display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;font-size:0.72rem;';
+  [['risk-low','منخفض'],['risk-med','متوسط'],['risk-high','عالٍ'],['risk-crit','حرج']].forEach(([cls, lbl]) => {
+    const item = document.createElement('div'); item.style.display = 'flex'; item.style.alignItems = 'center'; item.style.gap = '0.3rem';
+    const dot = document.createElement('div'); dot.className = 'hm-cell ' + cls; dot.style.cssText = 'width:16px;height:16px;border-radius:4px;padding:0;';
+    const text = document.createElement('span'); text.textContent = lbl;
+    item.appendChild(dot); item.appendChild(text);
+    legend.appendChild(item);
+  });
+  wrap.appendChild(legend);
+}
+
+function buildHighRisk() {
+  const wrap = document.getElementById('highRiskList');
+  HIGH_RISK.forEach(r => {
+    const item = document.createElement('div'); item.className = 'risk-item';
+    const name = document.createElement('span'); name.className = 'risk-name'; name.textContent = r.name;
+    const badge = document.createElement('span'); badge.className = 'risk-badge ' + r.badge; badge.textContent = r.label;
+    item.appendChild(name); item.appendChild(badge);
+    wrap.appendChild(item);
+  });
+}
+
+function buildDistribution() {
+  const wrap = document.getElementById('riskDistList');
+  DIST.forEach(d => {
+    const item = document.createElement('div'); item.className = 'risk-item';
+    const left = document.createElement('div');
+    const badge = document.createElement('span'); badge.className = 'risk-badge ' + d.badge; badge.textContent = d.label;
+    const count = document.createElement('span'); count.style.cssText = 'margin-right:0.5rem;font-weight:700;';
+    count.textContent = d.count + ' صفقات';
+    left.appendChild(badge); left.appendChild(count);
+    const pct = document.createElement('span'); pct.style.color = 'var(--muted)'; pct.textContent = d.pct;
+    item.appendChild(left); item.appendChild(pct);
+    wrap.appendChild(item);
+  });
+}
+
+function refreshHeatmap() {
+  fetch('/app/admin/deal-risk-heatmap', { method: 'GET' }).then(r => r.json()).catch(() => {});
+  alert('تم تحديث بيانات خريطة المخاطر.');
+}
+
+function exportHeatmap() {
+  fetch('/app/admin/deal-risk-heatmap/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير المخاطر...');
+}
+
+buildStats(); buildHeatmap(); buildHighRisk(); buildDistribution();
+</script>
+</body>
+</html>
