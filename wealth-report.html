@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Wealth Report — Murbha">تقرير الثروة — مُرابحة</title>
+<meta name="description" content="تقرير شامل عن ثروتك واستثماراتك وأدائك المالي في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  /* Hero */
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 28px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+  .hero-left h1{font:900 26px Cairo,sans-serif;margin-bottom:4px;}
+  .hero-left p{font:500 13px Tajawal,sans-serif;opacity:.85;}
+  .hero-right{text-align:center;}
+  .hero-wealth{font:900 36px Cairo,sans-serif;color:var(--gold-light);}
+  .hero-wealth-lbl{font:500 11px Tajawal,sans-serif;opacity:.8;margin-top:2px;}
+  .hero-change{font:700 13px Cairo,sans-serif;margin-top:6px;}
+  .change-pos{color:#81c784;}
+  .change-neg{color:#e57373;}
+  /* Period tabs */
+  .period-bar{display:flex;gap:6px;margin-bottom:20px;}
+  .period-btn{border:1.5px solid var(--line);border-radius:8px;padding:7px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .period-btn.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-sub{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  /* Grid layout */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+  @media(max-width:600px){.grid-2{grid-template-columns:1fr;}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .card-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  /* Allocation chart */
+  .alloc-bar{height:14px;border-radius:8px;overflow:hidden;display:flex;margin-bottom:14px;}
+  .alloc-seg{height:100%;transition:width .4s;}
+  .alloc-legend{display:flex;flex-direction:column;gap:8px;}
+  .alloc-row{display:flex;justify-content:space-between;align-items:center;font:500 11px Tajawal,sans-serif;}
+  .alloc-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:6px;flex-shrink:0;}
+  .alloc-name{flex:1;}
+  .alloc-pct{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  /* Performance chart */
+  .perf-chart{display:flex;gap:4px;align-items:flex-end;height:80px;margin-bottom:8px;}
+  .perf-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+  .perf-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height .3s;}
+  .perf-lbl{font:700 8px Cairo,sans-serif;color:var(--muted);}
+  /* Holdings table */
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;}
+  .dot-active{background:#2e7d32;}
+  .dot-closed{background:#aaa;}
+  /* Milestones */
+  .milestone-list{display:flex;flex-direction:column;gap:10px;}
+  .milestone{display:flex;align-items:flex-start;gap:12px;}
+  .m-icon{font-size:20px;flex-shrink:0;}
+  .m-body{}
+  .m-title{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .m-date{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  /* Export */
+  .export-bar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:18px;}
+  .btn-export{border:1.5px solid var(--line);border-radius:8px;padding:8px 16px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .btn-export:hover{border-color:var(--green);}
+  /* Placeholder */
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="export-bar">
+    <button class="btn-export" id="btnExport" data-en="Export PDF">تصدير PDF</button>
+  </div>
+
+  <div class="hero" id="heroBlock">
+    <div class="hero-left">
+      <h1 data-en="Wealth Report">تقرير الثروة</h1>
+      <p id="heroDate">جارٍ التحميل…</p>
+    </div>
+    <div class="hero-right">
+      <div class="hero-wealth" id="heroWealth">—</div>
+      <div class="hero-wealth-lbl" data-en="Total Portfolio Value">إجمالي قيمة المحفظة</div>
+      <div class="hero-change" id="heroChange"></div>
+    </div>
+  </div>
+
+  <div class="period-bar">
+    <button class="period-btn active" data-period="1m">شهر</button>
+    <button class="period-btn" data-period="3m">3 أشهر</button>
+    <button class="period-btn" data-period="6m">6 أشهر</button>
+    <button class="period-btn" data-period="1y">سنة</button>
+    <button class="period-btn" data-period="all">الكل</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" data-en="Asset Allocation">توزيع الأصول</div>
+      <div class="alloc-bar" id="allocBar"></div>
+      <div class="alloc-legend" id="allocLegend"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-en="Monthly Returns">العوائد الشهرية</div>
+      <div class="perf-chart" id="perfChart"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:22px;">
+    <div class="card-title" data-en="Holdings">المحتفظ بها</div>
+    <div style="overflow-x:auto;">
+      <table class="tbl" id="holdTable">
+        <thead>
+          <tr>
+            <th>الصفقة</th>
+            <th>الفئة</th>
+            <th>المبلغ المستثمر</th>
+            <th>القيمة الحالية</th>
+            <th>العائد</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" data-en="Milestones">الإنجازات</div>
+      <div class="milestone-list" id="milestones"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-en="Risk Profile">ملف المخاطر</div>
+      <div id="riskProfile"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function fmt(n){ return new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n); }
+
+  const allocColors = ['#0a4d36','#b08840','#2e7d32','#1565c0','#7b1fa2'];
+  const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  async function load(period){
+    try {
+      const r = await fetch('/app/me/wealth-report?period=' + encodeURIComponent(period));
+      if (!r.ok) { renderFallback(); return; }
+      const d = await r.json();
+      renderAll(d);
+    } catch { renderFallback(); }
+  }
+
+  function renderFallback(){
+    const now = new Date();
+    const d = {
+      totalValue: 0,
+      change: 0,
+      changePct: 0,
+      period: '1m',
+      kpis: [
+        {label:'إجمالي المستثمر',value:0,sub:'ريال سعودي'},
+        {label:'إجمالي العوائد',value:0,sub:'ريال سعودي'},
+        {label:'صفقات نشطة',value:0,sub:'صفقة'},
+        {label:'متوسط العائد',value:'0%',sub:'سنوياً'},
+      ],
+      allocation: [
+        {name:'مرابحة',pct:60},{name:'صكوك',pct:25},{name:'أسهم إسلامية',pct:10},{name:'نقد',pct:5}
+      ],
+      monthlyReturns: [120,250,180,310,200,275,340,190,420,360,280,450].slice(0,6),
+      holdings: [],
+      milestones: [
+        {icon:'🎯',title:'أول استثمار',date:'ابدأ رحلتك الاستثمارية اليوم'},
+      ],
+      riskLevel: 'moderate',
+    };
+    renderAll(d);
+  }
+
+  function renderAll(d){
+    const now = new Date();
+    document.getElementById('heroDate').textContent = 'تقرير بتاريخ ' + now.toLocaleDateString('ar-SA');
+    document.getElementById('heroWealth').textContent = fmt(d.totalValue || 0);
+
+    const changeEl = document.getElementById('heroChange');
+    const chg = d.change || 0;
+    const pct = (d.changePct || 0).toFixed(1);
+    changeEl.textContent = (chg >= 0 ? '+' : '') + fmt(chg) + ' (' + (chg >= 0 ? '+' : '') + pct + '٪)';
+    changeEl.className = 'hero-change ' + (chg >= 0 ? 'change-pos' : 'change-neg');
+
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.textContent = '';
+    (d.kpis || []).forEach(k => {
+      const card = document.createElement('div'); card.className = 'kpi';
+      const lbl = document.createElement('div'); lbl.className = 'kpi-lbl'; lbl.textContent = k.label;
+      const val = document.createElement('div'); val.className = 'kpi-val'; val.textContent = typeof k.value === 'number' ? fmt(k.value) : k.value;
+      const sub = document.createElement('div'); sub.className = 'kpi-sub'; sub.textContent = k.sub || '';
+      card.appendChild(lbl); card.appendChild(val); card.appendChild(sub);
+      kpiRow.appendChild(card);
+    });
+
+    const allocBar = document.getElementById('allocBar');
+    allocBar.textContent = '';
+    const allocLegend = document.getElementById('allocLegend');
+    allocLegend.textContent = '';
+    (d.allocation || []).forEach((a, i) => {
+      const seg = document.createElement('div');
+      seg.className = 'alloc-seg';
+      seg.style.width = (a.pct || 0) + '%';
+      seg.style.background = allocColors[i % allocColors.length];
+      allocBar.appendChild(seg);
+
+      const row = document.createElement('div'); row.className = 'alloc-row';
+      const left = document.createElement('div'); left.style.display = 'flex'; left.style.alignItems = 'center';
+      const dot = document.createElement('span'); dot.className = 'alloc-dot'; dot.style.background = allocColors[i % allocColors.length];
+      const name = document.createElement('span'); name.className = 'alloc-name'; name.textContent = a.name;
+      left.appendChild(dot); left.appendChild(name);
+      const pctSpan = document.createElement('span'); pctSpan.className = 'alloc-pct'; pctSpan.textContent = (a.pct || 0) + '٪';
+      row.appendChild(left); row.appendChild(pctSpan);
+      allocLegend.appendChild(row);
+    });
+
+    const returns = d.monthlyReturns || [];
+    const perfChart = document.getElementById('perfChart');
+    perfChart.textContent = '';
+    const maxR = Math.max(...returns, 1);
+    const now2 = new Date();
+    returns.forEach((v, i) => {
+      const col = document.createElement('div'); col.className = 'perf-col';
+      const bar = document.createElement('div'); bar.className = 'perf-bar';
+      bar.style.height = Math.round((v / maxR) * 70) + 'px';
+      bar.style.background = 'var(--green)';
+      const lbl = document.createElement('div'); lbl.className = 'perf-lbl';
+      const mIdx = (now2.getMonth() - returns.length + i + 12) % 12;
+      lbl.textContent = months[mIdx].substring(0, 3);
+      col.appendChild(bar); col.appendChild(lbl);
+      perfChart.appendChild(col);
+    });
+
+    const holdBody = document.getElementById('holdBody');
+    holdBody.textContent = '';
+    if (!d.holdings || !d.holdings.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td'); td.colSpan = 6; td.className = 'placeholder-msg';
+      td.textContent = 'لا توجد استثمارات حتى الآن.'; tr.appendChild(td); holdBody.appendChild(tr);
+    } else {
+      d.holdings.forEach(h => {
+        const tr = document.createElement('tr');
+        const cells = [
+          h.name || '—',
+          h.category || '—',
+          fmt(h.invested || 0),
+          fmt(h.currentValue || 0),
+          (h.returnPct >= 0 ? '+' : '') + (h.returnPct || 0).toFixed(1) + '٪',
+          '',
+        ];
+        cells.forEach((c, ci) => {
+          const td = document.createElement('td');
+          if (ci === 5) {
+            const dot = document.createElement('span');
+            dot.className = 'status-dot ' + (h.active ? 'dot-active' : 'dot-closed');
+            td.appendChild(dot);
+            td.appendChild(document.createTextNode(h.active ? 'نشطة' : 'منتهية'));
+          } else {
+            td.textContent = c;
+            if (ci === 4) td.style.color = (h.returnPct || 0) >= 0 ? '#2e7d32' : '#c54a3a';
+          }
+          tr.appendChild(td);
+        });
+        holdBody.appendChild(tr);
+      });
+    }
+
+    const milestones = document.getElementById('milestones');
+    milestones.textContent = '';
+    (d.milestones || []).forEach(m => {
+      const div = document.createElement('div'); div.className = 'milestone';
+      const icon = document.createElement('div'); icon.className = 'm-icon'; icon.textContent = m.icon || '⭐';
+      const body = document.createElement('div'); body.className = 'm-body';
+      const title = document.createElement('div'); title.className = 'm-title'; title.textContent = m.title || '';
+      const date = document.createElement('div'); date.className = 'm-date'; date.textContent = m.date || '';
+      body.appendChild(title); body.appendChild(date);
+      div.appendChild(icon); div.appendChild(body);
+      milestones.appendChild(div);
+    });
+
+    const riskEl = document.getElementById('riskProfile');
+    riskEl.textContent = '';
+    const riskLevels = [
+      {key:'conservative',label:'محافظ',color:'#2e7d32'},
+      {key:'moderate',label:'متوازن',color:'#a07020'},
+      {key:'aggressive',label:'مرتفع المخاطر',color:'#c54a3a'},
+    ];
+    const currentRisk = d.riskLevel || 'moderate';
+    riskLevels.forEach(rl => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:12px;';
+      const dot = document.createElement('div');
+      dot.style.cssText = 'width:12px;height:12px;border-radius:50%;background:' + rl.color + ';flex-shrink:0;';
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font:700 12px Cairo,sans-serif;flex:1;color:var(--ink);';
+      lbl.textContent = rl.label;
+      const active = document.createElement('div');
+      active.style.cssText = 'font:700 10px Cairo,sans-serif;';
+      if (rl.key === currentRisk) {
+        active.textContent = '← مستواك الحالي';
+        active.style.color = rl.color;
+      }
+      row.appendChild(dot); row.appendChild(lbl); row.appendChild(active);
+      riskEl.appendChild(row);
+    });
+
+    const desc = document.createElement('div');
+    desc.style.cssText = 'font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.8;';
+    const riskDescs = {
+      conservative:'محفظتك متوجهة نحو الحفاظ على رأس المال مع عوائد منتظمة ومخاطر منخفضة.',
+      moderate:'توازن جيد بين النمو وإدارة المخاطر، مناسب للمستثمر المتمرس.',
+      aggressive:'محفظة نمو عالٍ مع قبول مخاطر أعلى للحصول على عوائد أكبر.'
+    };
+    desc.textContent = riskDescs[currentRisk] || '';
+    riskEl.appendChild(desc);
+  }
+
+  let activePeriod = '1m';
+
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activePeriod = btn.dataset.period;
+      load(activePeriod);
+    });
+  });
+
+  document.getElementById('btnExport').addEventListener('click', () => { window.print(); });
+
+  load(activePeriod);
+}());
+</script>
+</body>
+</html>
