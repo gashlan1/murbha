@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حاسبة الرسوم - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.3rem;}
+.field input,.field select{width:100%;padding:0.55rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;background:#fff;color:var(--green-dark);}
+.slider-group{margin-bottom:1.25rem;}
+.slider-group label{display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.slider-group label span{color:var(--gold);}
+.slider-group input[type=range]{width:100%;accent-color:var(--green);}
+.result-panel{background:linear-gradient(135deg,#062b1e,#0a4d36);border-radius:12px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;}
+.result-title{font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:0.3rem;}
+.result-value{font-size:2rem;font-weight:700;}
+.result-breakdown{margin-top:1rem;display:flex;flex-direction:column;gap:0.4rem;}
+.rb-row{display:flex;justify-content:space-between;font-size:0.82rem;}
+.rb-label{color:rgba(255,255,255,0.7);}
+.rb-value{font-weight:600;}
+.rb-divider{border:none;border-top:1px solid rgba(255,255,255,0.15);margin:0.5rem 0;}
+.fee-table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.fee-table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.fee-table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.86rem;}
+tr:last-child td{border-bottom:none;}
+.fee-highlight{font-weight:700;color:var(--green);}
+@media(max-width:768px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — حاسبة الرسوم</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>حاسبة الرسوم والعائد</h2>
+    <button class="btn btn-secondary" onclick="saveScenario()">حفظ السيناريو</button>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head"><h3>معطيات الصفقة</h3></div>
+      <div class="card-body">
+        <div class="field">
+          <label>نوع الصفقة</label>
+          <select id="dealType" onchange="recalc()">
+            <option value="real_estate">عقارات</option>
+            <option value="tech">تقنية</option>
+            <option value="energy">طاقة</option>
+            <option value="health">رعاية صحية</option>
+            <option value="retail">تجزئة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>قيمة الاستثمار (ر.س)</label>
+          <input type="number" id="investAmount" value="100000" oninput="recalc()">
+        </div>
+        <div class="slider-group">
+          <label>مدة الصفقة (سنوات) <span id="durLabel">٣</span></label>
+          <input type="range" id="durSlider" min="1" max="7" value="3" oninput="updateDurLabel();recalc();">
+        </div>
+        <div class="slider-group">
+          <label>نسبة العائد السنوي (%)<span id="returnLabel">١٢</span></label>
+          <input type="range" id="returnSlider" min="5" max="20" value="12" oninput="updateReturnLabel();recalc();">
+        </div>
+        <div class="field">
+          <label>هيكل الرسوم</label>
+          <select id="feeStructure" onchange="recalc()">
+            <option value="standard">قياسي (١٪ إدارة + ١٥٪ حوافز)</option>
+            <option value="premium">ممتاز (١.٥٪ إدارة + ٢٠٪ حوافز)</option>
+            <option value="low">مخفض (٠.٧٥٪ إدارة + ١٠٪ حوافز)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="result-panel" id="resultPanel">
+        <div class="result-title">صافي العائد للمستثمر</div>
+        <div class="result-value" id="netReturn">—</div>
+        <div class="result-breakdown" id="breakdown"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>ملخص الرسوم</h3></div>
+        <div class="card-body" id="feeSummary"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fee-table-card">
+    <div class="fee-table-head">
+      <h3>جدول هياكل الرسوم المعتمدة</h3>
+      <button class="btn btn-sm btn-secondary" onclick="updateFeeStructures()">تحديث الجدول</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>الهيكل</th><th>رسوم الإدارة</th><th>حوافز الأداء</th><th>رسوم الخروج</th><th>الحد الأدنى</th></tr>
+      </thead>
+      <tbody id="feeTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const feeStructures = {
+  standard:{mgmt:0.01,perf:0.15,exit:0.02},
+  premium:{mgmt:0.015,perf:0.20,exit:0.03},
+  low:{mgmt:0.0075,perf:0.10,exit:0.015},
+};
+
+const feeTableRows = [
+  {name:'قياسي',mgmt:'١٪',perf:'١٥٪',exit:'٢٪',min:'٥٠,٠٠٠ ر.س'},
+  {name:'ممتاز',mgmt:'١.٥٪',perf:'٢٠٪',exit:'٣٪',min:'٢٠٠,٠٠٠ ر.س'},
+  {name:'مخفض',mgmt:'٠.٧٥٪',perf:'١٠٪',exit:'١.٥٪',min:'٢٠٠,٠٠٠ ر.س'},
+  {name:'مؤسسي',mgmt:'٠.٥٪',perf:'٨٪',exit:'١٪',min:'١,٠٠٠,٠٠٠ ر.س'},
+];
+
+function updateDurLabel(){ document.getElementById('durLabel').textContent = document.getElementById('durSlider').value; }
+function updateReturnLabel(){ document.getElementById('returnLabel').textContent = document.getElementById('returnSlider').value; }
+
+function recalc(){
+  const invest = parseFloat(document.getElementById('investAmount').value) || 0;
+  const dur = parseInt(document.getElementById('durSlider').value);
+  const ret = parseFloat(document.getElementById('returnSlider').value) / 100;
+  const struct = document.getElementById('feeStructure').value;
+  const fees = feeStructures[struct];
+
+  const grossReturn = invest * ret * dur;
+  const mgmtFees = invest * fees.mgmt * dur;
+  const perfFees = grossReturn * fees.perf;
+  const totalFees = mgmtFees + perfFees;
+  const netReturn = grossReturn - totalFees;
+  const netIRR = (netReturn / invest / dur) * 100;
+
+  const fmt = n => Math.round(n).toLocaleString('ar-SA');
+
+  document.getElementById('netReturn').textContent = fmt(netReturn) + ' ر.س';
+
+  const bd = document.getElementById('breakdown');
+  bd.textContent = '';
+  const rows = [
+    {l:'العائد الإجمالي',v:fmt(grossReturn) + ' ر.س'},
+    null,
+    {l:'رسوم الإدارة',v:'− ' + fmt(mgmtFees) + ' ر.س'},
+    {l:'حوافز الأداء',v:'− ' + fmt(perfFees) + ' ر.س'},
+    null,
+    {l:'صافي العائد (IRR: ' + netIRR.toFixed(1) + '٪)',v:fmt(netReturn) + ' ر.س'},
+  ];
+  rows.forEach(r => {
+    if(!r){ const hr = document.createElement('hr'); hr.className = 'rb-divider'; bd.appendChild(hr); return; }
+    const row = document.createElement('div');
+    row.className = 'rb-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'rb-label';
+    lbl.textContent = r.l;
+    const val = document.createElement('span');
+    val.className = 'rb-value';
+    val.textContent = r.v;
+    row.appendChild(lbl);
+    row.appendChild(val);
+    bd.appendChild(row);
+  });
+
+  const fs = document.getElementById('feeSummary');
+  fs.textContent = '';
+  [
+    {l:'رأس المال الأصلي',v:fmt(invest) + ' ر.س'},
+    {l:'مدة الصفقة',v:dur + ' سنوات'},
+    {l:'العائد السنوي المستهدف',v:(ret*100).toFixed(1) + '٪'},
+    {l:'إجمالي الرسوم',v:fmt(totalFees) + ' ر.س'},
+    {l:'نسبة الرسوم من العائد',v:((totalFees/grossReturn)*100).toFixed(1) + '٪'},
+  ].forEach(r => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--line);font-size:0.85rem;';
+    const lbl = document.createElement('span');
+    lbl.style.color = 'var(--muted)';
+    lbl.textContent = r.l;
+    const val = document.createElement('span');
+    val.style.fontWeight = '600';
+    val.textContent = r.v;
+    row.appendChild(lbl);
+    row.appendChild(val);
+    fs.appendChild(row);
+  });
+}
+
+function renderFeeTable(){
+  const tbody = document.getElementById('feeTable');
+  tbody.textContent = '';
+  feeTableRows.forEach(r => {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.className = 'fee-highlight';
+    nameTd.textContent = r.name;
+    tr.appendChild(nameTd);
+    [r.mgmt, r.perf, r.exit, r.min].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+async function saveScenario(){
+  const body = {
+    invest: document.getElementById('investAmount').value,
+    dur: document.getElementById('durSlider').value,
+    ret: document.getElementById('returnSlider').value,
+    struct: document.getElementById('feeStructure').value,
+  };
+  try {
+    await fetch('/app/admin/fee-calculator/scenarios', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify(body)
+    });
+  } catch(e){}
+}
+
+async function updateFeeStructures(){
+  try {
+    const res = await fetch('/app/admin/fee-calculator/structures');
+    await res.json();
+  } catch(e){}
+}
+
+updateDurLabel();
+updateReturnLabel();
+recalc();
+renderFeeTable();
+</script>
+</body>
+</html>
