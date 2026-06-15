@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعدادات النظام - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.settings-nav{display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.snav-btn{padding:0.4rem 1rem;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--green-dark);font-family:'Cairo',sans-serif;font-size:0.82rem;cursor:pointer;}
+.snav-btn.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark);}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.settings-section{padding:1.25rem;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.setting-row:last-child{border-bottom:none;}
+.setting-info{}
+.setting-name{font-size:0.88rem;font-weight:600;}
+.setting-desc{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+.setting-control{flex-shrink:0;margin-right:1rem;}
+.toggle{width:38px;height:20px;border-radius:10px;cursor:pointer;border:none;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:#d0cbc0;}
+.setting-input{padding:0.35rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-family:'Cairo',sans-serif;font-size:0.82rem;width:120px;text-align:left;}
+.setting-select{padding:0.35rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-family:'Cairo',sans-serif;font-size:0.82rem;}
+.danger-zone{border-color:#fde8e8;}
+.danger-zone .card-head{background:#c0392b;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+.version-info{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.vi-item{}
+.vi-lbl{font-size:0.72rem;color:var(--muted);margin-bottom:0.2rem;}
+.vi-val{font-size:0.88rem;font-weight:700;}
+@media(max-width:700px){.version-info{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إعدادات النظام</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إعدادات النظام والمنصة</h2>
+      <p>ضبط إعدادات المنصة والتكاملات والأمان والصلاحيات العامة</p>
+    </div>
+    <button class="btn btn-primary" onclick="saveAllSettings()">حفظ جميع الإعدادات</button>
+  </div>
+
+  <div class="settings-nav" id="settingsNav"></div>
+
+  <div class="card" id="generalCard">
+    <div class="card-head"><h3>الإعدادات العامة</h3></div>
+    <div class="settings-section" id="generalSettings"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="saveAllSettings()">حفظ</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>إعدادات المدفوعات</h3></div>
+    <div class="settings-section" id="paymentSettings"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="saveAllSettings()">حفظ</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>معلومات النظام</h3></div>
+    <div class="version-info" id="versionInfo"></div>
+  </div>
+
+  <div class="card danger-zone">
+    <div class="card-head"><h3>منطقة الخطر</h3></div>
+    <div class="settings-section" id="dangerSettings"></div>
+  </div>
+</div>
+
+<script>
+const NAV_ITEMS = ['عام', 'مدفوعات', 'أمان', 'إشعارات', 'تكاملات'];
+
+const GENERAL_SETTINGS = [
+  { name: 'اسم المنصة', desc: 'الاسم المعروض للمستخدمين', type: 'input', value: 'مُرابحة' },
+  { name: 'وضع الصيانة', desc: 'إيقاف الوصول للمستخدمين مؤقتاً', type: 'toggle', on: false },
+  { name: 'التسجيل المفتوح', desc: 'السماح للمستثمرين الجدد بالتسجيل', type: 'toggle', on: true },
+  { name: 'العملة الافتراضية', desc: 'عملة العرض على المنصة', type: 'select', opts: ['ريال سعودي (ر.س)', 'دولار (USD)', 'يورو (EUR)'] },
+  { name: 'منطقة التوقيت', desc: 'التوقيت المعتمد لجميع العمليات', type: 'select', opts: ['توقيت الرياض (UTC+3)', 'توقيت دبي (UTC+4)', 'توقيت لندن (UTC+0)'] }
+];
+
+const PAYMENT_SETTINGS = [
+  { name: 'حد السحب اليومي (ر.س)', desc: 'الحد الأقصى للسحب في اليوم الواحد', type: 'input', value: '500000' },
+  { name: 'رسوم المعالجة (%)', desc: 'نسبة الرسوم على كل معاملة', type: 'input', value: '0.5' },
+  { name: 'التأكيد الثنائي للتحويلات الكبيرة', desc: 'يُطلب تأكيداً إضافياً للتحويلات > ١٠٠,٠٠٠ ر.س', type: 'toggle', on: true },
+  { name: 'بوابة الدفع الافتراضية', desc: 'البوابة المستخدمة للمدفوعات التلقائية', type: 'select', opts: ['PayTabs', 'Moyasar', 'HyperPay'] }
+];
+
+const VERSION_INFO = [
+  { lbl: 'إصدار النظام', val: 'v٢.٤.١' },
+  { lbl: 'آخر تحديث', val: '٢٠٢٦/٠٥/٢٠' },
+  { lbl: 'البيئة', val: 'إنتاج' },
+  { lbl: 'قاعدة البيانات', val: 'PostgreSQL 15' },
+  { lbl: 'وقت التشغيل', val: '٤٧ يوماً' },
+  { lbl: 'الاستجابة المتوسطة', val: '١٢٠ms' }
+];
+
+const DANGER_SETTINGS = [
+  { name: 'مسح ذاكرة التخزين المؤقت', desc: 'يُعيد تحميل جميع البيانات المحفوظة مؤقتاً', type: 'action', label: 'مسح الكاش', danger: false },
+  { name: 'تصدير نسخة احتياطية', desc: 'تصدير كامل بيانات النظام مشفرة', type: 'action', label: 'تصدير', danger: false },
+  { name: 'إعادة ضبط الإعدادات', desc: 'إرجاع جميع الإعدادات إلى القيم الافتراضية', type: 'action', label: 'إعادة ضبط', danger: true }
+];
+
+function buildNav() {
+  const wrap = document.getElementById('settingsNav');
+  NAV_ITEMS.forEach((n, i) => {
+    const btn = document.createElement('button'); btn.className = 'snav-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = n; wrap.appendChild(btn);
+  });
+}
+
+function buildSettingsSection(containerId, settings) {
+  const wrap = document.getElementById(containerId);
+  settings.forEach(s => {
+    const row = document.createElement('div'); row.className = 'setting-row';
+    const info = document.createElement('div'); info.className = 'setting-info';
+    const name = document.createElement('div'); name.className = 'setting-name'; name.textContent = s.name;
+    const desc = document.createElement('div'); desc.className = 'setting-desc'; desc.textContent = s.desc;
+    info.appendChild(name); info.appendChild(desc);
+    const ctrl = document.createElement('div'); ctrl.className = 'setting-control';
+    if (s.type === 'toggle') {
+      const toggle = document.createElement('button'); toggle.className = 'toggle ' + (s.on ? 'on' : 'off');
+      toggle.onclick = () => { s.on = !s.on; toggle.className = 'toggle ' + (s.on ? 'on' : 'off'); };
+      ctrl.appendChild(toggle);
+    } else if (s.type === 'input') {
+      const input = document.createElement('input'); input.className = 'setting-input'; input.value = s.value || '';
+      ctrl.appendChild(input);
+    } else if (s.type === 'select') {
+      const sel = document.createElement('select'); sel.className = 'setting-select';
+      s.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; sel.appendChild(opt); });
+      ctrl.appendChild(sel);
+    } else if (s.type === 'action') {
+      const btn = document.createElement('button'); btn.className = 'btn btn-sm';
+      btn.style.cssText = s.danger ? 'background:#fde8e8;color:#c0392b;' : 'background:#f5f0e8;color:var(--green-dark);';
+      btn.textContent = s.label;
+      btn.onclick = () => dangerAction(s.name);
+      ctrl.appendChild(btn);
+    }
+    row.appendChild(info); row.appendChild(ctrl);
+    wrap.appendChild(row);
+  });
+}
+
+function buildVersionInfo() {
+  const wrap = document.getElementById('versionInfo');
+  VERSION_INFO.forEach(v => {
+    const item = document.createElement('div'); item.className = 'vi-item';
+    const lbl = document.createElement('div'); lbl.className = 'vi-lbl'; lbl.textContent = v.lbl;
+    const val = document.createElement('div'); val.className = 'vi-val'; val.textContent = v.val;
+    item.appendChild(lbl); item.appendChild(val);
+    wrap.appendChild(item);
+  });
+}
+
+function saveAllSettings() {
+  fetch('/app/admin/system-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ settings: {} }) }).catch(() => {});
+  alert('تم حفظ إعدادات النظام بنجاح.');
+}
+
+function dangerAction(name) {
+  fetch('/app/admin/system-settings/danger', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: name }) }).catch(() => {});
+  alert('جاري تنفيذ: ' + name);
+}
+
+buildNav(); buildSettingsSection('generalSettings', GENERAL_SETTINGS); buildSettingsSection('paymentSettings', PAYMENT_SETTINGS); buildVersionInfo(); buildSettingsSection('dangerSettings', DANGER_SETTINGS);
+</script>
+</body>
+</html>
