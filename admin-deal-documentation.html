@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>توثيق الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.doc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.ds-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.ds-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.ds-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.deal-tree{padding:1.25rem;}
+.tree-item{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.6rem;border-radius:7px;cursor:pointer;margin-bottom:0.25rem;transition:background 0.15s;}
+.tree-item:hover,.tree-item.active{background:#f0ebe0;}
+.tree-icon{font-size:1rem;}
+.tree-label{font-size:0.84rem;font-weight:600;}
+.tree-count{font-size:0.7rem;color:var(--muted);}
+.doc-grid{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.doc-card{border:1px solid var(--line);border-radius:10px;padding:0.85rem;}
+.doc-icon{font-size:1.5rem;margin-bottom:0.5rem;}
+.doc-name{font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;}
+.doc-meta{font-size:0.7rem;color:var(--muted);}
+.doc-actions{display:flex;gap:0.4rem;margin-top:0.6rem;}
+.upload-area{margin:1.25rem;border:2px dashed var(--line);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s;}
+.upload-area:hover{border-color:var(--green);}
+.upload-icon{font-size:2rem;margin-bottom:0.5rem;}
+.upload-text{font-size:0.84rem;font-weight:600;color:var(--green);}
+.upload-sub{font-size:0.72rem;color:var(--muted);margin-top:0.25rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.layout-2{grid-template-columns:1fr;}.doc-grid{grid-template-columns:1fr;}.doc-stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — توثيق الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مركز توثيق الصفقات</h2>
+      <p>إدارة وتنظيم جميع مستندات الصفقات والعقود</p>
+    </div>
+    <button class="btn btn-primary" onclick="uploadDoc()">رفع مستند جديد</button>
+  </div>
+
+  <div class="doc-stats" id="docStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الصفقات</h3></div>
+      <div class="deal-tree" id="dealTree"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head">
+        <h3>مستندات صفقة #4920 — عقارية الرياض</h3>
+        <button class="btn btn-gold btn-sm" onclick="uploadDoc()">رفع</button>
+      </div>
+      <div class="doc-grid" id="docGrid"></div>
+      <div class="upload-area" onclick="uploadDoc()">
+        <div class="upload-icon">📎</div>
+        <div class="upload-text">اسحب وأفلت المستندات هنا</div>
+        <div class="upload-sub">PDF, DOCX, XLSX — حتى ٢٠ ميغابايت</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل نشاط المستندات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportDocs()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="activityLog"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="uploadDoc()">رفع مستند</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportDocs()">تصدير القائمة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١٢٤', lbl: 'إجمالي المستندات' },
+  { val: '٢٨', lbl: 'صفقة موثّقة' },
+  { val: '٨', lbl: 'مستندات معلّقة' },
+  { val: '٩٩.٢٪', lbl: 'اكتمال التوثيق' }
+];
+
+const DEALS = [
+  { icon: '🏢', label: 'مرابحة عقارية #4920', count: '٨ مستندات', active: true },
+  { icon: '🏪', label: 'مرابحة تجارية #4921', count: '٦ مستندات', active: false },
+  { icon: '🏭', label: 'مرابحة صناعية #4922', count: '٩ مستندات', active: false },
+  { icon: '🚛', label: 'مرابحة لوجستية #4918', count: '٥ مستندات', active: false },
+  { icon: '💻', label: 'مرابحة تقنية #4915', count: '٧ مستندات', active: false }
+];
+
+const DOCS = [
+  { icon: '📄', name: 'عقد المرابحة الرئيسي', meta: 'PDF · ٢.٤ ميغابايت · ٢٠٢٥/٠١/١٠' },
+  { icon: '🏠', name: 'صك ملكية العقار', meta: 'PDF · ١.١ ميغابايت · ٢٠٢٥/٠١/٠٨' },
+  { icon: '📊', name: 'التقييم المالي (RICS)', meta: 'PDF · ٣.٨ ميغابايت · ٢٠٢٥/٠١/٠٥' },
+  { icon: '🛡', name: 'وثيقة التأمين', meta: 'PDF · ٠.٩ ميغابايت · ٢٠٢٥/٠٢/٠١' },
+  { icon: '✅', name: 'شهادة الهيئة الشرعية', meta: 'PDF · ٠.٦ ميغابايت · ٢٠٢٥/٠١/١٢' },
+  { icon: '🏗', name: 'رخصة البناء', meta: 'PDF · ١.٢ ميغابايت · ٢٠٢٥/٠٣/١٥' }
+];
+
+const ACTIVITY = [
+  { action: 'رفع مستند', doc: 'رخصة البناء — صفقة #4920', user: 'أحمد الإداري', time: 'منذ ساعتين' },
+  { action: 'تحميل', doc: 'عقد المرابحة الرئيسي — صفقة #4921', user: 'م. المراجعة', time: 'منذ ٥ ساعات' },
+  { action: 'تحديث', doc: 'شهادة الهيئة الشرعية — صفقة #4920', user: 'أحمد الإداري', time: 'منذ يوم' },
+  { action: 'رفع مستند', doc: 'وثيقة التأمين — صفقة #4922', user: 'م. الامتثال', time: 'منذ يومين' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('docStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'ds-card';
+    const val = document.createElement('div'); val.className = 'ds-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'ds-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function buildTree() {
+  const wrap = document.getElementById('dealTree');
+  DEALS.forEach(d => {
+    const item = document.createElement('div'); item.className = 'tree-item' + (d.active ? ' active' : '');
+    const icon = document.createElement('span'); icon.className = 'tree-icon'; icon.textContent = d.icon;
+    const lbl = document.createElement('div');
+    const label = document.createElement('div'); label.className = 'tree-label'; label.textContent = d.label;
+    const count = document.createElement('div'); count.className = 'tree-count'; count.textContent = d.count;
+    lbl.appendChild(label); lbl.appendChild(count);
+    item.appendChild(icon); item.appendChild(lbl);
+    item.onclick = () => { document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active')); item.classList.add('active'); };
+    wrap.appendChild(item);
+  });
+}
+
+function buildDocs() {
+  const wrap = document.getElementById('docGrid');
+  DOCS.forEach(d => {
+    const card = document.createElement('div'); card.className = 'doc-card';
+    const icon = document.createElement('div'); icon.className = 'doc-icon'; icon.textContent = d.icon;
+    const name = document.createElement('div'); name.className = 'doc-name'; name.textContent = d.name;
+    const meta = document.createElement('div'); meta.className = 'doc-meta'; meta.textContent = d.meta;
+    const actions = document.createElement('div'); actions.className = 'doc-actions';
+    const dl = document.createElement('button'); dl.className = 'btn btn-primary btn-sm'; dl.textContent = 'تحميل';
+    dl.onclick = () => downloadDoc(d.name);
+    actions.appendChild(dl);
+    card.appendChild(icon); card.appendChild(name); card.appendChild(meta); card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+}
+
+function buildActivity() {
+  const wrap = document.getElementById('activityLog');
+  ACTIVITY.forEach(a => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const action = document.createElement('span'); action.style.fontWeight = '700'; action.textContent = a.action + ': ';
+    const doc = document.createTextNode(a.doc);
+    left.appendChild(action); left.appendChild(doc);
+    const right = document.createElement('div'); right.style.color = 'var(--muted)'; right.textContent = a.user + ' · ' + a.time;
+    row.appendChild(left); row.appendChild(right);
+    wrap.appendChild(row);
+  });
+}
+
+function downloadDoc(name) {
+  fetch('/app/admin/deals/documentation/download', { method: 'POST', headers: { 'x-csrf-token': 'demo-token', 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }).catch(() => {});
+  alert('جاري تحميل: ' + name);
+}
+
+function uploadDoc() {
+  fetch('/app/admin/deals/documentation', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('فتح نموذج رفع المستند');
+}
+
+function exportDocs() {
+  fetch('/app/admin/deals/documentation/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير قائمة المستندات...');
+}
+
+buildStats(); buildTree(); buildDocs(); buildActivity();
+</script>
+</body>
+</html>
