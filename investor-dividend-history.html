@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل التوزيعات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.kpi-positive{color:#27ae60;}
+.chart-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.chart-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.chart-head h3{font-size:1rem;font-weight:700;}
+.chart-body{padding:1.5rem;}
+.bar-chart{display:flex;align-items:flex-end;gap:0.5rem;height:160px;}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:0.3rem;}
+.bar-col{width:100%;border-radius:4px 4px 0 0;background:var(--green);min-height:4px;transition:height 0.4s;}
+.bar-label{font-size:0.68rem;color:var(--muted);white-space:nowrap;}
+.bar-val{font-size:0.7rem;font-weight:700;color:var(--green-dark);}
+.filter-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.filter-row select{padding:0.45rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.85rem;background:#fff;color:var(--green-dark);}
+.table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.86rem;}
+tr:last-child td{border-bottom:none;}
+.status-paid{color:#27ae60;font-weight:700;}
+.status-pending{color:var(--gold);font-weight:700;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — سجل التوزيعات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>سجل توزيعات الأرباح</h2>
+    <button class="btn btn-secondary" onclick="exportHistory()">تصدير Excel</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <h3>التوزيعات الشهرية (آخر ١٢ شهراً)</h3>
+    </div>
+    <div class="chart-body">
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <h3>تفاصيل التوزيعات</h3>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <select id="filterDeal" onchange="applyFilter()">
+          <option value="">جميع الصفقات</option>
+          <option>مجمع الروضة السكني</option>
+          <option>منصة FinTech B2B</option>
+          <option>عيادات الصحة</option>
+          <option>محطة طاقة شمسية</option>
+        </select>
+        <select id="filterStatus" onchange="applyFilter()">
+          <option value="">جميع الحالات</option>
+          <option value="paid">مدفوع</option>
+          <option value="pending">قيد المعالجة</option>
+        </select>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>الصفقة</th>
+          <th>تاريخ التوزيع</th>
+          <th>نسبة العائد</th>
+          <th>المبلغ (ر.س)</th>
+          <th>الحالة</th>
+          <th>المرجع</th>
+        </tr>
+      </thead>
+      <tbody id="divTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'إجمالي التوزيعات',value:'٦٨,٤٠٠',sub:'ر.س منذ البداية',cls:''},
+  {label:'توزيعات ٢٠٢٥',value:'٢٣,٨٠٠',sub:'ر.س هذا العام',cls:''},
+  {label:'أعلى عائد',value:'١٤٪',sub:'محطة طاقة شمسية',cls:'kpi-positive'},
+  {label:'التوزيع القادم',value:'٣١ / ٠٦',sub:'تقديري',cls:''},
+];
+
+const months = ['يول','أغس','سبت','أكت','نوف','ديس','يان','فبر','مار','أبر','ماي','يون'];
+const barValues = [3200,4100,2900,5500,4800,3600,6200,5100,4400,7800,5300,6000];
+const maxBar = Math.max(...barValues);
+
+const allDivs = [
+  {deal:'مجمع الروضة السكني',date:'٢٠٢٥/٠٦/١',rate:'١٠٪',amount:'٤,٢٠٠',status:'paid',ref:'DIV-8821'},
+  {deal:'منصة FinTech B2B',date:'٢٠٢٥/٠٥/١٥',rate:'١٢٪',amount:'٣,٦٠٠',status:'paid',ref:'DIV-8804'},
+  {deal:'عيادات الصحة',date:'٢٠٢٥/٠٥/٠١',rate:'١١٪',amount:'٢,٨٠٠',status:'paid',ref:'DIV-8789'},
+  {deal:'محطة طاقة شمسية',date:'٢٠٢٥/٠٤/١٥',rate:'١٤٪',amount:'٦,٠٠٠',status:'paid',ref:'DIV-8772'},
+  {deal:'مجمع الروضة السكني',date:'٢٠٢٥/٠٣/٠١',rate:'١٠٪',amount:'٤,٢٠٠',status:'paid',ref:'DIV-8750'},
+  {deal:'سلسلة مطاعم',date:'٢٠٢٥/٠٢/١٥',rate:'٩٪',amount:'١,٩٠٠',status:'paid',ref:'DIV-8731'},
+  {deal:'منصة FinTech B2B',date:'٢٠٢٥/٠٦/١٥',rate:'١٢٪',amount:'٣,٦٠٠',status:'pending',ref:'DIV-8840'},
+];
+
+let filtered = [...allDivs];
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value' + (k.cls ? ' ' + k.cls : '');
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderBarChart(){
+  const chart = document.getElementById('barChart');
+  chart.textContent = '';
+  months.forEach((m, i) => {
+    const grp = document.createElement('div');
+    grp.className = 'bar-group';
+    const valEl = document.createElement('div');
+    valEl.className = 'bar-val';
+    valEl.textContent = (barValues[i]/1000).toFixed(1) + 'k';
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.style.height = Math.round((barValues[i] / maxBar) * 130) + 'px';
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = m;
+    grp.appendChild(valEl);
+    grp.appendChild(col);
+    grp.appendChild(lbl);
+    chart.appendChild(grp);
+  });
+}
+
+function renderTable(){
+  const tbody = document.getElementById('divTable');
+  tbody.textContent = '';
+  filtered.forEach(d => {
+    const tr = document.createElement('tr');
+    [d.deal, d.date, d.rate, d.amount + ' ر.س'].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const statusTd = document.createElement('td');
+    statusTd.className = d.status === 'paid' ? 'status-paid' : 'status-pending';
+    statusTd.textContent = d.status === 'paid' ? 'مدفوع' : 'قيد المعالجة';
+    tr.appendChild(statusTd);
+    const refTd = document.createElement('td');
+    refTd.textContent = d.ref;
+    refTd.style.color = 'var(--muted)';
+    refTd.style.fontSize = '0.78rem';
+    tr.appendChild(refTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function applyFilter(){
+  const deal = document.getElementById('filterDeal').value;
+  const status = document.getElementById('filterStatus').value;
+  filtered = allDivs.filter(d =>
+    (!deal || d.deal === deal) &&
+    (!status || d.status === status)
+  );
+  renderTable();
+}
+
+async function exportHistory(){
+  try {
+    const res = await fetch('/app/me/dividends/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderKpis();
+renderBarChart();
+renderTable();
+</script>
+</body>
+</html>
