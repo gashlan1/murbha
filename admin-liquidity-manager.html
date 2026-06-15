@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة السيولة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-warn{background:#e67e22;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.2rem;}
+.kpi-val{font-size:1.7rem;font-weight:700;}
+.kpi-lbl{font-size:0.76rem;color:var(--muted);margin-top:0.2rem;}
+.kpi-bar{height:4px;border-radius:2px;margin-top:0.75rem;background:#e8e3da;overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:2px;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.flow-row{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.flow-row:last-child{border-bottom:none;}
+.flow-label{font-size:0.84rem;font-weight:600;}
+.flow-sub{font-size:0.74rem;color:var(--muted);margin-top:0.1rem;}
+.flow-amount{font-size:0.9rem;font-weight:700;}
+.amt-in{color:#27ae60;}
+.amt-out{color:#e74c3c;}
+.forecast-bars{display:flex;align-items:flex-end;gap:0.5rem;height:110px;margin-bottom:0.5rem;}
+.fc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.fc-bar{width:100%;border-radius:4px 4px 0 0;}
+.fc-bar.in-bar{background:#27ae60;}
+.fc-bar.out-bar{background:#e74c3c;opacity:0.7;}
+.fc-lbl{font-size:0.65rem;color:var(--muted);}
+.fc-legend{display:flex;gap:1rem;font-size:0.75rem;color:var(--muted);}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:0.3rem;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1.25rem;background:#f5f0e8;font-size:0.77rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1.25rem;border-bottom:1px solid var(--line);font-size:0.83rem;}
+tr:last-child td{border-bottom:none;}
+.status-pill{display:inline-block;padding:0.18rem 0.55rem;border-radius:4px;font-size:0.71rem;font-weight:700;}
+.pill-ok{background:#e8f5ed;color:#1e8449;}
+.pill-warn{background:#fef3cd;color:#92400e;}
+.pill-alert{background:#fde8e8;color:#c0392b;}
+.alert-banner{background:#fde8e8;border:1px solid #f5c6c6;border-radius:10px;padding:0.9rem 1.1rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;}
+.alert-banner p{font-size:0.84rem;color:#c0392b;}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة السيولة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة السيولة</h2>
+      <p>مراقبة التدفقات النقدية وضمان توفر السيولة الكافية للمنصة</p>
+    </div>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-warn btn-sm" onclick="triggerAlert()">إصدار تنبيه</button>
+      <button class="btn btn-primary btn-sm" onclick="exportLiquidity()">تصدير</button>
+    </div>
+  </div>
+
+  <div class="alert-banner" id="alertBanner" style="display:none;">
+    <span style="font-size:1.2rem;">⚠️</span>
+    <p id="alertMsg"></p>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>التدفقات النقدية هذا الشهر</h3></div>
+      <div class="card-body">
+        <div id="flowList"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توقعات السيولة (٦ أشهر)</h3></div>
+      <div class="card-body">
+        <div class="forecast-bars" id="forecastBars"></div>
+        <div class="fc-legend">
+          <span><span class="legend-dot" style="background:#27ae60;"></span>تدفق وارد</span>
+          <span><span class="legend-dot" style="background:#e74c3c;opacity:0.7;"></span>تدفق صادر</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>احتياطيات السيولة حسب الصفقة</h3></div>
+    <table>
+      <thead><tr><th>الصفقة</th><th>رأس المال المستثمر</th><th>احتياطي مطلوب (٥٪)</th><th>احتياطي فعلي</th><th>الحالة</th></tr></thead>
+      <tbody id="reserveTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>طلبات السحب المعلّقة</h3></div>
+    <table>
+      <thead><tr><th>المستثمر</th><th>المبلغ</th><th>تاريخ الطلب</th><th>الأولوية</th><th>المصدر المقترح</th></tr></thead>
+      <tbody id="withdrawTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const KPIS = [
+  { val: '٤٬٢٠٠٬٠٠٠', lbl: 'ر.س إجمالي السيولة المتاحة', fill: 70, color: '#27ae60' },
+  { val: '١٨٪', lbl: 'نسبة السيولة من الأصول', fill: 18, color: '#3498db' },
+  { val: '٨٤٠٬٠٠٠', lbl: 'ر.س مطلوبة للسحوبات', fill: 40, color: '#e67e22' },
+  { val: '٣٬٣٦٠٬٠٠٠', lbl: 'ر.س صافي السيولة', fill: 60, color: '#27ae60' }
+];
+
+const FLOWS = [
+  { label: 'إيداعات جديدة', sub: 'من ٤٢ مستثمر', amount: '+٢٬١٠٠٬٠٠٠ ر.س', cls: 'amt-in' },
+  { label: 'توزيعات أرباح', sub: 'للربع الثاني', amount: '-٤٨٠٬٠٠٠ ر.س', cls: 'amt-out' },
+  { label: 'سحوبات مكتملة', sub: '٢٣ طلب', amount: '-٣٦٠٬٠٠٠ ر.س', cls: 'amt-out' },
+  { label: 'عوائد صفقات ناضجة', sub: 'صفقة #4755، #4801', amount: '+٩٨٠٬٠٠٠ ر.س', cls: 'amt-in' },
+  { label: 'رسوم إدارية واردة', sub: 'ربع سنوي', amount: '+١٢٥٬٠٠٠ ر.س', cls: 'amt-in' }
+];
+
+const FORECAST = [
+  { lbl: 'يوليو', inflow: 85, outflow: 45 },
+  { lbl: 'أغسطس', inflow: 70, outflow: 60 },
+  { lbl: 'سبتمبر', inflow: 90, outflow: 40 },
+  { lbl: 'أكتوبر', inflow: 65, outflow: 75 },
+  { lbl: 'نوفمبر', inflow: 80, outflow: 50 },
+  { lbl: 'ديسمبر', inflow: 100, outflow: 55 }
+];
+
+const RESERVES = [
+  { deal: 'صفقة مرابحة #4892', capital: '٣٬٠٠٠٬٠٠٠', required: '١٥٠٬٠٠٠', actual: '١٨٠٬٠٠٠', status: 'ok', statusLbl: 'كافٍ' },
+  { deal: 'صفقة مرابحة #4900', capital: '١٬٥٠٠٬٠٠٠', required: '٧٥٬٠٠٠', actual: '٧١٬٠٠٠', status: 'warn', statusLbl: 'تحذير' },
+  { deal: 'صفقة مرابحة #4911', capital: '٨٠٠٬٠٠٠', required: '٤٠٬٠٠٠', actual: '٤٠٬٠٠٠', status: 'ok', statusLbl: 'كافٍ' }
+];
+
+const WITHDRAWALS = [
+  { investor: 'أحمد سعيد', amount: '١٥٬٠٠٠ ر.س', date: '١٤ يونيو', priority: 'عادية', source: 'احتياطي عام' },
+  { investor: 'فيصل العمري', amount: '٨٬٧٠٠ ر.س', date: '١٣ يونيو', priority: 'عاجلة', source: 'عوائد صفقة #4755' },
+  { investor: 'ريم العتيبي', amount: '٥٠٬٠٠٠ ر.س', date: '١٢ يونيو', priority: 'عاجلة', source: 'احتياطي + عوائد' }
+];
+
+function buildKPIs() {
+  const grid = document.getElementById('kpiGrid');
+  KPIS.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const val = document.createElement('div');
+    val.className = 'kpi-val';
+    val.style.color = k.color;
+    val.textContent = k.val;
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-lbl';
+    lbl.textContent = k.lbl;
+    const bar = document.createElement('div');
+    bar.className = 'kpi-bar';
+    const fill = document.createElement('div');
+    fill.className = 'kpi-bar-fill';
+    fill.style.width = k.fill + '%';
+    fill.style.background = k.color;
+    bar.appendChild(fill);
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(bar);
+    grid.appendChild(card);
+  });
+}
+
+function buildFlows() {
+  const list = document.getElementById('flowList');
+  FLOWS.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'flow-row';
+    const info = document.createElement('div');
+    const lbl = document.createElement('div');
+    lbl.className = 'flow-label';
+    lbl.textContent = f.label;
+    const sub = document.createElement('div');
+    sub.className = 'flow-sub';
+    sub.textContent = f.sub;
+    info.appendChild(lbl); info.appendChild(sub);
+    const amt = document.createElement('div');
+    amt.className = 'flow-amount ' + f.cls;
+    amt.textContent = f.amount;
+    row.appendChild(info); row.appendChild(amt);
+    list.appendChild(row);
+  });
+}
+
+function buildForecast() {
+  const wrap = document.getElementById('forecastBars');
+  const max = Math.max(...FORECAST.map(f => Math.max(f.inflow, f.outflow)));
+  FORECAST.forEach(f => {
+    const col = document.createElement('div');
+    col.className = 'fc-col';
+    const inBar = document.createElement('div');
+    inBar.className = 'fc-bar in-bar';
+    inBar.style.height = Math.round((f.inflow / max) * 90) + 'px';
+    const outBar = document.createElement('div');
+    outBar.className = 'fc-bar out-bar';
+    outBar.style.height = Math.round((f.outflow / max) * 90) + 'px';
+    const lbl = document.createElement('div');
+    lbl.className = 'fc-lbl';
+    lbl.textContent = f.lbl.slice(0, 3);
+    col.appendChild(inBar); col.appendChild(outBar); col.appendChild(lbl);
+    wrap.appendChild(col);
+  });
+}
+
+function buildReserves() {
+  const tbody = document.getElementById('reserveTable');
+  RESERVES.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.deal, r.capital + ' ر.س', r.required + ' ر.س', r.actual + ' ر.س'].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const sTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'status-pill pill-' + r.status;
+    pill.textContent = r.statusLbl;
+    sTd.appendChild(pill);
+    tr.appendChild(sTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildWithdrawals() {
+  const tbody = document.getElementById('withdrawTable');
+  WITHDRAWALS.forEach(w => {
+    const tr = document.createElement('tr');
+    [w.investor, w.amount, w.date, w.priority, w.source].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function triggerAlert() {
+  const banner = document.getElementById('alertBanner');
+  document.getElementById('alertMsg').textContent = 'تحذير: احتياطي صفقة #4900 أقل من الحد المطلوب. يرجى المراجعة الفورية.';
+  banner.style.display = 'flex';
+}
+
+function exportLiquidity() {
+  fetch('/app/admin/liquidity/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير السيولة...');
+}
+
+buildKPIs();
+buildFlows();
+buildForecast();
+buildReserves();
+buildWithdrawals();
+</script>
+</body>
+</html>
