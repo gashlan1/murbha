@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>فحص الامتثال - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-val.warn{color:#92400e;}
+.stat-val.danger{color:#c0392b;}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.check-list{padding:1.25rem;}
+.chk-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.chk-item:last-child{border-bottom:none;}
+.chk-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.icon-pass{background:#e8f5ed;color:#1e8449;}
+.icon-fail{background:#fde8e8;color:#c0392b;}
+.icon-warn{background:#fef3cd;color:#92400e;}
+.chk-body{}
+.chk-title{font-size:0.85rem;font-weight:700;}
+.chk-detail{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+.issue-list{padding:1.25rem;}
+.issue-item{border-right:3px solid var(--gold);padding:0.6rem 0.75rem;margin-bottom:0.65rem;background:#fffdf5;border-radius:0 8px 8px 0;}
+.issue-item.critical{border-color:#c0392b;background:#fff5f5;}
+.issue-title{font-size:0.84rem;font-weight:700;}
+.issue-meta{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — فحص الامتثال</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>فحص الامتثال التنظيمي والشرعي</h2>
+      <p>مراجعة آلية لمتطلبات الهيئة العامة للرقابة المالية والمعايير الشرعية</p>
+    </div>
+    <button class="btn btn-primary" onclick="runCheck()">تشغيل فحص كامل</button>
+  </div>
+
+  <div class="stats" id="ccStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>نتائج الفحص الأخير</h3></div>
+      <div class="check-list" id="checkList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>المشكلات المكتشفة</h3></div>
+      <div class="issue-list" id="issueList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل عمليات الفحص</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportReport()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="historyLog"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="runCheck()">إعادة الفحص</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportReport()">تصدير التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٩٢٪', lbl: 'نسبة الامتثال الكلية', cls: '' },
+  { val: '٢', lbl: 'مشكلات حرجة', cls: 'danger' },
+  { val: '٣', lbl: 'تحذيرات', cls: 'warn' },
+  { val: '٢٤ ساعة', lbl: 'آخر فحص' }
+];
+
+const CHECKS = [
+  { icon: 'icon-pass', label: '✓', title: 'التوثيق KYC لجميع المستثمرين', detail: '٤,٢١٨ مستثمر — ٩٩.٧٪ موثقون' },
+  { icon: 'icon-pass', label: '✓', title: 'الفصل بين أصول العملاء', detail: 'الحسابات المنفصلة مُفعّلة لجميع الصناديق' },
+  { icon: 'icon-fail', label: '✕', title: 'بيانات إفصاح ١٢ صفقة ناقصة', detail: 'يلزم استكمال قسم "المخاطر" في نشرة الإصدار' },
+  { icon: 'icon-warn', label: '!', title: 'تقرير SAMA المرحلي متأخر ٣ أيام', detail: 'الموعد النهائي: ٢٠٢٦/٠٦/١٢ — لم يُرسَل بعد' },
+  { icon: 'icon-pass', label: '✓', title: 'الرقابة الشرعية — شهادة مجلس الشريعة', detail: 'سارية حتى ٢٠٢٦/١٢/٣١' },
+  { icon: 'icon-warn', label: '!', title: 'سياسة مكافحة غسل الأموال — مراجعة مطلوبة', detail: 'آخر مراجعة: يناير ٢٠٢٥ — يُنصح بالتحديث' }
+];
+
+const ISSUES = [
+  { critical: true, title: 'بيانات إفصاح ناقصة في ١٢ صفقة', meta: 'مطلوب قبل ٢٠٢٦/٠٦/٣٠ — أولوية عالية' },
+  { critical: true, title: 'تقرير SAMA المرحلي لم يُرسَل', meta: 'متأخر ٣ أيام — يُنصح بالإرسال الفوري' },
+  { critical: false, title: 'سياسة AML تجاوزت ١٨ شهراً دون مراجعة', meta: 'تحذير — ليس إلزامياً فورياً' }
+];
+
+const HISTORY = [
+  { date: '٢٠٢٦/٠٦/١٤', score: '٩٢٪', issues: '٢ حرجة، ٣ تحذيرات' },
+  { date: '٢٠٢٦/٠٥/١٤', score: '٩٥٪', issues: '١ حرجة، ١ تحذير' },
+  { date: '٢٠٢٦/٠٤/١٤', score: '٩٨٪', issues: 'لا مشكلات' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('ccStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val' + (s.cls ? ' ' + s.cls : ''); val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildChecks() {
+  const wrap = document.getElementById('checkList');
+  CHECKS.forEach(c => {
+    const item = document.createElement('div'); item.className = 'chk-item';
+    const icon = document.createElement('div'); icon.className = 'chk-icon ' + c.icon; icon.textContent = c.label;
+    const body = document.createElement('div'); body.className = 'chk-body';
+    const title = document.createElement('div'); title.className = 'chk-title'; title.textContent = c.title;
+    const detail = document.createElement('div'); detail.className = 'chk-detail'; detail.textContent = c.detail;
+    body.appendChild(title); body.appendChild(detail);
+    item.appendChild(icon); item.appendChild(body);
+    wrap.appendChild(item);
+  });
+}
+
+function buildIssues() {
+  const wrap = document.getElementById('issueList');
+  ISSUES.forEach(i => {
+    const item = document.createElement('div'); item.className = 'issue-item' + (i.critical ? ' critical' : '');
+    const title = document.createElement('div'); title.className = 'issue-title'; title.textContent = i.title;
+    const meta = document.createElement('div'); meta.className = 'issue-meta'; meta.textContent = i.meta;
+    item.appendChild(title); item.appendChild(meta);
+    wrap.appendChild(item);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyLog');
+  HISTORY.forEach(h => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const date = document.createElement('span'); date.style.fontWeight = '700'; date.textContent = h.date + ' ';
+    const issues = document.createElement('span'); issues.style.color = 'var(--muted)'; issues.textContent = '· ' + h.issues;
+    left.appendChild(date); left.appendChild(issues);
+    const score = document.createElement('div'); score.style.cssText = 'font-weight:700;color:var(--green);'; score.textContent = h.score;
+    row.appendChild(left); row.appendChild(score);
+    wrap.appendChild(row);
+  });
+}
+
+function runCheck() {
+  fetch('/app/admin/compliance-checker', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ full: true }) }).catch(() => {});
+  alert('جاري تشغيل فحص امتثال شامل...');
+}
+
+function exportReport() {
+  fetch('/app/admin/compliance-checker/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير الامتثال...');
+}
+
+buildStats(); buildChecks(); buildIssues(); buildHistory();
+</script>
+</body>
+</html>

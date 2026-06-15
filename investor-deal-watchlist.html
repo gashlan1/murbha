@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قائمة متابعة الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.deal-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1.25rem;}
+.deal-card{border:1px solid var(--line);border-radius:12px;padding:1.1rem;position:relative;}
+.deal-card.top-pick{border-color:var(--gold);}
+.deal-badge{position:absolute;top:-10px;right:12px;background:var(--gold);color:#fff;font-size:0.65rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:8px;}
+.deal-type{font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;}
+.deal-name{font-size:0.92rem;font-weight:700;margin-bottom:0.6rem;}
+.deal-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;}
+.ds-item{}
+.ds-label{font-size:0.65rem;color:var(--muted);}
+.ds-val{font-size:0.86rem;font-weight:700;}
+.ds-val.green{color:var(--green);}
+.deal-actions{display:flex;gap:0.5rem;margin-top:0.75rem;}
+.alert-list{padding:1.25rem;}
+.alert-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.dot-gold{background:var(--gold);}
+.dot-green{background:var(--green);}
+.alert-body{}
+.alert-title{font-size:0.84rem;font-weight:600;}
+.alert-meta{font-size:0.72rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.deal-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — قائمة المتابعة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>قائمة متابعة الصفقات</h2>
+      <p>تابع الصفقات المفضلة واحصل على تنبيهات فور توفر مقعد استثماري</p>
+    </div>
+    <button class="btn btn-primary" onclick="addAlert()">إضافة تنبيه</button>
+  </div>
+
+  <div class="stats" id="wlStats"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>الصفقات المتابَعة</h3></div>
+    <div class="deal-grid" id="dealGrid"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="investAll()">استثمر في الكل</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="clearWatchlist()">مسح القائمة</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>آخر التنبيهات</h3></div>
+    <div class="alert-list" id="alertList"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٤', lbl: 'صفقات في القائمة' },
+  { val: '٢', lbl: 'صفقات متاحة الآن' },
+  { val: '١٠.٨٪', lbl: 'متوسط العائد المتابَع' },
+  { val: '٨', lbl: 'تنبيه نشط' }
+];
+
+const DEALS = [
+  { type: 'مرابحة عقارية', name: 'صفقة برج الرياض التجاري', return: '١٢٪', min: '٥٠,٠٠٠ ر.س', filled: '٧٨٪', days: '٣ أيام', topPick: true },
+  { type: 'مرابحة تجارية', name: 'صفقة توريد معدات صناعية', return: '٩.٥٪', min: '١٠,٠٠٠ ر.س', filled: '٤٥٪', days: '١٢ يوم', topPick: false },
+  { type: 'مرابحة لوجستية', name: 'صفقة أسطول شاحنات الشمال', return: '٨٪', min: '٢٠,٠٠٠ ر.س', filled: '٩٢٪', days: '١ يوم', topPick: false },
+  { type: 'مرابحة عقارية', name: 'صفقة مجمع سكني جدة', return: '١١٪', min: '٣٠,٠٠٠ ر.س', filled: '٢٠٪', days: '٢١ يوم', topPick: false }
+];
+
+const ALERTS = [
+  { dot: 'dot-gold', title: 'صفقة أسطول شاحنات الشمال: ٩٢٪ ممتلئة', meta: 'تبقى أقل من ٤٨ ساعة — منذ ٢ ساعة' },
+  { dot: 'dot-green', title: 'فُتح مقعد جديد في صفقة برج الرياض', meta: 'تم انسحاب مستثمر — منذ ٥ ساعات' },
+  { dot: 'dot-gold', title: 'صفقة توريد معدات: بدأت جولة الاكتتاب', meta: 'متاحة للاستثمار الآن — منذ يوم' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('wlStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildDeals() {
+  const wrap = document.getElementById('dealGrid');
+  DEALS.forEach((d, i) => {
+    const card = document.createElement('div'); card.className = 'deal-card' + (d.topPick ? ' top-pick' : '');
+    if (d.topPick) { const badge = document.createElement('div'); badge.className = 'deal-badge'; badge.textContent = 'الأفضل أداءً'; card.appendChild(badge); }
+    const type = document.createElement('div'); type.className = 'deal-type'; type.textContent = d.type;
+    const name = document.createElement('div'); name.className = 'deal-name'; name.textContent = d.name;
+    const stats = document.createElement('div'); stats.className = 'deal-stats';
+    [['العائد', d.return, true], ['الحد الأدنى', d.min, false], ['الامتلاء', d.filled, false], ['ينتهي', d.days, false]].forEach(([lbl, val, green]) => {
+      const item = document.createElement('div'); item.className = 'ds-item';
+      const l = document.createElement('div'); l.className = 'ds-label'; l.textContent = lbl;
+      const v = document.createElement('div'); v.className = 'ds-val' + (green ? ' green' : ''); v.textContent = val;
+      item.appendChild(l); item.appendChild(v); stats.appendChild(item);
+    });
+    const actions = document.createElement('div'); actions.className = 'deal-actions';
+    const investBtn = document.createElement('button'); investBtn.className = 'btn btn-sm btn-primary'; investBtn.textContent = 'استثمر الآن';
+    investBtn.onclick = () => investDeal(i);
+    const removeBtn = document.createElement('button'); removeBtn.className = 'btn btn-sm'; removeBtn.style.cssText = 'background:#f5f0e8;color:var(--muted);'; removeBtn.textContent = 'إزالة';
+    removeBtn.onclick = () => removeDeal(i);
+    actions.appendChild(investBtn); actions.appendChild(removeBtn);
+    card.appendChild(type); card.appendChild(name); card.appendChild(stats); card.appendChild(actions);
+    wrap.appendChild(card);
+  });
+}
+
+function buildAlerts() {
+  const wrap = document.getElementById('alertList');
+  ALERTS.forEach(a => {
+    const item = document.createElement('div'); item.className = 'alert-item';
+    const dot = document.createElement('div'); dot.className = 'alert-dot ' + a.dot;
+    const body = document.createElement('div'); body.className = 'alert-body';
+    const title = document.createElement('div'); title.className = 'alert-title'; title.textContent = a.title;
+    const meta = document.createElement('div'); meta.className = 'alert-meta'; meta.textContent = a.meta;
+    body.appendChild(title); body.appendChild(meta);
+    item.appendChild(dot); item.appendChild(body);
+    wrap.appendChild(item);
+  });
+}
+
+function investDeal(idx) {
+  fetch('/app/me/deal-watchlist/invest', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ dealIdx: idx }) }).catch(() => {});
+  alert('جاري الانتقال لصفحة الاستثمار في: ' + DEALS[idx].name);
+}
+
+function removeDeal(idx) {
+  fetch('/app/me/deal-watchlist/' + idx, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ remove: true }) }).catch(() => {});
+  alert('تم إزالة الصفقة من قائمة المتابعة.');
+}
+
+function addAlert() {
+  fetch('/app/me/deal-watchlist/alert', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ type: 'new' }) }).catch(() => {});
+  alert('جاري إضافة تنبيه جديد...');
+}
+
+function investAll() { alert('سيتم توجيهك لصفحة الاستثمار لكل صفقة متاحة في القائمة.'); }
+function clearWatchlist() {
+  fetch('/app/me/deal-watchlist/clear', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ clear: true }) }).catch(() => {});
+  alert('تم مسح قائمة المتابعة.');
+}
+
+buildStats(); buildDeals(); buildAlerts();
+</script>
+</body>
+</html>
