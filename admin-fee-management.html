@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الرسوم - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-val{font-size:1.6rem;font-weight:700;color:var(--green);}
+.kpi-lbl{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.kpi-sub{font-size:0.72rem;color:#27ae60;margin-top:0.15rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.fee-type-badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.fee-mgmt{background:#e8f5ed;color:#1e8449;}
+.fee-perf{background:#fef3cd;color:#92400e;}
+.fee-entry{background:#e8f0fd;color:#1a56a0;}
+.fee-exit{background:#fde8f5;color:#8e1a6e;}
+.actions{display:flex;gap:0.4rem;}
+.edit-form{padding:1.25rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.35rem;}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.85rem;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--green);}
+.tier-table{padding:0 1.25rem 1.25rem;}
+.tier-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.75rem;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.tier-row:last-child{border-bottom:none;}
+.tier-row input{padding:0.35rem 0.6rem;border:1.5px solid var(--line);border-radius:6px;font-family:'Cairo',sans-serif;font-size:0.82rem;width:100%;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.kpi-grid{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة الرسوم</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة هيكل الرسوم</h2>
+      <p>تعريف وتعديل رسوم المنصة لجميع أنواع الصفقات والشرائح</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveFees()">حفظ التغييرات</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>رسوم الإدارة</h3></div>
+      <div class="edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>رسوم الإدارة السنوية</label>
+            <input type="text" value="١.٥٪" oninput="previewChange()">
+          </div>
+          <div class="form-group">
+            <label>طريقة الاحتساب</label>
+            <select>
+              <option>على رأس المال</option>
+              <option>على إجمالي الصفقة</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>الحد الأدنى (ر.س)</label>
+            <input type="number" value="500">
+          </div>
+          <div class="form-group">
+            <label>الحد الأقصى (ر.س)</label>
+            <input type="number" value="50000">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>رسوم الأداء</h3></div>
+      <div class="edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>نسبة رسوم الأداء</label>
+            <input type="text" value="٢٠٪">
+          </div>
+          <div class="form-group">
+            <label>عتبة الأداء (Hurdle Rate)</label>
+            <input type="text" value="٨٪">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>نموذج التوزيع</label>
+            <select>
+              <option>Catch-up كامل</option>
+              <option>Catch-up جزئي</option>
+              <option>بدون Catch-up</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>دورية الاحتساب</label>
+            <select>
+              <option>سنوية</option>
+              <option>نصف سنوية</option>
+              <option>ربع سنوية</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>هيكل الرسوم حسب الشريحة</h3>
+      <button class="btn btn-gold btn-sm" onclick="addTier()">+ شريحة</button>
+    </div>
+    <div class="tier-table">
+      <div class="tier-row" style="font-size:0.78rem;font-weight:700;color:var(--muted);padding-bottom:0.25rem;">
+        <span>الحد الأدنى للاستثمار</span><span>الحد الأقصى</span><span>نسبة الرسوم</span><span>إجراء</span>
+      </div>
+      <div id="tierRows"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>جدول الرسوم المطبّق حالياً</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportFees()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>نوع الرسم</th><th>النسبة</th><th>تاريخ التطبيق</th><th>الحالة</th><th>إجراء</th></tr>
+      </thead>
+      <tbody id="feeTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="saveFees()">حفظ الهيكل</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="resetFees()">إعادة تعيين</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KPIS = [
+  { val: '٢.٣م', lbl: 'إجمالي الرسوم (YTD)', sub: 'ر.س' },
+  { val: '١.٥٪', lbl: 'متوسط رسوم الإدارة', sub: 'سنوياً' },
+  { val: '٢٠٪', lbl: 'رسوم الأداء', sub: 'فوق العتبة' },
+  { val: '٤٢٠', lbl: 'مستثمر مفعّل', sub: 'هذا الشهر' }
+];
+
+const TIERS = [
+  { min: '٠', max: '٥٠,٠٠٠', rate: '٢.٠٪' },
+  { min: '٥٠,٠٠١', max: '٢٠٠,٠٠٠', rate: '١.٧٥٪' },
+  { min: '٢٠٠,٠٠١', max: '٥٠٠,٠٠٠', rate: '١.٥٪' },
+  { min: '٥٠٠,٠٠١', max: '+', rate: '١.٢٥٪' }
+];
+
+const FEE_TABLE = [
+  { type: 'رسوم الإدارة', cls: 'fee-mgmt', rate: '١.٥٪', date: '٢٠٢٦/٠١/٠١', active: true },
+  { type: 'رسوم الأداء', cls: 'fee-perf', rate: '٢٠٪', date: '٢٠٢٦/٠١/٠١', active: true },
+  { type: 'رسوم الدخول', cls: 'fee-entry', rate: '٠.٥٪', date: '٢٠٢٦/٠٣/١٥', active: true },
+  { type: 'رسوم الخروج المبكر', cls: 'fee-exit', rate: '١.٠٪', date: '٢٠٢٦/٠٣/١٥', active: true },
+  { type: 'رسوم الإدارة (قديم)', cls: 'fee-mgmt', rate: '٢.٠٪', date: '٢٠٢٥/٠١/٠١', active: false }
+];
+
+function buildKPIs() {
+  const grid = document.getElementById('kpiGrid');
+  KPIS.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const val = document.createElement('div'); val.className = 'kpi-val'; val.textContent = k.val;
+    const lbl = document.createElement('div'); lbl.className = 'kpi-lbl'; lbl.textContent = k.lbl;
+    const sub = document.createElement('div'); sub.className = 'kpi-sub'; sub.textContent = k.sub;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(sub);
+    grid.appendChild(card);
+  });
+}
+
+function buildTiers() {
+  const wrap = document.getElementById('tierRows');
+  TIERS.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'tier-row';
+    const min = document.createElement('input'); min.value = t.min;
+    const max = document.createElement('input'); max.value = t.max;
+    const rate = document.createElement('input'); rate.value = t.rate;
+    const del = document.createElement('button');
+    del.className = 'btn btn-danger btn-sm';
+    del.textContent = 'حذف';
+    del.onclick = () => row.remove();
+    row.appendChild(min); row.appendChild(max); row.appendChild(rate); row.appendChild(del);
+    wrap.appendChild(row);
+  });
+}
+
+function buildFeeTable() {
+  const tbody = document.getElementById('feeTable');
+  FEE_TABLE.forEach(f => {
+    const tr = document.createElement('tr');
+    const typeTd = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'fee-type-badge ' + f.cls;
+    badge.textContent = f.type;
+    typeTd.appendChild(badge);
+    [f.rate, f.date].forEach(t => { const td = document.createElement('td'); td.textContent = t; tr.appendChild(td); });
+    const statusTd = document.createElement('td');
+    statusTd.textContent = f.active ? '✓ مفعّل' : '○ منتهي';
+    statusTd.style.color = f.active ? '#27ae60' : 'var(--muted)';
+    const actTd = document.createElement('td');
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary btn-sm';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => alert('تعديل: ' + f.type);
+    actTd.appendChild(editBtn);
+    tr.insertBefore(typeTd, tr.firstChild);
+    tr.appendChild(statusTd); tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function addTier() { alert('إضافة شريحة جديدة'); }
+function previewChange() {}
+function saveFees() {
+  fetch('/app/admin/fees', { method: 'PUT', headers: { 'x-csrf-token': 'demo-token', 'Content-Type': 'application/json' }, body: JSON.stringify({}) }).catch(() => {});
+  alert('تم حفظ هيكل الرسوم بنجاح');
+}
+function resetFees() { if (confirm('هل تريد إعادة تعيين الرسوم للقيم الافتراضية؟')) alert('تمت إعادة التعيين'); }
+function exportFees() {
+  fetch('/app/admin/fees/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير هيكل الرسوم...');
+}
+
+buildKPIs(); buildTiers(); buildFeeTable();
+</script>
+</body>
+</html>

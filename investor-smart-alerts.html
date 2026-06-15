@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>التنبيهات الذكية - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.alert-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.alert-sum-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;display:flex;align-items:center;gap:1rem;}
+.alert-sum-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.asi-active{background:#e8f5ed;}
+.asi-unread{background:#fef3cd;}
+.asi-channels{background:#e8f0fd;}
+.alert-sum-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.alert-sum-lbl{font-size:0.75rem;color:var(--muted);}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.alert-config{padding:1.25rem;}
+.alert-rule{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.alert-rule:last-child{border-bottom:none;}
+.rule-info{}
+.rule-name{font-size:0.85rem;font-weight:600;}
+.rule-desc{font-size:0.73rem;color:var(--muted);margin-top:0.15rem;}
+.toggle{width:42px;height:22px;border-radius:11px;background:#ddd;position:relative;cursor:pointer;flex-shrink:0;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle-knob{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:right 0.2s;}
+.toggle.on .toggle-knob{right:22px;}
+.channel-row{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.channel-row:last-child{border-bottom:none;}
+.channel-icon{font-size:1.2rem;width:32px;text-align:center;}
+.channel-name{font-size:0.84rem;font-weight:600;flex:1;}
+.channel-desc{font-size:0.72rem;color:var(--muted);}
+.alert-feed{padding:0 1.25rem 1.25rem;}
+.feed-item{display:flex;align-items:flex-start;gap:0.85rem;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.feed-item:last-child{border-bottom:none;}
+.feed-item.unread{background:#fffdf5;margin:0 -1.25rem;padding:0.75rem 1.25rem;}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:0.4rem;}
+.fd-profit{background:#27ae60;}
+.fd-deal{background:var(--gold);}
+.fd-risk{background:#e74c3c;}
+.fd-system{background:#1a56a0;}
+.feed-content{}
+.feed-title{font-size:0.84rem;font-weight:600;}
+.feed-body{font-size:0.77rem;color:var(--muted);margin-top:0.2rem;}
+.feed-time{font-size:0.7rem;color:var(--muted);margin-top:0.25rem;}
+.feed-actions{display:flex;gap:0.5rem;margin-top:0.5rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:650px){.layout-2{grid-template-columns:1fr;}.alert-summary{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — التنبيهات الذكية</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>التنبيهات الذكية</h2>
+      <p>تخصيص وإدارة تنبيهاتك الاستثمارية في الوقت الفعلي</p>
+    </div>
+    <button class="btn btn-primary" onclick="saveAlerts()">حفظ الإعدادات</button>
+  </div>
+
+  <div class="alert-summary" id="alertSummary"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قواعد التنبيه</h3></div>
+      <div class="alert-config" id="alertRules"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قنوات الإشعار</h3></div>
+      <div class="alert-config" id="alertChannels"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>آخر التنبيهات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="markAllRead()">تحديد الكل مقروءاً</button>
+    </div>
+    <div class="alert-feed" id="alertFeed"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addRule()">+ قاعدة جديدة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="clearAll()">مسح السجل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUMMARY = [
+  { icon: '🔔', cls: 'asi-active', val: '٨', lbl: 'قواعد تنبيه نشطة' },
+  { icon: '📬', cls: 'asi-unread', val: '٣', lbl: 'تنبيهات غير مقروءة' },
+  { icon: '📡', cls: 'asi-channels', val: '٣', lbl: 'قنوات مفعّلة' }
+];
+
+const RULES = [
+  { name: 'عند استلام أرباح', desc: 'تنبيه فور تحويل أي توزيع', on: true },
+  { name: 'صفقة جديدة متاحة', desc: 'إشعار بصفقات تتوافق مع ملفي', on: true },
+  { name: 'تغير العائد المتوقع', desc: 'عند تغير العائد أكثر من ١٪', on: true },
+  { name: 'اقتراب موعد الاستحقاق', desc: 'قبل ٣٠ يوماً من انتهاء الصفقة', on: true },
+  { name: 'تجاوز هدف الادخار', desc: 'عند الوصول لهدف محدد', on: false },
+  { name: 'تغير تصنيف المخاطر', desc: 'عند تعديل درجة مخاطر أي صفقة', on: true }
+];
+
+const CHANNELS = [
+  { icon: '📱', name: 'الرسائل النصية (SMS)', desc: '+966 5x xxx xxxx', on: true },
+  { icon: '📧', name: 'البريد الإلكتروني', desc: 'user@example.com', on: true },
+  { icon: '🔔', name: 'إشعارات التطبيق', desc: 'Push Notifications', on: true },
+  { icon: '💬', name: 'واتساب', desc: 'غير مفعّل', on: false }
+];
+
+const FEED = [
+  { dot: 'fd-profit', title: 'استلمت أرباح من مرابحة عقارية الرياض', body: 'تم تحويل ٢,٠٠٠ ر.س إلى محفظتك بنجاح', time: 'منذ ٢ ساعة', unread: true },
+  { dot: 'fd-deal', title: 'صفقة جديدة تتوافق مع ملفك الاستثماري', body: 'مرابحة طاقة متجددة — عائد ١٤٪ · حجم ٨م ر.س', time: 'منذ ٥ ساعات', unread: true },
+  { dot: 'fd-risk', title: 'تغير تصنيف مخاطر صفقة #4921', body: 'تراجع التصنيف من متوسط إلى عالٍ — يُرجى المراجعة', time: 'منذ يوم', unread: true },
+  { dot: 'fd-profit', title: 'استلمت أرباح من مرابحة تجارية جدة', body: 'تم تحويل ١,٤٠٠ ر.س', time: 'منذ ٣ أيام', unread: false },
+  { dot: 'fd-system', title: 'تحديث شروط الاستخدام', body: 'تم تحديث سياسة الخصوصية — يرجى المراجعة', time: 'منذ أسبوع', unread: false }
+];
+
+function buildSummary() {
+  const wrap = document.getElementById('alertSummary');
+  SUMMARY.forEach(s => {
+    const card = document.createElement('div'); card.className = 'alert-sum-card';
+    const icon = document.createElement('div'); icon.className = 'alert-sum-icon ' + s.cls; icon.textContent = s.icon;
+    const info = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'alert-sum-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'alert-sum-lbl'; lbl.textContent = s.lbl;
+    info.appendChild(val); info.appendChild(lbl);
+    card.appendChild(icon); card.appendChild(info);
+    wrap.appendChild(card);
+  });
+}
+
+function buildToggle(on, onChange) {
+  const toggle = document.createElement('div');
+  toggle.className = 'toggle' + (on ? ' on' : '');
+  const knob = document.createElement('div'); knob.className = 'toggle-knob';
+  toggle.appendChild(knob);
+  toggle.onclick = () => { toggle.classList.toggle('on'); onChange(); };
+  return toggle;
+}
+
+function buildRules() {
+  const wrap = document.getElementById('alertRules');
+  RULES.forEach(r => {
+    const row = document.createElement('div'); row.className = 'alert-rule';
+    const info = document.createElement('div'); info.className = 'rule-info';
+    const name = document.createElement('div'); name.className = 'rule-name'; name.textContent = r.name;
+    const desc = document.createElement('div'); desc.className = 'rule-desc'; desc.textContent = r.desc;
+    info.appendChild(name); info.appendChild(desc);
+    const toggle = buildToggle(r.on, () => { r.on = !r.on; });
+    row.appendChild(info); row.appendChild(toggle);
+    wrap.appendChild(row);
+  });
+}
+
+function buildChannels() {
+  const wrap = document.getElementById('alertChannels');
+  CHANNELS.forEach(c => {
+    const row = document.createElement('div'); row.className = 'channel-row';
+    const icon = document.createElement('div'); icon.className = 'channel-icon'; icon.textContent = c.icon;
+    const info = document.createElement('div');
+    const name = document.createElement('div'); name.className = 'channel-name'; name.textContent = c.name;
+    const desc = document.createElement('div'); desc.className = 'channel-desc'; desc.textContent = c.desc;
+    info.appendChild(name); info.appendChild(desc);
+    const toggle = buildToggle(c.on, () => { c.on = !c.on; });
+    row.appendChild(icon); row.appendChild(info); row.appendChild(toggle);
+    wrap.appendChild(row);
+  });
+}
+
+function buildFeed() {
+  const feed = document.getElementById('alertFeed');
+  FEED.forEach(f => {
+    const item = document.createElement('div'); item.className = 'feed-item' + (f.unread ? ' unread' : '');
+    const dot = document.createElement('div'); dot.className = 'feed-dot ' + f.dot;
+    const content = document.createElement('div'); content.className = 'feed-content';
+    const title = document.createElement('div'); title.className = 'feed-title'; title.textContent = f.title;
+    const body = document.createElement('div'); body.className = 'feed-body'; body.textContent = f.body;
+    const time = document.createElement('div'); time.className = 'feed-time'; time.textContent = f.time;
+    content.appendChild(title); content.appendChild(body); content.appendChild(time);
+    item.appendChild(dot); item.appendChild(content);
+    feed.appendChild(item);
+  });
+}
+
+function saveAlerts() {
+  fetch('/app/me/smart-alerts/preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ rules: RULES, channels: CHANNELS })
+  }).catch(() => {});
+  alert('تم حفظ إعدادات التنبيهات بنجاح');
+}
+
+function markAllRead() {
+  fetch('/app/me/smart-alerts/mark-read', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  document.querySelectorAll('.feed-item.unread').forEach(el => el.classList.remove('unread'));
+}
+
+function addRule() { alert('إضافة قاعدة تنبيه جديدة'); }
+function clearAll() {
+  fetch('/app/me/smart-alerts/clear', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم مسح سجل التنبيهات');
+}
+
+buildSummary(); buildRules(); buildChannels(); buildFeed();
+</script>
+</body>
+</html>

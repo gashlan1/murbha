@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مراقبة الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.alert-banner{background:#fde8e8;border:1px solid #e74c3c;border-radius:10px;padding:0.85rem 1.25rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;font-size:0.84rem;color:#c0392b;font-weight:600;}
+.monitoring-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0.85rem;margin-bottom:2rem;}
+.mstat{background:#fff;border-radius:10px;border:1px solid var(--line);padding:1rem;text-align:center;}
+.mstat-val{font-size:1.4rem;font-weight:700;}
+.mstat-val.green{color:var(--green);}
+.mstat-val.yellow{color:#e67e22;}
+.mstat-val.red{color:#c0392b;}
+.mstat-lbl{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.health-bar-wrap{width:80px;background:var(--line);border-radius:10px;height:6px;display:inline-block;}
+.health-bar{height:6px;border-radius:10px;}
+.hb-good{background:#27ae60;}
+.hb-warn{background:#e67e22;}
+.hb-bad{background:#e74c3c;}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:0.4rem;}
+.dot-green{background:#27ae60;}
+.dot-yellow{background:#e67e22;}
+.dot-red{background:#e74c3c;}
+.pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-ok{background:#e8f5ed;color:#1e8449;}
+.pill-watch{background:#fef3cd;color:#92400e;}
+.pill-alert{background:#fde8e8;color:#c0392b;}
+.event-log{padding:0 1.25rem 1.25rem;}
+.event-row{display:flex;align-items:flex-start;gap:0.85rem;padding:0.7rem 0;border-bottom:1px solid var(--line);}
+.event-row:last-child{border-bottom:none;}
+.event-icon{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.ei-warn{background:#fef3cd;color:#e67e22;}
+.ei-ok{background:#e8f5ed;color:#27ae60;}
+.ei-alert{background:#fde8e8;color:#e74c3c;}
+.event-body .event-title{font-size:0.83rem;font-weight:600;}
+.event-body .event-meta{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+@media(max-width:900px){.monitoring-stats{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مراقبة الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مراقبة الصفقات النشطة</h2>
+      <p>رصد مستمر لأداء وصحة جميع الصفقات المفتوحة</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportMonitoring()">تصدير التقرير</button>
+  </div>
+
+  <div class="alert-banner" id="alertBanner">
+    ⚠ تنبيه: صفقة #4921 تجاوزت نسبة الدين للأصول الحد المحدد — يُرجى المراجعة الفورية
+  </div>
+
+  <div class="monitoring-stats" id="monStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الصفقات النشطة — نظرة شاملة</h3>
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.7);">٢٨ صفقة</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الصفقة</th>
+          <th>اسم الصفقة</th>
+          <th>المخصص</th>
+          <th>العائد</th>
+          <th>التقدم</th>
+          <th>صحة الصفقة</th>
+          <th>الحالة</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="dealsTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>سجل الأحداث والتنبيهات</h3></div>
+    <div class="event-log" id="eventLog"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢٨', cls: 'green', lbl: 'صفقة نشطة' },
+  { val: '٢٤', cls: 'green', lbl: 'وضع جيد' },
+  { val: '٣', cls: 'yellow', lbl: 'تحت المراقبة' },
+  { val: '١', cls: 'red', lbl: 'تنبيه' },
+  { val: '٩٦.٤٪', cls: 'green', lbl: 'معدل السداد' }
+];
+
+const DEALS = [
+  { id: '#4920', name: 'مرابحة عقارية الرياض', allocated: '٣م', ret: '١٤٪', prog: 65, health: 92, hcls: 'hb-good', pill: 'pill-ok', status: 'جيد', dcls: 'dot-green' },
+  { id: '#4921', name: 'مرابحة تجارية جدة', allocated: '٢م', ret: '١٢٪', prog: 40, health: 54, hcls: 'hb-warn', pill: 'pill-watch', status: 'مراقبة', dcls: 'dot-yellow' },
+  { id: '#4922', name: 'مرابحة صناعية الدمام', allocated: '٥م', ret: '١٥٪', prog: 80, health: 88, hcls: 'hb-good', pill: 'pill-ok', status: 'جيد', dcls: 'dot-green' },
+  { id: '#4918', name: 'مرابحة لوجستية', allocated: '١.٥م', ret: '١١٪', prog: 55, health: 31, hcls: 'hb-bad', pill: 'pill-alert', status: 'تنبيه', dcls: 'dot-red' },
+  { id: '#4915', name: 'مرابحة تقنية', allocated: '٤م', ret: '١٣٪', prog: 90, health: 95, hcls: 'hb-good', pill: 'pill-ok', status: 'جيد', dcls: 'dot-green' }
+];
+
+const EVENTS = [
+  { icon: '⚠', cls: 'ei-warn', title: 'صفقة #4921: نسبة الدين للأصول تجاوزت ٦٥٪', meta: 'منذ ٢ ساعة · تحتاج مراجعة' },
+  { icon: '!', cls: 'ei-alert', title: 'صفقة #4918: تأخر دفعة السداد المجدولة', meta: 'منذ ٦ ساعات · تنبيه فوري' },
+  { icon: '✓', cls: 'ei-ok', title: 'صفقة #4922: سداد دفعة يونيو بنجاح', meta: 'منذ يوم · ٥٠٠,٠٠٠ ر.س' },
+  { icon: '✓', cls: 'ei-ok', title: 'صفقة #4920: تجديد تأمين الأصول', meta: 'منذ ٣ أيام · حتى ٢٠٢٧' },
+  { icon: '⚠', cls: 'ei-warn', title: 'صفقة #4921: تحديث درجة الائتمان BBB+→BBB', meta: 'منذ ٥ أيام · مراجعة مطلوبة' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('monStats');
+  STATS.forEach(s => {
+    const div = document.createElement('div'); div.className = 'mstat';
+    const val = document.createElement('div'); val.className = 'mstat-val ' + s.cls; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'mstat-lbl'; lbl.textContent = s.lbl;
+    div.appendChild(val); div.appendChild(lbl);
+    wrap.appendChild(div);
+  });
+}
+
+function buildDealsTable() {
+  const tbody = document.getElementById('dealsTable');
+  DEALS.forEach(d => {
+    const tr = document.createElement('tr');
+    [d.id, d.name, d.allocated + ' ر.س', d.ret].forEach(t => {
+      const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+    });
+    const progTd = document.createElement('td');
+    progTd.textContent = d.prog + '٪';
+    tr.appendChild(progTd);
+    const healthTd = document.createElement('td');
+    const barWrap = document.createElement('div'); barWrap.className = 'health-bar-wrap';
+    const bar = document.createElement('div'); bar.className = 'health-bar ' + d.hcls; bar.style.width = d.health + '%';
+    barWrap.appendChild(bar);
+    const score = document.createTextNode(' ' + d.health);
+    healthTd.appendChild(barWrap); healthTd.appendChild(score);
+    tr.appendChild(healthTd);
+    const statusTd = document.createElement('td');
+    const dot = document.createElement('span'); dot.className = 'status-dot ' + d.dcls;
+    const pill = document.createElement('span'); pill.className = 'pill ' + d.pill; pill.textContent = d.status;
+    statusTd.appendChild(pill); statusTd.appendChild(dot);
+    tr.appendChild(statusTd);
+    const actTd = document.createElement('td');
+    const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-sm'; btn.textContent = 'تفاصيل';
+    btn.onclick = () => viewDeal(d.id);
+    actTd.appendChild(btn);
+    tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildEvents() {
+  const log = document.getElementById('eventLog');
+  EVENTS.forEach(e => {
+    const row = document.createElement('div'); row.className = 'event-row';
+    const icon = document.createElement('div'); icon.className = 'event-icon ' + e.cls; icon.textContent = e.icon;
+    const body = document.createElement('div'); body.className = 'event-body';
+    const title = document.createElement('div'); title.className = 'event-title'; title.textContent = e.title;
+    const meta = document.createElement('div'); meta.className = 'event-meta'; meta.textContent = e.meta;
+    body.appendChild(title); body.appendChild(meta);
+    row.appendChild(icon); row.appendChild(body);
+    log.appendChild(row);
+  });
+}
+
+function viewDeal(id) { alert('عرض تفاصيل الصفقة ' + id); }
+function exportMonitoring() {
+  fetch('/app/admin/deals/monitoring/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير المراقبة...');
+}
+
+buildStats(); buildDealsTable(); buildEvents();
+</script>
+</body>
+</html>
