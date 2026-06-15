@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متتبع إعادة الاستثمار - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.compound-banner{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;text-align:center;}
+.cb-val{font-size:1.4rem;font-weight:700;color:#b8e6cf;}
+.cb-lbl{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.ri-list{padding:1.25rem;}
+.ri-item{border:1px solid var(--line);border-radius:10px;padding:0.85rem;margin-bottom:0.6rem;}
+.ri-item:last-child{margin-bottom:0;}
+.ri-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;}
+.ri-deal{font-size:0.86rem;font-weight:700;}
+.ri-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-auto{background:#e8f5ed;color:#1e8449;}
+.pill-manual{background:#fef3cd;color:#92400e;}
+.ri-meta{font-size:0.72rem;color:var(--muted);}
+.ri-amount{font-size:0.84rem;font-weight:700;color:var(--green);margin-top:0.2rem;}
+.projection-table{padding:1.25rem;}
+.pt-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.8rem;}
+.pt-row:last-child{border-bottom:none;}
+.pt-header{font-weight:700;font-size:0.72rem;color:var(--muted);}
+.val-green{color:var(--green);font-weight:700;}
+.val-gold{color:var(--gold);font-weight:700;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.compound-banner{grid-template-columns:1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — متتبع إعادة الاستثمار</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>متتبع إعادة الاستثمار</h2>
+      <p>راقب عمليات إعادة استثمار أرباحك وتأثير التراكم على محفظتك</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportTracker()">تصدير</button>
+  </div>
+
+  <div class="compound-banner" id="compBanner"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>عمليات إعادة الاستثمار الأخيرة</h3></div>
+      <div class="ri-list" id="riList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>إسقاطات التراكم</h3></div>
+      <div class="projection-table" id="projTable"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>إعدادات إعادة الاستثمار التلقائي</h3>
+    </div>
+    <div style="padding:1.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;border-bottom:1px solid var(--line);">
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;">إعادة الاستثمار التلقائي</div>
+          <div style="font-size:0.72rem;color:var(--muted);">تحويل الأرباح تلقائياً إلى صفقات جديدة</div>
+        </div>
+        <button class="toggle on" id="autoReinvestToggle" onclick="toggleAuto(this)"></button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0;">
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;">حد أدنى لإعادة الاستثمار</div>
+          <div style="font-size:0.72rem;color:var(--muted);">لا تُعيد الاستثمار إذا كان المبلغ أقل من الحد</div>
+        </div>
+        <input type="text" value="١,٠٠٠ ر.س" style="padding:0.35rem 0.65rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.82rem;width:120px;text-align:left;">
+      </div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">حفظ الإعدادات</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportTracker()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.toggle{width:38px;height:20px;border-radius:10px;cursor:pointer;border:none;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:#d0cbc0;}
+</style>
+
+<script>
+const BANNER = [
+  { val: '٨,٤٠٠ ر.س', lbl: 'أرباح مُعاد استثمارها (إجمالي)' },
+  { val: '٤.٢٪', lbl: 'تحسّن العائد بالتراكم' },
+  { val: '٦ عمليات', lbl: 'إعادة استثمار هذا العام' }
+];
+
+const RI = [
+  { deal: 'إعادة استثمار أرباح #4910', pill: 'pill-auto', label: 'تلقائي', meta: '١٠ مارس ٢٠٢٦', amount: '+٢,٤٠٠ ر.س → صفقة #4922' },
+  { deal: 'إعادة استثمار أرباح #4898', pill: 'pill-auto', label: 'تلقائي', meta: '٢٨ فبراير ٢٠٢٦', amount: '+١,٨٠٠ ر.س → صفقة #4920' },
+  { deal: 'إعادة استثمار أرباح #4880', pill: 'pill-manual', label: 'يدوي', meta: '١٥ فبراير ٢٠٢٦', amount: '+٣,٦٠٠ ر.س → صفقة #4918' },
+  { deal: 'إعادة استثمار أرباح #4870', pill: 'pill-auto', label: 'تلقائي', meta: '١ فبراير ٢٠٢٦', amount: '+٦٠٠ ر.س → صفقة #4915' }
+];
+
+const PROJ = [
+  { year: 'السنة ١', without: '٥٠٠,٠٠٠ ر.س', with: '٥٤٢,٥٠٠ ر.س', gain: '+٤٢,٥٠٠ ر.س' },
+  { year: 'السنة ٢', without: '٥٠٠,٠٠٠ ر.س', with: '٥٨٨,٠٦٣ ر.س', gain: '+٨٨,٠٦٣ ر.س' },
+  { year: 'السنة ٣', without: '٥٠٠,٠٠٠ ر.س', with: '٦٣٨,٠٢٨ ر.س', gain: '+١٣٨,٠٢٨ ر.س' },
+  { year: 'السنة ٥', without: '٥٠٠,٠٠٠ ر.س', with: '٧٤٩,٣٩٦ ر.س', gain: '+٢٤٩,٣٩٦ ر.س' }
+];
+
+function buildBanner() {
+  const wrap = document.getElementById('compBanner');
+  BANNER.forEach(b => {
+    const item = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'cb-val'; val.textContent = b.val;
+    const lbl = document.createElement('div'); lbl.className = 'cb-lbl'; lbl.textContent = b.lbl;
+    item.appendChild(val); item.appendChild(lbl); wrap.appendChild(item);
+  });
+}
+
+function buildRiList() {
+  const wrap = document.getElementById('riList');
+  RI.forEach(r => {
+    const item = document.createElement('div'); item.className = 'ri-item';
+    const head = document.createElement('div'); head.className = 'ri-head';
+    const deal = document.createElement('span'); deal.className = 'ri-deal'; deal.textContent = r.deal;
+    const pill = document.createElement('span'); pill.className = 'ri-pill ' + r.pill; pill.textContent = r.label;
+    head.appendChild(deal); head.appendChild(pill);
+    const meta = document.createElement('div'); meta.className = 'ri-meta'; meta.textContent = r.meta;
+    const amount = document.createElement('div'); amount.className = 'ri-amount'; amount.textContent = r.amount;
+    item.appendChild(head); item.appendChild(meta); item.appendChild(amount);
+    wrap.appendChild(item);
+  });
+}
+
+function buildProjection() {
+  const wrap = document.getElementById('projTable');
+  const header = document.createElement('div'); header.className = 'pt-row pt-header';
+  ['الفترة', 'بدون تراكم', 'مع التراكم', 'الفارق'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  PROJ.forEach(p => {
+    const row = document.createElement('div'); row.className = 'pt-row';
+    const year = document.createElement('div'); year.style.fontWeight = '700'; year.textContent = p.year;
+    const without = document.createElement('div'); without.textContent = p.without;
+    const withVal = document.createElement('div'); withVal.className = 'val-green'; withVal.textContent = p.with;
+    const gain = document.createElement('div'); gain.className = 'val-gold'; gain.textContent = p.gain;
+    row.appendChild(year); row.appendChild(without); row.appendChild(withVal); row.appendChild(gain);
+    wrap.appendChild(row);
+  });
+}
+
+function toggleAuto(btn) {
+  const isOn = btn.classList.contains('on');
+  btn.className = 'toggle ' + (isOn ? 'off' : 'on');
+  fetch('/app/me/reinvestment-tracker/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ autoReinvest: !isOn }) }).catch(() => {});
+}
+
+function saveSettings() {
+  fetch('/app/me/reinvestment-tracker/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'save' }) }).catch(() => {});
+  alert('تم حفظ إعدادات إعادة الاستثمار.');
+}
+
+function exportTracker() {
+  fetch('/app/me/reinvestment-tracker/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير إعادة الاستثمار...');
+}
+
+buildBanner(); buildRiList(); buildProjection();
+</script>
+</body>
+</html>
