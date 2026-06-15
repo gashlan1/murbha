@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الإشعارات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:860px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.filter-tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;}
+.filter-tab{padding:0.4rem 1rem;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.filter-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.notif-group{margin-bottom:1.5rem;}
+.notif-group-label{font-size:0.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;padding:0 0.25rem;}
+.notif-item{display:flex;align-items:flex-start;gap:1rem;padding:1rem 1.25rem;background:#fff;border-radius:12px;border:1px solid var(--line);margin-bottom:0.5rem;cursor:pointer;transition:box-shadow 0.15s;position:relative;}
+.notif-item:hover{box-shadow:0 2px 10px rgba(6,43,30,0.07);}
+.notif-item.unread{border-color:rgba(10,77,54,0.2);background:#f6fbf8;}
+.notif-item.unread::before{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:4px;height:50%;background:var(--green);border-radius:0 4px 4px 0;}
+.notif-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.icon-payment{background:#e6f4ef;}
+.icon-deal{background:#f8f0e0;}
+.icon-alert{background:#fde9e9;}
+.icon-info{background:#f0f0f0;}
+.icon-kyc{background:#e6f4ef;}
+.notif-content{flex:1;min-width:0;}
+.notif-title{font-size:0.9rem;font-weight:600;color:var(--green-dark);margin-bottom:0.2rem;}
+.notif-body{font-size:0.8rem;color:var(--muted);line-height:1.5;}
+.notif-time{font-size:0.72rem;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:0.2rem;}
+.notif-actions{display:flex;gap:0.5rem;margin-top:0.5rem;}
+.mark-read-btn{background:none;border:none;cursor:pointer;font-size:0.78rem;color:var(--green);font-family:'Cairo',sans-serif;}
+.settings-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-top:2rem;}
+.settings-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.settings-head h3{font-size:1rem;font-weight:700;}
+.settings-body{padding:1.25rem;}
+.settings-group{margin-bottom:1.25rem;}
+.settings-group-title{font-size:0.85rem;font-weight:700;color:var(--green-dark);margin-bottom:0.75rem;border-bottom:1px solid var(--line);padding-bottom:0.4rem;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;}
+.toggle-label{font-size:0.88rem;color:var(--green-dark);}
+.toggle-sub{font-size:0.75rem;color:var(--muted);margin-top:0.1rem;}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:24px;cursor:pointer;transition:background 0.2s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;bottom:3px;right:3px;transition:transform 0.2s;}
+.toggle-switch input:checked + .toggle-slider{background:var(--green);}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(-20px);}
+.empty-notif{text-align:center;padding:3rem;color:var(--muted);}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — الإشعارات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>الإشعارات <span style="font-size:0.85rem;background:#c0392b;color:#fff;border-radius:20px;padding:0.15rem 0.6rem;margin-right:0.5rem;" id="unreadCount">٥</span></h2>
+    <button class="btn btn-secondary btn-sm" onclick="markAllRead()">تعيين الكل كمقروء</button>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="setFilter(this,'all')">الكل</button>
+    <button class="filter-tab" onclick="setFilter(this,'unread')">غير مقروءة</button>
+    <button class="filter-tab" onclick="setFilter(this,'payment')">مدفوعات</button>
+    <button class="filter-tab" onclick="setFilter(this,'deal')">صفقات</button>
+    <button class="filter-tab" onclick="setFilter(this,'alert')">تنبيهات</button>
+  </div>
+
+  <div id="notifList"></div>
+
+  <div class="settings-card">
+    <div class="settings-head">
+      <h3>إعدادات الإشعارات</h3>
+    </div>
+    <div class="settings-body" id="notifSettings"></div>
+  </div>
+</div>
+
+<script>
+let activeFilter = 'all';
+
+const notifications = [
+  {id:1,type:'payment',icon:'💰',title:'تم استلام دفعة أرباح',body:'تم إيداع ٨,٤٠٠ ر.س من صفقة مجمع الروضة السكني في حسابك.',time:'منذ ٣٠ دقيقة',unread:true,group:'اليوم'},
+  {id:2,type:'deal',icon:'📈',title:'صفقة جديدة متاحة',body:'صفقة "مجمع الأمل السكني" أصبحت مفتوحة للاكتتاب. العائد المتوقع ١١.٥٪.',time:'منذ ٢ ساعة',unread:true,group:'اليوم'},
+  {id:3,type:'alert',icon:'⚠️',title:'انحراف في توزيع المحفظة',body:'قطاع العقارات يزيد عن الهدف المستهدف بـ٦٪. يُنصح بمراجعة إعادة التوازن.',time:'منذ ٤ ساعات',unread:true,group:'اليوم'},
+  {id:4,type:'info',icon:'✅',title:'اكتمل التحقق من هويتك',body:'تم قبول مستنداتك وتفعيل حساب المستثمر المؤهل.',time:'منذ ٦ ساعات',unread:true,group:'اليوم'},
+  {id:5,type:'deal',icon:'🔔',title:'اقتراب موعد انتهاء صفقة',body:'صفقة "عيادات الصحة الشاملة" ستنتهي خلال ٣٠ يوماً. راجع استراتيجيتك.',time:'منذ ٨ ساعات',unread:true,group:'اليوم'},
+  {id:6,type:'payment',icon:'💸',title:'طلب سحب تمت معالجته',body:'تم تحويل ٢٠,٠٠٠ ر.س إلى حسابك البنكي المسجل بنجاح.',time:'أمس ١١:٢٠',unread:false,group:'أمس'},
+  {id:7,type:'info',icon:'📋',title:'كشف الحساب الشهري جاهز',body:'كشف حساب مايو ٢٠٢٦ متاح للتحميل من قسم مستنداتي.',time:'أمس ٠٩:٠٠',unread:false,group:'أمس'},
+  {id:8,type:'deal',icon:'🎯',title:'وصلت صفقة إلى هدف التمويل',body:'صفقة "محطة طاقة شمسية" حققت ١٠٠٪ من التمويل المطلوب.',time:'منذ يومين',unread:false,group:'هذا الأسبوع'},
+];
+
+const settingsGroups = [
+  {title:'إشعارات المدفوعات',items:[
+    {label:'إيداع الأرباح',sub:'عند استلام أي دفعة',key:'payment_deposit',on:true},
+    {label:'طلبات السحب',sub:'تحديثات حالة طلب السحب',key:'payment_withdraw',on:true},
+  ]},
+  {title:'إشعارات الصفقات',items:[
+    {label:'صفقات جديدة',sub:'عند إطلاق صفقة جديدة',key:'deal_new',on:true},
+    {label:'اقتراب انتهاء الصفقة',sub:'قبل ٣٠ يوم من انتهاء مدة الصفقة',key:'deal_ending',on:true},
+    {label:'تحديثات الصفقات',sub:'منشورات ومستجدات الصفقات المشترك بها',key:'deal_updates',on:false},
+  ]},
+  {title:'تنبيهات المحفظة',items:[
+    {label:'انحراف التوزيع',sub:'عند تجاوز التوزيع الحد المسموح',key:'portfolio_drift',on:true},
+    {label:'أهداف الاستثمار',sub:'تذكير بالأهداف المحددة',key:'portfolio_goals',on:false},
+  ]},
+  {title:'قنوات الإشعار',items:[
+    {label:'البريد الإلكتروني',sub:'إرسال الإشعارات للبريد الإلكتروني',key:'channel_email',on:true},
+    {label:'رسائل SMS',sub:'إشعارات الدفعات والتنبيهات العاجلة',key:'channel_sms',on:true},
+    {label:'إشعارات التطبيق',sub:'إشعارات فورية داخل التطبيق',key:'channel_push',on:true},
+  ]},
+];
+
+function setFilter(btn, f){
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = f;
+  renderNotifs();
+}
+
+function renderNotifs(){
+  const cont = document.getElementById('notifList');
+  cont.textContent = '';
+  let filtered = notifications;
+  if(activeFilter !== 'all') filtered = notifications.filter(n => activeFilter==='unread' ? n.unread : n.type === activeFilter);
+
+  const groups = {};
+  filtered.forEach(n => {
+    if(!groups[n.group]) groups[n.group] = [];
+    groups[n.group].push(n);
+  });
+
+  if(!filtered.length){
+    const empty = document.createElement('div');
+    empty.className = 'empty-notif';
+    empty.textContent = 'لا توجد إشعارات';
+    cont.appendChild(empty);
+    return;
+  }
+
+  Object.entries(groups).forEach(([grpName, items]) => {
+    const grp = document.createElement('div');
+    grp.className = 'notif-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'notif-group-label';
+    lbl.textContent = grpName;
+    grp.appendChild(lbl);
+    items.forEach(n => {
+      const item = document.createElement('div');
+      item.className = 'notif-item' + (n.unread ? ' unread' : '');
+      item.onclick = () => markRead(n.id);
+      const icon = document.createElement('div');
+      icon.className = 'notif-icon icon-' + n.type;
+      icon.textContent = n.icon;
+      const content = document.createElement('div');
+      content.className = 'notif-content';
+      const title = document.createElement('div');
+      title.className = 'notif-title';
+      title.textContent = n.title;
+      const body = document.createElement('div');
+      body.className = 'notif-body';
+      body.textContent = n.body;
+      const acts = document.createElement('div');
+      acts.className = 'notif-actions';
+      if(n.unread){
+        const mrBtn = document.createElement('button');
+        mrBtn.className = 'mark-read-btn';
+        mrBtn.textContent = 'تعيين كمقروء';
+        mrBtn.onclick = (e) => { e.stopPropagation(); markRead(n.id); };
+        acts.appendChild(mrBtn);
+      }
+      content.appendChild(title);
+      content.appendChild(body);
+      if(n.unread) content.appendChild(acts);
+      const time = document.createElement('div');
+      time.className = 'notif-time';
+      time.textContent = n.time;
+      item.appendChild(icon);
+      item.appendChild(content);
+      item.appendChild(time);
+      grp.appendChild(item);
+    });
+    cont.appendChild(grp);
+  });
+}
+
+function markRead(id){
+  const n = notifications.find(n=>n.id===id);
+  if(n) n.unread = false;
+  updateCount();
+  renderNotifs();
+}
+
+async function markAllRead(){
+  notifications.forEach(n=>n.unread=false);
+  updateCount();
+  renderNotifs();
+  try {
+    await fetch('/app/me/notifications/read-all', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+function updateCount(){
+  const unread = notifications.filter(n=>n.unread).length;
+  const badge = document.getElementById('unreadCount');
+  if(badge) badge.textContent = unread > 0 ? String(unread) : '';
+  if(badge) badge.style.display = unread > 0 ? '' : 'none';
+}
+
+function renderSettings(){
+  const cont = document.getElementById('notifSettings');
+  cont.textContent = '';
+  settingsGroups.forEach(g => {
+    const grp = document.createElement('div');
+    grp.className = 'settings-group';
+    const title = document.createElement('div');
+    title.className = 'settings-group-title';
+    title.textContent = g.title;
+    grp.appendChild(title);
+    g.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'toggle-row';
+      const labelDiv = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'toggle-label';
+      lbl.textContent = item.label;
+      const sub = document.createElement('div');
+      sub.className = 'toggle-sub';
+      sub.textContent = item.sub;
+      labelDiv.appendChild(lbl);
+      labelDiv.appendChild(sub);
+      const sw = document.createElement('label');
+      sw.className = 'toggle-switch';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.checked = item.on;
+      inp.onchange = () => saveSetting(item.key, inp.checked);
+      const slider = document.createElement('span');
+      slider.className = 'toggle-slider';
+      sw.appendChild(inp);
+      sw.appendChild(slider);
+      row.appendChild(labelDiv);
+      row.appendChild(sw);
+      grp.appendChild(row);
+    });
+    cont.appendChild(grp);
+  });
+}
+
+async function saveSetting(key, value){
+  try {
+    await fetch('/app/me/notifications/settings', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({[key]: value})
+    });
+  } catch(e){}
+}
+
+renderNotifs();
+renderSettings();
+</script>
+</body>
+</html>
