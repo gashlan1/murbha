@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة KYC للمستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-val.warn{color:#e67e22;}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.status-grid{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+.status-item{border:1px solid var(--line);border-radius:10px;padding:1rem;text-align:center;}
+.si-val{font-size:1.4rem;font-weight:700;}
+.si-lbl{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.si-approved .si-val{color:var(--green);}
+.si-pending .si-val{color:#e67e22;}
+.si-rejected .si-val{color:#c0392b;}
+.si-expired .si-val{color:var(--muted);}
+.kyc-table{padding:1.25rem;overflow-x:auto;}
+.kt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.kt-row:last-child{border-bottom:none;}
+.kt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.kyc-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-approved{background:#e8f5ed;color:#1e8449;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-rejected{background:#fde8e8;color:#c0392b;}
+.pill-expired{background:#f0f0f0;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}.kt-row{grid-template-columns:2fr 1fr 1fr;}.kt-row>:nth-child(4),.kt-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — لوحة KYC للمستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>لوحة التحقق من هوية المستثمرين</h2>
+      <p>متابعة حالات التحقق KYC/AML لجميع المستثمرين المسجلين</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportKyc()">تصدير التقرير</button>
+  </div>
+
+  <div class="stats" id="kycStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع حالات KYC</h3></div>
+      <div class="status-grid" id="statusGrid"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head">
+        <h3>المستثمرون بحاجة لمراجعة</h3>
+        <span style="font-size:0.75rem;opacity:0.7;">٨ حالات</span>
+      </div>
+      <div class="kyc-table" id="pendingTable"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل KYC الكامل</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportKyc()">تصدير</button>
+    </div>
+    <div class="kyc-table" id="fullTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="bulkApprove()">موافقة جماعية</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportKyc()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١,٢٤٠', lbl: 'إجمالي المستثمرين', cls: '' },
+  { val: '١,١٨٤', lbl: 'تحقق مكتمل', cls: '' },
+  { val: '٤٨', lbl: 'قيد المراجعة', cls: 'warn' },
+  { val: '٩٥.٥٪', lbl: 'نسبة الامتثال', cls: '' }
+];
+
+const STATUS_ITEMS = [
+  { cls: 'si-approved', val: '١,١٨٤', lbl: 'موافق عليه' },
+  { cls: 'si-pending', val: '٤٨', lbl: 'قيد المراجعة' },
+  { cls: 'si-rejected', val: '٦', lbl: 'مرفوض' },
+  { cls: 'si-expired', val: '٢', lbl: 'منتهي الصلاحية' }
+];
+
+const PENDING = [
+  { name: 'أحمد الغامدي', type: 'فرد', submitted: 'منذ يومين', pill: 'pill-pending', label: 'معلّق' },
+  { name: 'شركة النور التجارية', type: 'شركة', submitted: 'منذ ٣ أيام', pill: 'pill-pending', label: 'معلّق' },
+  { name: 'منى القحطاني', type: 'فرد', submitted: 'منذ أسبوع', pill: 'pill-pending', label: 'معلّق' }
+];
+
+const FULL = [
+  { name: 'فيصل الأحمدي', type: 'فرد', tier: 'ذهبي', date: '١ مارس ٢٠٢٦', pill: 'pill-approved', label: 'مكتمل' },
+  { name: 'ريم السالم', type: 'فرد', tier: 'فضي', date: '١٥ فبراير ٢٠٢٦', pill: 'pill-approved', label: 'مكتمل' },
+  { name: 'شركة الرياض للتجارة', type: 'شركة', tier: 'مؤسسي', date: '٢٠ يناير ٢٠٢٦', pill: 'pill-approved', label: 'مكتمل' },
+  { name: 'عمر الحربي', type: 'فرد', tier: 'عادي', date: '٥ مارس ٢٠٢٦', pill: 'pill-rejected', label: 'مرفوض' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('kycStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val' + (s.cls ? ' ' + s.cls : ''); val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildStatusGrid() {
+  const wrap = document.getElementById('statusGrid');
+  STATUS_ITEMS.forEach(s => {
+    const item = document.createElement('div'); item.className = 'status-item ' + s.cls;
+    const val = document.createElement('div'); val.className = 'si-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'si-lbl'; lbl.textContent = s.lbl;
+    item.appendChild(val); item.appendChild(lbl); wrap.appendChild(item);
+  });
+}
+
+function buildKycTable(containerId, data) {
+  const wrap = document.getElementById(containerId);
+  const header = document.createElement('div'); header.className = 'kt-row kt-header';
+  ['الاسم', 'النوع', 'التاريخ', 'الحالة', 'إجراء'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  data.forEach((d, i) => {
+    const row = document.createElement('div'); row.className = 'kt-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = d.name;
+    const type = document.createElement('div'); type.textContent = d.type || d.tier;
+    const date = document.createElement('div'); date.style.color = 'var(--muted)'; date.textContent = d.submitted || d.date;
+    const pill = document.createElement('span'); pill.className = 'kyc-pill ' + d.pill; pill.textContent = d.label;
+    const action = document.createElement('div');
+    const btn = document.createElement('button'); btn.className = 'btn btn-sm'; btn.style.cssText = 'background:#f5f0e8;color:var(--green-dark);';
+    btn.textContent = 'مراجعة';
+    btn.onclick = () => reviewKyc(i);
+    action.appendChild(btn);
+    row.appendChild(name); row.appendChild(type); row.appendChild(date); row.appendChild(pill); row.appendChild(action);
+    wrap.appendChild(row);
+  });
+}
+
+function reviewKyc(idx) {
+  fetch('/app/admin/investor-kyc-dashboard/' + idx, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'review' }) }).catch(() => {});
+  alert('جاري فتح ملف التحقق للمراجعة...');
+}
+
+function bulkApprove() {
+  fetch('/app/admin/investor-kyc-dashboard/bulk-approve', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'bulk-approve' }) }).catch(() => {});
+  alert('جاري تنفيذ الموافقة الجماعية...');
+}
+
+function exportKyc() {
+  fetch('/app/admin/investor-kyc-dashboard/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير KYC...');
+}
+
+buildStats(); buildStatusGrid(); buildKycTable('pendingTable', PENDING); buildKycTable('fullTable', FULL);
+</script>
+</body>
+</html>

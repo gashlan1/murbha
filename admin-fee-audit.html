@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تدقيق الرسوم - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.filters{padding:1rem 1.25rem;display:flex;gap:0.75rem;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.filter-select{padding:0.35rem 0.65rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.82rem;}
+.audit-table{padding:1.25rem;overflow-x:auto;}
+.at-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.at-row:last-child{border-bottom:none;}
+.at-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.fee-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-collected{background:#e8f5ed;color:#1e8449;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-waived{background:#f0f0f0;color:var(--muted);}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem;}
+.sg-item{border:1px solid var(--line);border-radius:10px;padding:1rem;text-align:center;}
+.sg-val{font-size:1.2rem;font-weight:700;color:var(--green);}
+.sg-lbl{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.summary-grid{grid-template-columns:1fr 1fr;}.at-row{grid-template-columns:2fr 1fr 1fr;}.at-row>:nth-child(4),.at-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تدقيق الرسوم</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تدقيق الرسوم والعمولات</h2>
+      <p>مراجعة جميع الرسوم المحصّلة والمعلّقة وحالات الإعفاء</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportAudit()">تصدير التدقيق</button>
+  </div>
+
+  <div class="stats" id="auditStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل الرسوم</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportAudit()">تصدير</button>
+    </div>
+    <div class="filters" id="auditFilters"></div>
+    <div class="audit-table" id="auditTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="reconcileFees()">مطابقة الرسوم</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportAudit()">تصدير</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>ملخص الرسوم حسب النوع</h3></div>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢٨٦,٤٠٠ ر.س', lbl: 'إجمالي الرسوم المحصّلة' },
+  { val: '١٢,٨٠٠ ر.س', lbl: 'رسوم معلّقة' },
+  { val: '٤,٢٠٠ ر.س', lbl: 'رسوم معفاة' },
+  { val: '٩٦٪', lbl: 'نسبة التحصيل' }
+];
+
+const FILTERS = ['الكل', 'محصّلة', 'معلّقة', 'معفاة'];
+
+const FEES = [
+  { deal: 'صفقة #4920', type: 'رسوم إدارية', amount: '٢,٤٠٠ ر.س', date: '١ مارس ٢٠٢٦', status: 'pill-collected', label: 'محصّلة' },
+  { deal: 'صفقة #4918', type: 'رسوم معالجة', amount: '١,٨٠٠ ر.س', date: '٢٨ فبراير ٢٠٢٦', status: 'pill-collected', label: 'محصّلة' },
+  { deal: 'صفقة #4921', type: 'رسوم إدارية', amount: '٣,٠٠٠ ر.س', date: '٥ مارس ٢٠٢٦', status: 'pill-pending', label: 'معلّقة' },
+  { deal: 'صفقة #4915', type: 'رسوم الإغلاق', amount: '١,٢٠٠ ر.س', date: '١٥ فبراير ٢٠٢٦', status: 'pill-waived', label: 'معفاة' },
+  { deal: 'صفقة #4912', type: 'رسوم معالجة', amount: '٩٠٠ ر.س', date: '١٠ فبراير ٢٠٢٦', status: 'pill-collected', label: 'محصّلة' }
+];
+
+const SUMMARY = [
+  { val: '١٩٦,٠٠٠ ر.س', lbl: 'رسوم إدارية' },
+  { val: '٦٨,٤٠٠ ر.س', lbl: 'رسوم المعالجة' },
+  { val: '٢٢,٠٠٠ ر.س', lbl: 'رسوم الإغلاق' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('auditStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildFilters() {
+  const wrap = document.getElementById('auditFilters');
+  const sel = document.createElement('select'); sel.className = 'filter-select';
+  FILTERS.forEach(f => { const opt = document.createElement('option'); opt.textContent = f; sel.appendChild(opt); });
+  const dateLbl = document.createElement('label'); dateLbl.style.cssText = 'font-size:0.82rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem;';
+  dateLbl.textContent = 'من:';
+  const dateInput = document.createElement('input'); dateInput.type = 'date'; dateInput.className = 'filter-select';
+  dateLbl.appendChild(dateInput);
+  wrap.appendChild(sel); wrap.appendChild(dateLbl);
+}
+
+function buildTable() {
+  const wrap = document.getElementById('auditTable');
+  const header = document.createElement('div'); header.className = 'at-row at-header';
+  ['الصفقة', 'نوع الرسم', 'المبلغ', 'التاريخ', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  FEES.forEach(f => {
+    const row = document.createElement('div'); row.className = 'at-row';
+    const deal = document.createElement('div'); deal.style.fontWeight = '700'; deal.textContent = f.deal;
+    const type = document.createElement('div'); type.textContent = f.type;
+    const amount = document.createElement('div'); amount.style.color = 'var(--green)'; amount.style.fontWeight = '700'; amount.textContent = f.amount;
+    const date = document.createElement('div'); date.style.color = 'var(--muted)'; date.textContent = f.date;
+    const pill = document.createElement('span'); pill.className = 'fee-pill ' + f.status; pill.textContent = f.label;
+    row.appendChild(deal); row.appendChild(type); row.appendChild(amount); row.appendChild(date); row.appendChild(pill);
+    wrap.appendChild(row);
+  });
+}
+
+function buildSummary() {
+  const wrap = document.getElementById('summaryGrid');
+  SUMMARY.forEach(s => {
+    const item = document.createElement('div'); item.className = 'sg-item';
+    const val = document.createElement('div'); val.className = 'sg-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'sg-lbl'; lbl.textContent = s.lbl;
+    item.appendChild(val); item.appendChild(lbl); wrap.appendChild(item);
+  });
+}
+
+function reconcileFees() {
+  fetch('/app/admin/fee-audit/reconcile', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'reconcile' }) }).catch(() => {});
+  alert('تم بدء عملية مطابقة الرسوم.');
+}
+
+function exportAudit() {
+  fetch('/app/admin/fee-audit/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير تدقيق الرسوم...');
+}
+
+buildStats(); buildFilters(); buildTable(); buildSummary();
+</script>
+</body>
+</html>
