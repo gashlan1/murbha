@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Early Exit Request — Murbha">طلب الخروج المبكر — مُرابحة</title>
+<meta name="description" content="اطلب الخروج المبكر من صفقة نشطة وتعرّف على رسوم المعالجة قبل الموافقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:700px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Deal selector */
+  .deal-sel{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px 16px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;margin-bottom:16px;}
+  .deal-sel:focus{outline:none;border-color:var(--green);}
+  /* Deal summary */
+  .deal-summary{display:none;background:#f9f7f2;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .deal-summary.visible{display:block;}
+  .ds-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .ds-field{background:#fff;border-radius:8px;padding:10px;}
+  .ds-key{font:700 9px Cairo,sans-serif;color:var(--muted);}
+  .ds-val{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-top:2px;}
+  /* Exit breakdown */
+  .exit-breakdown{background:#fff8e1;border:1px solid #ffe082;border-radius:12px;padding:16px;margin-bottom:16px;display:none;}
+  .exit-breakdown.visible{display:block;}
+  .eb-title{font:900 12px Cairo,sans-serif;color:#a07020;margin-bottom:10px;}
+  .eb-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffe08280;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .eb-row:last-child{border-bottom:none;font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .eb-row span:last-child{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  /* Warning */
+  .warn-box{background:#fdecea;border:1px solid #f8d7da;border-radius:12px;padding:14px 16px;margin-bottom:16px;font:500 12px Tajawal,sans-serif;color:#c54a3a;line-height:1.7;}
+  .warn-box strong{font:900 12px Cairo,sans-serif;}
+  /* Reason */
+  .reason-lbl{font:700 11px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;display:block;}
+  .reason-sel{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;margin-bottom:12px;}
+  .reason-sel:focus{outline:none;border-color:var(--green);}
+  .note-area{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);resize:vertical;min-height:80px;margin-bottom:16px;}
+  .note-area:focus{outline:none;border-color:var(--green);}
+  /* Confirm checkbox */
+  .confirm-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;}
+  .confirm-chk{margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--green-dark);}
+  .confirm-txt{font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  /* Submit */
+  .btn-submit{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:14px 28px;font:900 13px Cairo,sans-serif;cursor:pointer;width:100%;}
+  .btn-submit:hover:not(:disabled){background:var(--green);}
+  .btn-submit:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:30px 0;}
+  .success-card{display:none;text-align:center;padding:40px 0;}
+  .success-card.visible{display:block;}
+  .success-icon{font:900 48px Cairo,sans-serif;margin-bottom:12px;}
+  .success-title{font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;}
+  .success-desc{font:500 13px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Early Exit Request">طلب الخروج المبكر</h1>
+    <p data-en="Request an early exit from an active deal and review processing fees before confirming.">اطلب الخروج المبكر من صفقة نشطة وراجع رسوم المعالجة قبل التأكيد.</p>
+  </div>
+
+  <div class="card" id="mainCard">
+    <div class="card-title" data-en="Select Deal">اختر الصفقة</div>
+    <select class="deal-sel" id="dealSel"><option value="">— اختر صفقة —</option></select>
+
+    <div class="deal-summary" id="dealSummary">
+      <div class="ds-grid" id="dealSummaryGrid"></div>
+    </div>
+
+    <div class="exit-breakdown" id="exitBreakdown">
+      <div class="eb-title" data-en="Exit Breakdown">تفاصيل الخروج المبكر</div>
+      <div id="ebRows"></div>
+    </div>
+
+    <div class="warn-box" id="warnBox" style="display:none;">
+      <strong>تنبيه هام:</strong> الخروج المبكر قد ينتج عنه رسوم معالجة وقد تستغرق العملية حتى 5 أيام عمل. لا يمكن التراجع عن الطلب بعد تأكيده.
+    </div>
+
+    <label class="reason-lbl" data-en="Reason for exit">سبب الخروج</label>
+    <select class="reason-sel" id="reasonSel">
+      <option value="">— اختر سبباً —</option>
+      <option value="liquidity">احتياج للسيولة</option>
+      <option value="emergency">طارئ مالي</option>
+      <option value="strategy">تغيير في الاستراتيجية</option>
+      <option value="other">سبب آخر</option>
+    </select>
+    <textarea class="note-area" id="noteArea" placeholder="ملاحظات إضافية (اختياري)…"></textarea>
+
+    <div class="confirm-row">
+      <input type="checkbox" class="confirm-chk" id="confirmChk" />
+      <span class="confirm-txt">أقرّ بأنني اطّلعت على رسوم الخروج المبكر وأوافق على المتابعة. أفهم أن هذا الطلب لا يمكن التراجع عنه بعد التأكيد.</span>
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" disabled data-en="Submit Exit Request">إرسال طلب الخروج</button>
+  </div>
+
+  <div class="card success-card" id="successCard">
+    <div class="success-icon">✅</div>
+    <div class="success-title" data-en="Request Submitted">تم إرسال الطلب</div>
+    <div class="success-desc" data-en="Your early exit request has been received and is being processed. You will be notified within 2–5 business days.">تم استلام طلب الخروج المبكر وهو قيد المعالجة. ستتلقى إشعاراً خلال ٢–٥ أيام عمل.</div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function fmtPct(n){ return Number(n||0).toFixed(2)+'٪'; }
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+  let deals=[], selectedDealId=null, exitData=null;
+
+  function updateSubmitBtn(){
+    const hasReason=document.getElementById('reasonSel').value!=='';
+    const checked=document.getElementById('confirmChk').checked;
+    const hasDeal=selectedDealId!==null;
+    document.getElementById('btnSubmit').disabled=!(hasReason&&checked&&hasDeal);
+  }
+
+  document.getElementById('reasonSel').addEventListener('change', updateSubmitBtn);
+  document.getElementById('confirmChk').addEventListener('change', updateSubmitBtn);
+
+  async function selectDeal(id){
+    selectedDealId=id;
+    const summary=document.getElementById('dealSummary');
+    const breakdown=document.getElementById('exitBreakdown');
+    const warn=document.getElementById('warnBox');
+    if(!id){ summary.classList.remove('visible'); breakdown.classList.remove('visible'); warn.style.display='none'; return; }
+    try{
+      const r=await fetch('/app/me/early-exit-quote?dealId='+encodeURIComponent(id));
+      if(!r.ok){ summary.classList.remove('visible'); return; }
+      exitData=await r.json();
+
+      const summaryGrid=document.getElementById('dealSummaryGrid'); summaryGrid.textContent='';
+      [['الصفقة',exitData.dealName||'—'],['المستثمَر',fmt(exitData.invested||0)+' ر.س'],['العائد المكتسب',fmt(exitData.earnedReturn||0)+' ر.س'],['تاريخ الاستحقاق',(exitData.maturityDate||'—').slice(0,10)]].forEach(([k,v])=>{
+        const f=document.createElement('div'); f.className='ds-field';
+        const fk=document.createElement('div'); fk.className='ds-key'; fk.textContent=k;
+        const fv=document.createElement('div'); fv.className='ds-val'; fv.textContent=v;
+        f.appendChild(fk); f.appendChild(fv); summaryGrid.appendChild(f);
+      });
+      summary.classList.add('visible');
+
+      const ebRows=document.getElementById('ebRows'); ebRows.textContent='';
+      const rows=[
+        ['رأس المال المستثمَر',fmt(exitData.invested||0)+' ر.س'],
+        ['العائد المكتسب حتى الآن',fmt(exitData.earnedReturn||0)+' ر.س'],
+        ['رسوم الخروج المبكر','- '+fmt(exitData.exitFee||0)+' ر.س'],
+        ['صافي المبلغ المُعاد',fmt(exitData.netPayout||0)+' ر.س']
+      ];
+      rows.forEach(([k,v])=>{
+        const row=document.createElement('div'); row.className='eb-row';
+        const lbl=document.createElement('span'); lbl.textContent=k;
+        const val=document.createElement('span'); val.textContent=v;
+        row.appendChild(lbl); row.appendChild(val); ebRows.appendChild(row);
+      });
+      breakdown.classList.add('visible');
+      warn.style.display='block';
+      updateSubmitBtn();
+    }catch{ summary.classList.remove('visible'); }
+  }
+
+  document.getElementById('dealSel').addEventListener('change', e=>selectDeal(e.target.value));
+
+  document.getElementById('btnSubmit').addEventListener('click', async()=>{
+    if(!selectedDealId) return;
+    document.getElementById('btnSubmit').disabled=true;
+    try{
+      const r=await fetch('/app/me/early-exit-request',{
+        method:'POST',
+        headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},
+        body:JSON.stringify({dealId:selectedDealId,reason:document.getElementById('reasonSel').value,note:document.getElementById('noteArea').value.trim()})
+      });
+      if(!r.ok){ document.getElementById('btnSubmit').disabled=false; showToast('تعذّر الإرسال. حاول مرة أخرى.'); return; }
+      document.getElementById('mainCard').style.display='none';
+      document.getElementById('successCard').classList.add('visible');
+    }catch{ document.getElementById('btnSubmit').disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/investments?status=active');
+      if(!r.ok) return;
+      const d=await r.json();
+      deals=d.investments||d||[];
+      const sel=document.getElementById('dealSel');
+      deals.forEach(deal=>{
+        const opt=document.createElement('option'); opt.value=deal.id||deal._id||''; opt.textContent=(deal.name||deal.dealName||'صفقة')+' · '+(deal.maturityDate||'').slice(0,10);
+        sel.appendChild(opt);
+      });
+    }catch{}
+  }());
+}());
+</script>
+</body>
+</html>
