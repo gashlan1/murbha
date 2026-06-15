@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Deal Ratings — Murbha">تقييمات الصفقات — مُرابحة</title>
+<meta name="description" content="اطّلع على تقييمات المستثمرين للصفقات وشارك برأيك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Deal selector */
+  .deal-sel{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;margin-bottom:16px;}
+  .deal-sel:focus{outline:none;border-color:var(--green);}
+  /* Rating summary */
+  .rating-summary{display:flex;gap:20px;align-items:center;margin-bottom:16px;}
+  .rating-big{text-align:center;flex-shrink:0;}
+  .rating-num{font:900 48px Cairo,sans-serif;color:var(--green-dark);line-height:1;}
+  .rating-stars{font-size:20px;color:var(--gold);margin:4px 0;}
+  .rating-count{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .rating-bars{flex:1;}
+  .rb-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .rb-lbl{font:700 10px Cairo,sans-serif;width:14px;text-align:center;color:var(--muted);}
+  .rb-bg{flex:1;height:8px;background:#f0ece0;border-radius:4px;overflow:hidden;}
+  .rb-fill{height:100%;border-radius:4px;background:var(--gold);}
+  .rb-cnt{font:700 9px Cairo,sans-serif;color:var(--muted);width:20px;text-align:left;}
+  /* Review items */
+  .review-item{border-bottom:1px solid var(--line);padding:16px 0;}
+  .review-item:first-child{padding-top:0;}
+  .review-item:last-child{border-bottom:none;padding-bottom:0;}
+  .rv-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .rv-avatar{width:34px;height:34px;border-radius:50%;background:var(--green-dark);color:#fbf6ea;display:flex;align-items:center;justify-content:center;font:900 13px Cairo,sans-serif;flex-shrink:0;}
+  .rv-name{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .rv-stars{font-size:12px;color:var(--gold);}
+  .rv-date{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-right:auto;}
+  .rv-text{font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.8;}
+  .rv-helpful{font:700 10px Cairo,sans-serif;color:var(--muted);margin-top:6px;cursor:pointer;}
+  .rv-helpful:hover{color:var(--green);}
+  /* Submit form */
+  .stars-input{display:flex;gap:6px;margin-bottom:14px;flex-direction:row-reverse;justify-content:flex-end;}
+  .star-btn{font-size:28px;cursor:pointer;color:#f0ece0;transition:color .1s;}
+  .star-btn.active,.star-btn:hover~.star-btn,.stars-input:hover .star-btn{color:#f0ece0;}
+  .stars-input:hover .star-btn:hover,.stars-input:hover .star-btn:hover~.star-btn{color:var(--gold);}
+  .star-btn.selected{color:var(--gold);}
+  .review-textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);resize:vertical;min-height:80px;}
+  .review-textarea:focus{outline:none;border-color:var(--green);}
+  .btn-submit{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:11px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-submit:hover{background:var(--green);}
+  .btn-submit:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Deal Ratings">تقييمات الصفقات</h1>
+    <p data-en="Read investor ratings and share your own experience with a deal.">اطّلع على تقييمات المستثمرين وشارك بتجربتك مع الصفقات.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Select Deal">اختر الصفقة</div>
+    <select class="deal-sel" id="dealSel"><option value="">— اختر صفقة —</option></select>
+    <div id="ratingSummary" style="display:none;">
+      <div class="rating-summary">
+        <div class="rating-big">
+          <div class="rating-num" id="avgRating">—</div>
+          <div class="rating-stars" id="avgStars"></div>
+          <div class="rating-count" id="ratingCount"></div>
+        </div>
+        <div class="rating-bars" id="ratingBars"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="reviewsCard" style="display:none;">
+    <div class="card-title" data-en="Reviews">التقييمات والآراء</div>
+    <div id="reviewsList"></div>
+  </div>
+
+  <div class="card" id="submitCard" style="display:none;">
+    <div class="card-title" data-en="Rate This Deal">قيّم هذه الصفقة</div>
+    <div class="stars-input" id="starsInput">
+      <span class="star-btn" data-star="1">★</span>
+      <span class="star-btn" data-star="2">★</span>
+      <span class="star-btn" data-star="3">★</span>
+      <span class="star-btn" data-star="4">★</span>
+      <span class="star-btn" data-star="5">★</span>
+    </div>
+    <textarea class="review-textarea" id="reviewText" placeholder="شارك تجربتك مع هذه الصفقة (اختياري)…"></textarea>
+    <br/><br/>
+    <button class="btn-submit" id="btnSubmit" data-en="Submit Rating">إرسال التقييم</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  function stars(n){ return '★'.repeat(Math.round(n||0))+'☆'.repeat(5-Math.round(n||0)); }
+
+  let selectedRating=0;
+  let currentDealId='';
+
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      selectedRating=Number(btn.dataset.star);
+      document.querySelectorAll('.star-btn').forEach(b=>{ b.classList.toggle('selected',Number(b.dataset.star)<=selectedRating); });
+    });
+  });
+
+  async function loadDeals(){
+    try{
+      const r=await fetch('/app/deals?status=all&limit=50');
+      if(!r.ok) return;
+      const d=await r.json();
+      const sel=document.getElementById('dealSel');
+      (d.deals||d.items||[]).forEach(dl=>{
+        const opt=document.createElement('option'); opt.value=dl.id; opt.textContent=dl.name||dl.id; sel.appendChild(opt);
+      });
+    }catch{}
+  }
+
+  async function loadRatings(dealId){
+    currentDealId=dealId;
+    if(!dealId){ document.getElementById('ratingSummary').style.display='none'; document.getElementById('reviewsCard').style.display='none'; document.getElementById('submitCard').style.display='none'; return; }
+    try{
+      const r=await fetch('/app/deals/'+encodeURIComponent(dealId)+'/ratings');
+      if(!r.ok) return;
+      const d=await r.json();
+      document.getElementById('ratingSummary').style.display='block';
+      document.getElementById('avgRating').textContent=(d.avgRating||0).toFixed(1);
+      document.getElementById('avgStars').textContent=stars(d.avgRating||0);
+      document.getElementById('ratingCount').textContent=(d.totalRatings||0)+' تقييم';
+      const bars=document.getElementById('ratingBars'); bars.textContent='';
+      for(let s=5;s>=1;s--){
+        const cnt=(d.distribution||{})[s]||0;
+        const pct=d.totalRatings?Math.round((cnt/d.totalRatings)*100):0;
+        const row=document.createElement('div'); row.className='rb-row';
+        const lbl=document.createElement('div'); lbl.className='rb-lbl'; lbl.textContent=String(s);
+        const bg=document.createElement('div'); bg.className='rb-bg';
+        const fill=document.createElement('div'); fill.className='rb-fill'; fill.style.width=pct+'%'; bg.appendChild(fill);
+        const c=document.createElement('div'); c.className='rb-cnt'; c.textContent=String(cnt);
+        row.appendChild(lbl); row.appendChild(bg); row.appendChild(c); bars.appendChild(row);
+      }
+      // Reviews
+      const list=document.getElementById('reviewsList'); list.textContent='';
+      document.getElementById('reviewsCard').style.display='block';
+      const reviews=d.reviews||[];
+      if(!reviews.length){ placeholder(list,'لم يكتب أحد مراجعة بعد. كن أول من يقيّم!'); }
+      else{ reviews.forEach(rv=>{
+        const item=document.createElement('div'); item.className='review-item';
+        const hdr=document.createElement('div'); hdr.className='rv-header';
+        const av=document.createElement('div'); av.className='rv-avatar'; av.textContent=(rv.reviewerName||'م').charAt(0);
+        const nameWrap=document.createElement('div');
+        const name=document.createElement('div'); name.className='rv-name'; name.textContent=rv.reviewerName||'مستثمر';
+        const st=document.createElement('div'); st.className='rv-stars'; st.textContent=stars(rv.rating||0);
+        nameWrap.appendChild(name); nameWrap.appendChild(st);
+        const date=document.createElement('div'); date.className='rv-date'; date.textContent=(rv.createdAt||'').slice(0,10);
+        hdr.appendChild(av); hdr.appendChild(nameWrap); hdr.appendChild(date);
+        const text=document.createElement('div'); text.className='rv-text'; text.textContent=rv.text||'';
+        const helpful=document.createElement('div'); helpful.className='rv-helpful'; helpful.textContent='مفيد؟ ('+(rv.helpfulCount||0)+')';
+        item.appendChild(hdr); if(rv.text) item.appendChild(text); item.appendChild(helpful); list.appendChild(item);
+      }); }
+      document.getElementById('submitCard').style.display=d.userCanRate!==false?'block':'none';
+    }catch{ placeholder(document.getElementById('reviewsList'),'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('dealSel').addEventListener('change',e=>loadRatings(e.target.value));
+
+  document.getElementById('btnSubmit').addEventListener('click',async()=>{
+    if(!currentDealId){ showToast('يرجى اختيار صفقة.'); return; }
+    if(!selectedRating){ showToast('يرجى اختيار عدد النجوم.'); return; }
+    document.getElementById('btnSubmit').disabled=true;
+    try{
+      const r=await fetch('/app/deals/'+encodeURIComponent(currentDealId)+'/ratings',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({rating:selectedRating,text:document.getElementById('reviewText').value.trim()})});
+      document.getElementById('btnSubmit').disabled=false;
+      if(!r.ok){ showToast('تعذّر إرسال التقييم.'); return; }
+      showToast('شكراً! تم إرسال تقييمك.'); document.getElementById('reviewText').value=''; selectedRating=0;
+      document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('selected'));
+      loadRatings(currentDealId);
+    }catch{ document.getElementById('btnSubmit').disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  loadDeals();
+}());
+</script>
+</body>
+</html>

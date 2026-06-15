@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Market Insights — Murbha">رؤى السوق — مُرابحة</title>
+<meta name="description" content="تحليلات واتجاهات سوق الاستثمار الإسلامي والصكوك والمرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-trend{font:700 10px Cairo,sans-serif;margin-top:2px;}
+  .trend-up{color:#2e7d32;}
+  .trend-dn{color:#c54a3a;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Sector bar chart */
+  .sector-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .sb-name{font:700 11px Cairo,sans-serif;width:110px;flex-shrink:0;}
+  .sb-bg{flex:1;height:12px;background:#f0ece0;border-radius:6px;overflow:hidden;}
+  .sb-fill{height:100%;border-radius:6px;background:var(--green);}
+  .sb-val{font:900 10px Cairo,sans-serif;color:var(--green-dark);width:40px;text-align:left;flex-shrink:0;}
+  .sb-chg{font:700 10px Cairo,sans-serif;width:48px;text-align:left;flex-shrink:0;}
+  /* Insight articles */
+  .insight-item{border-bottom:1px solid var(--line);padding:16px 0;}
+  .insight-item:first-child{padding-top:0;}
+  .insight-item:last-child{border-bottom:none;padding-bottom:0;}
+  .insight-cat{display:inline-block;border-radius:4px;padding:1px 8px;font:700 8px Cairo,sans-serif;margin-bottom:6px;}
+  .cat-analysis{background:#e3f2fd;color:#1565c0;}
+  .cat-news{background:#e8f5e9;color:#2e7d32;}
+  .cat-report{background:#fff8e1;color:#a07020;}
+  .cat-alert{background:#fdecea;color:#c54a3a;}
+  .insight-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:5px;line-height:1.5;}
+  .insight-excerpt{font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.8;}
+  .insight-meta{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:6px;}
+  /* Yield table */
+  .yield-table{width:100%;border-collapse:collapse;}
+  .yield-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .yield-table td{font:500 11px Tajawal,sans-serif;padding:9px 12px;border-bottom:1px solid var(--line);}
+  .yield-table tr:last-child td{border-bottom:none;}
+  .yield-high{color:#2e7d32;font:900 11px Cairo,sans-serif;}
+  .yield-mid{color:var(--gold);font:900 11px Cairo,sans-serif;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Market Insights">رؤى السوق</h1>
+    <p data-en="Analysis and trends in Islamic investment, sukuk, and murabaha markets.">تحليلات واتجاهات سوق الاستثمار الإسلامي والصكوك والمرابحة.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="Sector Performance">أداء القطاعات</div>
+    <div id="sectorChart"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;" class="two-col">
+    <div class="card">
+      <div class="card-title" data-en="Average Yields by Sector">متوسط العوائد بالقطاع</div>
+      <table class="yield-table" id="yieldTable"></table>
+    </div>
+    <div class="card">
+      <div class="card-title" data-en="Latest Insights">أحدث الرؤى</div>
+      <div id="insightsList"></div>
+    </div>
+  </div>
+</main>
+<style>
+@media(max-width:600px){ .two-col{ grid-template-columns:1fr !important; } }
+</style>
+<script>
+(function(){
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  const catCls={analysis:'cat-analysis',news:'cat-news',report:'cat-report',alert:'cat-alert'};
+  const catLabel={analysis:'تحليل',news:'أخبار',report:'تقرير',alert:'تنبيه'};
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/market-insights');
+      if(!r.ok){ placeholder(document.getElementById('sectorChart'),'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      // KPIs
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=d.kpis||{};
+      [{lbl:'صفقات مفتوحة',val:String(kpis.openDeals||0),trend:kpis.openTrend},{lbl:'متوسط العائد',val:(kpis.avgYield||0).toFixed(1)+'٪',trend:kpis.yieldTrend},{lbl:'إجمالي التمويل',val:((kpis.totalFunding||0)/1000000).toFixed(1)+' م ر.س',trend:kpis.fundingTrend},{lbl:'مستثمرون نشطون',val:String(kpis.activeInvestors||0),trend:kpis.investorTrend}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        if(k.trend!=null){ const tr=document.createElement('div'); tr.className='kpi-trend '+(k.trend>=0?'trend-up':'trend-dn'); tr.textContent=(k.trend>=0?'↑':'↓')+Math.abs(k.trend||0)+'٪'; v.appendChild(tr); }
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      // Sector chart
+      const sc=document.getElementById('sectorChart'); sc.textContent='';
+      const sectors=d.sectors||[];
+      const maxVol=Math.max(1,...sectors.map(s=>s.volume||0));
+      sectors.forEach(s=>{
+        const row=document.createElement('div'); row.className='sector-bar-row';
+        const name=document.createElement('div'); name.className='sb-name'; name.textContent=s.name||'—';
+        const bg=document.createElement('div'); bg.className='sb-bg';
+        const fill=document.createElement('div'); fill.className='sb-fill'; fill.style.width=Math.round(((s.volume||0)/maxVol)*100)+'%'; bg.appendChild(fill);
+        const val=document.createElement('div'); val.className='sb-val'; val.textContent=(s.avgYield||0).toFixed(1)+'٪';
+        const chg=document.createElement('div'); chg.className='sb-chg '+(s.change>=0?'trend-up':'trend-dn'); chg.textContent=(s.change>=0?'+':'')+((s.change||0).toFixed(1))+'٪';
+        row.appendChild(name); row.appendChild(bg); row.appendChild(val); row.appendChild(chg);
+        sc.appendChild(row);
+      });
+      if(!sectors.length) placeholder(sc,'لا توجد بيانات.');
+      // Yield table
+      const yt=document.getElementById('yieldTable'); yt.textContent='';
+      const htr=document.createElement('tr');
+      ['القطاع','متوسط العائد','أعلى عائد'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; htr.appendChild(th); });
+      yt.appendChild(htr);
+      sectors.forEach(s=>{
+        const tr=document.createElement('tr');
+        const td1=document.createElement('td'); td1.textContent=s.name||'—';
+        const td2=document.createElement('td'); td2.className='yield-mid'; td2.textContent=(s.avgYield||0).toFixed(1)+'٪';
+        const td3=document.createElement('td'); td3.className='yield-high'; td3.textContent=(s.maxYield||0).toFixed(1)+'٪';
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); yt.appendChild(tr);
+      });
+      // Insights
+      const il=document.getElementById('insightsList'); il.textContent='';
+      const insights=d.insights||[];
+      if(!insights.length){ placeholder(il,'لا توجد رؤى.'); }
+      else{
+        insights.forEach(ins=>{
+          const item=document.createElement('div'); item.className='insight-item';
+          const cat=document.createElement('span'); cat.className='insight-cat '+(catCls[ins.category]||'cat-news'); cat.textContent=catLabel[ins.category]||ins.category||'—';
+          const title=document.createElement('div'); title.className='insight-title'; title.textContent=ins.title||'—';
+          const excerpt=document.createElement('div'); excerpt.className='insight-excerpt'; excerpt.textContent=ins.excerpt||'';
+          const meta=document.createElement('div'); meta.className='insight-meta'; meta.textContent=(ins.date||'').slice(0,10)+(ins.author?' · '+ins.author:'');
+          item.appendChild(cat); item.appendChild(title); item.appendChild(excerpt); item.appendChild(meta);
+          il.appendChild(item);
+        });
+      }
+    }catch{ placeholder(document.getElementById('sectorChart'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>
