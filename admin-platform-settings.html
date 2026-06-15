@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعدادات المنصة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.settings-layout{display:grid;grid-template-columns:210px 1fr;gap:1.5rem;}
+.sidebar{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;height:fit-content;}
+.sidebar-head{background:var(--green-dark);color:#fff;padding:0.8rem 1rem;font-size:0.88rem;font-weight:700;}
+.sidebar-item{padding:0.65rem 1rem;font-size:0.85rem;font-weight:600;cursor:pointer;border-bottom:1px solid var(--line);color:var(--green-dark);}
+.sidebar-item:last-child{border-bottom:none;}
+.sidebar-item.active{background:var(--green);color:#fff;}
+.sidebar-item:hover:not(.active){background:#f5f0e8;}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.field{margin-bottom:1.2rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.82rem;font-weight:600;color:var(--green-dark);margin-bottom:0.35rem;}
+.field input,.field select,.field textarea{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;background:#fff;color:var(--green-dark);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+.field-note{font-size:0.74rem;color:var(--muted);margin-top:0.25rem;}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 0;border-bottom:1px solid var(--line);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-label h4{font-size:0.88rem;font-weight:600;}
+.toggle-label p{font-size:0.76rem;color:var(--muted);margin-top:0.1rem;}
+.toggle{position:relative;width:42px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:#d0cdc7;border-radius:11px;cursor:pointer;transition:background 0.2s;}
+.toggle input:checked+.toggle-track{background:var(--green);}
+.toggle-thumb{position:absolute;top:2px;right:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform 0.2s;}
+.toggle input:checked~.toggle-thumb{transform:translateX(-20px);}
+.danger-zone{border:2px solid #e74c3c;border-radius:12px;padding:1.25rem;margin-top:0.5rem;}
+.danger-zone h4{color:#e74c3c;font-size:0.9rem;font-weight:700;margin-bottom:0.5rem;}
+.danger-zone p{font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;}
+.status-msg{padding:0.6rem 0.9rem;border-radius:7px;font-size:0.82rem;display:none;margin-bottom:1rem;}
+.status-ok{background:#e8f5ed;color:#1e8449;}
+@media(max-width:700px){.settings-layout{grid-template-columns:1fr;}.row-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إعدادات المنصة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إعدادات المنصة</h2>
+    <p>ضبط إعدادات النظام والقواعد التشغيلية للمنصة</p>
+  </div>
+
+  <div class="settings-layout">
+    <div class="sidebar">
+      <div class="sidebar-head">الأقسام</div>
+      <div class="sidebar-item active" onclick="showPanel('general',this)">عام</div>
+      <div class="sidebar-item" onclick="showPanel('investments',this)">الاستثمارات</div>
+      <div class="sidebar-item" onclick="showPanel('fees',this)">الرسوم والعمولات</div>
+      <div class="sidebar-item" onclick="showPanel('kyc',this)">سياسة KYC</div>
+      <div class="sidebar-item" onclick="showPanel('notifications',this)">الإشعارات</div>
+      <div class="sidebar-item" onclick="showPanel('security',this)">الأمان</div>
+    </div>
+
+    <div class="main-content">
+
+      <div class="panel active" id="panel-general">
+        <div class="card">
+          <div class="card-head"><h3>إعدادات عامة</h3></div>
+          <div class="card-body">
+            <div id="generalStatus" class="status-msg status-ok"></div>
+            <div class="field">
+              <label>اسم المنصة</label>
+              <input type="text" id="platformName" value="مُرابحة">
+            </div>
+            <div class="field">
+              <label>العملة الافتراضية</label>
+              <select id="currency">
+                <option value="SAR" selected>ريال سعودي (SAR)</option>
+                <option value="AED">درهم إماراتي (AED)</option>
+                <option value="USD">دولار أمريكي (USD)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>المنطقة الزمنية</label>
+              <select id="timezone">
+                <option value="Asia/Riyadh" selected>توقيت الرياض (GMT+3)</option>
+                <option value="Asia/Dubai">توقيت دبي (GMT+4)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>لغة واجهة المستخدم</label>
+              <select id="lang">
+                <option value="ar" selected>العربية</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>البريد الإلكتروني للدعم</label>
+              <input type="email" id="supportEmail" value="support@murabaha.sa">
+            </div>
+            <button class="btn btn-primary" onclick="saveGeneral()">حفظ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-investments">
+        <div class="card">
+          <div class="card-head"><h3>قواعد الاستثمار</h3></div>
+          <div class="card-body">
+            <div class="row-2">
+              <div class="field">
+                <label>الحد الأدنى للاستثمار (ر.س)</label>
+                <input type="number" id="minInvest" value="5000" step="1000">
+                <div class="field-note">أقل مبلغ يمكن للمستثمر استثماره في صفقة واحدة</div>
+              </div>
+              <div class="field">
+                <label>الحد الأقصى للاستثمار (ر.س)</label>
+                <input type="number" id="maxInvest" value="500000" step="10000">
+              </div>
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>الحد الأدنى لحجم الصفقة (ر.س)</label>
+                <input type="number" id="minDeal" value="500000">
+              </div>
+              <div class="field">
+                <label>الحد الأقصى لحجم الصفقة (ر.س)</label>
+                <input type="number" id="maxDeal" value="20000000">
+              </div>
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>أدنى نسبة عائد مسموح (٪)</label>
+                <input type="number" id="minReturn" value="8" step="0.5">
+              </div>
+              <div class="field">
+                <label>أعلى نسبة عائد مسموح (٪)</label>
+                <input type="number" id="maxReturn" value="20" step="0.5">
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>السماح بالاستثمار المتكرر</h4>
+                <p>تمكين المستثمر من الاستثمار في أكثر من صفقة بآنٍ واحد</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>قيد الاستثمار الجغرافي</h4>
+                <p>تقييد الاستثمار على المقيمين في المملكة العربية السعودية فقط</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:1rem;" onclick="saveInvestments()">حفظ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-fees">
+        <div class="card">
+          <div class="card-head"><h3>هيكل الرسوم</h3></div>
+          <div class="card-body">
+            <div class="field">
+              <label>رسوم إدارية سنوية (٪ من رأس المال)</label>
+              <input type="number" id="adminFee" value="1.5" step="0.1" min="0" max="5">
+            </div>
+            <div class="field">
+              <label>عمولة نجاح الصفقة (٪ من الأرباح)</label>
+              <input type="number" id="successFee" value="10" step="1" min="0" max="30">
+            </div>
+            <div class="field">
+              <label>رسوم السحب المبكر (٪)</label>
+              <input type="number" id="earlyExitFee" value="2" step="0.5">
+            </div>
+            <div class="field">
+              <label>الحد الأدنى لرسوم السحب (ر.س)</label>
+              <input type="number" id="minWithdrawFee" value="50">
+            </div>
+            <button class="btn btn-primary" onclick="saveFees()">حفظ هيكل الرسوم</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-kyc">
+        <div class="card">
+          <div class="card-head"><h3>سياسة التحقق من الهوية</h3></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>إلزامية KYC قبل الاستثمار</h4>
+                <p>يجب إتمام التحقق من الهوية قبل السماح بأي استثمار</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>التحقق الإلكتروني التلقائي</h4>
+                <p>ربط مع أبشر للتحقق الفوري من الهوية الوطنية</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div class="field" style="margin-top:1rem;">
+              <label>صلاحية وثائق KYC (بالأشهر)</label>
+              <input type="number" id="kycValidity" value="24" min="6" max="60">
+            </div>
+            <div class="field">
+              <label>حد الاستثمار قبل التحقق المعزز (ر.س)</label>
+              <input type="number" id="enhancedKycThreshold" value="100000">
+              <div class="field-note">مستثمرون يتجاوزون هذا الحد يحتاجون تحققاً إضافياً</div>
+            </div>
+            <button class="btn btn-primary" onclick="saveKYC()">حفظ سياسة KYC</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-notifications">
+        <div class="card">
+          <div class="card-head"><h3>إعدادات الإشعارات</h3></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>إشعارات البريد الإلكتروني</h4>
+                <p>تفعيل الإشعارات عبر البريد للمستثمرين</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>الإشعارات الفورية (Push)</h4>
+                <p>إشعارات التطبيق في الوقت الفعلي</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>رسائل SMS</h4>
+                <p>إشعارات الرسائل القصيرة للعمليات الحساسة فقط</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:1rem;" onclick="saveNotifications()">حفظ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-security">
+        <div class="card">
+          <div class="card-head"><h3>إعدادات الأمان</h3></div>
+          <div class="card-body">
+            <div class="field">
+              <label>مهلة انتهاء الجلسة (بالدقائق)</label>
+              <input type="number" id="sessionTimeout" value="30" min="5" max="120">
+            </div>
+            <div class="field">
+              <label>الحد الأقصى لمحاولات تسجيل الدخول</label>
+              <input type="number" id="maxLoginAttempts" value="5" min="3" max="10">
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>إلزامية المصادقة الثنائية للإداريين</h4>
+                <p>يجب على جميع المسؤولين تفعيل 2FA</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:1rem;" onclick="saveSecurity()">حفظ إعدادات الأمان</button>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <h4>منطقة الخطر</h4>
+          <p>هذه الإجراءات لا يمكن التراجع عنها. تأكد قبل المتابعة.</p>
+          <button class="btn btn-danger btn-sm" onclick="confirmReset()">إعادة ضبط إعدادات المنصة</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function getCSRF() {
+  return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrf='))?.split('=')[1] || 'demo-token';
+}
+
+function save(section, data) {
+  return fetch('/app/admin/platform-settings/' + section, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCSRF() },
+    body: JSON.stringify(data)
+  }).catch(() => {});
+}
+
+function saveGeneral() {
+  save('general', {
+    platformName: document.getElementById('platformName').value,
+    currency: document.getElementById('currency').value,
+    timezone: document.getElementById('timezone').value,
+    lang: document.getElementById('lang').value,
+    supportEmail: document.getElementById('supportEmail').value
+  }).then(() => {
+    const msg = document.getElementById('generalStatus');
+    msg.textContent = 'تم حفظ الإعدادات العامة بنجاح';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  });
+}
+
+function saveInvestments() { save('investments', {}); alert('تم حفظ إعدادات الاستثمار'); }
+function saveFees() { save('fees', {}); alert('تم حفظ هيكل الرسوم'); }
+function saveKYC() { save('kyc', {}); alert('تم حفظ سياسة KYC'); }
+function saveNotifications() { save('notifications', {}); alert('تم حفظ إعدادات الإشعارات'); }
+function saveSecurity() { save('security', {}); alert('تم حفظ إعدادات الأمان'); }
+
+function confirmReset() {
+  if (confirm('هل أنت متأكد من إعادة ضبط جميع إعدادات المنصة؟ لا يمكن التراجع عن هذا الإجراء.')) {
+    fetch('/app/admin/platform-settings/reset', {
+      method: 'POST',
+      headers: { 'x-csrf-token': getCSRF() }
+    }).catch(() => {});
+    alert('تمت إعادة الضبط');
+  }
+}
+</script>
+</body>
+</html>

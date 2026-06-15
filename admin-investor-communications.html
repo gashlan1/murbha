@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مراسلات المستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem;}
+.stat-val{font-size:1.6rem;font-weight:700;color:var(--green-dark);}
+.stat-lbl{font-size:0.76rem;color:var(--muted);margin-top:0.2rem;}
+.inbox-layout{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;}
+.inbox-sidebar{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.inbox-sidebar-head{background:var(--green-dark);color:#fff;padding:0.9rem 1rem;}
+.inbox-sidebar-head h3{font-size:0.9rem;font-weight:700;}
+.inbox-folder{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;border-bottom:1px solid var(--line);cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--green-dark);}
+.inbox-folder:last-child{border-bottom:none;}
+.inbox-folder.active{background:#f0ebe0;color:var(--green);}
+.inbox-folder:hover:not(.active){background:#faf7f0;}
+.folder-count{background:var(--green);color:#fff;font-size:0.68rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:10px;}
+.inbox-main{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.inbox-toolbar{padding:0.85rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+.search-input{flex:1;min-width:160px;padding:0.45rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.85rem;background:#fff;}
+.search-input:focus{outline:none;border-color:var(--green);}
+.msg-list{max-height:500px;overflow-y:auto;}
+.msg-item{display:flex;gap:0.9rem;padding:0.9rem 1.25rem;border-bottom:1px solid var(--line);cursor:pointer;transition:background 0.15s;}
+.msg-item:last-child{border-bottom:none;}
+.msg-item:hover{background:#faf7f0;}
+.msg-item.unread{background:#f5f0e8;}
+.msg-avatar{width:38px;height:38px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#fff;flex-shrink:0;}
+.msg-body{flex:1;min-width:0;}
+.msg-top{display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem;}
+.msg-sender{font-size:0.88rem;font-weight:700;}
+.msg-date{font-size:0.74rem;color:var(--muted);flex-shrink:0;}
+.msg-subject{font-size:0.82rem;font-weight:600;margin-top:0.15rem;color:var(--green-dark);}
+.msg-preview{font-size:0.77rem;color:var(--muted);margin-top:0.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:0.35rem;}
+.compose-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;}
+.compose-modal.open{display:flex;}
+.compose-box{background:#fff;border-radius:16px;padding:1.75rem;width:100%;max-width:560px;}
+.compose-box h3{font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.3rem;}
+.field input,.field select,.field textarea{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;background:#fff;color:var(--green-dark);}
+.field textarea{min-height:100px;resize:vertical;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);}
+.modal-footer{display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.25rem;}
+@media(max-width:768px){.inbox-layout{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مراسلات المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مراسلات المستثمرين</h2>
+      <p>إدارة الرسائل الواردة والصادرة مع المستثمرين</p>
+    </div>
+    <button class="btn btn-primary" onclick="openCompose()">+ رسالة جديدة</button>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="inbox-layout">
+    <div class="inbox-sidebar">
+      <div class="inbox-sidebar-head"><h3>المجلدات</h3></div>
+      <div class="inbox-folder active" onclick="setFolder('inbox',this)">
+        البريد الوارد
+        <span class="folder-count" id="inboxCount">٧</span>
+      </div>
+      <div class="inbox-folder" onclick="setFolder('sent',this)">البريد الصادر</div>
+      <div class="inbox-folder" onclick="setFolder('starred',this)">المميّزة</div>
+      <div class="inbox-folder" onclick="setFolder('support',this)">طلبات الدعم</div>
+      <div class="inbox-folder" onclick="setFolder('archived',this)">الأرشيف</div>
+    </div>
+
+    <div class="inbox-main">
+      <div class="inbox-toolbar">
+        <input class="search-input" type="text" id="msgSearch" placeholder="بحث في الرسائل..." oninput="filterMessages()">
+        <button class="btn btn-sm btn-secondary" onclick="markAllRead()">تعليم الكل مقروء</button>
+      </div>
+      <div class="msg-list" id="msgList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="compose-modal" id="composeModal">
+  <div class="compose-box">
+    <h3>إنشاء رسالة جديدة</h3>
+    <div class="field">
+      <label>إلى (المستثمر)</label>
+      <select id="msgTo">
+        <option value="">اختر مستثمراً...</option>
+        <option value="all">جميع المستثمرين</option>
+        <option value="ahmed">أحمد سعيد</option>
+        <option value="sara">سارة خالد</option>
+        <option value="faisal">فيصل العمري</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>الموضوع</label>
+      <input type="text" id="msgSubject" placeholder="موضوع الرسالة">
+    </div>
+    <div class="field">
+      <label>الرسالة</label>
+      <textarea id="msgBody" placeholder="اكتب رسالتك هنا..."></textarea>
+    </div>
+    <div class="field">
+      <label>الأولوية</label>
+      <select id="msgPriority">
+        <option value="normal">عادية</option>
+        <option value="high">عالية</option>
+        <option value="urgent">عاجلة</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCompose()">إلغاء</button>
+      <button class="btn btn-primary" onclick="sendMessage()">إرسال</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٧', lbl: 'رسائل غير مقروءة' },
+  { val: '٢٣', lbl: 'طلبات دعم مفتوحة' },
+  { val: '٩٤٪', lbl: 'معدل الرد خلال ٢٤ س' },
+  { val: '٤.٢ س', lbl: 'متوسط وقت الرد' }
+];
+
+const MESSAGES = [
+  { sender: 'أحمد سعيد', avatar: 'أ.س', subject: 'استفسار عن توزيع الأرباح', preview: 'هل تم تحويل توزيع الأرباح لهذا الربع؟ لم يصل الحساب بعد.', date: 'منذ ١٠ د', unread: true, folder: 'inbox' },
+  { sender: 'سارة خالد', avatar: 'س.خ', subject: 'طلب تعديل بيانات KYC', preview: 'أرغب في تحديث رقم الهاتف المرتبط بالحساب.', date: 'منذ ٤٢ د', unread: true, folder: 'inbox' },
+  { sender: 'فيصل العمري', avatar: 'ف.ع', subject: 'مشكلة في تسجيل الدخول', preview: 'لا أستطيع الدخول للحساب منذ اليوم الصباح، هل هناك عطل؟', date: 'منذ ٢ س', unread: true, folder: 'support' },
+  { sender: 'نورة الغامدي', avatar: 'ن.غ', subject: 'شكر وتقدير', preview: 'أود أن أشكر فريق مُرابحة على الخدمة الممتازة.', date: 'أمس', unread: false, folder: 'inbox' },
+  { sender: 'خالد المطيري', avatar: 'خ.م', subject: 'استفسار عن صفقة #4892', preview: 'ما هو الموعد المتوقع لاكتمال تمويل الصفقة؟', date: 'أمس', unread: false, folder: 'inbox' },
+  { sender: 'ريم العتيبي', avatar: 'ر.ع', subject: 'طلب سحب عاجل', preview: 'أحتاج لسحب مبلغ ١٥٬٠٠٠ ر.س بشكل عاجل لأسباب طارئة.', date: '٢ أيام', unread: true, folder: 'support' }
+];
+
+let currentFolder = 'inbox';
+
+function buildStats() {
+  const row = document.getElementById('statsRow');
+  STATS.forEach(s => {
+    const c = document.createElement('div');
+    c.className = 'stat-card';
+    const v = document.createElement('div');
+    v.className = 'stat-val';
+    v.textContent = s.val;
+    const l = document.createElement('div');
+    l.className = 'stat-lbl';
+    l.textContent = s.lbl;
+    c.appendChild(v); c.appendChild(l);
+    row.appendChild(c);
+  });
+}
+
+function setFolder(folder, el) {
+  currentFolder = folder;
+  document.querySelectorAll('.inbox-folder').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  filterMessages();
+}
+
+function filterMessages() {
+  const q = document.getElementById('msgSearch').value.toLowerCase();
+  const visible = MESSAGES.filter(m =>
+    (currentFolder === 'inbox' ? (m.folder === 'inbox' || m.folder === 'support') : m.folder === currentFolder) &&
+    (!q || m.sender.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q))
+  );
+  renderMessages(visible);
+}
+
+function renderMessages(msgs) {
+  const list = document.getElementById('msgList');
+  list.textContent = '';
+  if (!msgs.length) {
+    const empty = document.createElement('div');
+    empty.style.textAlign = 'center';
+    empty.style.padding = '2.5rem';
+    empty.style.color = 'var(--muted)';
+    empty.style.fontSize = '0.88rem';
+    empty.textContent = 'لا توجد رسائل';
+    list.appendChild(empty);
+    return;
+  }
+  msgs.forEach(m => {
+    const item = document.createElement('div');
+    item.className = 'msg-item' + (m.unread ? ' unread' : '');
+
+    const av = document.createElement('div');
+    av.className = 'msg-avatar';
+    av.textContent = m.avatar;
+
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const top = document.createElement('div');
+    top.className = 'msg-top';
+    const sender = document.createElement('span');
+    sender.className = 'msg-sender';
+    sender.textContent = m.sender;
+    const date = document.createElement('span');
+    date.className = 'msg-date';
+    date.textContent = m.date;
+    top.appendChild(sender); top.appendChild(date);
+
+    const subject = document.createElement('div');
+    subject.className = 'msg-subject';
+    subject.textContent = m.subject;
+
+    const preview = document.createElement('div');
+    preview.className = 'msg-preview';
+    preview.textContent = m.preview;
+
+    body.appendChild(top); body.appendChild(subject); body.appendChild(preview);
+
+    if (m.unread) {
+      const dot = document.createElement('div');
+      dot.className = 'unread-dot';
+      item.appendChild(av); item.appendChild(body); item.appendChild(dot);
+    } else {
+      item.appendChild(av); item.appendChild(body);
+    }
+
+    item.onclick = () => openMessage(m);
+    list.appendChild(item);
+  });
+}
+
+function openMessage(m) {
+  m.unread = false;
+  filterMessages();
+  alert('رسالة من ' + m.sender + ':\n\n' + m.subject + '\n\n' + m.preview);
+}
+
+function markAllRead() {
+  MESSAGES.forEach(m => { m.unread = false; });
+  document.getElementById('inboxCount').textContent = '٠';
+  filterMessages();
+}
+
+function openCompose() {
+  document.getElementById('composeModal').classList.add('open');
+}
+
+function closeCompose() {
+  document.getElementById('composeModal').classList.remove('open');
+}
+
+function sendMessage() {
+  const to = document.getElementById('msgTo').value;
+  const subject = document.getElementById('msgSubject').value.trim();
+  const body = document.getElementById('msgBody').value.trim();
+  if (!to || !subject || !body) { alert('يرجى ملء جميع الحقول'); return; }
+  fetch('/app/admin/investor-communications', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ to, subject, body, priority: document.getElementById('msgPriority').value })
+  }).catch(() => {});
+  closeCompose();
+  alert('تم إرسال الرسالة بنجاح!');
+}
+
+document.getElementById('composeModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCompose();
+});
+
+buildStats();
+filterMessages();
+</script>
+</body>
+</html>
