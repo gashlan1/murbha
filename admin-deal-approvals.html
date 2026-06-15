@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>موافقات الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-approve{background:#27ae60;color:#fff;border:none;}
+.btn-approve:hover{background:#1e8449;}
+.btn-reject{background:#c0392b;color:#fff;border:none;}
+.btn-reject:hover{background:#a93226;}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-value.gold{color:var(--gold);}
+.kpi-value.green{color:#27ae60;}
+.kpi-value.red{color:#c0392b;}
+.kpi-sub{font-size:0.8rem;color:var(--muted);margin-top:0.2rem;}
+.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--line);}
+.tab{padding:0.6rem 1.5rem;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.deal-card{background:#fff;border-radius:12px;border:1px solid var(--line);margin-bottom:1rem;overflow:hidden;transition:box-shadow 0.2s;}
+.deal-card:hover{box-shadow:0 4px 16px rgba(6,43,30,0.08);}
+.deal-card.urgent{border-color:var(--gold);}
+.deal-head{display:flex;align-items:center;gap:1rem;padding:1.25rem 1.5rem;border-bottom:1px solid var(--line);}
+.deal-avatar{width:44px;height:44px;border-radius:10px;background:var(--green-dark);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:700;flex-shrink:0;}
+.deal-title{flex:1;}
+.deal-name{font-size:0.95rem;font-weight:700;color:var(--green-dark);}
+.deal-meta{font-size:0.78rem;color:var(--muted);margin-top:0.15rem;}
+.deal-badges{display:flex;gap:0.4rem;align-items:center;}
+.badge{display:inline-block;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.75rem;font-weight:600;}
+.badge-pending{background:#f8f0e0;color:var(--gold);}
+.badge-approved{background:#e6f4ef;color:#27ae60;}
+.badge-rejected{background:#fde9e9;color:#c0392b;}
+.badge-sharia{background:#e6f4ef;color:var(--green);}
+.badge-urgent{background:#fde9e9;color:#c0392b;}
+.deal-body{padding:1.25rem 1.5rem;}
+.deal-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1rem;}
+.stat-item{text-align:center;}
+.stat-val{font-size:0.95rem;font-weight:700;color:var(--green-dark);}
+.stat-val.gold{color:var(--gold);}
+.stat-label{font-size:0.72rem;color:var(--muted);margin-top:0.1rem;}
+.approval-steps{display:flex;gap:0;margin-bottom:1rem;}
+.step{flex:1;text-align:center;position:relative;}
+.step:not(:last-child)::after{content:'';position:absolute;top:14px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0;}
+.step.done:not(:last-child)::after{background:var(--green);}
+.step-circle{width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:0.75rem;margin:0 auto 0.3rem;position:relative;z-index:1;}
+.step.done .step-circle{background:var(--green);border-color:var(--green);color:#fff;}
+.step.current .step-circle{background:var(--gold);border-color:var(--gold);color:#fff;}
+.step-label{font-size:0.7rem;color:var(--muted);}
+.step.done .step-label,.step.current .step-label{color:var(--green-dark);font-weight:600;}
+.deal-actions{display:flex;gap:0.75rem;justify-content:flex-end;padding-top:1rem;border-top:1px solid var(--line);}
+.notes-area{margin-top:0.75rem;}
+.notes-area textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;resize:vertical;color:var(--green-dark);}
+.notes-area textarea:focus{outline:none;border-color:var(--green);}
+.empty{text-align:center;padding:3rem;color:var(--muted);}
+.filter-row{display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.filter-row select,.filter-row input{padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — موافقات الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>لوحة موافقات الصفقات</h2>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">بانتظار الموافقة</div>
+      <div class="kpi-value gold">٧</div>
+      <div class="kpi-sub">صفقات في قيد المراجعة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">موافق عليها هذا الشهر</div>
+      <div class="kpi-value green">١٢</div>
+      <div class="kpi-sub">بقيمة ٢٨.٥م ر.س</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">مرفوضة</div>
+      <div class="kpi-value red">٣</div>
+      <div class="kpi-sub">منذ بداية الشهر</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">متوسط وقت الموافقة</div>
+      <div class="kpi-value">٢.٤</div>
+      <div class="kpi-sub">يوم عمل</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'pending')">بانتظار الموافقة (٧)</button>
+    <button class="tab" onclick="switchTab(this,'approved')">موافق عليها</button>
+    <button class="tab" onclick="switchTab(this,'rejected')">مرفوضة</button>
+  </div>
+
+  <div class="filter-row">
+    <select id="sectorFilter" onchange="renderDeals()">
+      <option value="">جميع القطاعات</option>
+      <option value="عقارات">عقارات</option>
+      <option value="تقنية">تقنية</option>
+      <option value="صحة">صحة</option>
+      <option value="طاقة">طاقة</option>
+    </select>
+    <input type="text" id="searchFilter" placeholder="بحث..." oninput="renderDeals()">
+  </div>
+
+  <div id="dealsList"></div>
+</div>
+
+<script>
+let currentTab = 'pending';
+
+const allDeals = [
+  {id:'d1',name:'مجمع الأمل السكني',sector:'عقارات',submitter:'أحمد الغامدي',amount:'١٢,٠٠٠,٠٠٠',returnRate:'١١.٥٪',duration:'٣٦ شهراً',minInvest:'١٠,٠٠٠',status:'pending',urgent:true,sharia:true,steps:[{done:true,label:'مراجعة أولية'},{done:true,label:'المراجعة المالية'},{done:false,label:'الموافقة الشرعية',current:true},{done:false,label:'الموافقة النهائية'}]},
+  {id:'d2',name:'منصة حلول لوجستية',sector:'تقنية',submitter:'منى العتيبي',amount:'٣,٥٠٠,٠٠٠',returnRate:'١٦٪',duration:'٢٤ شهراً',minInvest:'٥,٠٠٠',status:'pending',urgent:false,sharia:false,steps:[{done:true,label:'مراجعة أولية'},{done:false,label:'المراجعة المالية',current:true},{done:false,label:'الموافقة الشرعية'},{done:false,label:'الموافقة النهائية'}]},
+  {id:'d3',name:'مستشفى الرعاية المتكاملة',sector:'صحة',submitter:'خالد الشهري',amount:'٢٠,٠٠٠,٠٠٠',returnRate:'١٠.٢٪',duration:'٦٠ شهراً',minInvest:'٥٠,٠٠٠',status:'pending',urgent:false,sharia:true,steps:[{done:true,label:'مراجعة أولية'},{done:true,label:'المراجعة المالية'},{done:true,label:'الموافقة الشرعية'},{done:false,label:'الموافقة النهائية',current:true}]},
+  {id:'d4',name:'مزرعة طاقة ريح الشمال',sector:'طاقة',submitter:'فاطمة الدوسري',amount:'٨,٨٠٠,٠٠٠',returnRate:'٩.٥٪',duration:'٤٨ شهراً',minInvest:'١٠,٠٠٠',status:'approved',urgent:false,sharia:true,steps:[{done:true,label:'مراجعة أولية'},{done:true,label:'المراجعة المالية'},{done:true,label:'الموافقة الشرعية'},{done:true,label:'الموافقة النهائية'}]},
+  {id:'d5',name:'متجر تجزئة الكترونية',sector:'تقنية',submitter:'عمر القحطاني',amount:'١,٢٠٠,٠٠٠',returnRate:'٢٢٪',duration:'١٢ شهراً',minInvest:'٢,٠٠٠',status:'rejected',urgent:false,sharia:false,steps:[{done:true,label:'مراجعة أولية'},{done:false,label:'المراجعة المالية'},{done:false,label:'الموافقة الشرعية'},{done:false,label:'الموافقة النهائية'}]},
+];
+
+function switchTab(btn, tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = tab;
+  renderDeals();
+}
+
+function renderDeals(){
+  const sector = document.getElementById('sectorFilter').value;
+  const search = document.getElementById('searchFilter').value.trim().toLowerCase();
+  const list = document.getElementById('dealsList');
+  list.textContent = '';
+  const filtered = allDeals.filter(d => {
+    if(d.status !== currentTab) return false;
+    if(sector && d.sector !== sector) return false;
+    if(search && !d.name.includes(search) && !d.sector.includes(search)) return false;
+    return true;
+  });
+  if(!filtered.length){
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'لا توجد صفقات في هذه الفئة';
+    list.appendChild(empty);
+    return;
+  }
+  filtered.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'deal-card' + (d.urgent ? ' urgent' : '');
+
+    const head = document.createElement('div');
+    head.className = 'deal-head';
+    const avatar = document.createElement('div');
+    avatar.className = 'deal-avatar';
+    avatar.textContent = d.name[0];
+    const title = document.createElement('div');
+    title.className = 'deal-title';
+    const nm = document.createElement('div');
+    nm.className = 'deal-name';
+    nm.textContent = d.name;
+    const mt = document.createElement('div');
+    mt.className = 'deal-meta';
+    mt.textContent = 'مُقدَّم من: ' + d.submitter + ' · ' + d.sector;
+    title.appendChild(nm);
+    title.appendChild(mt);
+    const badges = document.createElement('div');
+    badges.className = 'deal-badges';
+    const stBadge = document.createElement('span');
+    stBadge.className = 'badge ' + (d.status==='pending'?'badge-pending':d.status==='approved'?'badge-approved':'badge-rejected');
+    stBadge.textContent = d.status==='pending'?'قيد المراجعة':d.status==='approved'?'موافق عليها':'مرفوضة';
+    badges.appendChild(stBadge);
+    if(d.sharia){const sb=document.createElement('span');sb.className='badge badge-sharia';sb.textContent='✓ شرعية';badges.appendChild(sb);}
+    if(d.urgent){const ub=document.createElement('span');ub.className='badge badge-urgent';ub.textContent='عاجل';badges.appendChild(ub);}
+    head.appendChild(avatar);
+    head.appendChild(title);
+    head.appendChild(badges);
+
+    const body = document.createElement('div');
+    body.className = 'deal-body';
+
+    const stats = document.createElement('div');
+    stats.className = 'deal-stats';
+    [{v:d.amount+' ر.س',l:'حجم الصفقة',g:false},{v:d.returnRate,l:'العائد المستهدف',g:true},{v:d.duration,l:'المدة',g:false},{v:d.minInvest+' ر.س',l:'الحد الأدنى',g:false},{v:d.steps.filter(s=>s.done).length+'/'+d.steps.length,l:'مراحل الموافقة',g:false}].forEach(({v,l,g})=>{
+      const si = document.createElement('div');
+      si.className = 'stat-item';
+      const sv = document.createElement('div');
+      sv.className = 'stat-val' + (g?' gold':'');
+      sv.textContent = v;
+      const sl = document.createElement('div');
+      sl.className = 'stat-label';
+      sl.textContent = l;
+      si.appendChild(sv);
+      si.appendChild(sl);
+      stats.appendChild(si);
+    });
+
+    const steps = document.createElement('div');
+    steps.className = 'approval-steps';
+    d.steps.forEach(s => {
+      const step = document.createElement('div');
+      step.className = 'step' + (s.done?' done':'') + (s.current?' current':'');
+      const circle = document.createElement('div');
+      circle.className = 'step-circle';
+      circle.textContent = s.done ? '✓' : '';
+      const lbl = document.createElement('div');
+      lbl.className = 'step-label';
+      lbl.textContent = s.label;
+      step.appendChild(circle);
+      step.appendChild(lbl);
+      steps.appendChild(step);
+    });
+
+    body.appendChild(stats);
+    body.appendChild(steps);
+
+    if(d.status === 'pending'){
+      const notes = document.createElement('div');
+      notes.className = 'notes-area';
+      const ta = document.createElement('textarea');
+      ta.id = 'notes-' + d.id;
+      ta.rows = 2;
+      ta.placeholder = 'ملاحظات الموافقة أو الرفض...';
+      notes.appendChild(ta);
+      body.appendChild(notes);
+
+      const actions = document.createElement('div');
+      actions.className = 'deal-actions';
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'btn btn-secondary btn-sm';
+      viewBtn.textContent = 'عرض الملف';
+      const rejectBtn = document.createElement('button');
+      rejectBtn.className = 'btn btn-reject btn-sm';
+      rejectBtn.textContent = 'رفض';
+      rejectBtn.onclick = () => approveAction(d.id, 'rejected');
+      const approveBtn = document.createElement('button');
+      approveBtn.className = 'btn btn-approve btn-sm';
+      approveBtn.textContent = 'موافقة';
+      approveBtn.onclick = () => approveAction(d.id, 'approved');
+      actions.appendChild(viewBtn);
+      actions.appendChild(rejectBtn);
+      actions.appendChild(approveBtn);
+      body.appendChild(actions);
+    }
+
+    card.appendChild(head);
+    card.appendChild(body);
+    list.appendChild(card);
+  });
+}
+
+async function approveAction(id, decision){
+  const notes = document.getElementById('notes-' + id);
+  try {
+    await fetch('/app/admin/deals/' + id + '/approval', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({decision, notes: notes ? notes.value.trim() : ''})
+    });
+    const deal = allDeals.find(d=>d.id===id);
+    if(deal) deal.status = decision;
+    renderDeals();
+  } catch(e){}
+}
+
+renderDeals();
+</script>
+</body>
+</html>
