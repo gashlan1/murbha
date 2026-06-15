@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مسار التدقيق - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.filter-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;margin-bottom:1.5rem;}
+.filter-row{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;}
+.filter-row input,.filter-row select{padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+.filter-row input:focus,.filter-row select:focus{outline:none;border-color:var(--green);}
+.filter-row input[type=text]{flex:1;min-width:180px;}
+.filter-row input[type=date]{width:150px;}
+.timeline{display:flex;flex-direction:column;gap:0;}
+.event-row{display:flex;gap:1rem;position:relative;}
+.event-row::before{content:'';position:absolute;right:19px;top:32px;bottom:0;width:2px;background:var(--line);z-index:0;}
+.event-row:last-child::before{display:none;}
+.event-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;position:relative;z-index:1;margin-top:0.5rem;}
+.dot-green{background:#e6f4ef;border:2px solid var(--green);}
+.dot-red{background:#fde9e9;border:2px solid #c0392b;}
+.dot-gold{background:#f8f0e0;border:2px solid var(--gold);}
+.dot-gray{background:#f0f0f0;border:2px solid var(--muted);}
+.event-body{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem;flex:1;margin-bottom:0.75rem;transition:box-shadow 0.15s;}
+.event-body:hover{box-shadow:0 2px 10px rgba(6,43,30,0.07);}
+.event-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;}
+.event-action{font-size:0.92rem;font-weight:700;color:var(--green-dark);}
+.event-ts{font-size:0.75rem;color:var(--muted);}
+.event-meta{display:flex;gap:1rem;margin-bottom:0.5rem;flex-wrap:wrap;}
+.event-meta-item{font-size:0.78rem;color:var(--muted);}
+.event-meta-item span{color:var(--green-dark);font-weight:600;}
+.event-diff{background:#f9f6f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.78rem;color:var(--muted);font-family:'Courier New',monospace;}
+.diff-removed{color:#c0392b;}
+.diff-added{color:#27ae60;}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.74rem;font-weight:600;}
+.badge-create{background:#e6f4ef;color:#27ae60;}
+.badge-update{background:#f8f0e0;color:var(--gold);}
+.badge-delete{background:#fde9e9;color:#c0392b;}
+.badge-login{background:#f0f0f0;color:var(--muted);}
+.badge-approve{background:#e6f4ef;color:var(--green);}
+.load-more{text-align:center;padding:1.5rem;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.event-meta{gap:0.5rem;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مسار التدقيق</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>مسار التدقيق والمراجعة</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="exportAudit()">تصدير CSV</button>
+      <button class="btn btn-primary" onclick="exportAudit('pdf')">تصدير PDF</button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">أحداث اليوم</div>
+      <div class="kpi-value">٢٤٧</div>
+      <div class="kpi-sub">إجمالي العمليات</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">إجراءات بالغة الأهمية</div>
+      <div class="kpi-value">١٢</div>
+      <div class="kpi-sub">تتطلب مراجعة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">مستخدمون نشطون الآن</div>
+      <div class="kpi-value">٨</div>
+      <div class="kpi-sub">مشرفون وأدمن</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">آخر تحديث</div>
+      <div class="kpi-value">٠:٠٠</div>
+      <div class="kpi-sub">ثانية مضت</div>
+    </div>
+  </div>
+
+  <div class="filter-card">
+    <div class="filter-row">
+      <input type="text" id="auditSearch" placeholder="بحث بالمستخدم أو الإجراء..." oninput="filterAudit()">
+      <select id="actionFilter" onchange="filterAudit()">
+        <option value="">جميع الإجراءات</option>
+        <option value="create">إنشاء</option>
+        <option value="update">تعديل</option>
+        <option value="delete">حذف</option>
+        <option value="approve">موافقة</option>
+        <option value="login">تسجيل دخول</option>
+      </select>
+      <select id="entityFilter" onchange="filterAudit()">
+        <option value="">جميع الكيانات</option>
+        <option value="deal">صفقة</option>
+        <option value="user">مستخدم</option>
+        <option value="payment">دفعة</option>
+        <option value="kyc">KYC</option>
+        <option value="settings">إعدادات</option>
+      </select>
+      <input type="date" id="startDate" onchange="filterAudit()">
+      <input type="date" id="endDate" onchange="filterAudit()">
+    </div>
+  </div>
+
+  <div class="timeline" id="auditTimeline"></div>
+  <div class="load-more">
+    <button class="btn btn-secondary" onclick="loadMore()">تحميل المزيد</button>
+  </div>
+</div>
+
+<script>
+const events = [
+  {action:'موافقة على صفقة',type:'approve',entity:'deal',user:'محمد العتيبي',role:'مشرف',ts:'٢٠٢٦/٦/١٥ — ١٣:٢٤:١٨',ip:'١٩٢.١٦٨.١.٢٠',detail:'الصفقة: مجمع الأمل السكني (deal_331)',diff:null},
+  {action:'تعديل هيكل الرسوم',type:'update',entity:'settings',user:'سارة المطيري',role:'أدمن',ts:'٢٠٢٦/٦/١٥ — ١٢:٥٠:٠٣',ip:'١٩٢.١٦٨.١.٥',detail:'تعديل رسوم الإدارة السنوية',diff:{from:'١.٨٪',to:'٢.٠٪'}},
+  {action:'إنشاء مستخدم جديد',type:'create',entity:'user',user:'خالد الشهري',role:'أدمن',ts:'٢٠٢٦/٦/١٥ — ١١:٣٤:٥٧',ip:'١٩٢.١٦٨.١.١٢',detail:'مستخدم: أحمد النصار (user_2091)',diff:null},
+  {action:'رفض طلب سحب',type:'update',entity:'payment',user:'نورة السعد',role:'مشرف',ts:'٢٠٢٦/٦/١٥ — ١١:٠٨:٢٢',ip:'١٩٢.١٦٨.١.٧',detail:'طلب سحب ٣٢,٠٠٠ ر.س — السبب: التحقق معلق',diff:null},
+  {action:'حذف مفتاح API',type:'delete',entity:'settings',user:'محمد العتيبي',role:'مشرف',ts:'٢٠٢٦/٦/١٥ — ١٠:٤٥:١١',ip:'١٩٢.١٦٨.١.٢٠',detail:'مفتاح: key_a7x2...f9c1 (sandbox)',diff:null},
+  {action:'تسجيل دخول',type:'login',entity:'user',user:'فاطمة الدوسري',role:'أدمن',ts:'٢٠٢٦/٦/١٥ — ١٠:٠٢:٤٤',ip:'١٨٥.٧٦.٢٢.٩١',detail:'تسجيل دخول ناجح',diff:null},
+  {action:'تعديل بيانات صفقة',type:'update',entity:'deal',user:'سارة المطيري',role:'أدمن',ts:'٢٠٢٦/٦/١٤ — ١٥:٢٢:٣٣',ip:'١٩٢.١٦٨.١.٥',detail:'صفقة: منصة FinTech B2B (deal_289)',diff:{from:'العائد: ١٥٪',to:'العائد: ١٦٪'}},
+  {action:'إنشاء شريحة مستثمرين',type:'create',entity:'settings',user:'خالد الشهري',role:'أدمن',ts:'٢٠٢٦/٦/١٤ — ١٤:١٠:٠٥',ip:'١٩٢.١٦٨.١.١٢',detail:'شريحة جديدة: مستثمر المؤسسي الممتاز',diff:null},
+];
+
+const dotClass = {approve:'dot-green',create:'dot-green',update:'dot-gold',delete:'dot-red',login:'dot-gray'};
+const badgeClass = {approve:'badge-approve',create:'badge-create',update:'badge-update',delete:'badge-delete',login:'badge-login'};
+const badgeText = {approve:'موافقة',create:'إنشاء',update:'تعديل',delete:'حذف',login:'دخول'};
+
+function filterAudit(){
+  const search = document.getElementById('auditSearch').value.trim().toLowerCase();
+  const action = document.getElementById('actionFilter').value;
+  const entity = document.getElementById('entityFilter').value;
+  const filtered = events.filter(e => {
+    if(action && e.type !== action) return false;
+    if(entity && e.entity !== entity) return false;
+    if(search && !e.user.includes(search) && !e.action.toLowerCase().includes(search) && !e.detail.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderTimeline(filtered);
+}
+
+function renderTimeline(list){
+  const cont = document.getElementById('auditTimeline');
+  cont.textContent = '';
+  if(!list.length){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;padding:3rem;color:var(--muted);';
+    empty.textContent = 'لا توجد أحداث مطابقة للبحث';
+    cont.appendChild(empty);
+    return;
+  }
+  list.forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+
+    const dot = document.createElement('div');
+    dot.className = 'event-dot ' + (dotClass[e.type] || 'dot-gray');
+    dot.textContent = e.type==='approve'?'✓':e.type==='create'?'+':e.type==='update'?'✎':e.type==='delete'?'✕':'→';
+
+    const body = document.createElement('div');
+    body.className = 'event-body';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'event-header';
+    const actEl = document.createElement('div');
+    actEl.className = 'event-action';
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (badgeClass[e.type]||'badge-login');
+    badge.textContent = badgeText[e.type]||'—';
+    actEl.appendChild(badge);
+    actEl.appendChild(document.createTextNode(' ' + e.action));
+    const ts = document.createElement('div');
+    ts.className = 'event-ts';
+    ts.textContent = e.ts;
+    hdr.appendChild(actEl);
+    hdr.appendChild(ts);
+
+    const meta = document.createElement('div');
+    meta.className = 'event-meta';
+    [{label:'المستخدم',val:e.user},{label:'الدور',val:e.role},{label:'الكيان',val:e.entity},{label:'IP',val:e.ip}].forEach(({label,val})=>{
+      const m = document.createElement('div');
+      m.className = 'event-meta-item';
+      m.textContent = label + ': ';
+      const s = document.createElement('span');
+      s.textContent = val;
+      m.appendChild(s);
+      meta.appendChild(m);
+    });
+
+    const detail = document.createElement('div');
+    detail.className = 'event-diff';
+    detail.textContent = e.detail;
+
+    body.appendChild(hdr);
+    body.appendChild(meta);
+    body.appendChild(detail);
+
+    if(e.diff){
+      const diff = document.createElement('div');
+      diff.className = 'event-diff';
+      diff.style.marginTop = '0.4rem';
+      const removed = document.createElement('div');
+      removed.className = 'diff-removed';
+      removed.textContent = '- ' + e.diff.from;
+      const added = document.createElement('div');
+      added.className = 'diff-added';
+      added.textContent = '+ ' + e.diff.to;
+      diff.appendChild(removed);
+      diff.appendChild(added);
+      body.appendChild(diff);
+    }
+
+    row.appendChild(dot);
+    row.appendChild(body);
+    cont.appendChild(row);
+  });
+}
+
+async function exportAudit(format){
+  try {
+    await fetch('/app/admin/audit-trail/export', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({format: format || 'csv'})
+    });
+  } catch(e){}
+}
+
+function loadMore(){
+  fetch('/app/admin/audit-trail?offset=' + events.length)
+    .then(r=>r.json()).catch(()=>{});
+}
+
+filterAudit();
+
+setInterval(() => {
+  const kpis = document.querySelectorAll('.kpi-value');
+  if(kpis[3]) kpis[3].textContent = '٠:٠٠';
+}, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مركز التقارير - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.search-bar{display:flex;gap:0.75rem;margin-bottom:2rem;}
+.search-bar input{flex:1;padding:0.7rem 1rem;border:1.5px solid var(--line);border-radius:10px;font-family:'Cairo',sans-serif;font-size:0.95rem;color:var(--green-dark);background:#fff;}
+.search-bar input:focus{outline:none;border-color:var(--green);}
+.search-bar select{padding:0.7rem 0.9rem;border:1.5px solid var(--line);border-radius:10px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.cat-tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.cat-tab{padding:0.4rem 1rem;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.cat-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.reports-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+.report-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;transition:box-shadow 0.2s;cursor:pointer;}
+.report-card:hover{box-shadow:0 4px 16px rgba(6,43,30,0.1);}
+.report-card-banner{height:5px;}
+.report-card-body{padding:1.25rem;}
+.report-card-icon{font-size:1.8rem;margin-bottom:0.6rem;}
+.report-card-name{font-size:0.95rem;font-weight:700;color:var(--green-dark);margin-bottom:0.3rem;}
+.report-card-desc{font-size:0.78rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;}
+.report-card-meta{display:flex;align-items:center;justify-content:space-between;}
+.report-card-format{font-size:0.72rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:6px;background:#f0f0f0;color:var(--muted);}
+.report-card-actions{display:flex;gap:0.4rem;}
+.scheduled-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.scheduled-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.scheduled-head h3{font-size:1rem;font-weight:700;}
+.scheduled-body{padding:1.25rem;}
+.sched-row{display:flex;align-items:center;gap:1rem;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.sched-row:last-child{border-bottom:none;}
+.sched-icon{width:36px;height:36px;border-radius:8px;background:#f5f0e8;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.sched-info{flex:1;}
+.sched-name{font-size:0.88rem;font-weight:600;color:var(--green-dark);}
+.sched-freq{font-size:0.75rem;color:var(--muted);}
+.sched-next{font-size:0.75rem;color:var(--green);}
+.sched-actions{display:flex;gap:0.4rem;}
+.recent-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.recent-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.recent-head h3{font-size:1rem;font-weight:700;}
+.recent-body{padding:0;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.75rem 1rem;border-bottom:1px solid var(--line);font-size:0.88rem;}
+tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.74rem;font-weight:600;}
+.badge-done{background:#e6f4ef;color:#27ae60;}
+.badge-running{background:#f8f0e0;color:var(--gold);}
+.badge-failed{background:#fde9e9;color:#c0392b;}
+@media(max-width:768px){.reports-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مركز التقارير</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>مركز التقارير والتحليلات</h2>
+    <button class="btn btn-primary" onclick="scheduleReport()">+ جدولة تقرير</button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="reportSearch" placeholder="ابحث عن تقرير..." oninput="filterReports()">
+    <select id="formatFilter" onchange="filterReports()">
+      <option value="">كل الصيغ</option>
+      <option value="PDF">PDF</option>
+      <option value="Excel">Excel</option>
+      <option value="CSV">CSV</option>
+    </select>
+  </div>
+
+  <div class="cat-tabs" id="catTabs"></div>
+  <div class="reports-grid" id="reportsGrid"></div>
+
+  <div class="scheduled-card">
+    <div class="scheduled-head">
+      <h3>التقارير المجدولة</h3>
+    </div>
+    <div class="scheduled-body" id="scheduledList"></div>
+  </div>
+
+  <div class="recent-card">
+    <div class="recent-head"><h3>آخر التقارير المُنشأة</h3></div>
+    <div class="recent-body">
+      <table>
+        <thead>
+          <tr>
+            <th>اسم التقرير</th>
+            <th>الفئة</th>
+            <th>الصيغة</th>
+            <th>تاريخ الإنشاء</th>
+            <th>الحجم</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="recentTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const categories = ['الكل','المالية','الاستثمار','المستثمرون','الامتثال','التشغيل'];
+let activeCategory = 'الكل';
+
+const allReports = [
+  {id:1,icon:'📊',name:'تقرير الأداء الشهري',desc:'ملخص شامل لأداء المحفظة والصفقات خلال الشهر المنصرم',format:'PDF',color:'#0a4d36',cat:'المالية'},
+  {id:2,icon:'💰',name:'تقرير الإيرادات والمصروفات',desc:'تحليل تفصيلي للإيرادات والمصروفات التشغيلية',format:'Excel',color:'#b08840',cat:'المالية'},
+  {id:3,icon:'📈',name:'تقرير العوائد الاستثمارية',desc:'مقارنة العوائد المحققة بالأهداف المستهدفة لكل صفقة',format:'PDF',color:'#2d6b50',cat:'الاستثمار'},
+  {id:4,icon:'🏘️',name:'تقرير حافظة الصفقات',desc:'نظرة شاملة على جميع الصفقات النشطة والمكتملة',format:'Excel',color:'#0a4d36',cat:'الاستثمار'},
+  {id:5,icon:'👥',name:'تقرير المستثمرين النشطين',desc:'إحصائيات وتحليلات حول قاعدة المستثمرين',format:'CSV',color:'#b08840',cat:'المستثمرون'},
+  {id:6,icon:'🔍',name:'تقرير KYC والامتثال',desc:'ملخص حالات التحقق من الهوية ومعدلات الإتمام',format:'PDF',color:'#c0392b',cat:'الامتثال'},
+  {id:7,icon:'⚖️',name:'تقرير المخاطر والسيولة',desc:'تحليل مخاطر السيولة وتركّز المحفظة',format:'PDF',color:'#6b7268',cat:'المالية'},
+  {id:8,icon:'🕌',name:'تقرير الهيئة الشرعية',desc:'ملخص القرارات الشرعية والمراجعات الدورية',format:'PDF',color:'#0a4d36',cat:'الامتثال'},
+  {id:9,icon:'📧',name:'تقرير قنوات التواصل',desc:'أداء الإشعارات والبريد الإلكتروني ومعدلات الفتح',format:'Excel',color:'#2d6b50',cat:'التشغيل'},
+];
+
+const scheduled = [
+  {icon:'📊',name:'تقرير الأداء الشهري',freq:'شهري',next:'٢٠٢٦/٧/١'},
+  {icon:'💰',name:'تقرير الإيرادات',freq:'أسبوعي',next:'٢٠٢٦/٦/٢٢'},
+  {icon:'🔍',name:'تقرير الامتثال',freq:'ربع سنوي',next:'٢٠٢٦/٧/١'},
+];
+
+const recent = [
+  {name:'تقرير الأداء - مايو ٢٠٢٦',cat:'المالية',format:'PDF',date:'٢٠٢٦/٦/٠١',size:'٢.٤ MB',status:'done'},
+  {name:'تقرير المستثمرين - Q1',cat:'المستثمرون',format:'Excel',date:'٢٠٢٦/٥/٣١',size:'٨٥٦ KB',status:'done'},
+  {name:'تقرير الامتثال الشهري',cat:'الامتثال',format:'PDF',date:'٢٠٢٦/٥/٢٨',size:'١.١ MB',status:'done'},
+  {name:'تصدير بيانات الصفقات',cat:'الاستثمار',format:'CSV',date:'٢٠٢٦/٦/١٤',size:'—',status:'running'},
+  {name:'تقرير KYC الفصلي',cat:'الامتثال',format:'PDF',date:'٢٠٢٦/٦/١٠',size:'٣.٢ MB',status:'done'},
+];
+
+function buildCatTabs(){
+  const cont = document.getElementById('catTabs');
+  cont.textContent = '';
+  categories.forEach(c => {
+    const tab = document.createElement('button');
+    tab.className = 'cat-tab' + (c===activeCategory?' active':'');
+    tab.textContent = c;
+    tab.onclick = () => { activeCategory = c; buildCatTabs(); filterReports(); };
+    cont.appendChild(tab);
+  });
+}
+
+function filterReports(){
+  const search = document.getElementById('reportSearch').value.trim().toLowerCase();
+  const fmt = document.getElementById('formatFilter').value;
+  const filtered = allReports.filter(r => {
+    if(activeCategory !== 'الكل' && r.cat !== activeCategory) return false;
+    if(fmt && r.format !== fmt) return false;
+    if(search && !r.name.toLowerCase().includes(search) && !r.desc.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderGrid(filtered);
+}
+
+function renderGrid(list){
+  const grid = document.getElementById('reportsGrid');
+  grid.textContent = '';
+  list.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'report-card';
+    const banner = document.createElement('div');
+    banner.className = 'report-card-banner';
+    banner.style.background = r.color;
+    const body = document.createElement('div');
+    body.className = 'report-card-body';
+    const icon = document.createElement('div');
+    icon.className = 'report-card-icon';
+    icon.textContent = r.icon;
+    const name = document.createElement('div');
+    name.className = 'report-card-name';
+    name.textContent = r.name;
+    const desc = document.createElement('div');
+    desc.className = 'report-card-desc';
+    desc.textContent = r.desc;
+    const meta = document.createElement('div');
+    meta.className = 'report-card-meta';
+    const fmt = document.createElement('span');
+    fmt.className = 'report-card-format';
+    fmt.textContent = r.format;
+    const actions = document.createElement('div');
+    actions.className = 'report-card-actions';
+    const genBtn = document.createElement('button');
+    genBtn.className = 'btn btn-sm btn-primary';
+    genBtn.textContent = 'إنشاء';
+    genBtn.onclick = (e) => { e.stopPropagation(); generateReport(r.id); };
+    actions.appendChild(genBtn);
+    meta.appendChild(fmt);
+    meta.appendChild(actions);
+    body.appendChild(icon);
+    body.appendChild(name);
+    body.appendChild(desc);
+    body.appendChild(meta);
+    card.appendChild(banner);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
+
+function renderScheduled(){
+  const cont = document.getElementById('scheduledList');
+  cont.textContent = '';
+  scheduled.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sched-row';
+    const icon = document.createElement('div');
+    icon.className = 'sched-icon';
+    icon.textContent = s.icon;
+    const info = document.createElement('div');
+    info.className = 'sched-info';
+    const name = document.createElement('div');
+    name.className = 'sched-name';
+    name.textContent = s.name;
+    const freq = document.createElement('div');
+    freq.className = 'sched-freq';
+    freq.textContent = s.freq;
+    const next = document.createElement('div');
+    next.className = 'sched-next';
+    next.textContent = 'التالي: ' + s.next;
+    info.appendChild(name);
+    info.appendChild(freq);
+    info.appendChild(next);
+    const acts = document.createElement('div');
+    acts.className = 'sched-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'btn btn-sm btn-secondary';
+    stopBtn.textContent = 'إيقاف';
+    acts.appendChild(editBtn);
+    acts.appendChild(stopBtn);
+    row.appendChild(icon);
+    row.appendChild(info);
+    row.appendChild(acts);
+    cont.appendChild(row);
+  });
+}
+
+function renderRecent(){
+  const tb = document.getElementById('recentTable');
+  tb.textContent = '';
+  recent.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.name, r.cat, r.format, r.date, r.size].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const stTd = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (r.status==='done'?'badge-done':r.status==='running'?'badge-running':'badge-failed');
+    badge.textContent = r.status==='done'?'مكتمل':r.status==='running'?'جارٍ':'فشل';
+    stTd.appendChild(badge);
+    tr.appendChild(stTd);
+    const actTd = document.createElement('td');
+    if(r.status==='done'){
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn btn-sm btn-secondary';
+      dlBtn.textContent = 'تحميل';
+      actTd.appendChild(dlBtn);
+    }
+    tr.appendChild(actTd);
+    tb.appendChild(tr);
+  });
+}
+
+async function generateReport(id){
+  try {
+    await fetch('/app/admin/reports/' + id + '/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({format:'pdf'})
+    });
+  } catch(e){}
+}
+
+function scheduleReport(){
+  fetch('/app/admin/reports/schedule', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+    body: JSON.stringify({})
+  });
+}
+
+buildCatTabs();
+filterReports();
+renderScheduled();
+renderRecent();
+</script>
+</body>
+</html>
