@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Deal Documents — Murbha">مستندات الصفقة — مُرابحة</title>
+<meta name="description" content="استعراض وتحميل جميع المستندات القانونية والمالية المرتبطة بصفقاتك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  /* Deal selector */
+  .deal-sel-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .sel-lbl{font:700 12px Cairo,sans-serif;color:var(--green-dark);white-space:nowrap;}
+  .deal-sel{flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .deal-sel:focus{outline:none;border-color:var(--green);}
+  /* Category tabs */
+  .tab-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .tab{border:1.5px solid var(--line);border-radius:20px;padding:6px 16px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .tab.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* Document grid */
+  .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .doc-item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+  .doc-icon{font:900 32px Cairo,sans-serif;color:var(--gold);}
+  .doc-name{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .doc-meta{font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.5;}
+  .doc-size{font:700 9px Cairo,sans-serif;color:var(--muted);}
+  .doc-actions{display:flex;gap:8px;margin-top:auto;}
+  .btn-view{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:7px;padding:7px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;flex:1;}
+  .btn-view:hover{background:var(--green);}
+  .btn-download{background:#f0ece0;color:var(--ink);border:1.5px solid var(--line);border-radius:7px;padding:7px 10px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .btn-download:hover{background:#e8e2d0;}
+  /* Category section */
+  .cat-section{margin-bottom:22px;}
+  .cat-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .cat-badge{background:#f0ece0;border-radius:20px;padding:2px 10px;font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Deal Documents">مستندات الصفقة</h1>
+    <p data-en="View and download all legal and financial documents associated with your investments.">استعراض وتحميل جميع المستندات القانونية والمالية المرتبطة باستثماراتك.</p>
+  </div>
+
+  <div class="deal-sel-card">
+    <span class="sel-lbl" data-en="Select deal:">الصفقة:</span>
+    <select class="deal-sel" id="dealSel"><option value="">— اختر صفقة —</option></select>
+  </div>
+
+  <div class="tab-row" id="tabRow"></div>
+  <div id="docsContainer"></div>
+</main>
+<script>
+(function(){
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const docIcons={contract:'📄',prospectus:'📋',report:'📊',certificate:'🏅',receipt:'🧾',other:'📁'};
+  const catLabels={contract:'العقود',prospectus:'نشرة الإصدار',report:'التقارير',certificate:'الشهادات',receipt:'الإيصالات',other:'أخرى'};
+  const catLabelMap={'العقود':'contract','نشرة الإصدار':'prospectus','التقارير':'report','الشهادات':'certificate','الإيصالات':'receipt','أخرى':'other'};
+
+  let allDocs=[], activeTab='';
+
+  function renderDocs(docs){
+    const container=document.getElementById('docsContainer'); container.textContent='';
+    if(!docs.length){ placeholder(container,'لا توجد مستندات في هذا القسم.'); return; }
+    const cats={};
+    docs.forEach(d=>{ const c=d.category||'other'; if(!cats[c]) cats[c]=[]; cats[c].push(d); });
+    Object.entries(cats).forEach(([cat, items])=>{
+      const sec=document.createElement('div'); sec.className='cat-section';
+      const catTitle=document.createElement('div'); catTitle.className='cat-title';
+      const lbl=document.createElement('span'); lbl.textContent=catLabels[cat]||cat;
+      const badge=document.createElement('span'); badge.className='cat-badge'; badge.textContent=String(items.length);
+      catTitle.appendChild(lbl); catTitle.appendChild(badge);
+      const grid=document.createElement('div'); grid.className='doc-grid';
+      items.forEach(doc=>{
+        const item=document.createElement('div'); item.className='doc-item';
+        const icon=document.createElement('div'); icon.className='doc-icon'; icon.textContent=docIcons[doc.category]||'📁';
+        const name=document.createElement('div'); name.className='doc-name'; name.textContent=doc.name||'مستند';
+        const meta=document.createElement('div'); meta.className='doc-meta'; meta.textContent=(doc.description||'')+(doc.date?' · '+(doc.date||'').slice(0,10):'');
+        const size=document.createElement('div'); size.className='doc-size'; size.textContent=doc.fileSize||'';
+        const actions=document.createElement('div'); actions.className='doc-actions';
+        const btnView=document.createElement('button'); btnView.className='btn-view'; btnView.textContent='عرض';
+        const docUrl=doc.url||'#';
+        btnView.addEventListener('click',()=>{ window.open(docUrl,'_blank'); });
+        const btnDl=document.createElement('button'); btnDl.className='btn-download'; btnDl.textContent='⬇';
+        btnDl.addEventListener('click',()=>{
+          const a=document.createElement('a'); a.href=docUrl; a.download=doc.fileName||doc.name||'document'; a.click();
+        });
+        actions.appendChild(btnView); actions.appendChild(btnDl);
+        item.appendChild(icon); item.appendChild(name); item.appendChild(meta); item.appendChild(size); item.appendChild(actions);
+        grid.appendChild(item);
+      });
+      sec.appendChild(catTitle); sec.appendChild(grid);
+      container.appendChild(sec);
+    });
+  }
+
+  function applyTab(){
+    const filtered=activeTab?allDocs.filter(d=>(d.category||'other')===activeTab):allDocs;
+    renderDocs(filtered);
+  }
+
+  function buildTabs(){
+    const tabRow=document.getElementById('tabRow'); tabRow.textContent='';
+    const cats=[''];
+    const seen=new Set();
+    allDocs.forEach(d=>{ const c=d.category||'other'; if(!seen.has(c)){ seen.add(c); cats.push(c); } });
+    cats.forEach(c=>{
+      const tab=document.createElement('div'); tab.className='tab'+(c===activeTab?' active':'');
+      tab.textContent=c?catLabels[c]||c:'الكل';
+      tab.addEventListener('click',()=>{ activeTab=c; buildTabs(); applyTab(); });
+      tabRow.appendChild(tab);
+    });
+  }
+
+  async function loadDocs(dealId){
+    const container=document.getElementById('docsContainer');
+    placeholder(container,'جارٍ التحميل…');
+    document.getElementById('tabRow').textContent='';
+    if(!dealId){ placeholder(container,'اختر صفقة لعرض مستنداتها.'); return; }
+    try{
+      const r=await fetch('/app/me/deal-documents?dealId='+encodeURIComponent(dealId));
+      if(!r.ok){ placeholder(container,'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      allDocs=d.documents||[];
+      activeTab='';
+      buildTabs();
+      applyTab();
+    }catch{ placeholder(container,'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('dealSel').addEventListener('change', e=>loadDocs(e.target.value));
+
+  (async function loadDeals(){
+    try{
+      const r=await fetch('/app/me/investments');
+      if(!r.ok) return;
+      const d=await r.json();
+      const deals=d.investments||d||[];
+      const sel=document.getElementById('dealSel');
+      deals.forEach(deal=>{
+        const opt=document.createElement('option'); opt.value=deal.dealId||deal.id||'';
+        opt.textContent=(deal.dealName||deal.name||'صفقة')+' · '+(deal.maturityDate||'').slice(0,10);
+        sel.appendChild(opt);
+      });
+      if(deals.length===1){ sel.value=deals[0].dealId||deals[0].id||''; loadDocs(sel.value); }
+      else{ placeholder(document.getElementById('docsContainer'),'اختر صفقة لعرض مستنداتها.'); }
+    }catch{}
+  }());
+}());
+</script>
+</body>
+</html>

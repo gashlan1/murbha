@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Dividend History — Murbha">سجل الأرباح الموزَّعة — مُرابحة</title>
+<meta name="description" content="سجل كامل بجميع الأرباح والعوائد التي تلقيتها من استثماراتك في مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-val.gold{color:var(--gold);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  /* Filter */
+  .filter-bar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .year-sel{border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .year-sel:focus{outline:none;border-color:var(--green);}
+  .deal-sel{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .deal-sel:focus{outline:none;border-color:var(--green);}
+  /* Chart bars */
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .month-chart{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:100px;margin-bottom:8px;}
+  .month-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .month-bar{border-radius:4px 4px 0 0;background:var(--green);width:100%;min-height:4px;transition:height .3s;}
+  .month-lbl{font:700 8px Cairo,sans-serif;color:var(--muted);}
+  .month-amt{font:900 8px Cairo,sans-serif;color:var(--green-dark);}
+  /* Dividends table */
+  .div-table{width:100%;border-collapse:collapse;}
+  .div-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .div-table td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:11px 12px;border-bottom:1px solid var(--line);}
+  .div-table tr:last-child td{border-bottom:none;}
+  .td-amount{font:900 13px Cairo,sans-serif;color:#2e7d32;}
+  .td-yield{font:900 11px Cairo,sans-serif;color:var(--gold);}
+  .type-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-periodic{background:#e8f5e9;color:#2e7d32;}
+  .badge-final{background:#e3f2fd;color:#1565c0;}
+  .badge-bonus{background:#fff8e1;color:#a07020;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Dividend History">سجل الأرباح الموزَّعة</h1>
+    <p data-en="A complete record of all profits and returns received from your investments.">سجل كامل بجميع الأرباح والعوائد التي تلقيتها من استثماراتك.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-bar">
+    <select class="year-sel" id="yearSel"></select>
+    <select class="deal-sel" id="dealSel"><option value="">جميع الصفقات</option></select>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Monthly Distribution">التوزيعات الشهرية</div>
+    <div class="month-chart" id="monthChart"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;" id="monthLabels"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Distribution Records">سجل التوزيعات</div>
+    <table class="div-table">
+      <thead><tr>
+        <th data-en="Date">التاريخ</th>
+        <th data-en="Deal">الصفقة</th>
+        <th data-en="Type">النوع</th>
+        <th data-en="Amount">المبلغ</th>
+        <th data-en="Yield %">نسبة العائد</th>
+      </tr></thead>
+      <tbody id="divBody"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function fmtPct(n){ return Number(n||0).toFixed(2)+'٪'; }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const monthNames=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const typeLabels={periodic:'دوري',final:'نهائي',bonus:'إضافي'};
+  const typeBadge={periodic:'badge-periodic',final:'badge-final',bonus:'badge-bonus'};
+
+  let allDivs=[];
+
+  function renderChart(divs){
+    const monthly=Array(12).fill(0);
+    divs.forEach(d=>{ const m=new Date(d.date||'').getMonth(); if(!isNaN(m)) monthly[m]+=(d.amount||0); });
+    const max=Math.max(...monthly)||1;
+    const chart=document.getElementById('monthChart'); chart.textContent='';
+    monthly.forEach((amt,i)=>{
+      const wrap=document.createElement('div'); wrap.className='month-bar-wrap';
+      const bar=document.createElement('div'); bar.className='month-bar';
+      const h=Math.max(4, Math.round((amt/max)*88));
+      bar.style.height=h+'px';
+      const lbl=document.createElement('div'); lbl.className='month-lbl'; lbl.textContent=monthNames[i].slice(0,3);
+      wrap.appendChild(bar); wrap.appendChild(lbl);
+      chart.appendChild(wrap);
+    });
+  }
+
+  function renderTable(divs){
+    const body=document.getElementById('divBody'); body.textContent='';
+    if(!divs.length){ placeholder(body,'لا توجد توزيعات في هذه الفترة.'); return; }
+    divs.forEach(d=>{
+      const tr=document.createElement('tr');
+      const tdDate=document.createElement('td'); tdDate.textContent=(d.date||'—').slice(0,10);
+      const tdDeal=document.createElement('td'); tdDeal.textContent=d.dealName||'—';
+      const tdType=document.createElement('td');
+      const badge=document.createElement('span'); badge.className='type-badge '+(typeBadge[d.type]||'badge-periodic'); badge.textContent=typeLabels[d.type]||d.type||'—';
+      tdType.appendChild(badge);
+      const tdAmt=document.createElement('td'); tdAmt.className='td-amount'; tdAmt.textContent=fmt(d.amount||0)+' ر.س';
+      const tdYield=document.createElement('td'); tdYield.className='td-yield'; tdYield.textContent=fmtPct(d.yieldPct||0);
+      tr.appendChild(tdDate); tr.appendChild(tdDeal); tr.appendChild(tdType); tr.appendChild(tdAmt); tr.appendChild(tdYield);
+      body.appendChild(tr);
+    });
+  }
+
+  function applyFilters(){
+    const year=document.getElementById('yearSel').value;
+    const deal=document.getElementById('dealSel').value;
+    const filtered=allDivs.filter(d=>{
+      if(year && !(d.date||'').startsWith(year)) return false;
+      if(deal && d.dealId!==deal) return false;
+      return true;
+    });
+    renderChart(filtered);
+    renderTable(filtered);
+  }
+
+  document.getElementById('yearSel').addEventListener('change', applyFilters);
+  document.getElementById('dealSel').addEventListener('change', applyFilters);
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/dividend-history');
+      if(!r.ok){ placeholder(document.getElementById('divBody'),'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=[
+        ['إجمالي الأرباح',fmt(d.totalDividends||0)+' ر.س','gold'],
+        ['توزيعات هذا العام',fmt(d.thisYear||0)+' ر.س',''],
+        ['آخر توزيع',(d.lastDate||'—').slice(0,10),''],
+        ['عدد التوزيعات',String(d.count||0),'']
+      ];
+      kpis.forEach(([lbl,val,extra])=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'+(extra?' '+extra:''); v.textContent=val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+
+      const yearSel=document.getElementById('yearSel');
+      const years=d.years||[new Date().getFullYear()];
+      years.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); yearSel.appendChild(opt); });
+
+      const dealSel=document.getElementById('dealSel');
+      const deals=d.deals||[];
+      deals.forEach(deal=>{ const opt=document.createElement('option'); opt.value=deal.id||''; opt.textContent=deal.name||'صفقة'; dealSel.appendChild(opt); });
+
+      allDivs=d.dividends||[];
+      applyFilters();
+    }catch{ placeholder(document.getElementById('divBody'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>
