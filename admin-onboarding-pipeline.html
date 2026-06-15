@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مسار الإعداد - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.kb-col{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.kb-head{padding:0.75rem 1rem;font-size:0.82rem;font-weight:700;border-bottom:1px solid var(--line);}
+.kb-head.kh-new{background:#e8f0fe;color:#1a56c4;}
+.kb-head.kh-review{background:#fef3cd;color:#92400e;}
+.kb-head.kh-approved{background:#e8f5ed;color:#1e8449;}
+.kb-head.kh-rejected{background:#fde8e8;color:#c0392b;}
+.kb-body{padding:0.75rem;}
+.kb-card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.5rem;font-size:0.8rem;}
+.kb-card:last-child{margin-bottom:0;}
+.kb-name{font-weight:700;margin-bottom:0.15rem;}
+.kb-meta{font-size:0.7rem;color:var(--muted);}
+.kb-actions{margin-top:0.4rem;display:flex;gap:0.3rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.pipe-table{padding:1.25rem;overflow-x:auto;}
+.pt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.pt-row:last-child{border-bottom:none;}
+.pt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.pt-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-new{background:#e8f0fe;color:#1a56c4;}
+.pill-review{background:#fef3cd;color:#92400e;}
+.pill-approved{background:#e8f5ed;color:#1e8449;}
+.pill-rejected{background:#fde8e8;color:#c0392b;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr;}.kanban{grid-template-columns:1fr 1fr;}.pt-row{grid-template-columns:2fr 1fr 1fr;}.pt-row>:nth-child(4),.pt-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مسار إعداد المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مسار إعداد المستثمرين الجدد</h2>
+      <p>تتبع تقدم طلبات انضمام المستثمرين الجدد عبر مراحل الإعداد</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportPipeline()">تصدير</button>
+  </div>
+
+  <div class="stats" id="pipeStats"></div>
+
+  <div class="kanban" id="kanban"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>قائمة الطلبات التفصيلية</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportPipeline()">تصدير</button>
+    </div>
+    <div class="pipe-table" id="pipeTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="exportPipeline()">تصدير الكامل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢٤', lbl: 'طلب جديد هذا الشهر' },
+  { val: '٨', lbl: 'قيد المراجعة' },
+  { val: '١٤', lbl: 'موافق عليه' },
+  { val: '٩٢٪', lbl: 'نسبة القبول' }
+];
+
+const COLUMNS = [
+  { id: 'new', label: 'طلبات جديدة', cls: 'kh-new', items: [
+    { name: 'أحمد الغامدي', meta: 'منذ ٢ ساعة · أفراد' },
+    { name: 'شركة النماء للاستثمار', meta: 'منذ ٥ ساعات · مؤسسة' }
+  ]},
+  { id: 'review', label: 'قيد المراجعة', cls: 'kh-review', items: [
+    { name: 'فاطمة العتيبي', meta: 'يوم ١ · أفراد' },
+    { name: 'خالد الدوسري', meta: 'يوم ٢ · أفراد' },
+    { name: 'مجموعة الأفق', meta: 'يوم ٣ · مؤسسة' }
+  ]},
+  { id: 'approved', label: 'موافق عليه', cls: 'kh-approved', items: [
+    { name: 'سارة المالكي', meta: 'منذ ٤ أيام · أفراد' },
+    { name: 'عمر الشهري', meta: 'منذ ٥ أيام · أفراد' }
+  ]},
+  { id: 'rejected', label: 'مرفوض', cls: 'kh-rejected', items: [
+    { name: 'ناصر القحطاني', meta: 'منذ ٣ أيام · غير مستوفٍ KYC' }
+  ]}
+];
+
+const APPLICANTS = [
+  { name: 'أحمد الغامدي', type: 'أفراد', date: 'اليوم', kyc: 'مكتمل', pill: 'pill-new', label: 'جديد' },
+  { name: 'شركة النماء للاستثمار', type: 'مؤسسة', date: 'اليوم', kyc: 'قيد التحقق', pill: 'pill-new', label: 'جديد' },
+  { name: 'فاطمة العتيبي', type: 'أفراد', date: 'أمس', kyc: 'مكتمل', pill: 'pill-review', label: 'مراجعة' },
+  { name: 'خالد الدوسري', type: 'أفراد', date: '٢ يونيو', kyc: 'مكتمل', pill: 'pill-review', label: 'مراجعة' },
+  { name: 'مجموعة الأفق', type: 'مؤسسة', date: '١ يونيو', kyc: 'مكتمل', pill: 'pill-review', label: 'مراجعة' },
+  { name: 'سارة المالكي', type: 'أفراد', date: '١١ يونيو', kyc: 'مكتمل', pill: 'pill-approved', label: 'موافق' },
+  { name: 'ناصر القحطاني', type: 'أفراد', date: '١٢ يونيو', kyc: 'ناقص', pill: 'pill-rejected', label: 'مرفوض' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('pipeStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildKanban() {
+  const wrap = document.getElementById('kanban');
+  COLUMNS.forEach(col => {
+    const column = document.createElement('div'); column.className = 'kb-col';
+    const head = document.createElement('div'); head.className = 'kb-head ' + col.cls;
+    head.textContent = col.label + ' (' + col.items.length + ')';
+    const body = document.createElement('div'); body.className = 'kb-body';
+    col.items.forEach(item => {
+      const card = document.createElement('div'); card.className = 'kb-card';
+      const name = document.createElement('div'); name.className = 'kb-name'; name.textContent = item.name;
+      const meta = document.createElement('div'); meta.className = 'kb-meta'; meta.textContent = item.meta;
+      card.appendChild(name); card.appendChild(meta);
+      if (col.id === 'review') {
+        const acts = document.createElement('div'); acts.className = 'kb-actions';
+        const approve = document.createElement('button'); approve.className = 'btn btn-sm'; approve.style.background = 'var(--green)'; approve.style.color = '#fff'; approve.style.fontSize = '0.68rem'; approve.style.padding = '0.2rem 0.5rem'; approve.textContent = 'قبول';
+        approve.onclick = () => approveApplicant(item.name);
+        acts.appendChild(approve); card.appendChild(acts);
+      }
+      body.appendChild(card);
+    });
+    column.appendChild(head); column.appendChild(body);
+    wrap.appendChild(column);
+  });
+}
+
+function buildTable() {
+  const wrap = document.getElementById('pipeTable');
+  const header = document.createElement('div'); header.className = 'pt-row pt-header';
+  ['المتقدم', 'النوع', 'التاريخ', 'KYC', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  APPLICANTS.forEach(a => {
+    const row = document.createElement('div'); row.className = 'pt-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = a.name;
+    const type = document.createElement('div'); type.style.color = 'var(--muted)'; type.textContent = a.type;
+    const date = document.createElement('div'); date.textContent = a.date;
+    const kyc = document.createElement('div'); kyc.style.color = a.kyc === 'مكتمل' ? 'var(--green)' : 'var(--gold)'; kyc.textContent = a.kyc;
+    const pill = document.createElement('span'); pill.className = 'pt-pill ' + a.pill; pill.textContent = a.label;
+    row.appendChild(name); row.appendChild(type); row.appendChild(date); row.appendChild(kyc); row.appendChild(pill);
+    wrap.appendChild(row);
+  });
+}
+
+function approveApplicant(name) {
+  fetch('/app/admin/onboarding-pipeline/1', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'approve', name }) }).catch(() => {});
+  alert('تم إرسال طلب الموافقة على: ' + name);
+}
+
+function exportPipeline() {
+  fetch('/app/admin/onboarding-pipeline/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير بيانات مسار الإعداد...');
+}
+
+buildStats(); buildKanban(); buildTable();
+</script>
+</body>
+</html>
