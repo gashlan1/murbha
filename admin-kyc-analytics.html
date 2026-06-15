@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحليلات KYC - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kyc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.ks-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.ks-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.ks-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.funnel-wrap{padding:1.25rem;}
+.funnel-step{margin-bottom:0.85rem;}
+.funnel-step:last-child{margin-bottom:0;}
+.fs-header{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.3rem;}
+.fs-label{font-weight:600;}
+.fs-count{color:var(--muted);}
+.fs-track{background:#f0ebe0;border-radius:6px;height:10px;overflow:hidden;}
+.fs-fill{height:100%;border-radius:6px;}
+.fs-fill.s1{background:#2980b9;}
+.fs-fill.s2{background:#27ae60;}
+.fs-fill.s3{background:var(--gold);}
+.fs-fill.s4{background:#e74c3c;}
+.reject-list{padding:1.25rem;}
+.rej-row{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.rej-row:last-child{border-bottom:none;}
+.rej-reason{font-size:0.82rem;font-weight:600;}
+.rej-count{font-size:0.78rem;background:#fde8e8;color:#c0392b;padding:0.15rem 0.5rem;border-radius:10px;font-weight:700;}
+.time-rows{padding:1.25rem;}
+.time-row{display:flex;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.time-row:last-child{border-bottom:none;}
+.time-lbl{font-size:0.82rem;}
+.time-val{font-size:0.88rem;font-weight:700;color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.kyc-stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تحليلات KYC</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تحليلات التحقق من الهوية (KYC)</h2>
+      <p>مؤشرات أداء عملية التحقق من هوية المستثمرين</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportKYC()">تصدير التقرير</button>
+  </div>
+
+  <div class="kyc-stats" id="kycStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قمع التحقق من الهوية</h3></div>
+      <div class="funnel-wrap" id="funnelWrap"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>أسباب الرفض</h3></div>
+      <div class="reject-list" id="rejectList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>مؤشرات وقت المعالجة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportKYC()">تصدير</button>
+    </div>
+    <div class="time-rows" id="timeRows"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="exportKYC()">تصدير التحليل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٥٢٠', lbl: 'إجمالي الطلبات' },
+  { val: '٤٢٠', lbl: 'تمت الموافقة' },
+  { val: '٦٨', lbl: 'قيد المراجعة' },
+  { val: '٨٠.٨٪', lbl: 'معدل الموافقة' }
+];
+
+const FUNNEL = [
+  { label: 'بدأوا الطلب', count: '٥٢٠ مستخدم', pct: 100, cls: 's1' },
+  { label: 'رفعوا الوثائق', count: '٤٨٠ مستخدم', pct: 92, cls: 's2' },
+  { label: 'اجتازوا المراجعة التلقائية', count: '٤٤٠ مستخدم', pct: 85, cls: 's3' },
+  { label: 'اعتُمدوا نهائياً', count: '٤٢٠ مستخدم', pct: 81, cls: 's4' }
+];
+
+const REJECTIONS = [
+  { reason: 'وثائق غير واضحة أو منتهية', count: '١٢' },
+  { reason: 'عدم تطابق البيانات مع السجلات', count: '٨' },
+  { reason: 'عدم اجتياز فحص AML', count: '٦' },
+  { reason: 'عنوان غير مطابق', count: '٤' },
+  { reason: 'أسباب أخرى', count: '٢' }
+];
+
+const TIMES = [
+  { lbl: 'متوسط وقت المراجعة الكلي', val: '٣.٢ أيام' },
+  { lbl: 'المراجعة التلقائية (AI)', val: '٤ دقائق' },
+  { lbl: 'المراجعة اليدوية (فريق الامتثال)', val: '٢.٨ يوم' },
+  { lbl: 'أسرع حالة مراجعة', val: '١٢ دقيقة' },
+  { lbl: 'أطول حالة مراجعة', val: '١٤ يوم' },
+  { lbl: 'الهدف المستهدف للمراجعة', val: '٢ يوم أو أقل' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('kycStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'ks-card';
+    const val = document.createElement('div'); val.className = 'ks-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'ks-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildFunnel() {
+  const wrap = document.getElementById('funnelWrap');
+  FUNNEL.forEach(f => {
+    const step = document.createElement('div'); step.className = 'funnel-step';
+    const header = document.createElement('div'); header.className = 'fs-header';
+    const lbl = document.createElement('span'); lbl.className = 'fs-label'; lbl.textContent = f.label;
+    const count = document.createElement('span'); count.className = 'fs-count'; count.textContent = f.count;
+    header.appendChild(lbl); header.appendChild(count);
+    const track = document.createElement('div'); track.className = 'fs-track';
+    const fill = document.createElement('div'); fill.className = 'fs-fill ' + f.cls; fill.style.width = f.pct + '%';
+    track.appendChild(fill);
+    step.appendChild(header); step.appendChild(track);
+    wrap.appendChild(step);
+  });
+}
+
+function buildRejections() {
+  const wrap = document.getElementById('rejectList');
+  REJECTIONS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'rej-row';
+    const reason = document.createElement('div'); reason.className = 'rej-reason'; reason.textContent = r.reason;
+    const count = document.createElement('div'); count.className = 'rej-count'; count.textContent = r.count;
+    row.appendChild(reason); row.appendChild(count);
+    wrap.appendChild(row);
+  });
+}
+
+function buildTimes() {
+  const wrap = document.getElementById('timeRows');
+  TIMES.forEach(t => {
+    const row = document.createElement('div'); row.className = 'time-row';
+    const lbl = document.createElement('div'); lbl.className = 'time-lbl'; lbl.textContent = t.lbl;
+    const val = document.createElement('div'); val.className = 'time-val'; val.textContent = t.val;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function exportKYC() {
+  fetch('/app/admin/kyc-analytics/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تحليلات KYC...');
+}
+
+buildStats(); buildFunnel(); buildRejections(); buildTimes();
+</script>
+</body>
+</html>
