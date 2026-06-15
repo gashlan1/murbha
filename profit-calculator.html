@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Profit Calculator — Murbha">حاسبة الأرباح — مُرابحة</title>
+<meta name="description" content="احسب العوائد المتوقعة من استثماراتك في منصة مُرابحة مع تفصيل شامل." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:38px 24px;margin-bottom:24px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:520px;margin:0 auto;line-height:1.85;}
+  /* Layout */
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:flex-start;}
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}}
+  /* Inputs panel */
+  .input-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .panel-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:18px;}
+  .slider-row{margin-bottom:20px;}
+  label{font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:6px;}
+  .slider-val{font:900 18px Cairo,sans-serif;color:var(--green-dark);float:left;}
+  input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;margin-top:4px;}
+  .slider-limits{display:flex;justify-content:space-between;font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  select{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font:500 13px Tajawal,sans-serif;color:var(--ink);outline:none;background:#fff;margin-top:4px;}
+  select:focus{border-color:var(--green);}
+  /* Results panel */
+  .result-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;}
+  /* Summary boxes */
+  .result-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .res-box{border-radius:12px;padding:16px;text-align:center;}
+  .res-box-main{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;}
+  .res-box-sec{background:var(--paper);border:1px solid var(--line);}
+  .res-label{font:700 9px Cairo,sans-serif;opacity:.8;margin-bottom:4px;}
+  .res-value{font:900 22px Cairo,sans-serif;}
+  .res-box-main .res-value{color:var(--gold-light);}
+  .res-box-sec .res-value{color:var(--green-dark);}
+  /* Period toggle */
+  .period-bar{display:flex;gap:6px;margin-bottom:16px;}
+  .period-btn{border:1.5px solid var(--line);border-radius:8px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .period-btn.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* Schedule table */
+  .schedule-title{font:900 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 10px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl tr:nth-child(even) td{background:#fafafa;}
+  /* Bar chart */
+  .chart-title{font:900 12px Cairo,sans-serif;color:var(--green-dark);margin:16px 0 10px;}
+  .bar-chart{display:flex;gap:4px;align-items:flex-end;height:80px;}
+  .bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+  .bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:3px;}
+  .bar-lbl{font:700 7px Cairo,sans-serif;color:var(--muted);}
+  /* Fee breakdown */
+  .fee-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font:500 11px Tajawal,sans-serif;}
+  .fee-row:last-child{border-bottom:none;}
+  .fee-key{color:var(--muted);}
+  .fee-val{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .disclaimer{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:18px;line-height:1.8;padding:12px;background:var(--paper);border-radius:8px;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Profit Calculator">حاسبة الأرباح</h1>
+    <p data-en="Estimate your returns from murabaha and sukuk investments with full fee transparency.">احسب عوائدك المتوقعة من استثمارات المرابحة والصكوك مع شفافية كاملة في الرسوم.</p>
+  </div>
+
+  <div class="layout">
+    <div class="input-card">
+      <div class="panel-title" data-en="Investment Parameters">معاملات الاستثمار</div>
+
+      <div class="slider-row">
+        <label data-en="Investment Amount">المبلغ المستثمر <span class="slider-val" id="lblAmount">10,000 ر.س</span></label>
+        <input type="range" id="slAmount" min="1000" max="500000" step="1000" value="10000" />
+        <div class="slider-limits"><span>1,000 ر.س</span><span>500,000 ر.س</span></div>
+      </div>
+
+      <div class="slider-row">
+        <label data-en="Annual Return Rate">معدل العائد السنوي <span class="slider-val" id="lblRate">8٪</span></label>
+        <input type="range" id="slRate" min="4" max="20" step="0.5" value="8" />
+        <div class="slider-limits"><span>4٪</span><span>20٪</span></div>
+      </div>
+
+      <div class="slider-row">
+        <label data-en="Duration (months)">مدة الاستثمار <span class="slider-val" id="lblDuration">12 شهراً</span></label>
+        <input type="range" id="slDuration" min="3" max="60" step="3" value="12" />
+        <div class="slider-limits"><span>3 أشهر</span><span>60 شهراً</span></div>
+      </div>
+
+      <div class="slider-row">
+        <label data-en="Deal Type">نوع الصفقة</label>
+        <select id="selType">
+          <option value="murabaha">مرابحة (عائد ثابت)</option>
+          <option value="sukuk">صكوك (عائد متغير ±2٪)</option>
+          <option value="equity">أسهم إسلامية (عائد متغير ±5٪)</option>
+        </select>
+      </div>
+
+      <div class="slider-row">
+        <label data-en="Distribution Frequency">تكرار التوزيع</label>
+        <select id="selFreq">
+          <option value="monthly">شهري</option>
+          <option value="quarterly" selected>ربع سنوي</option>
+          <option value="maturity">عند الاستحقاق</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-summary">
+        <div class="res-box res-box-main">
+          <div class="res-label" data-en="Total Profit">إجمالي الربح</div>
+          <div class="res-value" id="resProfit">—</div>
+        </div>
+        <div class="res-box res-box-sec">
+          <div class="res-label" data-en="Final Value">القيمة النهائية</div>
+          <div class="res-value" id="resFinal">—</div>
+        </div>
+        <div class="res-box res-box-sec">
+          <div class="res-label" data-en="Net After Fees">صافي بعد الرسوم</div>
+          <div class="res-value" id="resNet">—</div>
+        </div>
+        <div class="res-box res-box-sec">
+          <div class="res-label" data-en="Effective Annual Yield">العائد الفعلي</div>
+          <div class="res-value" id="resEffective">—</div>
+        </div>
+      </div>
+
+      <div class="period-bar" id="viewBar">
+        <button class="period-btn active" data-view="schedule">جدول التوزيعات</button>
+        <button class="period-btn" data-view="chart">رسم بياني</button>
+        <button class="period-btn" data-view="fees">تفصيل الرسوم</button>
+      </div>
+
+      <div id="viewSchedule">
+        <table class="tbl" id="scheduleTable">
+          <thead><tr>
+            <th>الفترة</th><th>التاريخ</th><th>العائد</th><th>الرصيد المتراكم</th>
+          </tr></thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+
+      <div id="viewChart" style="display:none;">
+        <div class="chart-title" data-en="Cumulative Value Growth">نمو القيمة التراكمية</div>
+        <div class="bar-chart" id="growthChart"></div>
+      </div>
+
+      <div id="viewFees" style="display:none;">
+        <div id="feeBreakdown"></div>
+      </div>
+
+      <div class="disclaimer" data-en="These figures are estimates. Actual returns may vary. Past performance does not guarantee future results.">هذه الأرقام تقديرية. قد تختلف العوائد الفعلية. الأداء السابق لا يضمن نتائج مستقبلية.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function fmt(n){return new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n);}
+  function fmtPct(n){return n.toFixed(2)+'٪';}
+
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  function getInputs(){
+    return {
+      amount: parseInt(document.getElementById('slAmount').value)||10000,
+      rate: parseFloat(document.getElementById('slRate').value)||8,
+      duration: parseInt(document.getElementById('slDuration').value)||12,
+      type: document.getElementById('selType').value,
+      freq: document.getElementById('selFreq').value,
+    };
+  }
+
+  function calcSchedule({amount, rate, duration, type, freq}){
+    const annualRate=rate/100;
+    const monthlyRate=annualRate/12;
+    const investFee=amount*0.015;
+    const netAmount=amount-investFee;
+
+    const periods=freq==='monthly'?duration:freq==='quarterly'?Math.ceil(duration/3):1;
+    const periodsPerYear=freq==='monthly'?12:freq==='quarterly'?4:1;
+    const periodRate=annualRate/periodsPerYear;
+    const variance=type==='sukuk'?0.02:type==='equity'?0.05:0;
+
+    const schedule=[];
+    let balance=netAmount;
+    let cumProfit=0;
+    const now=new Date();
+
+    for(let i=1;i<=periods;i++){
+      const baseReturn=balance*periodRate;
+      const actualReturn=baseReturn*(1+(Math.random()-0.5)*variance*2);
+      const date=new Date(now.getFullYear(),now.getMonth()+Math.round(i*(duration/periods)));
+      cumProfit+=actualReturn;
+      schedule.push({
+        period:i,
+        date:date.toLocaleDateString('ar-SA',{month:'short',year:'numeric'}),
+        payment:actualReturn,
+        balance:netAmount+cumProfit,
+      });
+    }
+    return {schedule, netAmount, investFee, totalProfit:schedule.reduce((s,r)=>s+r.payment,0)};
+  }
+
+  function calculate(){
+    const inp=getInputs();
+    const {schedule, netAmount, investFee, totalProfit}=calcSchedule(inp);
+    const secFee=totalProfit*0.005;
+    const netProfit=totalProfit-secFee;
+    const finalValue=netAmount+totalProfit;
+    const netFinal=netAmount+netProfit;
+    const effectiveRate=((netProfit/netAmount)*(12/inp.duration)*100);
+
+    document.getElementById('resProfit').textContent=fmt(totalProfit);
+    document.getElementById('resFinal').textContent=fmt(finalValue);
+    document.getElementById('resNet').textContent=fmt(netFinal);
+    document.getElementById('resEffective').textContent=fmtPct(effectiveRate);
+
+    // Schedule table
+    const tbody=document.getElementById('scheduleBody'); tbody.textContent='';
+    schedule.forEach(r=>{
+      const tr=document.createElement('tr');
+      [r.period,r.date,fmt(r.payment),fmt(r.balance)].forEach(v=>{
+        const td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    // Chart
+    const chartEl=document.getElementById('growthChart'); chartEl.textContent='';
+    const pts=schedule.length<=12?schedule:schedule.filter((_,i)=>i%Math.ceil(schedule.length/12)===0||i===schedule.length-1);
+    const maxBal=Math.max(...pts.map(p=>p.balance),1);
+    pts.forEach(p=>{
+      const col=document.createElement('div'); col.className='bar-col';
+      const bar=document.createElement('div'); bar.className='bar-fill'; bar.style.height=Math.round((p.balance/maxBal)*70)+'px'; bar.style.background='var(--green)';
+      const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent='F'+p.period;
+      col.appendChild(bar); col.appendChild(lbl); chartEl.appendChild(col);
+    });
+
+    // Fee breakdown
+    const feeEl=document.getElementById('feeBreakdown'); feeEl.textContent='';
+    const fees=[
+      ['رسوم الاستثمار (1.5٪)',fmt(investFee)],
+      ['رسوم الإدارة (0.5٪ من الأرباح)',fmt(secFee)],
+      ['إجمالي الرسوم',fmt(investFee+secFee)],
+      ['نسبة الرسوم من الإجمالي',fmtPct((investFee+secFee)/inp.amount*100)],
+      ['صافي الأرباح بعد الرسوم',fmt(netProfit)],
+    ];
+    fees.forEach(([k,v])=>{
+      const row=document.createElement('div'); row.className='fee-row';
+      const key=document.createElement('span'); key.className='fee-key'; key.textContent=k;
+      const val=document.createElement('span'); val.className='fee-val'; val.textContent=v;
+      row.appendChild(key); row.appendChild(val); feeEl.appendChild(row);
+    });
+  }
+
+  // Slider labels
+  function bindSlider(id, lblId, formatFn){
+    const sl=document.getElementById(id);
+    sl.addEventListener('input',()=>{ document.getElementById(lblId).textContent=formatFn(sl.value); calculate(); });
+  }
+  bindSlider('slAmount','lblAmount',v=>Number(v).toLocaleString('ar-SA')+' ر.س');
+  bindSlider('slRate','lblRate',v=>v+'٪');
+  bindSlider('slDuration','lblDuration',v=>v+' شهراً');
+  document.getElementById('selType').addEventListener('change',calculate);
+  document.getElementById('selFreq').addEventListener('change',calculate);
+
+  // View tabs
+  document.getElementById('viewBar').querySelectorAll('.period-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#viewBar .period-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      ['schedule','chart','fees'].forEach(v=>{
+        document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).style.display=btn.dataset.view===v?'block':'none';
+      });
+    });
+  });
+
+  calculate();
+}());
+</script>
+</body>
+</html>
