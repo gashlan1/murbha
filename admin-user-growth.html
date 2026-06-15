@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نمو المستخدمين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.growth-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.gk-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.gk-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.gk-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.gk-trend{font-size:0.7rem;color:#27ae60;margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.growth-chart{padding:1.25rem;}
+.gc-bar-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;}
+.gc-bar-row:last-child{margin-bottom:0;}
+.gc-label{width:55px;font-size:0.74rem;color:var(--muted);flex-shrink:0;}
+.gc-bar-wrap{flex:1;display:flex;gap:3px;}
+.bar-new{height:12px;background:var(--green);border-radius:3px 0 0 3px;}
+.bar-churn{height:12px;background:#e74c3c;border-radius:0 3px 3px 0;}
+.gc-net{width:55px;font-size:0.74rem;font-weight:700;color:var(--green);text-align:left;}
+.channel-list{padding:1.25rem;}
+.ch-item{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.ch-item:last-child{border-bottom:none;}
+.ch-left{}
+.ch-name{font-size:0.84rem;font-weight:600;}
+.ch-sub{font-size:0.7rem;color:var(--muted);}
+.ch-right{text-align:left;}
+.ch-count{font-size:0.88rem;font-weight:700;color:var(--green);}
+.ch-pct{font-size:0.7rem;color:var(--muted);}
+.retention-rows{padding:1.25rem;}
+.ret-row{display:flex;align-items:center;gap:1rem;margin-bottom:0.65rem;}
+.ret-row:last-child{margin-bottom:0;}
+.ret-label{width:80px;font-size:0.75rem;color:var(--muted);flex-shrink:0;}
+.ret-track{flex:1;background:#f0ebe0;border-radius:6px;height:9px;overflow:hidden;}
+.ret-fill{height:100%;background:var(--green);border-radius:6px;}
+.ret-val{width:45px;font-size:0.75rem;font-weight:700;color:var(--green);text-align:left;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.growth-kpis{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — نمو المستخدمين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تحليلات نمو المستخدمين</h2>
+      <p>رصد مؤشرات اكتساب المستخدمين والاحتفاظ بهم وقنوات النمو</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportGrowth()">تصدير التقرير</button>
+  </div>
+
+  <div class="growth-kpis" id="growthKpis"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>النمو الشهري (مستخدم جديد vs. مغادر)</h3></div>
+      <div class="growth-chart" id="growthChart"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قنوات الاكتساب</h3></div>
+      <div class="channel-list" id="channelList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>معدلات الاحتفاظ (Retention)</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportGrowth()">تصدير</button>
+    </div>
+    <div class="retention-rows" id="retentionRows"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="exportGrowth()">تصدير التحليل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KPIS = [
+  { val: '٤٢٠', lbl: 'إجمالي المستخدمين', trend: '↑ ٩٪ هذا الشهر' },
+  { val: '٣٨', lbl: 'مستخدم جديد (يونيو)', trend: '↑ ١٢٪ عن مايو' },
+  { val: '٦.٨٪', lbl: 'معدل المغادرة الشهري', trend: '↓ ١.٢٪ تحسن' },
+  { val: '٢٢ يوم', lbl: 'متوسط وقت التفعيل', trend: '↓ ٣ أيام تحسن' }
+];
+
+const MONTHS = [
+  { label: 'يناير', newPct: 55, churnPct: 20, net: '+٢٨' },
+  { label: 'فبراير', newPct: 48, churnPct: 18, net: '+٢٤' },
+  { label: 'مارس', newPct: 70, churnPct: 22, net: '+٣٨' },
+  { label: 'أبريل', newPct: 60, churnPct: 15, net: '+٣٣' },
+  { label: 'مايو', newPct: 65, churnPct: 20, net: '+٣٤' },
+  { label: 'يونيو', newPct: 75, churnPct: 18, net: '+٣٨' }
+];
+
+const CHANNELS = [
+  { name: 'الإحالات والتوصيات', sub: 'برنامج أشير وأكسب', count: '١٦٢ مستخدم', pct: '٣٩٪' },
+  { name: 'البحث العضوي (SEO)', sub: 'جوجل وبينج', count: '١٠٥ مستخدم', pct: '٢٥٪' },
+  { name: 'وسائل التواصل الاجتماعي', sub: 'تويتر وإنستغرام', count: '٨٤ مستخدم', pct: '٢٠٪' },
+  { name: 'الإعلانات المدفوعة', sub: 'Google Ads', count: '٤٢ مستخدم', pct: '١٠٪' },
+  { name: 'قنوات أخرى', sub: 'شراكات وفعاليات', count: '٢٧ مستخدم', pct: '٦٪' }
+];
+
+const RETENTION = [
+  { label: 'الشهر الأول', pct: 92, val: '٩٢٪' },
+  { label: 'الشهر ٣', pct: 78, val: '٧٨٪' },
+  { label: 'الشهر ٦', pct: 68, val: '٦٨٪' },
+  { label: 'الشهر ١٢', pct: 58, val: '٥٨٪' },
+  { label: 'الشهر ٢٤', pct: 45, val: '٤٥٪' }
+];
+
+function buildKPIs() {
+  const wrap = document.getElementById('growthKpis');
+  KPIS.forEach(k => {
+    const card = document.createElement('div'); card.className = 'gk-card';
+    const val = document.createElement('div'); val.className = 'gk-val'; val.textContent = k.val;
+    const lbl = document.createElement('div'); lbl.className = 'gk-lbl'; lbl.textContent = k.lbl;
+    const trend = document.createElement('div'); trend.className = 'gk-trend'; trend.textContent = k.trend;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(trend);
+    wrap.appendChild(card);
+  });
+}
+
+function buildChart() {
+  const wrap = document.getElementById('growthChart');
+  MONTHS.forEach(m => {
+    const row = document.createElement('div'); row.className = 'gc-bar-row';
+    const label = document.createElement('div'); label.className = 'gc-label'; label.textContent = m.label;
+    const barWrap = document.createElement('div'); barWrap.className = 'gc-bar-wrap';
+    const barNew = document.createElement('div'); barNew.className = 'bar-new'; barNew.style.width = m.newPct + '%'; barNew.style.minWidth = '4px';
+    const barChurn = document.createElement('div'); barChurn.className = 'bar-churn'; barChurn.style.width = m.churnPct + '%'; barChurn.style.minWidth = '4px';
+    barWrap.appendChild(barNew); barWrap.appendChild(barChurn);
+    const net = document.createElement('div'); net.className = 'gc-net'; net.textContent = m.net;
+    row.appendChild(label); row.appendChild(barWrap); row.appendChild(net);
+    wrap.appendChild(row);
+  });
+}
+
+function buildChannels() {
+  const wrap = document.getElementById('channelList');
+  CHANNELS.forEach(c => {
+    const item = document.createElement('div'); item.className = 'ch-item';
+    const left = document.createElement('div'); left.className = 'ch-left';
+    const name = document.createElement('div'); name.className = 'ch-name'; name.textContent = c.name;
+    const sub = document.createElement('div'); sub.className = 'ch-sub'; sub.textContent = c.sub;
+    left.appendChild(name); left.appendChild(sub);
+    const right = document.createElement('div'); right.className = 'ch-right';
+    const count = document.createElement('div'); count.className = 'ch-count'; count.textContent = c.count;
+    const pct = document.createElement('div'); pct.className = 'ch-pct'; pct.textContent = c.pct;
+    right.appendChild(count); right.appendChild(pct);
+    item.appendChild(left); item.appendChild(right);
+    wrap.appendChild(item);
+  });
+}
+
+function buildRetention() {
+  const wrap = document.getElementById('retentionRows');
+  RETENTION.forEach(r => {
+    const row = document.createElement('div'); row.className = 'ret-row';
+    const label = document.createElement('div'); label.className = 'ret-label'; label.textContent = r.label;
+    const track = document.createElement('div'); track.className = 'ret-track';
+    const fill = document.createElement('div'); fill.className = 'ret-fill'; fill.style.width = r.pct + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div'); val.className = 'ret-val'; val.textContent = r.val;
+    row.appendChild(label); row.appendChild(track); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function exportGrowth() {
+  fetch('/app/admin/user-growth/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير النمو...');
+}
+
+buildKPIs(); buildChart(); buildChannels(); buildRetention();
+</script>
+</body>
+</html>

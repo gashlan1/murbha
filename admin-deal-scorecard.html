@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بطاقة أداء الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.sc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.sc-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.sc-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.sc-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.scorecard-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;padding:1.25rem;}
+.deal-scorecard{border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.dsc-head{background:var(--paper);padding:0.85rem 1rem;border-bottom:1px solid var(--line);}
+.dsc-name{font-size:0.88rem;font-weight:700;}
+.dsc-id{font-size:0.72rem;color:var(--muted);}
+.dsc-body{padding:0.85rem 1rem;}
+.metric-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
+.metric-row:last-child{margin-bottom:0;}
+.metric-label{font-size:0.76rem;color:var(--muted);}
+.metric-bar-wrap{flex:1;margin:0 0.75rem;}
+.metric-track{background:#f0ebe0;border-radius:4px;height:6px;overflow:hidden;}
+.metric-fill{height:100%;border-radius:4px;}
+.fill-great{background:#27ae60;}
+.fill-good{background:var(--green);}
+.fill-ok{background:var(--gold);}
+.metric-score{font-size:0.76rem;font-weight:700;width:35px;text-align:left;}
+.dsc-footer{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 1rem;border-top:1px solid var(--line);background:#fafafa;}
+.overall-score{font-size:0.9rem;font-weight:700;color:var(--green);}
+.overall-grade{padding:0.2rem 0.6rem;border-radius:8px;font-size:0.75rem;font-weight:700;}
+.grade-a{background:#e8f5ed;color:#1e8449;}
+.grade-b{background:#fef3cd;color:#92400e;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.sc-stats{grid-template-columns:1fr 1fr;}.scorecard-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — بطاقة أداء الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>بطاقة أداء الصفقات الشاملة</h2>
+      <p>تقييم متعدد المحاور لأداء كل صفقة: العائد والمخاطر والامتثال والسيولة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportScorecards()">تصدير التقرير</button>
+  </div>
+
+  <div class="sc-stats" id="scStats"></div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-head">
+      <h3>بطاقات أداء الصفقات النشطة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportScorecards()">تصدير</button>
+    </div>
+    <div class="scorecard-grid" id="scorecardGrid"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addScorecard()">إضافة صفقة للتقييم</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportScorecards()">تصدير الكل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢٨', lbl: 'صفقة مُقيَّمة' },
+  { val: '٨٨.٤', lbl: 'متوسط النقاط الكلي' },
+  { val: '٥', lbl: 'صفقات فوق ٩٠ نقطة' },
+  { val: '١', lbl: 'صفقات تحت ٧٠ نقطة' }
+];
+
+const DEALS = [
+  {
+    name: 'مرابحة عقارية الرياض', id: '#4920',
+    metrics: [
+      { label: 'العائد', pct: 90, cls: 'fill-great', score: '٩٠' },
+      { label: 'المخاطر', pct: 85, cls: 'fill-good', score: '٨٥' },
+      { label: 'الامتثال الشرعي', pct: 98, cls: 'fill-great', score: '٩٨' },
+      { label: 'السيولة', pct: 72, cls: 'fill-ok', score: '٧٢' }
+    ],
+    overall: '٨٦.٣', grade: 'A', gradeCls: 'grade-a'
+  },
+  {
+    name: 'مرابحة تجارية جدة', id: '#4921',
+    metrics: [
+      { label: 'العائد', pct: 82, cls: 'fill-good', score: '٨٢' },
+      { label: 'المخاطر', pct: 78, cls: 'fill-ok', score: '٧٨' },
+      { label: 'الامتثال الشرعي', pct: 95, cls: 'fill-great', score: '٩٥' },
+      { label: 'السيولة', pct: 80, cls: 'fill-good', score: '٨٠' }
+    ],
+    overall: '٨٣.٨', grade: 'A-', gradeCls: 'grade-a'
+  },
+  {
+    name: 'مرابحة صناعية الدمام', id: '#4922',
+    metrics: [
+      { label: 'العائد', pct: 75, cls: 'fill-ok', score: '٧٥' },
+      { label: 'المخاطر', pct: 80, cls: 'fill-good', score: '٨٠' },
+      { label: 'الامتثال الشرعي', pct: 92, cls: 'fill-great', score: '٩٢' },
+      { label: 'السيولة', pct: 68, cls: 'fill-ok', score: '٦٨' }
+    ],
+    overall: '٧٨.٨', grade: 'B+', gradeCls: 'grade-b'
+  },
+  {
+    name: 'مرابحة لوجستية الشرقية', id: '#4918',
+    metrics: [
+      { label: 'العائد', pct: 88, cls: 'fill-good', score: '٨٨' },
+      { label: 'المخاطر', pct: 74, cls: 'fill-ok', score: '٧٤' },
+      { label: 'الامتثال الشرعي', pct: 90, cls: 'fill-great', score: '٩٠' },
+      { label: 'السيولة', pct: 65, cls: 'fill-ok', score: '٦٥' }
+    ],
+    overall: '٧٩.٣', grade: 'B+', gradeCls: 'grade-b'
+  }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('scStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'sc-card';
+    const val = document.createElement('div'); val.className = 'sc-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'sc-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildScorecards() {
+  const wrap = document.getElementById('scorecardGrid');
+  DEALS.forEach(d => {
+    const sc = document.createElement('div'); sc.className = 'deal-scorecard';
+    const head = document.createElement('div'); head.className = 'dsc-head';
+    const name = document.createElement('div'); name.className = 'dsc-name'; name.textContent = d.name;
+    const id = document.createElement('div'); id.className = 'dsc-id'; id.textContent = d.id;
+    head.appendChild(name); head.appendChild(id);
+    const body = document.createElement('div'); body.className = 'dsc-body';
+    d.metrics.forEach(m => {
+      const row = document.createElement('div'); row.className = 'metric-row';
+      const label = document.createElement('div'); label.className = 'metric-label'; label.textContent = m.label;
+      const barWrap = document.createElement('div'); barWrap.className = 'metric-bar-wrap';
+      const track = document.createElement('div'); track.className = 'metric-track';
+      const fill = document.createElement('div'); fill.className = 'metric-fill ' + m.cls; fill.style.width = m.pct + '%';
+      track.appendChild(fill); barWrap.appendChild(track);
+      const score = document.createElement('div'); score.className = 'metric-score'; score.textContent = m.score;
+      row.appendChild(label); row.appendChild(barWrap); row.appendChild(score);
+      body.appendChild(row);
+    });
+    const footer = document.createElement('div'); footer.className = 'dsc-footer';
+    const overall = document.createElement('div'); overall.className = 'overall-score'; overall.textContent = 'المجموع: ' + d.overall;
+    const grade = document.createElement('div'); grade.className = 'overall-grade ' + d.gradeCls; grade.textContent = d.grade;
+    footer.appendChild(overall); footer.appendChild(grade);
+    sc.appendChild(head); sc.appendChild(body); sc.appendChild(footer);
+    wrap.appendChild(sc);
+  });
+}
+
+function addScorecard() {
+  fetch('/app/admin/deal-scorecard', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ deal: 'صفقة جديدة' }) }).catch(() => {});
+  alert('فتح نموذج إضافة صفقة للتقييم');
+}
+
+function exportScorecards() {
+  fetch('/app/admin/deal-scorecard/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير بطاقات الأداء...');
+}
+
+buildStats(); buildScorecards();
+</script>
+</body>
+</html>
