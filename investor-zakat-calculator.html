@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حاسبة الزكاة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.calc-form{padding:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;background:#fff;color:var(--green-dark);}
+.nisab-note{background:#e8f5ed;border:1px solid #b2dfcc;border-radius:8px;padding:0.75rem 1rem;font-size:0.8rem;margin-bottom:1rem;color:var(--green-dark);}
+.result-card{background:var(--green-dark);color:#fff;border-radius:12px;padding:1.5rem;text-align:center;margin:1.25rem;}
+.result-label{font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:0.4rem;}
+.result-amount{font-size:2rem;font-weight:700;color:#b8e6cf;}
+.result-sub{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:0.4rem;}
+.breakdown-list{padding:1.25rem;}
+.br-row{display:flex;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.84rem;}
+.br-row:last-child{border-bottom:none;}
+.br-label{color:var(--muted);}
+.br-val{font-weight:700;}
+.br-val.gold{color:var(--gold);}
+.history-list{padding:1.25rem;}
+.hist-item{display:flex;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.hist-item:last-child{border-bottom:none;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — حاسبة الزكاة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>حاسبة زكاة الاستثمارات</h2>
+      <p>احسب زكاة محفظتك الاستثمارية في المرابحة وفق الأحكام الشرعية المعتمدة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportZakat()">تصدير حساب الزكاة</button>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>بيانات الحساب</h3></div>
+      <div class="calc-form" id="calcForm"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>نتيجة الحساب</h3></div>
+      <div id="resultWrap"></div>
+      <div class="breakdown-list" id="breakdownList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل الزكاة السنوي</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportZakat()">تصدير</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="calculateZakat()">إعادة الحساب</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportZakat()">تصدير التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const NISAB_VALUE = 21741;
+
+const FORM_FIELDS = [
+  { label: 'قيمة الاستثمارات في المرابحة (ر.س)', id: 'investVal', type: 'number', value: '210000' },
+  { label: 'الأرباح المتراكمة غير الموزعة (ر.س)', id: 'profitVal', type: 'number', value: '18600' },
+  { label: 'ديون مستحقة مطروحة (ر.س)', id: 'debtVal', type: 'number', value: '0' },
+  { label: 'تاريخ حولان الحول', id: 'hawlDate', type: 'date' },
+  { label: 'معيار النصاب', id: 'nisabStd', type: 'select', opts: ['نصاب الذهب (٨٥ جرام)', 'نصاب الفضة (٥٩٥ جرام)'] }
+];
+
+const BREAKDOWN = [
+  { label: 'قيمة الاستثمارات', val: '٢١٠,٠٠٠ ر.س', gold: false },
+  { label: '+ الأرباح المتراكمة', val: '١٨,٦٠٠ ر.س', gold: false },
+  { label: '- الديون المستحقة', val: '٠ ر.س', gold: false },
+  { label: '= وعاء الزكاة', val: '٢٢٨,٦٠٠ ر.س', gold: false },
+  { label: 'نصاب الذهب', val: '٢١,٧٤١ ر.س', gold: false },
+  { label: 'الزكاة (٢.٥٪)', val: '٥,٧١٥ ر.س', gold: true }
+];
+
+const HISTORY = [
+  { year: '١٤٤٦ هـ / ٢٠٢٥', amount: '٤,٨٠٠ ر.س', base: '١٩٢,٠٠٠ ر.س' },
+  { year: '١٤٤٥ هـ / ٢٠٢٤', amount: '٣,٩٠٠ ر.س', base: '١٥٦,٠٠٠ ر.س' },
+  { year: '١٤٤٤ هـ / ٢٠٢٣', amount: '٢,٦٢٥ ر.س', base: '١٠٥,٠٠٠ ر.س' }
+];
+
+function buildForm() {
+  const wrap = document.getElementById('calcForm');
+  const note = document.createElement('div'); note.className = 'nisab-note';
+  note.textContent = 'النصاب الحالي (الذهب): ٢١,٧٤١ ر.س — محفظتك تبلغ النصاب وتجب فيها الزكاة.';
+  wrap.appendChild(note);
+  FORM_FIELDS.forEach(f => {
+    const group = document.createElement('div'); group.className = 'form-group';
+    const label = document.createElement('label'); label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+    } else {
+      input = document.createElement('input'); input.type = f.type; input.id = f.id;
+      if (f.value) input.value = f.value;
+    }
+    group.appendChild(label); group.appendChild(input);
+    wrap.appendChild(group);
+  });
+}
+
+function buildResult() {
+  const wrap = document.getElementById('resultWrap');
+  const card = document.createElement('div'); card.className = 'result-card';
+  const lbl = document.createElement('div'); lbl.className = 'result-label'; lbl.textContent = 'مبلغ الزكاة المستحق';
+  const amt = document.createElement('div'); amt.className = 'result-amount'; amt.textContent = '٥,٧١٥ ر.س';
+  const sub = document.createElement('div'); sub.className = 'result-sub'; sub.textContent = '٢.٥٪ من وعاء الزكاة ٢٢٨,٦٠٠ ر.س · الحول: ١٤٤٧ هـ';
+  card.appendChild(lbl); card.appendChild(amt); card.appendChild(sub);
+  wrap.appendChild(card);
+}
+
+function buildBreakdown() {
+  const wrap = document.getElementById('breakdownList');
+  BREAKDOWN.forEach(b => {
+    const row = document.createElement('div'); row.className = 'br-row';
+    const lbl = document.createElement('div'); lbl.className = 'br-label'; lbl.textContent = b.label;
+    const val = document.createElement('div'); val.className = 'br-val' + (b.gold ? ' gold' : ''); val.textContent = b.val;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyList');
+  HISTORY.forEach(h => {
+    const item = document.createElement('div'); item.className = 'hist-item';
+    const left = document.createElement('div');
+    const year = document.createElement('span'); year.style.fontWeight = '700'; year.textContent = h.year;
+    const base = document.createElement('span'); base.style.cssText = 'font-size:0.72rem;color:var(--muted);margin-right:0.5rem;'; base.textContent = '(وعاء: ' + h.base + ')';
+    left.appendChild(year); left.appendChild(base);
+    const amt = document.createElement('div'); amt.style.cssText = 'font-weight:700;color:var(--gold);'; amt.textContent = h.amount;
+    item.appendChild(left); item.appendChild(amt);
+    wrap.appendChild(item);
+  });
+}
+
+function calculateZakat() {
+  const investVal = parseFloat(document.getElementById('investVal').value) || 0;
+  const profitVal = parseFloat(document.getElementById('profitVal').value) || 0;
+  const debtVal = parseFloat(document.getElementById('debtVal').value) || 0;
+  const zakatBase = investVal + profitVal - debtVal;
+  const zakatAmount = zakatBase >= NISAB_VALUE ? zakatBase * 0.025 : 0;
+  fetch('/app/me/zakat-calculator', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ zakatBase, zakatAmount }) }).catch(() => {});
+  alert('الزكاة المحسوبة: ' + zakatAmount.toLocaleString('ar-SA') + ' ر.س');
+}
+
+function exportZakat() {
+  fetch('/app/me/zakat-calculator/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير حساب الزكاة...');
+}
+
+buildForm(); buildResult(); buildBreakdown(); buildHistory();
+</script>
+</body>
+</html>
