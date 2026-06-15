@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Withdrawal Requests — Admin — Murbha">طلبات السحب — الإدارة — مُرابحة</title>
+<meta name="description" content="مراجعة ومعالجة طلبات سحب الأموال للمستثمرين في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:20px;}
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-sub{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  /* Filter bar */
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .search-input{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font:500 12px Tajawal,sans-serif;outline:none;background:#fff;color:var(--ink);flex:1;min-width:180px;}
+  .search-input:focus{border-color:var(--green);}
+  /* Table card */
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);}
+  .tbl tr:last-child td{border-bottom:none;}
+  /* Status badges */
+  .badge{display:inline-block;border-radius:6px;padding:3px 9px;font:700 9px Cairo,sans-serif;}
+  .badge-pending{background:#fff8e1;color:#a07020;}
+  .badge-processing{background:#e3f2fd;color:#1565c0;}
+  .badge-completed{background:#e8f5e9;color:#2e7d32;}
+  .badge-rejected{background:#fdecea;color:#c54a3a;}
+  /* Action buttons inline */
+  .action-btns{display:flex;gap:6px;flex-wrap:nowrap;}
+  .btn-approve{background:var(--green-dark);color:#fff;border:none;border-radius:7px;padding:5px 12px;font:700 9px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-reject{background:#fff;color:#c54a3a;border:1.5px solid #c54a3a;border-radius:7px;padding:5px 10px;font:700 9px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-approve:hover{background:var(--green);}
+  /* Pagination */
+  .pagination{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:16px;}
+  .pg-btn{border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;}
+  .pg-btn:hover{border-color:var(--green);}
+  .pg-info{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  /* Detail modal */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(6,43,30,0.6);z-index:100;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:520px;width:100%;padding:26px;position:relative;margin:auto;}
+  .modal-close{position:absolute;top:14px;left:14px;background:var(--green-dark);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font:900 13px Cairo,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .modal-title{font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font:500 12px Tajawal,sans-serif;}
+  .detail-row:last-of-type{border-bottom:none;}
+  .detail-key{color:var(--muted);}
+  .detail-val{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .btn-modal-approve{flex:1;background:var(--green-dark);color:#fff;border:none;border-radius:10px;padding:11px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-modal-reject{flex:1;background:#fff;color:#c54a3a;border:1.5px solid #c54a3a;border-radius:10px;padding:11px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2e7d32;color:#fff;border-radius:10px;padding:12px 24px;font:700 12px Cairo,sans-serif;z-index:999;display:none;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-title" data-en="Withdrawal Request Details">تفاصيل طلب السحب</div>
+    <div id="modalDetails"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+<main>
+  <div class="page-title" data-en="Withdrawal Requests">طلبات السحب</div>
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-bar">
+    <div class="filter-chip active" data-status="">الكل</div>
+    <div class="filter-chip" data-status="pending">قيد الانتظار</div>
+    <div class="filter-chip" data-status="processing">قيد المعالجة</div>
+    <div class="filter-chip" data-status="completed">مكتمل</div>
+    <div class="filter-chip" data-status="rejected">مرفوض</div>
+    <input class="search-input" id="searchInput" type="text" placeholder="ابحث بالاسم أو الحساب…" data-en-placeholder="Search by name or account…" />
+  </div>
+
+  <div class="table-card">
+    <div id="tableArea"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function fmt(n){return new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n);}
+  function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#c54a3a':'#2e7d32';t.style.display='block';setTimeout(()=>{t.style.display='none';},3500);}
+
+  const statusLabel={pending:'قيد الانتظار',processing:'قيد المعالجة',completed:'مكتمل',rejected:'مرفوض'};
+  const statusBadge={pending:'badge-pending',processing:'badge-processing',completed:'badge-completed',rejected:'badge-rejected'};
+
+  let activeStatus='', searchText='', page=1, totalPages=1;
+  let currentRequestId=null;
+
+  async function loadKpis(){
+    try{
+      const r=await fetch('/app/admin/withdrawals/stats');
+      if(!r.ok) return;
+      const d=await r.json();
+      const row=document.getElementById('kpiRow'); row.textContent='';
+      [{label:'قيد الانتظار',val:d.pending||0,sub:'طلب'},{label:'حجم اليوم',val:fmt(d.todayVolume||0),sub:''},{label:'هذا الشهر',val:fmt(d.monthVolume||0),sub:''},{label:'متوسط وقت المعالجة',val:(d.avgProcessingDays||0)+' أيام',sub:''}].forEach(k=>{
+        const card=document.createElement('div'); card.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.label;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        const sub=document.createElement('div'); sub.className='kpi-sub'; sub.textContent=k.sub;
+        card.appendChild(lbl); card.appendChild(val); card.appendChild(sub); row.appendChild(card);
+      });
+    }catch{}
+  }
+
+  async function loadRequests(){
+    const params=new URLSearchParams({page,perPage:20});
+    if(activeStatus) params.set('status',activeStatus);
+    if(searchText) params.set('search',searchText);
+    const area=document.getElementById('tableArea');
+    try{
+      const r=await fetch('/app/admin/withdrawals?'+params);
+      if(!r.ok){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='تعذّر التحميل.'; area.appendChild(p); return; }
+      const d=await r.json();
+      totalPages=Math.ceil((d.total||0)/20)||1;
+      area.textContent='';
+      if(!(d.requests||[]).length){ const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='لا توجد طلبات.'; area.appendChild(p); renderPagination(0); return; }
+      const tbl=document.createElement('table'); tbl.className='tbl';
+      const thead=document.createElement('thead');
+      const hr=document.createElement('tr');
+      ['المستثمر','المبلغ','الحساب البنكي','تاريخ الطلب','الحالة','الإجراء'].forEach(h=>{
+        const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+      });
+      thead.appendChild(hr); tbl.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      (d.requests||[]).forEach(req=>{
+        const tr=document.createElement('tr');
+        const cells=[req.userName||req.userId||'—',fmt(req.amount||0),req.iban?'SA *** '+req.iban.slice(-4):'—',req.createdAt?new Date(req.createdAt).toLocaleDateString('ar-SA'):'—',null,null];
+        cells.forEach((c,ci)=>{
+          const td=document.createElement('td');
+          if(ci===4){
+            const badge=document.createElement('span'); badge.className='badge '+(statusBadge[req.status]||'badge-pending'); badge.textContent=statusLabel[req.status]||req.status||'—';
+            td.appendChild(badge);
+          } else if(ci===5){
+            if(req.status==='pending'||req.status==='processing'){
+              const div=document.createElement('div'); div.className='action-btns';
+              const appBtn=document.createElement('button'); appBtn.className='btn-approve'; appBtn.textContent='اعتماد'; appBtn.dataset.en='Approve';
+              appBtn.addEventListener('click',e=>{e.stopPropagation();approveRequest(req.id,'completed');});
+              const rejBtn=document.createElement('button'); rejBtn.className='btn-reject'; rejBtn.textContent='رفض'; rejBtn.dataset.en='Reject';
+              rejBtn.addEventListener('click',e=>{e.stopPropagation();approveRequest(req.id,'rejected');});
+              div.appendChild(appBtn); div.appendChild(rejBtn); td.appendChild(div);
+            }
+          } else { td.textContent=c; }
+          tr.appendChild(td);
+        });
+        tr.style.cursor='pointer';
+        tr.addEventListener('click',()=>openDetail(req));
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody); area.appendChild(tbl);
+      renderPagination(d.total||0);
+    }catch{}
+  }
+
+  function renderPagination(total){
+    const pg=document.getElementById('pagination'); pg.textContent='';
+    if(totalPages<=1) return;
+    const prev=document.createElement('button'); prev.className='pg-btn'; prev.textContent='السابق'; prev.disabled=page<=1;
+    prev.addEventListener('click',()=>{if(page>1){page--;loadRequests();}});
+    const info=document.createElement('span'); info.className='pg-info'; info.textContent='صفحة '+page+' من '+totalPages;
+    const next=document.createElement('button'); next.className='pg-btn'; next.textContent='التالي'; next.disabled=page>=totalPages;
+    next.addEventListener('click',()=>{if(page<totalPages){page++;loadRequests();}});
+    pg.appendChild(prev); pg.appendChild(info); pg.appendChild(next);
+  }
+
+  function openDetail(req){
+    currentRequestId=req.id;
+    const det=document.getElementById('modalDetails'); det.textContent='';
+    const rows=[
+      ['المستثمر',req.userName||req.userId||'—'],
+      ['المبلغ',fmt(req.amount||0)],
+      ['الحساب البنكي (IBAN)',req.iban||'—'],
+      ['البنك',req.bank||'—'],
+      ['تاريخ الطلب',req.createdAt?new Date(req.createdAt).toLocaleDateString('ar-SA'):'—'],
+      ['الحالة',statusLabel[req.status]||req.status||'—'],
+      ['ملاحظة',req.note||'—'],
+    ];
+    rows.forEach(([k,v])=>{
+      const row=document.createElement('div'); row.className='detail-row';
+      const key=document.createElement('span'); key.className='detail-key'; key.textContent=k;
+      const val=document.createElement('span'); val.className='detail-val'; val.textContent=v;
+      row.appendChild(key); row.appendChild(val); det.appendChild(row);
+    });
+    const actions=document.getElementById('modalActions'); actions.textContent='';
+    if(req.status==='pending'||req.status==='processing'){
+      const appBtn=document.createElement('button'); appBtn.className='btn-modal-approve'; appBtn.textContent='اعتماد السحب'; appBtn.dataset.en='Approve Withdrawal';
+      appBtn.addEventListener('click',()=>approveRequest(req.id,'completed'));
+      const rejBtn=document.createElement('button'); rejBtn.className='btn-modal-reject'; rejBtn.textContent='رفض الطلب'; rejBtn.dataset.en='Reject Request';
+      rejBtn.addEventListener('click',()=>approveRequest(req.id,'rejected'));
+      actions.appendChild(appBtn); actions.appendChild(rejBtn);
+    }
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  document.getElementById('modalClose').addEventListener('click',()=>{document.getElementById('overlay').classList.remove('open');currentRequestId=null;});
+  document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay')){document.getElementById('overlay').classList.remove('open');currentRequestId=null;}});
+
+  async function approveRequest(id,newStatus){
+    try{
+      const r=await fetch('/app/admin/withdrawals/'+encodeURIComponent(id),{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({status:newStatus})});
+      if(!r.ok){toast('فشلت العملية.',true);return;}
+      toast(newStatus==='completed'?'تم اعتماد السحب!':'تم رفض الطلب.',newStatus==='rejected');
+      document.getElementById('overlay').classList.remove('open');
+      loadKpis(); loadRequests();
+    }catch{toast('خطأ في الاتصال.',true);}
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeStatus=chip.dataset.status; page=1; loadRequests();
+    });
+  });
+
+  let searchTimer;
+  document.getElementById('searchInput').addEventListener('input',e=>{
+    clearTimeout(searchTimer);
+    searchTimer=setTimeout(()=>{searchText=e.target.value.trim();page=1;loadRequests();},300);
+  });
+
+  loadKpis(); loadRequests();
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Notification Preferences — Murbha">تفضيلات الإشعارات — مُرابحة</title>
+<meta name="description" content="تحكّم في الإشعارات التي تتلقاها وقنوات الاتصال المفضلة لديك في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:720px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 24px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.9;max-width:500px;margin:0 auto;line-height:1.8;}
+  /* Master toggle */
+  .master-card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .master-info h2{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;}
+  .master-info p{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .big-toggle{position:relative;width:52px;height:28px;cursor:pointer;flex-shrink:0;}
+  .big-toggle input{opacity:0;width:0;height:0;}
+  .big-slider{position:absolute;inset:0;background:#ccc;border-radius:28px;transition:.25s;}
+  .big-slider::before{content:'';position:absolute;width:20px;height:20px;left:4px;top:4px;background:#fff;border-radius:50%;transition:.25s;}
+  .big-toggle input:checked + .big-slider{background:var(--green);}
+  .big-toggle input:checked + .big-slider::before{transform:translateX(24px);}
+  /* Channel header */
+  .channel-header{display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;padding:8px 16px;font:700 9px Cairo,sans-serif;color:var(--muted);background:var(--paper);border-radius:8px;margin-bottom:8px;}
+  /* Notification rows */
+  .notif-group{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+  .group-header{padding:12px 16px;background:var(--paper);font:900 12px Cairo,sans-serif;color:var(--green-dark);border-bottom:1px solid var(--line);}
+  .notif-row{display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);}
+  .notif-row:last-child{border-bottom:none;}
+  .notif-row-info{}
+  .notif-name{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .notif-desc{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:1px;}
+  .channel-cell{display:flex;justify-content:center;}
+  .toggle-switch{position:relative;width:34px;height:18px;cursor:pointer;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:18px;transition:.2s;}
+  .toggle-slider::before{content:'';position:absolute;width:13px;height:13px;left:2.5px;top:2.5px;background:#fff;border-radius:50%;transition:.2s;}
+  .toggle-switch input:checked + .toggle-slider{background:var(--green);}
+  .toggle-switch input:checked + .toggle-slider::before{transform:translateX(16px);}
+  /* Quiet hours */
+  .quiet-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;}
+  .quiet-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .quiet-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
+  .quiet-label{font:500 12px Tajawal,sans-serif;color:var(--muted);min-width:80px;}
+  select{border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font:500 12px Tajawal,sans-serif;color:var(--ink);outline:none;background:#fff;}
+  select:focus{border-color:var(--green);}
+  /* Save */
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 32px;font:900 12px Cairo,sans-serif;cursor:pointer;width:100%;margin-top:6px;}
+  .btn-save:hover{background:var(--green);}
+  .success-msg{background:#e8f5e9;border:1px solid #2e7d32;border-radius:8px;padding:10px 14px;font:700 11px Cairo,sans-serif;color:#2e7d32;margin-top:10px;text-align:center;display:none;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Notification Preferences">تفضيلات الإشعارات</h1>
+    <p data-en="Choose which notifications you receive and how.">اختر الإشعارات التي تريد تلقّيها والقنوات المناسبة لك.</p>
+  </div>
+
+  <div class="master-card">
+    <div class="master-info">
+      <h2 data-en="Enable All Notifications">تفعيل جميع الإشعارات</h2>
+      <p data-en="Toggle all notifications on or off at once.">تشغيل أو إيقاف جميع الإشعارات دفعةً واحدة.</p>
+    </div>
+    <label class="big-toggle">
+      <input type="checkbox" id="masterToggle" checked />
+      <span class="big-slider"></span>
+    </label>
+  </div>
+
+  <div class="channel-header">
+    <div>النوع</div>
+    <div style="text-align:center;">Push</div>
+    <div style="text-align:center;">Email</div>
+    <div style="text-align:center;">SMS</div>
+    <div style="text-align:center;">داخل التطبيق</div>
+  </div>
+
+  <div id="notifGroups"></div>
+
+  <div class="quiet-card">
+    <div class="quiet-title" data-en="Quiet Hours">ساعات الهدوء</div>
+    <div class="quiet-row">
+      <span class="quiet-label" data-en="From:">من:</span>
+      <select id="quietFrom">
+        <option value="22">10 م</option>
+        <option value="23">11 م</option>
+        <option value="0">12 م (منتصف الليل)</option>
+        <option value="1">1 ص</option>
+      </select>
+      <span class="quiet-label" data-en="To:">إلى:</span>
+      <select id="quietTo">
+        <option value="6">6 ص</option>
+        <option value="7" selected>7 ص</option>
+        <option value="8">8 ص</option>
+        <option value="9">9 ص</option>
+      </select>
+    </div>
+    <p style="font:500 10px Tajawal,sans-serif;color:var(--muted);" data-en="Push and SMS notifications will be suppressed during quiet hours.">سيتم تأجيل إشعارات Push والرسائل النصية خلال ساعات الهدوء.</p>
+  </div>
+
+  <button class="btn-save" id="btnSave" data-en="Save Preferences">حفظ التفضيلات</button>
+  <div class="success-msg" id="successMsg" data-en="Preferences saved!">تم حفظ التفضيلات!</div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+
+  const groups = [
+    {
+      group: 'الاستثمارات',
+      items: [
+        {key:'inv_confirmed',name:'تأكيد الاستثمار',desc:'عند اعتماد استثمارك في صفقة',defaults:{push:true,email:true,sms:true,inapp:true}},
+        {key:'inv_return',name:'صرف العائد',desc:'عند إضافة عائد لمحفظتك',defaults:{push:true,email:true,sms:false,inapp:true}},
+        {key:'deal_closed',name:'إغلاق الصفقة',desc:'عند انتهاء مدة الصفقة',defaults:{push:true,email:true,sms:false,inapp:true}},
+        {key:'deal_new',name:'صفقة جديدة',desc:'عند إضافة صفقة جديدة للمنصة',defaults:{push:true,email:false,sms:false,inapp:true}},
+      ],
+    },
+    {
+      group: 'المحفظة',
+      items: [
+        {key:'wallet_deposit',name:'إيداع في المحفظة',desc:'عند استلام إيداع جديد',defaults:{push:true,email:true,sms:true,inapp:true}},
+        {key:'wallet_withdraw',name:'سحب من المحفظة',desc:'عند معالجة طلب السحب',defaults:{push:true,email:true,sms:true,inapp:true}},
+        {key:'secondary_sold',name:'بيع في السوق الثانوي',desc:'عند بيع حصتك في السوق الثانوي',defaults:{push:true,email:true,sms:false,inapp:true}},
+      ],
+    },
+    {
+      group: 'الحساب والأمان',
+      items: [
+        {key:'kyc_status',name:'تحديث حالة KYC',desc:'عند قبول أو رفض التحقق من الهوية',defaults:{push:true,email:true,sms:true,inapp:true}},
+        {key:'login_new',name:'تسجيل دخول من جهاز جديد',desc:'تنبيه أمني عند الدخول من جهاز غير معروف',defaults:{push:true,email:true,sms:true,inapp:true}},
+        {key:'password_changed',name:'تغيير كلمة المرور',desc:'تأكيد عند تغيير كلمة مرورك',defaults:{push:false,email:true,sms:true,inapp:false}},
+      ],
+    },
+    {
+      group: 'المنصة والمحتوى',
+      items: [
+        {key:'platform_update',name:'تحديثات المنصة',desc:'إشعارات بالميزات والتحديثات الجديدة',defaults:{push:false,email:true,sms:false,inapp:true}},
+        {key:'edu_new',name:'محتوى تعليمي جديد',desc:'عند إضافة وحدات تعليمية',defaults:{push:false,email:false,sms:false,inapp:true}},
+        {key:'promo',name:'العروض والمميزات',desc:'إشعارات عروض المنصة الخاصة',defaults:{push:false,email:true,sms:false,inapp:false}},
+      ],
+    },
+  ];
+
+  const channels = ['push','email','sms','inapp'];
+  const prefs = {};
+
+  function buildGroups(savedPrefs){
+    const container = document.getElementById('notifGroups');
+    container.textContent = '';
+    groups.forEach(g => {
+      const grpEl = document.createElement('div'); grpEl.className = 'notif-group';
+      const header = document.createElement('div'); header.className = 'group-header'; header.textContent = g.group;
+      grpEl.appendChild(header);
+      g.items.forEach(item => {
+        const row = document.createElement('div'); row.className = 'notif-row';
+        const info = document.createElement('div'); info.className = 'notif-row-info';
+        const name = document.createElement('div'); name.className = 'notif-name'; name.textContent = item.name;
+        const desc = document.createElement('div'); desc.className = 'notif-desc'; desc.textContent = item.desc;
+        info.appendChild(name); info.appendChild(desc); row.appendChild(info);
+        channels.forEach(ch => {
+          const cell = document.createElement('div'); cell.className = 'channel-cell';
+          const lbl = document.createElement('label'); lbl.className = 'toggle-switch';
+          const inp = document.createElement('input'); inp.type = 'checkbox';
+          const saved = savedPrefs && savedPrefs[item.key] !== undefined ? savedPrefs[item.key][ch] : item.defaults[ch];
+          inp.checked = !!saved;
+          if (!prefs[item.key]) prefs[item.key] = {};
+          prefs[item.key][ch] = inp.checked;
+          inp.addEventListener('change', () => { prefs[item.key][ch] = inp.checked; });
+          const slider = document.createElement('span'); slider.className = 'toggle-slider';
+          lbl.appendChild(inp); lbl.appendChild(slider); cell.appendChild(lbl); row.appendChild(cell);
+        });
+        grpEl.appendChild(row);
+      });
+      container.appendChild(grpEl);
+    });
+  }
+
+  document.getElementById('masterToggle').addEventListener('change', e => {
+    const on = e.target.checked;
+    document.querySelectorAll('.notif-group .toggle-switch input').forEach(inp => { inp.checked = on; inp.dispatchEvent(new Event('change')); });
+  });
+
+  async function load(){
+    try{
+      const r = await fetch('/app/me/notification-preferences');
+      if(r.ok){ const d = await r.json(); buildGroups(d.prefs||{}); return; }
+    }catch{}
+    buildGroups({});
+  }
+
+  document.getElementById('btnSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnSave'); btn.disabled = true;
+    const quietFrom = parseInt(document.getElementById('quietFrom').value);
+    const quietTo = parseInt(document.getElementById('quietTo').value);
+    try{
+      const r = await fetch('/app/me/notification-preferences', {method:'PUT', headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'}, body:JSON.stringify({prefs, quietHours:{from:quietFrom,to:quietTo}})});
+      btn.disabled = false;
+      if(!r.ok){ alert('فشل الحفظ.'); return; }
+      const msg = document.getElementById('successMsg'); msg.style.display = 'block';
+      setTimeout(()=>{ msg.style.display='none'; }, 4000);
+    }catch{ btn.disabled = false; }
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>
