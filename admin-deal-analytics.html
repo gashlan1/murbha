@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحليلات الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.filter-bar{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;align-items:center;}
+.filter-bar select{padding:0.45rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.85rem;background:#fff;color:var(--green-dark);}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem;}
+.kpi-label{font-size:0.74rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.3rem;font-weight:700;color:var(--green-dark);}
+.kpi-delta{font-size:0.72rem;margin-top:0.15rem;}
+.delta-up{color:#27ae60;}
+.delta-down{color:#c0392b;}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.chart-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.chart-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.chart-head h3{font-size:1rem;font-weight:700;}
+.chart-body{padding:1.25rem;}
+.bar-chart{display:flex;align-items:flex-end;gap:0.6rem;height:140px;}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:0.25rem;}
+.bar-col{width:100%;border-radius:4px 4px 0 0;min-height:4px;background:var(--green);}
+.bar-lbl{font-size:0.64rem;color:var(--muted);white-space:nowrap;}
+.bar-val{font-size:0.68rem;font-weight:700;color:var(--green-dark);}
+.donut-wrap{display:flex;flex-direction:column;gap:0.75rem;padding:0.5rem 0;}
+.donut-item{display:flex;align-items:center;gap:0.75rem;}
+.donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.donut-label{flex:1;font-size:0.82rem;}
+.donut-pct{font-size:0.82rem;font-weight:700;color:var(--green-dark);}
+.deal-table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.deal-table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.deal-table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.8rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.84rem;}
+tr:last-child td{border-bottom:none;}
+.perf-bar{display:inline-block;height:6px;border-radius:3px;background:var(--green);vertical-align:middle;margin-left:0.4rem;}
+.trend-up{color:#27ae60;}
+.trend-down{color:#c0392b;}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تحليلات الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>لوحة تحليلات الصفقات</h2>
+    <button class="btn btn-secondary" onclick="exportAnalytics()">تصدير التقرير</button>
+  </div>
+
+  <div class="filter-bar">
+    <select id="periodFilter" onchange="applyFilters()">
+      <option value="30">آخر ٣٠ يوماً</option>
+      <option value="90">آخر ٩٠ يوماً</option>
+      <option value="365">آخر سنة</option>
+    </select>
+    <select id="sectorFilter" onchange="applyFilters()">
+      <option value="">جميع القطاعات</option>
+      <option>عقارات</option>
+      <option>تقنية</option>
+      <option>طاقة</option>
+      <option>صحة</option>
+      <option>تجزئة</option>
+    </select>
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">جميع الحالات</option>
+      <option>نشطة</option>
+      <option>مكتملة</option>
+      <option>قيد الإطلاق</option>
+    </select>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-head"><h3>حجم التمويل الشهري (ر.س)</h3></div>
+      <div class="chart-body"><div class="bar-chart" id="barChart"></div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><h3>توزيع القطاعات</h3></div>
+      <div class="chart-body"><div class="donut-wrap" id="donutChart"></div></div>
+    </div>
+  </div>
+
+  <div class="deal-table-card">
+    <div class="deal-table-head">
+      <h3>أداء الصفقات التفصيلي</h3>
+      <button class="btn btn-sm btn-secondary" onclick="sortDeals()">ترتيب حسب العائد</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>الصفقة</th>
+          <th>القطاع</th>
+          <th>حجم التمويل</th>
+          <th>عدد المستثمرين</th>
+          <th>العائد الفعلي</th>
+          <th>الأداء</th>
+          <th>الاتجاه</th>
+        </tr>
+      </thead>
+      <tbody id="dealTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'إجمالي الصفقات',value:'٤٢',delta:'+٦ هذا الشهر',up:true},
+  {label:'حجم التمويل الكلي',value:'١٨٤M',delta:'+١٢٪ عن الشهر',up:true},
+  {label:'متوسط حجم الصفقة',value:'٤.٤M',delta:'+٣٪',up:true},
+  {label:'متوسط العائد',value:'١١.٨٪',delta:'-٠.٢٪',up:false},
+  {label:'معدل نجاح الاكتتاب',value:'٨٧٪',delta:'+٤٪',up:true},
+];
+
+const months = ['يان','فبر','مار','أبر','ماي','يون','يول','أغس','سبت','أكت','نوف','ديس'];
+const barVals = [8.2,9.4,7.1,11.8,10.2,14.6,12.1,15.8,13.4,18.2,16.7,19.4];
+const maxBar = Math.max(...barVals);
+
+const sectors = [
+  {name:'عقارات',pct:42,color:'#0a4d36'},
+  {name:'تقنية',pct:22,color:'#b08840'},
+  {name:'طاقة',pct:18,color:'#2d6b50'},
+  {name:'صحة',pct:12,color:'#6b7268'},
+  {name:'تجزئة',pct:6,color:'#c0392b'},
+];
+
+const deals = [
+  {name:'مجمع الروضة السكني',sector:'عقارات',size:'٢٤M',investors:89,return:10.2,perf:82,trend:'up'},
+  {name:'محطة طاقة شمسية',sector:'طاقة',size:'١٨M',investors:61,return:14.1,perf:94,trend:'up'},
+  {name:'منصة FinTech B2B',sector:'تقنية',size:'٨M',investors:47,return:12.4,perf:88,trend:'up'},
+  {name:'عيادات الصحة',sector:'صحة',size:'١٢M',investors:38,return:10.9,perf:76,trend:'stable'},
+  {name:'برج المدينة التجاري',sector:'عقارات',size:'٣٢M',investors:124,return:9.8,perf:71,trend:'down'},
+  {name:'سلسلة مطاعم',sector:'تجزئة',size:'٤M',investors:29,return:9.1,perf:64,trend:'down'},
+];
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const delta = document.createElement('div');
+    delta.className = 'kpi-delta ' + (k.up ? 'delta-up' : 'delta-down');
+    delta.textContent = (k.up ? '▲ ' : '▼ ') + k.delta;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(delta);
+    row.appendChild(card);
+  });
+}
+
+function renderBarChart(){
+  const chart = document.getElementById('barChart');
+  chart.textContent = '';
+  months.forEach((m, i) => {
+    const grp = document.createElement('div');
+    grp.className = 'bar-group';
+    const valEl = document.createElement('div');
+    valEl.className = 'bar-val';
+    valEl.textContent = barVals[i] + 'M';
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.style.height = Math.round((barVals[i] / maxBar) * 120) + 'px';
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-lbl';
+    lbl.textContent = m;
+    grp.appendChild(valEl);
+    grp.appendChild(col);
+    grp.appendChild(lbl);
+    chart.appendChild(grp);
+  });
+}
+
+function renderDonut(){
+  const wrap = document.getElementById('donutChart');
+  wrap.textContent = '';
+  sectors.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'donut-item';
+    const dot = document.createElement('div');
+    dot.className = 'donut-dot';
+    dot.style.background = s.color;
+    const lbl = document.createElement('span');
+    lbl.className = 'donut-label';
+    lbl.textContent = s.name;
+    const pct = document.createElement('span');
+    pct.className = 'donut-pct';
+    pct.textContent = s.pct + '٪';
+    item.appendChild(dot);
+    item.appendChild(lbl);
+    item.appendChild(pct);
+    wrap.appendChild(item);
+  });
+}
+
+function renderDeals(data){
+  const tbody = document.getElementById('dealTable');
+  tbody.textContent = '';
+  (data || deals).forEach(d => {
+    const tr = document.createElement('tr');
+    [d.name, d.sector, d.size + ' ر.س', d.investors + ' مستثمر', d.return + '٪'].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const perfTd = document.createElement('td');
+    const bar = document.createElement('span');
+    bar.className = 'perf-bar';
+    bar.style.width = d.perf + 'px';
+    bar.style.background = d.perf >= 80 ? '#27ae60' : d.perf >= 65 ? 'var(--gold)' : '#c0392b';
+    const perfNum = document.createElement('span');
+    perfNum.textContent = d.perf + '٪';
+    perfTd.appendChild(bar);
+    perfTd.appendChild(perfNum);
+    tr.appendChild(perfTd);
+    const trendTd = document.createElement('td');
+    trendTd.className = d.trend === 'up' ? 'trend-up' : d.trend === 'down' ? 'trend-down' : '';
+    trendTd.textContent = d.trend === 'up' ? '▲ صاعد' : d.trend === 'down' ? '▼ هابط' : '— مستقر';
+    tr.appendChild(trendTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function sortDeals(){
+  const sorted = [...deals].sort((a,b) => b.return - a.return);
+  renderDeals(sorted);
+}
+
+function applyFilters(){
+  fetch('/app/admin/deals/analytics?period=' + encodeURIComponent(document.getElementById('periodFilter').value) +
+    '&sector=' + encodeURIComponent(document.getElementById('sectorFilter').value) +
+    '&status=' + encodeURIComponent(document.getElementById('statusFilter').value))
+    .then(r => r.json()).catch(() => {});
+}
+
+async function exportAnalytics(){
+  try {
+    const res = await fetch('/app/admin/deals/analytics/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderKpis();
+renderBarChart();
+renderDonut();
+renderDeals();
+</script>
+</body>
+</html>
