@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Secondary Market Orders — Murbha">أوامر السوق الثانوي — مُرابحة</title>
+<meta name="description" content="تداول حصص استثماراتك في السوق الثانوي بشكل شفاف وآمن." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:880px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  /* Tabs */
+  .tab-row{display:flex;gap:0;margin-bottom:18px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .tab{flex:1;padding:12px;text-align:center;font:700 11px Cairo,sans-serif;cursor:pointer;color:var(--muted);border-right:1px solid var(--line);}
+  .tab:last-child{border-right:none;}
+  .tab.active{background:var(--green-dark);color:#fbf6ea;}
+  /* Order book */
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .ob-table{width:100%;border-collapse:collapse;min-width:560px;}
+  .ob-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .ob-table td{font:500 11px Tajawal,sans-serif;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);}
+  .ob-table tr:last-child td{border-bottom:none;}
+  .price-buy{font:900 12px Cairo,sans-serif;color:#2e7d32;}
+  .price-sell{font:900 12px Cairo,sans-serif;color:#c54a3a;}
+  .deal-cell{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .status-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-open{background:#e8f5e9;color:#2e7d32;}
+  .badge-partial{background:#fff8e1;color:#a07020;}
+  .badge-filled{background:#e3f2fd;color:#1565c0;}
+  .badge-cancelled{background:#f5f5f5;color:#666;}
+  .btn-cancel{background:#fdecea;border:1px solid #f8d7da;border-radius:6px;padding:5px 10px;font:700 9px Cairo,sans-serif;cursor:pointer;color:#c54a3a;}
+  .btn-cancel:hover{background:#ffcdd2;}
+  /* Place order form */
+  .order-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.order-form{grid-template-columns:1fr;}}
+  .form-group{margin-bottom:0;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:6px;}
+  .form-sel,.form-inp-num{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-sel:focus,.form-inp-num:focus{outline:none;border-color:var(--green);}
+  .form-inp-num{font:700 14px Cairo,sans-serif;text-align:center;}
+  .order-summary{background:#f9f7f2;border-radius:10px;padding:14px;margin-top:4px;}
+  .os-row{display:flex;justify-content:space-between;padding:5px 0;font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .os-row.total{font:900 12px Cairo,sans-serif;color:var(--green-dark);border-top:1px solid var(--line);margin-top:4px;padding-top:8px;}
+  .btn-place{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;width:100%;margin-top:12px;}
+  .btn-place:hover{background:var(--green);}
+  .btn-place:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Secondary Market Orders">أوامر السوق الثانوي</h1>
+    <p data-en="Trade shares of your investments on the secondary market securely and transparently.">تداول حصص استثماراتك في السوق الثانوي بشكل آمن وشفاف.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="tab-row">
+    <div class="tab active" id="tabMyOrders" data-en="My Orders">أوامري</div>
+    <div class="tab" id="tabMarket" data-en="Market Orders">السوق</div>
+    <div class="tab" id="tabNew" data-en="New Order">أمر جديد</div>
+  </div>
+
+  <div id="panelMyOrders">
+    <div class="card">
+      <div class="card-title" data-en="My Open & Recent Orders">أوامري المفتوحة والأخيرة</div>
+      <table class="ob-table">
+        <thead><tr>
+          <th data-en="Date">التاريخ</th>
+          <th data-en="Deal">الصفقة</th>
+          <th data-en="Type">النوع</th>
+          <th data-en="Units">الوحدات</th>
+          <th data-en="Unit Price">سعر الوحدة</th>
+          <th data-en="Total">الإجمالي</th>
+          <th data-en="Status">الحالة</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="myOrdersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panelMarket" style="display:none;">
+    <div class="card">
+      <div class="card-title" data-en="Available Buy Orders">أوامر الشراء المتاحة</div>
+      <table class="ob-table">
+        <thead><tr>
+          <th data-en="Deal">الصفقة</th>
+          <th data-en="Units">الوحدات</th>
+          <th data-en="Unit Price">سعر الوحدة</th>
+          <th data-en="Yield">العائد</th>
+          <th data-en="Maturity">الاستحقاق</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="marketBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panelNew" style="display:none;">
+    <div class="card">
+      <div class="card-title" data-en="Place a New Order">أمر بيع جديد</div>
+      <div class="order-form">
+        <div class="form-group">
+          <label class="form-lbl" data-en="Select Investment">الاستثمار</label>
+          <select class="form-sel" id="orderDeal"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-lbl" data-en="Units to Sell">الوحدات المطروحة</label>
+          <input class="form-inp-num" id="orderUnits" type="number" min="1" value="1" />
+        </div>
+        <div class="form-group">
+          <label class="form-lbl" data-en="Price per Unit (SAR)">سعر الوحدة (ر.س)</label>
+          <input class="form-inp-num" id="orderPrice" type="number" min="1" />
+        </div>
+        <div></div>
+      </div>
+      <div class="order-summary" id="orderSummary"></div>
+      <button class="btn-place" id="btnPlace" data-en="Place Sell Order">نشر أمر البيع</button>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const statusLabels={open:'مفتوح',partial:'مُنفَّذ جزئياً',filled:'مُنفَّذ',cancelled:'ملغى'};
+  const statusBadge={open:'badge-open',partial:'badge-partial',filled:'badge-filled',cancelled:'badge-cancelled'};
+
+  function showPanel(id){
+    ['panelMyOrders','panelMarket','panelNew'].forEach(p=>document.getElementById(p).style.display='none');
+    document.getElementById(id).style.display='block';
+  }
+
+  document.getElementById('tabMyOrders').addEventListener('click',()=>{ setActiveTab('tabMyOrders'); showPanel('panelMyOrders'); });
+  document.getElementById('tabMarket').addEventListener('click',()=>{ setActiveTab('tabMarket'); showPanel('panelMarket'); });
+  document.getElementById('tabNew').addEventListener('click',()=>{ setActiveTab('tabNew'); showPanel('panelNew'); });
+
+  function setActiveTab(id){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+  function updateSummary(){
+    const units=Number(document.getElementById('orderUnits').value)||0;
+    const price=Number(document.getElementById('orderPrice').value)||0;
+    const gross=units*price; const fee=gross*0.005; const net=gross-fee;
+    const summary=document.getElementById('orderSummary'); summary.textContent='';
+    [{k:'الوحدات',v:String(units)},{k:'سعر الوحدة',v:fmt(price)+' ر.س'},{k:'الإجمالي الإجمالي',v:fmt(gross)+' ر.س'},{k:'رسوم التحويل (0.5٪)',v:fmt(fee)+' ر.س'},{k:'صافي ما ستستلم',v:fmt(net)+' ر.س',total:true}].forEach(r=>{
+      const row=document.createElement('div'); row.className='os-row'+(r.total?' total':'');
+      const k=document.createElement('span'); k.textContent=r.k;
+      const v=document.createElement('span'); v.textContent=r.v;
+      row.appendChild(k); row.appendChild(v); summary.appendChild(row);
+    });
+  }
+
+  document.getElementById('orderUnits').addEventListener('input', updateSummary);
+  document.getElementById('orderPrice').addEventListener('input', updateSummary);
+
+  document.getElementById('btnPlace').addEventListener('click', async()=>{
+    const dealId=document.getElementById('orderDeal').value;
+    const units=Number(document.getElementById('orderUnits').value)||0;
+    const price=Number(document.getElementById('orderPrice').value)||0;
+    if(!dealId||units<1||price<1){ showToast('يرجى تعبئة جميع الحقول بقيم صحيحة.'); return; }
+    document.getElementById('btnPlace').disabled=true;
+    try{
+      const r=await fetch('/app/me/secondary-market/orders',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({dealId,units,pricePerUnit:price,type:'sell'})});
+      document.getElementById('btnPlace').disabled=false;
+      if(!r.ok){ showToast('تعذّر نشر الأمر.'); return; }
+      showToast('تم نشر أمر البيع بنجاح!'); setActiveTab('tabMyOrders'); showPanel('panelMyOrders'); loadMyOrders();
+    }catch{ document.getElementById('btnPlace').disabled=false; showToast('خطأ.'); }
+  });
+
+  async function loadMyOrders(){
+    const body=document.getElementById('myOrdersBody'); placeholder(body,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/me/secondary-market/orders');
+      if(!r.ok){ placeholder(body,'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const orders=d.orders||[];
+      body.textContent='';
+      if(!orders.length){ placeholder(body,'لا توجد أوامر.'); return; }
+      orders.forEach(o=>{
+        const tr=document.createElement('tr');
+        const tdDate=document.createElement('td'); tdDate.textContent=(o.date||'—').slice(0,10);
+        const tdDeal=document.createElement('td'); tdDeal.className='deal-cell'; tdDeal.textContent=o.dealName||'—';
+        const tdType=document.createElement('td'); tdType.textContent=o.type==='sell'?'بيع':'شراء';
+        const tdUnits=document.createElement('td'); tdUnits.textContent=String(o.units||0);
+        const tdPrice=document.createElement('td'); tdPrice.className=o.type==='buy'?'price-buy':'price-sell'; tdPrice.textContent=fmt(o.pricePerUnit||0)+' ر.س';
+        const tdTotal=document.createElement('td'); tdTotal.textContent=fmt((o.units||0)*(o.pricePerUnit||0))+' ر.س';
+        const tdStat=document.createElement('td');
+        const badge=document.createElement('span'); badge.className='status-badge '+(statusBadge[o.status]||'badge-open'); badge.textContent=statusLabels[o.status]||o.status||'—';
+        tdStat.appendChild(badge);
+        const tdAct=document.createElement('td');
+        if(o.status==='open'){
+          const btn=document.createElement('button'); btn.className='btn-cancel'; btn.textContent='إلغاء';
+          const oId=o.id;
+          btn.addEventListener('click', async()=>{
+            btn.disabled=true;
+            try{
+              const rc=await fetch('/app/me/secondary-market/orders/'+encodeURIComponent(oId)+'/cancel',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({})});
+              if(!rc.ok){ btn.disabled=false; showToast('تعذّر الإلغاء.'); return; }
+              showToast('تم إلغاء الأمر.'); loadMyOrders();
+            }catch{ btn.disabled=false; showToast('خطأ.'); }
+          });
+          tdAct.appendChild(btn);
+        }
+        tr.appendChild(tdDate); tr.appendChild(tdDeal); tr.appendChild(tdType); tr.appendChild(tdUnits); tr.appendChild(tdPrice); tr.appendChild(tdTotal); tr.appendChild(tdStat); tr.appendChild(tdAct);
+        body.appendChild(tr);
+      });
+    }catch{ placeholder(body,'خطأ.'); }
+  }
+
+  async function loadMarket(){
+    const body=document.getElementById('marketBody'); placeholder(body,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/secondary-market/listings');
+      if(!r.ok){ placeholder(body,'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const listings=d.listings||[];
+      body.textContent='';
+      if(!listings.length){ placeholder(body,'لا توجد عروض متاحة حالياً.'); return; }
+      listings.forEach(l=>{
+        const tr=document.createElement('tr');
+        const tdDeal=document.createElement('td'); tdDeal.className='deal-cell'; tdDeal.textContent=l.dealName||'—';
+        const tdUnits=document.createElement('td'); tdUnits.textContent=String(l.units||0);
+        const tdPrice=document.createElement('td'); tdPrice.className='price-buy'; tdPrice.textContent=fmt(l.pricePerUnit||0)+' ر.س';
+        const tdYield=document.createElement('td'); tdYield.textContent=(l.expectedYield||0).toFixed(1)+'٪';
+        const tdMat=document.createElement('td'); tdMat.textContent=(l.maturityDate||'—').slice(0,10);
+        const tdAct=document.createElement('td');
+        const btn=document.createElement('button'); btn.className='btn-cancel'; btn.style.background='#e8f5e9'; btn.style.color='#2e7d32'; btn.style.borderColor='#a5d6a7'; btn.textContent='اشترِ';
+        btn.addEventListener('click',()=>{ window.location.href='/secondary-market.html?listing='+encodeURIComponent(l.id||''); });
+        tdAct.appendChild(btn);
+        tr.appendChild(tdDeal); tr.appendChild(tdUnits); tr.appendChild(tdPrice); tr.appendChild(tdYield); tr.appendChild(tdMat); tr.appendChild(tdAct);
+        body.appendChild(tr);
+      });
+    }catch{ placeholder(body,'خطأ.'); }
+  }
+
+  (async function init(){
+    try{
+      const r=await fetch('/app/me/secondary-market/summary');
+      if(r.ok){
+        const d=await r.json();
+        const kpiRow=document.getElementById('kpiRow');
+        [{lbl:'أوامر مفتوحة',val:String(d.openOrders||0)},{lbl:'إجمالي المبيعات',val:fmt(d.totalSold||0)+' ر.س'},{lbl:'قيمة الأوامر المفتوحة',val:fmt(d.openValue||0)+' ر.س'},{lbl:'عمليات مكتملة',val:String(d.filled||0)}].forEach(k=>{
+          const kpi=document.createElement('div'); kpi.className='kpi';
+          const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+          const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+          kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+        });
+      }
+      const ri=await fetch('/app/me/investments');
+      if(ri.ok){
+        const di=await ri.json();
+        const investments=di.investments||di||[];
+        const sel=document.getElementById('orderDeal');
+        investments.filter(i=>i.status==='active').forEach(i=>{
+          const opt=document.createElement('option'); opt.value=i.dealId||i.id||'';
+          opt.textContent=(i.dealName||i.name||'صفقة');
+          sel.appendChild(opt);
+        });
+        if(sel.options.length>1){ document.getElementById('orderPrice').value=1000; updateSummary(); }
+      }
+    }catch{}
+    loadMyOrders();
+    loadMarket();
+  }());
+}());
+</script>
+</body>
+</html>
