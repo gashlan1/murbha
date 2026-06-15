@@ -38,7 +38,8 @@
     padding-bottom: var(--safe-bot);
   }
   button, a { font-family: inherit; touch-action: manipulation; }
-  .skip-link { position: absolute; left: -9999px; top: 0; }
+  .skip-link { position: absolute; top: -100px; inset-inline-start: 8px; background: #fff; padding: 8px 12px; border-radius: 8px; z-index: 999; }
+  .skip-link:focus { top: 8px; }
 
   header {
     position: sticky; top: 0;
@@ -250,6 +251,7 @@
     footer { font-size: 13px; padding: 28px 18px; }
   }
 </style>
+<script src="/assets/lang.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">تخطّي إلى المحتوى الرئيسي</a>
@@ -289,6 +291,64 @@
 </div>
 
 <main id="main">
+
+  <div class="section" id="monthlyChartSection" style="display:none;">
+    <div class="section-h">
+      <h3>الاستثمار الشهري</h3>
+      <div class="sub" id="monthlyChartSub">آخر ١٢ شهراً</div>
+    </div>
+    <div style="background:#fff;border:1px solid rgba(13,22,18,0.08);border-radius:14px;padding:18px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px;font:600 12px Tajawal,sans-serif;color:#6b7268;">
+        <span>إجمالي الاستثمار</span>
+        <span id="monthlyChartTotal" style="font-weight:800;color:#062b1e;">—</span>
+      </div>
+      <svg id="monthlyChart" width="100%" height="160" viewBox="0 0 600 160" preserveAspectRatio="none" style="display:block;"></svg>
+      <div style="display:flex;justify-content:space-between;font:600 11px 'SF Mono',Menlo,monospace;color:#6b7268;direction:ltr;margin-top:6px;">
+        <span id="monthlyChartFirst"></span>
+        <span id="monthlyChartLast"></span>
+      </div>
+    </div>
+  </div>
+  <script>
+  (async () => {
+    try {
+      const r = await fetch('/app/public/stats-monthly?months=12');
+      if (!r.ok) return;
+      const d = await r.json();
+      const pts = d.months || [];
+      if (pts.length < 2) return;
+      const sec = document.getElementById('monthlyChartSection');
+      const svg = document.getElementById('monthlyChart');
+      if (!sec || !svg) return;
+      sec.style.display = '';
+      const total = pts.reduce((s, p) => s + p.amount, 0);
+      document.getElementById('monthlyChartTotal').textContent = Math.round(total).toLocaleString('ar-SA') + ' ر.س';
+      const W = 600, H = 160, padY = 10, padX = 4;
+      const maxAmt = Math.max(1, ...pts.map(p => p.amount));
+      const barW = (W - 2 * padX) / pts.length - 4;
+      svg.replaceChildren();
+      const svgNS = 'http://www.w3.org/2000/svg';
+      pts.forEach((p, i) => {
+        const h = (p.amount / maxAmt) * (H - 2 * padY);
+        const x = padX + i * ((W - 2 * padX) / pts.length) + 2;
+        const y = H - padY - h;
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', x.toFixed(1));
+        rect.setAttribute('y', y.toFixed(1));
+        rect.setAttribute('width', barW.toFixed(1));
+        rect.setAttribute('height', h.toFixed(1));
+        rect.setAttribute('fill', '#0a4d36');
+        rect.setAttribute('rx', '3');
+        const tooltip = document.createElementNS(svgNS, 'title');
+        tooltip.textContent = p.month + ': ' + Math.round(p.amount).toLocaleString('ar-SA') + ' ر.س · ' + p.count + ' صفقة';
+        rect.appendChild(tooltip);
+        svg.appendChild(rect);
+      });
+      document.getElementById('monthlyChartFirst').textContent = pts[0]?.month || '';
+      document.getElementById('monthlyChartLast').textContent = pts[pts.length - 1]?.month || '';
+    } catch (e) {}
+  })();
+  </script>
 
   <div class="section">
     <div class="section-h">

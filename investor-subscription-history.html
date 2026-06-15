@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل الاشتراكات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.timeline-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.tl-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.tl-head h3{font-size:1rem;font-weight:700;}
+.tl-body{padding:1.25rem;}
+.tl-year-group{margin-bottom:1.5rem;}
+.tl-year-group:last-child{margin-bottom:0;}
+.tl-year-label{font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:0.75rem;letter-spacing:0.05em;}
+.tl-item{display:flex;gap:1rem;padding:0.85rem;border-radius:10px;border:1px solid var(--line);margin-bottom:0.6rem;background:#fff;}
+.tl-item:last-child{margin-bottom:0;}
+.tl-item:hover{background:#f5f0e8;}
+.tl-left{display:flex;flex-direction:column;align-items:center;gap:0.3rem;width:52px;flex-shrink:0;}
+.tl-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.tl-type{font-size:0.62rem;color:var(--muted);font-weight:600;text-align:center;}
+.tl-info{flex:1;}
+.tl-title{font-size:0.88rem;font-weight:700;color:var(--green-dark);}
+.tl-meta{font-size:0.74rem;color:var(--muted);margin-top:0.15rem;}
+.tl-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;}
+.tl-amount{font-size:0.95rem;font-weight:700;color:var(--green-dark);}
+.tl-date{font-size:0.72rem;color:var(--muted);}
+.status-pill{display:inline-block;padding:0.15rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-active{background:#e6f4ef;color:var(--green);}
+.pill-complete{background:#e8e3da;color:var(--muted);}
+.pill-pending{background:#fff8e8;color:var(--gold);}
+.filter-row{display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.filter-row select{padding:0.4rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.84rem;background:#fff;color:var(--green-dark);}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — سجل الاشتراكات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>سجل الاشتراكات والمشاركات</h2>
+    <button class="btn btn-secondary" onclick="exportHistory()">تصدير PDF</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="timeline-card">
+    <div class="tl-head">
+      <h3>سجل المشاركات الكاملة</h3>
+      <div style="display:flex;gap:0.5rem;">
+        <select id="filterType" onchange="renderTimeline()">
+          <option value="">جميع العمليات</option>
+          <option value="subscribe">اشتراكات</option>
+          <option value="dividend">توزيعات</option>
+          <option value="exit">خروج</option>
+        </select>
+      </div>
+    </div>
+    <div class="tl-body" id="timelineBody"></div>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'إجمالي الاشتراكات',value:'١٨',sub:'صفقة مشارك فيها'},
+  {label:'إجمالي المستثمر',value:'٢٣٠,٠٠٠',sub:'ر.س'},
+  {label:'إجمالي التوزيعات',value:'٦٨,٤٠٠',sub:'ر.س مستلم'},
+  {label:'العمر الاستثماري',value:'٣.٢ سنة',sub:'متوسط مدة الصفقة'},
+];
+
+const allEvents = [
+  {year:'٢٠٢٥',type:'dividend',icon:'💰',bg:'#e6f4ef',typeLbl:'توزيع',title:'توزيع أرباح - مجمع الروضة',meta:'الربع الثاني · الدفعة رقم ٨',amount:'+ ٤,٢٠٠ ر.س',date:'٠١ يونيو ٢٠٢٥',status:'active'},
+  {year:'٢٠٢٥',type:'dividend',icon:'💰',bg:'#e6f4ef',typeLbl:'توزيع',title:'توزيع أرباح - محطة طاقة شمسية',meta:'الربع الثاني',amount:'+ ٦,٠٠٠ ر.س',date:'١٥ أبريل ٢٠٢٥',status:'active'},
+  {year:'٢٠٢٥',type:'subscribe',icon:'📋',bg:'#f0f4ff',typeLbl:'اشتراك',title:'اشتراك جديد - صندوق التقنية',meta:'مشاركة بنسبة ٥٪',amount:'- ٢٧,٢٥٢ ر.س',date:'١٠ مارس ٢٠٢٥',status:'active'},
+  {year:'٢٠٢٤',type:'dividend',icon:'💰',bg:'#e6f4ef',typeLbl:'توزيع',title:'توزيع أرباح - عيادات الصحة',meta:'الربع الرابع',amount:'+ ٢,٨٠٠ ر.س',date:'٠١ ديسمبر ٢٠٢٤',status:'complete'},
+  {year:'٢٠٢٤',type:'subscribe',icon:'📋',bg:'#f0f4ff',typeLbl:'اشتراك',title:'اشتراك - عيادات الصحة',meta:'مشاركة بنسبة ٤.٥٪',amount:'- ٢٧,٢٥٢ ر.س',date:'٠١ سبتمبر ٢٠٢٤',status:'active'},
+  {year:'٢٠٢٤',type:'exit',icon:'🚪',bg:'#fde9e9',typeLbl:'خروج',title:'خروج جزئي - مجمع الروضة',meta:'خروج ٢٥٪ من الحصة',amount:'+ ٢٤,٢٢٤ ر.س',date:'٢٢ أبريل ٢٠٢٤',status:'complete'},
+  {year:'٢٠٢٣',type:'subscribe',icon:'📋',bg:'#f0f4ff',typeLbl:'اشتراك',title:'اشتراك أولي - محطة طاقة شمسية',meta:'مشاركة بنسبة ٣٪',amount:'- ٥٤,٥٠٤ ر.س',date:'١٥ يونيو ٢٠٢٣',status:'active'},
+  {year:'٢٠٢٣',type:'subscribe',icon:'📋',bg:'#f0f4ff',typeLbl:'اشتراك',title:'اشتراك أولي - مجمع الروضة السكني',meta:'مشاركة بنسبة ٤٪',amount:'- ٩٦,٨٩٦ ر.س',date:'٠١ يناير ٢٠٢٣',status:'active'},
+];
+
+const statusCls = {active:'pill-active',complete:'pill-complete',pending:'pill-pending'};
+const statusLbl = {active:'نشط',complete:'مكتمل',pending:'معلق'};
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderTimeline(){
+  const typeFilter = document.getElementById('filterType').value;
+  const filtered = typeFilter ? allEvents.filter(e => e.type === typeFilter) : allEvents;
+  const byYear = {};
+  filtered.forEach(e => { if(!byYear[e.year]) byYear[e.year] = []; byYear[e.year].push(e); });
+
+  const cont = document.getElementById('timelineBody');
+  cont.textContent = '';
+  Object.keys(byYear).sort((a,b) => b.localeCompare(a)).forEach(year => {
+    const grp = document.createElement('div');
+    grp.className = 'tl-year-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'tl-year-label';
+    lbl.textContent = year;
+    grp.appendChild(lbl);
+    byYear[year].forEach(ev => {
+      const item = document.createElement('div');
+      item.className = 'tl-item';
+      const left = document.createElement('div');
+      left.className = 'tl-left';
+      const icon = document.createElement('div');
+      icon.className = 'tl-icon';
+      icon.style.background = ev.bg;
+      icon.textContent = ev.icon;
+      const typeLbl = document.createElement('div');
+      typeLbl.className = 'tl-type';
+      typeLbl.textContent = ev.typeLbl;
+      left.appendChild(icon);
+      left.appendChild(typeLbl);
+      const info = document.createElement('div');
+      info.className = 'tl-info';
+      const title = document.createElement('div');
+      title.className = 'tl-title';
+      title.textContent = ev.title;
+      const meta = document.createElement('div');
+      meta.className = 'tl-meta';
+      meta.textContent = ev.meta;
+      const pill = document.createElement('span');
+      pill.className = 'status-pill ' + (statusCls[ev.status] || '');
+      pill.style.marginTop = '0.35rem';
+      pill.style.display = 'inline-block';
+      pill.textContent = statusLbl[ev.status] || ev.status;
+      info.appendChild(title);
+      info.appendChild(meta);
+      info.appendChild(pill);
+      const right = document.createElement('div');
+      right.className = 'tl-right';
+      const amount = document.createElement('div');
+      amount.className = 'tl-amount';
+      amount.style.color = ev.amount.startsWith('+') ? '#27ae60' : '#c0392b';
+      amount.textContent = ev.amount;
+      const date = document.createElement('div');
+      date.className = 'tl-date';
+      date.textContent = ev.date;
+      right.appendChild(amount);
+      right.appendChild(date);
+      item.appendChild(left);
+      item.appendChild(info);
+      item.appendChild(right);
+      grp.appendChild(item);
+    });
+    cont.appendChild(grp);
+  });
+}
+
+async function exportHistory(){
+  try {
+    const res = await fetch('/app/me/subscriptions/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderKpis();
+renderTimeline();
+</script>
+</body>
+</html>

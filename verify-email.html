@@ -90,11 +90,12 @@ button, a { font-family: inherit; touch-action: manipulation; }
   display: flex; flex-direction: column; gap: 20px; background: #fff; border-radius: 16px; padding: 24px;
   border: 1.5px solid var(--line); box-shadow: 0 4px 12px rgba(13,22,18,0.03); text-align: start;
 }
-.otp-container { display: flex; justify-content: center; gap: 12px; direction: ltr; margin: 12px 0; }
+.otp-container { display: flex; justify-content: center; gap: 8px; direction: ltr; margin: 12px 0; }
 .otp-input {
-  width: 56px; height: 56px; border: 1.5px solid var(--line-strong); border-radius: 12px;
+  width: 44px; height: 56px; border: 1.5px solid var(--line-strong); border-radius: 12px;
   font-size: 22px; font-weight: 800; text-align: center; background: var(--paper); transition: border-color 0.2s, background 0.2s;
 }
+@media (min-width: 420px) { .otp-input { width: 52px; } .otp-container { gap: 10px; } }
 .otp-input:focus { outline: none; border-color: var(--green); background: #fff; box-shadow: 0 0 0 4px rgba(10,77,54,0.1); }
 .auth-form-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 4px; font-weight: 700; line-height: 1.5; }
 .btn {
@@ -118,6 +119,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 </style>
 <link rel="stylesheet" href="/assets/site.css" />
 <meta name="description" content="خطوة التحقق من البريد الإلكتروني لتفعيل حسابك في منصة مُرابحة." />
+<script src="/assets/lang.js"></script>
 </head>
 <body>
 <main id="main">
@@ -168,7 +170,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 
   <div class="auth-headline">
     <h2>التحقق من البريد الإلكتروني 📧</h2>
-    <p id="otpInstruction">أدخل رمز التحقق المكون من 4 أرقام المرسل إلى بريدك الإلكتروني.</p>
+    <p id="otpInstruction">أدخل رمز التحقق المكون من 6 أرقام المرسل إلى بريدك الإلكتروني.</p>
   </div>
 
   <form id="verifyEmailForm" class="auth-form">
@@ -177,6 +179,8 @@ button, a { font-family: inherit; touch-action: manipulation; }
       <input type="text" maxlength="1" class="otp-input" id="otp_2" inputmode="numeric" pattern="[0-9]*" required />
       <input type="text" maxlength="1" class="otp-input" id="otp_3" inputmode="numeric" pattern="[0-9]*" required />
       <input type="text" maxlength="1" class="otp-input" id="otp_4" inputmode="numeric" pattern="[0-9]*" required />
+      <input type="text" maxlength="1" class="otp-input" id="otp_5" inputmode="numeric" pattern="[0-9]*" required />
+      <input type="text" maxlength="1" class="otp-input" id="otp_6" inputmode="numeric" pattern="[0-9]*" required />
     </div>
 
     <div class="auth-form-error" id="otpError" style="display: none;"></div>
@@ -224,9 +228,18 @@ function startTimer() {
   }, 1000);
 }
 
-function resendCode() {
-  App.toast('تمت محاكاة إرسال رمز تحقق جديد إلى بريدك الإلكتروني (الرمز هو 1234)', 'success');
-  startTimer();
+async function resendCode() {
+  try {
+    await App.api('POST', '/app/auth/resend-otp', { channel: 'email' });
+    App.toast('تم إرسال رمز جديد إلى بريدك الإلكتروني.', 'success');
+    startTimer();
+  } catch (e) {
+    if (e.status === 429) {
+      App.toast(e.message || 'يرجى الانتظار قبل طلب رمز جديد.', 'error');
+    } else {
+      App.toast('تعذّر إرسال الرمز. يرجى المحاولة لاحقاً.', 'error');
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -251,7 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Populate dynamic instruction text
   const instruction = document.getElementById('otpInstruction');
   if (instruction && user.email) {
-    instruction.innerHTML = `أدخل رمز التحقق المكون من 4 أرقام المرسل إلى بريدك الإلكتروني:<br/><b style="color:var(--green-dark);">${App.escapeHtml(user.email)}</b>`;
+    instruction.innerHTML = `أدخل رمز التحقق المكون من 6 أرقام المرسل إلى بريدك الإلكتروني:<br/><b style="color:var(--green-dark);">${App.escapeHtml(user.email)}</b>`;
   }
 
   startTimer();

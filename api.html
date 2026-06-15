@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>واجهة المطوّرين العامة — مُرابحة</title>
+<meta name="description" content="مرجع نقاط النهاية العامة لمنصة مُرابحة. مخصّص للمطوّرين الذين يبنون على بياناتنا المتاحة للعامة." />
+<meta property="og:title" content="API Reference — مُرابحة" />
+<meta property="og:description" content="Public endpoints reference." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --muted:#6b7268; --line:rgba(13,22,18,0.10); --mono:'JetBrains Mono','SF Mono',Menlo,monospace; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:26px 18px 80px; max-width:980px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 28px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:22px; max-width:680px; }
+  .note { background:#fff8e6; border:1px solid #d4ac6e; border-radius:12px; padding:14px 18px; margin-bottom:22px; font-size:13px; color:#7a5a10; line-height:1.7; }
+  .toc { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 22px; margin-bottom:22px; }
+  .toc h3 { font:800 13px Cairo,sans-serif; color:var(--green-dark); margin-bottom:10px; }
+  .toc a { display:block; padding:4px 0; color:var(--ink); text-decoration:none; font:600 13px Tajawal,sans-serif; font-family:var(--mono); direction:ltr; text-align:start; }
+  .toc a:hover { color:var(--gold); }
+  .ep { background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:14px; }
+  .ep-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+  .verb { display:inline-block; padding:3px 10px; border-radius:6px; font:800 11px var(--mono); letter-spacing:1px; }
+  .verb.get { background:rgba(15,110,58,0.12); color:#0f6e3a; }
+  .verb.post { background:rgba(176,136,64,0.16); color:#7a5a10; }
+  .verb.patch { background:rgba(30,58,138,0.12); color:#1e3a8a; }
+  .path { font:700 14px var(--mono); color:var(--green-dark); direction:ltr; text-align:start; }
+  .ep h2 { font:800 15px Cairo,sans-serif; color:var(--green-dark); margin-bottom:10px; }
+  .ep p { font-size:13px; color:var(--ink); line-height:1.8; margin-bottom:10px; }
+  pre { background:#0d1612; color:#fbf6ea; border-radius:10px; padding:14px 16px; font:500 12px var(--mono); overflow-x:auto; direction:ltr; text-align:start; line-height:1.6; margin-bottom:8px; }
+  .auth { display:inline-block; padding:3px 10px; border-radius:999px; font:800 10px Cairo,sans-serif; }
+  .auth.none { background:rgba(15,110,58,0.10); color:#0f6e3a; }
+  .auth.session { background:rgba(176,136,64,0.14); color:#7a5a10; }
+  .footer-note { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 18px; font-size:12px; color:var(--muted); line-height:1.7; margin-top:22px; }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / واجهة المطوّرين</div>
+<h1>واجهة المطوّرين العامة</h1>
+<p class="lede">المرجع المختصر لنقاط النهاية المتاحة للعامة على منصة مُرابحة. لا تحتاج مفتاح API للوصول لهذه المسارات — اطلب JSON مباشرة. للوصول إلى بيانات حساب محدّد ستحتاج إلى جلسة موقّعة (تسجيل دخول).</p>
+
+<div class="note">
+  <b>الاستخدام العادل:</b> لا تتجاوز ٦٠ طلباً في الدقيقة لكل عنوان IP من مسارات <code>/app/public/</code>. للأحجام الأكبر، راسل <a href="mailto:api@murbha.sa" style="color:#7a5a10;font-weight:700;">api@murbha.sa</a>.
+</div>
+
+<div class="toc">
+  <h3>المحتوى</h3>
+  <a href="#status">GET /app/public/status</a>
+  <a href="#maintenance">GET /app/public/maintenance</a>
+  <a href="#stats">GET /app/public/platform-stats</a>
+  <a href="#ticker">GET /app/public/ticker</a>
+  <a href="#activity">GET /app/public/activity</a>
+  <a href="#closing">GET /app/public/closing-soon</a>
+  <a href="#leaderboard">GET /app/public/leaderboard</a>
+  <a href="#investor">GET /app/public/investor/:id</a>
+  <a href="#newsletter">GET /app/public/newsletter-issues</a>
+  <a href="#flags">GET /app/public/flags</a>
+  <a href="#feedback">POST /app/feedback</a>
+</div>
+
+<div class="ep" id="status">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/status</span><span class="auth none">عام</span></div>
+  <h2>حالة الخدمة</h2>
+  <p>يعرض الحالة العامة للمنصة ومكوّناتها (API، قاعدة البيانات، البريد، الدفع، الرسائل).</p>
+<pre>{
+  "overall": "operational",
+  "components": [
+    { "id": "api", "name": "API الأساسي", "status": "operational" },
+    ...
+  ],
+  "metrics": { "projectsOpen": 4, "investmentsLast24h": 12, "userCount": 1240 },
+  "serverTime": "2026-06-05T05:55:00.000Z"
+}</pre>
+</div>
+
+<div class="ep" id="maintenance">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/maintenance</span><span class="auth none">عام</span></div>
+  <h2>حالة الصيانة</h2>
+  <p>يخبرك إن كان النظام تحت الصيانة الآن، مع رسالة ووقت متوقّع للعودة.</p>
+<pre>{ "active": false, "message": null, "eta": null, "scheduledStart": null, "scheduledEnd": null }</pre>
+</div>
+
+<div class="ep" id="stats">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/platform-stats</span><span class="auth none">عام</span></div>
+  <h2>إحصاءات المنصة</h2>
+  <p>أرقام مجمّعة عن المنصة بدون أي بيانات شخصية.</p>
+<pre>{ "investors": 312, "deals": 540, "completedProjects": 8, "openProjects": 4, "totalCapital": 41250000, "users": 1280 }</pre>
+</div>
+
+<div class="ep" id="ticker">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/ticker</span><span class="auth none">عام</span></div>
+  <h2>شريط الاستثمارات</h2>
+  <p>آخر الاستثمارات مجهولة الهوية، صالحة للعرض على شريط حي.</p>
+<pre>{ "ticker": [ { "investor": "محمد ع.", "amount": 5000, "project": "اسم المشروع", "at": "2026-06-04T..." } ] }</pre>
+</div>
+
+<div class="ep" id="activity">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/activity</span><span class="auth none">عام</span></div>
+  <h2>النشاط الحالي</h2>
+  <p>يدمج الاستثمارات الجديدة، الصفقات المكتملة، وتوقيعات العقود مع إخفاء الأسماء.</p>
+<pre>{ "events": [ { "kind": "investment", "initial": "م", "title": "استثمار جديد", "detail": "...", "at": "..." } ] }</pre>
+</div>
+
+<div class="ep" id="closing">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/closing-soon?days=14</span><span class="auth none">عام</span></div>
+  <h2>الفرص التي تنتهي قريباً</h2>
+  <p>قائمة بأهم الفرص المفتوحة التي ستُغلق ضمن الأيام المحدّدة.</p>
+<pre>{ "projects": [ { "slug": "...", "name": "...", "fundedPct": 67, "remainingMs": 1234567890, "closesAt": "..." } ], "days": 14 }</pre>
+</div>
+
+<div class="ep" id="leaderboard">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/leaderboard</span><span class="auth none">عام</span></div>
+  <h2>لوحة المستثمرين</h2>
+  <p>قائمة من اختاروا إظهار أسمائهم، مرتّبة حسب الإجمالي المُستثمَر.</p>
+<pre>{ "leaderboard": [ { "userId": "usr_...", "display": "محمد ع.", "invested": 50000, "deals": 6 } ], "optedInCount": 18 }</pre>
+</div>
+
+<div class="ep" id="investor">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/investor/:id</span><span class="auth none">عام</span></div>
+  <h2>ملف مستثمر عام</h2>
+  <p>يعمل فقط للمستثمرين الذين فعّلوا الإظهار في اللوحة. يعيد 404 خلاف ذلك.</p>
+<pre>{ "display": "...", "joinedAt": "...", "investmentCount": 6, "totalInvested": 50000, "categoryBreakdown": [...] }</pre>
+</div>
+
+<div class="ep" id="newsletter">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/newsletter-issues</span><span class="auth none">عام</span></div>
+  <h2>أرشيف النشرة</h2>
+  <p>قائمة الإصدارات المنشورة. للاطّلاع على إصدار بعينه: <code>/app/public/newsletter-issues/:slug</code>.</p>
+<pre>{ "issues": [ { "id": "nli_...", "slug": "...", "title": "...", "summary": "...", "publishedAt": "..." } ] }</pre>
+</div>
+
+<div class="ep" id="flags">
+  <div class="ep-head"><span class="verb get">GET</span><span class="path">/app/public/flags</span><span class="auth none">عام</span></div>
+  <h2>الأعلام (Feature flags)</h2>
+  <p>قاموس key/value للأعلام التي فعّلتها الإدارة. مفيد لتطبيقات العميل التي تتفرّع على ميزات تجريبية.</p>
+<pre>{ "flags": { "darkmode_default": true, "new_calculator": false } }</pre>
+</div>
+
+<div class="ep" id="feedback">
+  <div class="ep-head"><span class="verb post">POST</span><span class="path">/app/feedback</span><span class="auth none">عام</span></div>
+  <h2>إرسال ملاحظات</h2>
+  <p>يُسجّل تعليق NPS اختياري المحتوى. الجلسة المسجّلة تُعبّأ تلقائياً بالاسم والبريد.</p>
+<pre>{ "score": 9, "category": "general", "comment": "تجربة ممتازة." }</pre>
+</div>
+
+<div class="footer-note">
+  <b>تنبيه:</b> هذه الواجهة قد تتغيّر دون إشعار مسبق في هذه المرحلة. للحصول على إشعارات بالتغييرات، اشترك في <a href="/newsletter-archive.html" style="color:var(--green-dark);font-weight:700;">نشرة المنصة</a> أو راسل <a href="mailto:api@murbha.sa" style="color:var(--green-dark);font-weight:700;">api@murbha.sa</a>.
+</div>
+</body>
+</html>

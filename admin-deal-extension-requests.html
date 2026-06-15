@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>طلبات تمديد الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-val.warn{color:#e67e22;}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.request-list{padding:1.25rem;}
+.req-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.req-item:last-child{margin-bottom:0;}
+.req-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;}
+.req-title{font-size:0.88rem;font-weight:700;}
+.req-pill{display:inline-block;padding:0.15rem 0.6rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-approved{background:#e8f5ed;color:#1e8449;}
+.pill-rejected{background:#fde8e8;color:#c0392b;}
+.req-details{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:0.75rem;font-size:0.78rem;}
+.rd-item{}
+.rd-lbl{color:var(--muted);margin-bottom:0.1rem;font-size:0.68rem;}
+.rd-val{font-weight:700;}
+.req-actions{display:flex;gap:0.5rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.req-details{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — طلبات تمديد الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>طلبات تمديد الصفقات</h2>
+      <p>مراجعة واعتماد طلبات المقترضين لتمديد مدة الصفقات</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportRequests()">تصدير</button>
+  </div>
+
+  <div class="stats" id="extStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الطلبات المعلّقة</h3>
+      <span style="font-size:0.75rem;opacity:0.7;">٤ طلبات تحتاج مراجعة</span>
+    </div>
+    <div class="request-list" id="requestList"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="bulkApprove()">اعتماد الكل</button>
+      <button class="btn btn-sm" style="background:#fde8e8;color:#c0392b;" onclick="bulkReject()">رفض الكل</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportRequests()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٤', lbl: 'طلبات معلّقة', cls: 'warn' },
+  { val: '١٢', lbl: 'طلبات مقبولة (هذا الشهر)', cls: '' },
+  { val: '٣', lbl: 'طلبات مرفوضة', cls: '' },
+  { val: '٤.٢ يوم', lbl: 'متوسط وقت المراجعة', cls: '' }
+];
+
+const REQUESTS = [
+  {
+    title: 'صفقة تجهيزات طبية #4905',
+    pill: 'pill-pending', label: 'معلّق',
+    details: [
+      { lbl: 'المدة الحالية', val: '٦ أشهر' },
+      { lbl: 'التمديد المطلوب', val: '٣ أشهر' },
+      { lbl: 'سبب الطلب', val: 'تأخر في التوريد' }
+    ]
+  },
+  {
+    title: 'صفقة نقل بضائع #4898',
+    pill: 'pill-pending', label: 'معلّق',
+    details: [
+      { lbl: 'المدة الحالية', val: '٩ أشهر' },
+      { lbl: 'التمديد المطلوب', val: '٦٠ يوماً' },
+      { lbl: 'سبب الطلب', val: 'ظروف قوة قاهرة' }
+    ]
+  },
+  {
+    title: 'صفقة مواد بناء #4880',
+    pill: 'pill-approved', label: 'مقبول',
+    details: [
+      { lbl: 'المدة الأصلية', val: '١٢ شهراً' },
+      { lbl: 'التمديد المُعتمد', val: '٩٠ يوماً' },
+      { lbl: 'تاريخ الاعتماد', val: '٥ مارس ٢٠٢٦' }
+    ]
+  },
+  {
+    title: 'صفقة أثاث مكتبي #4875',
+    pill: 'pill-rejected', label: 'مرفوض',
+    details: [
+      { lbl: 'المدة الأصلية', val: '٣ أشهر' },
+      { lbl: 'التمديد المطلوب', val: '٩٠ يوماً' },
+      { lbl: 'سبب الرفض', val: 'لا يستوفي الشروط' }
+    ]
+  }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('extStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val' + (s.cls ? ' ' + s.cls : ''); val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildRequests() {
+  const wrap = document.getElementById('requestList');
+  REQUESTS.forEach((r, i) => {
+    const item = document.createElement('div'); item.className = 'req-item';
+    const head = document.createElement('div'); head.className = 'req-head';
+    const title = document.createElement('span'); title.className = 'req-title'; title.textContent = r.title;
+    const pill = document.createElement('span'); pill.className = 'req-pill ' + r.pill; pill.textContent = r.label;
+    head.appendChild(title); head.appendChild(pill);
+    const details = document.createElement('div'); details.className = 'req-details';
+    r.details.forEach(d => {
+      const di = document.createElement('div'); di.className = 'rd-item';
+      const lbl = document.createElement('div'); lbl.className = 'rd-lbl'; lbl.textContent = d.lbl;
+      const val = document.createElement('div'); val.className = 'rd-val'; val.textContent = d.val;
+      di.appendChild(lbl); di.appendChild(val); details.appendChild(di);
+    });
+    item.appendChild(head); item.appendChild(details);
+    if (r.pill === 'pill-pending') {
+      const actions = document.createElement('div'); actions.className = 'req-actions';
+      const approve = document.createElement('button'); approve.className = 'btn btn-sm btn-primary'; approve.textContent = 'اعتماد';
+      approve.onclick = () => approveRequest(i);
+      const reject = document.createElement('button'); reject.className = 'btn btn-sm'; reject.style.cssText = 'background:#fde8e8;color:#c0392b;'; reject.textContent = 'رفض';
+      reject.onclick = () => rejectRequest(i);
+      actions.appendChild(approve); actions.appendChild(reject);
+      item.appendChild(actions);
+    }
+    wrap.appendChild(item);
+  });
+}
+
+function approveRequest(idx) {
+  fetch('/app/admin/deal-extension-requests/' + idx + '/approve', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'approve' }) }).catch(() => {});
+  alert('تم اعتماد طلب التمديد.');
+}
+
+function rejectRequest(idx) {
+  fetch('/app/admin/deal-extension-requests/' + idx + '/reject', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'reject' }) }).catch(() => {});
+  alert('تم رفض طلب التمديد.');
+}
+
+function bulkApprove() {
+  fetch('/app/admin/deal-extension-requests/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'approve-all' }) }).catch(() => {});
+  alert('تم اعتماد جميع الطلبات المعلّقة.');
+}
+
+function bulkReject() {
+  fetch('/app/admin/deal-extension-requests/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'reject-all' }) }).catch(() => {});
+  alert('تم رفض جميع الطلبات المعلّقة.');
+}
+
+function exportRequests() {
+  fetch('/app/admin/deal-extension-requests/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير طلبات التمديد...');
+}
+
+buildStats(); buildRequests();
+</script>
+</body>
+</html>

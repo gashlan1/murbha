@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>إدارة المستثمرين — مُرابحة</title>
+<meta name="description" content="لوحة إدارة المستثمرين للمشرفين: حالة KYC، إجمالي الاستثمار، الإجراءات." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1100px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:18px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.8;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:10px;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  .search-input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .filter-select{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:500 11px Tajawal,sans-serif;background:var(--paper);}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;flex:1;min-width:130px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .table-wrap{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:auto;}
+  .investors-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;min-width:700px;}
+  .investors-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:12px 14px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap;}
+  .investors-table td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .investors-table tr:last-child td{border-bottom:none;}
+  .investor-name{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .investor-email{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-verified{background:#e8f5e9;color:#2e7d32;}
+  .badge-pending{background:#fff8e1;color:#a07020;}
+  .badge-rejected{background:#fdecea;color:#c54a3a;}
+  .badge-active{background:#e8f5e9;color:#2e7d32;}
+  .badge-inactive{background:var(--paper);color:var(--muted);}
+  .actions-cell{display:flex;gap:6px;}
+  .btn-action{border-radius:6px;padding:5px 10px;font:700 9px Cairo,sans-serif;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--green-dark);white-space:nowrap;}
+  .btn-action.danger{background:#fdecea;border-color:#f5c6c0;color:#c54a3a;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 14px;}
+  .pagination{display:flex;justify-content:center;gap:8px;margin-top:16px;}
+  .page-btn{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);}
+  .page-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>👥 إدارة المستثمرين</h1>
+    <p>قائمة شاملة بجميع المستثمرين المسجّلين مع حالة KYC وإجمالي الاستثمارات.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">إجمالي المستثمرين</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">موثّقون (KYC)</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">قيد المراجعة</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">إجمالي المستثمر (ر.س)</div></div>
+  </div>
+
+  <div class="controls">
+    <input class="search-input" id="searchInput" type="text" placeholder="بحث بالاسم أو البريد…" />
+    <select class="filter-select" id="filterKyc">
+      <option value="">جميع حالات KYC</option>
+      <option value="verified">موثّق</option>
+      <option value="pending">قيد المراجعة</option>
+      <option value="rejected">مرفوض</option>
+    </select>
+    <select class="filter-select" id="filterStatus">
+      <option value="">جميع الحالات</option>
+      <option value="active">نشط</option>
+      <option value="inactive">غير نشط</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table class="investors-table">
+      <thead>
+        <tr>
+          <th>المستثمر</th>
+          <th>حالة KYC</th>
+          <th>الحالة</th>
+          <th>الصفقات</th>
+          <th>إجمالي الاستثمار</th>
+          <th>تاريخ التسجيل</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="investorsBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  let allInvestors=[], filtered=[], page=1; const PER_PAGE=20;
+
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  function msgRow(text, cols){
+    const tr=document.createElement('tr');
+    const td=document.createElement('td'); td.colSpan=cols||7;
+    td.className='placeholder-msg'; td.textContent=text; tr.appendChild(td); return tr;
+  }
+
+  function renderKPIs(investors){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    const verified=investors.filter(i=>i.kycStatus==='verified').length;
+    const pending=investors.filter(i=>i.kycStatus==='pending').length;
+    const totalInvested=investors.reduce((s,i)=>s+(i.totalInvested||0),0);
+    [{val:investors.length,lbl:'إجمالي المستثمرين'},{val:verified,lbl:'موثّقون (KYC)'},{val:pending,lbl:'قيد المراجعة'},{val:fmt(totalInvested)+' ر.س',lbl:'إجمالي المستثمر'}].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); row.appendChild(k);
+    });
+  }
+
+  function renderTable(){
+    const body=document.getElementById('investorsBody'); body.textContent='';
+    const start=(page-1)*PER_PAGE; const slice=filtered.slice(start,start+PER_PAGE);
+    if(!slice.length){ body.appendChild(msgRow('لا توجد نتائج.')); return; }
+    slice.forEach(inv=>{
+      const tr=document.createElement('tr');
+
+      const tdN=document.createElement('td');
+      const nm=document.createElement('div'); nm.className='investor-name'; nm.textContent=inv.name||'—';
+      const em=document.createElement('div'); em.className='investor-email'; em.textContent=inv.email||'';
+      tdN.appendChild(nm); tdN.appendChild(em); tr.appendChild(tdN);
+
+      const tdK=document.createElement('td');
+      const kb=document.createElement('span'); kb.className='badge badge-'+(inv.kycStatus||'pending');
+      kb.textContent=inv.kycStatus==='verified'?'موثّق':inv.kycStatus==='rejected'?'مرفوض':'قيد المراجعة';
+      tdK.appendChild(kb); tr.appendChild(tdK);
+
+      const tdS=document.createElement('td');
+      const sb=document.createElement('span'); sb.className='badge badge-'+(inv.status||'inactive');
+      sb.textContent=inv.status==='active'?'نشط':'غير نشط'; tdS.appendChild(sb); tr.appendChild(tdS);
+
+      [inv.dealCount||0, fmt(inv.totalInvested||0)+' ر.س', inv.joinedAt||'—'].forEach(val=>{
+        const td=document.createElement('td'); td.textContent=val; tr.appendChild(td);
+      });
+
+      const tdA=document.createElement('td');
+      const acts=document.createElement('div'); acts.className='actions-cell';
+      const viewBtn=document.createElement('button'); viewBtn.className='btn-action'; viewBtn.textContent='عرض';
+      viewBtn.addEventListener('click',()=>showToast('عرض المستثمر: '+inv.name));
+      const susBtn=document.createElement('button'); susBtn.className='btn-action danger';
+      susBtn.textContent=inv.status==='active'?'تعليق':'تفعيل';
+      susBtn.addEventListener('click',()=>toggleStatus(inv.id, susBtn));
+      acts.appendChild(viewBtn); acts.appendChild(susBtn);
+      tdA.appendChild(acts); tr.appendChild(tdA);
+      body.appendChild(tr);
+    });
+    renderPagination();
+  }
+
+  function renderPagination(){
+    const pg=document.getElementById('pagination'); pg.textContent='';
+    const pages=Math.ceil(filtered.length/PER_PAGE); if(pages<=1) return;
+    for(let i=1;i<=pages;i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===page?' active':'');
+      btn.textContent=i;
+      btn.addEventListener('click',()=>{ page=i; renderTable(); });
+      pg.appendChild(btn);
+    }
+  }
+
+  function applyFilters(){
+    const q=document.getElementById('searchInput').value.trim().toLowerCase();
+    const kyc=document.getElementById('filterKyc').value;
+    const status=document.getElementById('filterStatus').value;
+    filtered=allInvestors.filter(inv=>{
+      if(q && !(inv.name||'').toLowerCase().includes(q) && !(inv.email||'').toLowerCase().includes(q)) return false;
+      if(kyc && inv.kycStatus!==kyc) return false;
+      if(status && inv.status!==status) return false;
+      return true;
+    });
+    page=1; renderTable();
+  }
+
+  async function toggleStatus(id, btn){
+    try{
+      const r=await fetch('/app/admin/investors/'+encodeURIComponent(id)+'/status',{method:'PUT',headers:{'X-CSRF-Token':csrf()}});
+      if(!r.ok){ showToast('تعذّر التحديث.'); return; }
+      const inv=allInvestors.find(i=>i.id===id); if(!inv) return;
+      inv.status=inv.status==='active'?'inactive':'active';
+      btn.textContent=inv.status==='active'?'تعليق':'تفعيل';
+      showToast(inv.status==='active'?'تم تفعيل الحساب':'تم تعليق الحساب');
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('filterKyc').addEventListener('change', applyFilters);
+  document.getElementById('filterStatus').addEventListener('change', applyFilters);
+
+  (async function load(){
+    const body=document.getElementById('investorsBody');
+    body.textContent=''; body.appendChild(msgRow('جارٍ التحميل…'));
+    try{
+      const r=await fetch('/app/admin/investors');
+      body.textContent='';
+      if(!r.ok){ body.appendChild(msgRow(r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.')); return; }
+      const d=await r.json();
+      allInvestors=d.investors||[]; filtered=[...allInvestors];
+      renderKPIs(allInvestors); renderTable();
+    }catch{ body.textContent=''; body.appendChild(msgRow('تعذّر التحميل.')); }
+  }());
+}());
+</script>
+</body>
+</html>

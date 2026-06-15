@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Communications — Admin — Murbha">المراسلات — الإدارة — مُرابحة</title>
+<meta name="description" content="إدارة قوالب الرسائل والمراسلات الرسمية مع المستثمرين في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:20px;}
+  /* Layout */
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:flex-start;}
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}}
+  /* Template list */
+  .template-list{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden;}
+  .tlist-header{padding:14px 16px;border-bottom:1.5px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .tlist-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .btn-new{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:8px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .btn-new:hover{background:var(--green);}
+  .template-item{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s;}
+  .template-item:last-child{border-bottom:none;}
+  .template-item:hover,.template-item.active{background:#f0f7f4;}
+  .ti-name{font:700 12px Cairo,sans-serif;color:var(--green-dark);margin-bottom:2px;}
+  .ti-type{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .ti-badge{display:inline-block;border-radius:4px;padding:1px 6px;font:700 8px Cairo,sans-serif;}
+  .badge-email{background:#e3f2fd;color:#1565c0;}
+  .badge-sms{background:#fff8e1;color:#a07020;}
+  .badge-push{background:#e8f5e9;color:#2e7d32;}
+  /* Editor */
+  .editor-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .editor-empty{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:60px 0;}
+  label{font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;margin-top:14px;}
+  label:first-child{margin-top:0;}
+  input[type=text],select,textarea{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font:500 13px Tajawal,sans-serif;color:var(--ink);outline:none;background:#fff;}
+  input[type=text]:focus,select:focus,textarea:focus{border-color:var(--green);}
+  textarea{resize:vertical;min-height:140px;}
+  .vars-hint{background:var(--paper);border-radius:8px;padding:10px 12px;margin-top:8px;font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.8;}
+  .var-tag{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font:700 9px Cairo,sans-serif;color:var(--green-dark);margin:1px;}
+  .editor-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:10px 22px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-delete{border:1.5px solid #c54a3a;background:#fff;color:#c54a3a;border-radius:10px;padding:10px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-test{border:1.5px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;padding:10px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .success-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2e7d32;color:#fff;border-radius:10px;padding:12px 24px;font:700 12px Cairo,sans-serif;z-index:999;display:none;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="success-toast" id="toast"></div>
+<main>
+  <div class="page-title" data-en="Communications Management">إدارة المراسلات</div>
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="layout">
+    <div class="template-list">
+      <div class="tlist-header">
+        <span class="tlist-title" data-en="Templates">القوالب</span>
+        <button class="btn-new" id="btnNew" data-en="New">+ جديد</button>
+      </div>
+      <div id="templateList"></div>
+    </div>
+    <div class="editor-card" id="editorCard">
+      <div class="editor-empty" id="editorEmpty" data-en="Select a template to edit or create a new one.">اختر قالباً للتعديل أو أنشئ قالباً جديداً.</div>
+      <div id="editorForm" style="display:none;">
+        <label data-en="Template Name">اسم القالب</label>
+        <input type="text" id="edName" maxlength="120" placeholder="اسم القالب…" data-en-placeholder="Template name…" />
+
+        <label data-en="Channel">القناة</label>
+        <select id="edChannel">
+          <option value="email">بريد إلكتروني</option>
+          <option value="sms">رسالة نصية (SMS)</option>
+          <option value="push">إشعار فوري</option>
+        </select>
+
+        <label data-en="Event Trigger">الحدث المُشغِّل</label>
+        <select id="edEvent">
+          <option value="kyc_approved">اعتماد KYC</option>
+          <option value="kyc_rejected">رفض KYC</option>
+          <option value="investment_confirmed">تأكيد الاستثمار</option>
+          <option value="return_paid">صرف عائد</option>
+          <option value="deal_closed">إغلاق الصفقة</option>
+          <option value="password_reset">إعادة تعيين كلمة المرور</option>
+          <option value="custom">مخصص (يدوي)</option>
+        </select>
+
+        <label data-en="Subject (email only)">الموضوع (للبريد فقط)</label>
+        <input type="text" id="edSubject" maxlength="200" placeholder="موضوع البريد الإلكتروني…" data-en-placeholder="Email subject…" />
+
+        <label data-en="Body">نص الرسالة</label>
+        <textarea id="edBody" placeholder="اكتب نص الرسالة هنا. استخدم المتغيرات أدناه…" data-en-placeholder="Write message body…"></textarea>
+
+        <div class="vars-hint">
+          <strong>المتغيرات المتاحة:</strong><br />
+          <span class="var-tag">{{name}}</span>
+          <span class="var-tag">{{amount}}</span>
+          <span class="var-tag">{{deal_name}}</span>
+          <span class="var-tag">{{date}}</span>
+          <span class="var-tag">{{return_rate}}</span>
+          <span class="var-tag">{{platform_name}}</span>
+          <span class="var-tag">{{support_email}}</span>
+        </div>
+
+        <div class="editor-actions">
+          <button class="btn-delete" id="btnDelete" data-en="Delete">حذف</button>
+          <button class="btn-test" id="btnTest" data-en="Test Send">إرسال تجريبي</button>
+          <button class="btn-save" id="btnSave" data-en="Save">حفظ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function toast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.style.background=err?'#c54a3a':'#2e7d32'; t.style.display='block'; setTimeout(()=>{t.style.display='none';},3500); }
+
+  const channelLabel={email:'Email',sms:'SMS',push:'Push'};
+  const channelBadge={email:'badge-email',sms:'badge-sms',push:'badge-push'};
+  const defaultTemplates=[
+    {id:'tpl_kyc_ok',name:'اعتماد KYC',channel:'email',event:'kyc_approved',subject:'🎉 تم اعتماد هويتك — مُرابحة',body:'مرحباً {{name}}،\n\nيسعدنا إعلامك بأن عملية التحقق من هويتك تمّت بنجاح.\nيمكنك الآن بدء الاستثمار في المنصة.\n\nمع تحيات فريق مُرابحة.'},
+    {id:'tpl_invest',name:'تأكيد الاستثمار',channel:'email',event:'investment_confirmed',subject:'✅ تم تأكيد استثمارك في {{deal_name}}',body:'مرحباً {{name}}،\n\nتم تأكيد استثمارك بمبلغ {{amount}} في صفقة {{deal_name}}.\nتاريخ البدء: {{date}}\nالعائد المتوقع: {{return_rate}}\n\nمع تحيات فريق مُرابحة.'},
+    {id:'tpl_return',name:'إشعار عائد',channel:'push',event:'return_paid',subject:'',body:'تم صرف عائدك {{amount}} من صفقة {{deal_name}}.'},
+    {id:'tpl_pwd',name:'إعادة كلمة المرور',channel:'email',event:'password_reset',subject:'إعادة تعيين كلمة المرور — مُرابحة',body:'مرحباً {{name}}،\n\nتلقينا طلباً لإعادة تعيين كلمة مرورك.\nإذا لم تطلب ذلك، تجاهل هذه الرسالة.\n\nفريق مُرابحة'},
+  ];
+
+  let templates=[...defaultTemplates];
+  let activeId=null;
+
+  async function loadKpis(){
+    try{
+      const r=await fetch('/app/admin/communications/stats');
+      if(!r.ok) throw new Error();
+      const d=await r.json();
+      renderKpis(d);
+    }catch{
+      renderKpis({totalSent:0,thisWeek:0,openRate:0,templates:templates.length});
+    }
+  }
+
+  function renderKpis(d){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    [{label:'إجمالي المُرسَل',val:d.totalSent||0},{label:'هذا الأسبوع',val:d.thisWeek||0},{label:'معدل الفتح',val:(d.openRate||0).toFixed(1)+'٪'},{label:'عدد القوالب',val:d.templates||templates.length}].forEach(k=>{
+      const card=document.createElement('div'); card.className='kpi';
+      const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.label;
+      const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+      card.appendChild(lbl); card.appendChild(val); row.appendChild(card);
+    });
+  }
+
+  async function loadTemplates(){
+    try{
+      const r=await fetch('/app/admin/communications/templates');
+      if(r.ok){ const d=await r.json(); templates=d.templates||defaultTemplates; }
+    }catch{}
+    renderList();
+  }
+
+  function renderList(){
+    const el=document.getElementById('templateList'); el.textContent='';
+    templates.forEach(t=>{
+      const item=document.createElement('div'); item.className='template-item'+(t.id===activeId?' active':'');
+      const name=document.createElement('div'); name.className='ti-name'; name.textContent=t.name;
+      const meta=document.createElement('div'); meta.className='ti-type';
+      const badge=document.createElement('span'); badge.className='ti-badge '+(channelBadge[t.channel]||'badge-email'); badge.textContent=channelLabel[t.channel]||t.channel;
+      meta.appendChild(badge);
+      item.appendChild(name); item.appendChild(meta);
+      item.addEventListener('click',()=>selectTemplate(t.id));
+      el.appendChild(item);
+    });
+  }
+
+  function selectTemplate(id){
+    activeId=id;
+    renderList();
+    const t=templates.find(x=>x.id===id);
+    if(!t) return;
+    document.getElementById('editorEmpty').style.display='none';
+    document.getElementById('editorForm').style.display='block';
+    document.getElementById('edName').value=t.name||'';
+    document.getElementById('edChannel').value=t.channel||'email';
+    document.getElementById('edEvent').value=t.event||'custom';
+    document.getElementById('edSubject').value=t.subject||'';
+    document.getElementById('edBody').value=t.body||'';
+    document.getElementById('btnDelete').style.display=t.id.startsWith('new_')?'none':'block';
+  }
+
+  document.getElementById('btnNew').addEventListener('click',()=>{
+    const newId='new_'+Date.now();
+    const newTpl={id:newId,name:'قالب جديد',channel:'email',event:'custom',subject:'',body:''};
+    templates.unshift(newTpl);
+    renderList();
+    selectTemplate(newId);
+  });
+
+  document.getElementById('btnSave').addEventListener('click',async()=>{
+    if(!activeId) return;
+    const t=templates.find(x=>x.id===activeId); if(!t) return;
+    t.name=document.getElementById('edName').value.trim()||t.name;
+    t.channel=document.getElementById('edChannel').value;
+    t.event=document.getElementById('edEvent').value;
+    t.subject=document.getElementById('edSubject').value.trim();
+    t.body=document.getElementById('edBody').value;
+    const btn=document.getElementById('btnSave'); btn.disabled=true;
+    try{
+      const isNew=activeId.startsWith('new_');
+      const url=isNew?'/app/admin/communications/templates':'/app/admin/communications/templates/'+encodeURIComponent(activeId);
+      const method=isNew?'POST':'PUT';
+      const r=await fetch(url,{method,headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify(t)});
+      btn.disabled=false;
+      if(!r.ok){toast('فشل الحفظ.',true);return;}
+      if(isNew){ const d=await r.json(); if(d.id){t.id=d.id; activeId=d.id;} }
+      toast('تم حفظ القالب!');
+      renderList();
+    }catch{btn.disabled=false;}
+  });
+
+  document.getElementById('btnDelete').addEventListener('click',async()=>{
+    if(!activeId||!confirm('حذف هذا القالب نهائياً؟')) return;
+    try{
+      await fetch('/app/admin/communications/templates/'+encodeURIComponent(activeId),{method:'DELETE',headers:{'X-CSRF-Token':csrf()}});
+    }catch{}
+    templates=templates.filter(x=>x.id!==activeId);
+    activeId=null;
+    document.getElementById('editorEmpty').style.display='block';
+    document.getElementById('editorForm').style.display='none';
+    renderList();
+    toast('تم الحذف.');
+  });
+
+  document.getElementById('btnTest').addEventListener('click',async()=>{
+    const to=prompt('أدخل البريد الإلكتروني للإرسال التجريبي:');
+    if(!to) return;
+    toast('جارٍ إرسال الرسالة التجريبية…');
+    try{
+      await fetch('/app/admin/communications/test',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({templateId:activeId,to})});
+      toast('تم الإرسال التجريبي!');
+    }catch{toast('فشل الإرسال.',true);}
+  });
+
+  loadKpis(); loadTemplates();
+}());
+</script>
+</body>
+</html>

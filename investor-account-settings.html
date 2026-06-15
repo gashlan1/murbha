@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعدادات الحساب - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.settings-layout{display:grid;grid-template-columns:220px 1fr;gap:1.5rem;}
+.sidebar{display:flex;flex-direction:column;gap:0.4rem;}
+.sidebar-btn{display:block;padding:0.65rem 1rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;font-weight:600;color:var(--green-dark);background:none;border:none;cursor:pointer;text-align:right;transition:background 0.15s;}
+.sidebar-btn:hover{background:rgba(10,77,54,0.08);}
+.sidebar-btn.active{background:var(--green);color:#fff;}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.field{margin-bottom:1.2rem;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.35rem;}
+.field input,.field select{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;background:#fff;color:var(--green-dark);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+.field input[disabled]{background:#f5f0e8;color:var(--muted);}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-danger:hover{background:#c0392b;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.avatar-row{display:flex;align-items:center;gap:1.2rem;margin-bottom:1.5rem;}
+.avatar{width:72px;height:72px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;flex-shrink:0;}
+.avatar-info h4{font-size:1rem;font-weight:700;}
+.avatar-info p{font-size:0.82rem;color:var(--muted);margin-top:0.2rem;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 0;border-bottom:1px solid var(--line);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-label h4{font-size:0.9rem;font-weight:600;}
+.toggle-label p{font-size:0.78rem;color:var(--muted);margin-top:0.15rem;}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:#d0cdc7;border-radius:12px;cursor:pointer;transition:background 0.2s;}
+.toggle input:checked+.toggle-track{background:var(--green);}
+.toggle-thumb{position:absolute;top:3px;right:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform 0.2s;}
+.toggle input:checked~.toggle-thumb{transform:translateX(-20px);}
+.bank-card{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border:1.5px solid var(--line);border-radius:10px;margin-bottom:0.85rem;}
+.bank-card:last-child{margin-bottom:0;}
+.bank-info{display:flex;align-items:center;gap:0.9rem;}
+.bank-icon{width:40px;height:40px;border-radius:8px;background:#f0ebe0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.bank-detail h4{font-size:0.9rem;font-weight:700;}
+.bank-detail p{font-size:0.78rem;color:var(--muted);}
+.badge-def{display:inline-block;padding:0.2rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:700;}
+.badge-primary-bank{background:#e8f5ed;color:#27ae60;}
+.status-bar{padding:0.75rem 1rem;border-radius:8px;font-size:0.84rem;margin-bottom:1rem;display:none;}
+.status-bar.success{background:#e8f5ed;color:#1e8449;}
+.status-bar.error{background:#fdecea;color:#c0392b;}
+@media(max-width:700px){.settings-layout{grid-template-columns:1fr;}.row-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إعدادات الحساب</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إعدادات الحساب</h2>
+    <p>إدارة معلوماتك الشخصية وكلمة المرور وتفضيلات الإشعارات</p>
+  </div>
+
+  <div class="settings-layout">
+    <div class="sidebar">
+      <button class="sidebar-btn active" onclick="showPanel('profile')">الملف الشخصي</button>
+      <button class="sidebar-btn" onclick="showPanel('security')">الأمان وكلمة المرور</button>
+      <button class="sidebar-btn" onclick="showPanel('notifications')">تفضيلات الإشعارات</button>
+      <button class="sidebar-btn" onclick="showPanel('banks')">الحسابات البنكية</button>
+    </div>
+
+    <div class="main-content">
+
+      <!-- Profile Panel -->
+      <div class="panel active" id="panel-profile">
+        <div class="card">
+          <div class="card-head"><h3>المعلومات الشخصية</h3></div>
+          <div class="card-body">
+            <div class="avatar-row">
+              <div class="avatar" id="avatarInitials">م.أ</div>
+              <div class="avatar-info">
+                <h4 id="avatarName">محمد أحمد</h4>
+                <p id="avatarEmail">m.ahmed@example.com</p>
+              </div>
+            </div>
+            <div id="profileStatus" class="status-bar"></div>
+            <div class="row-2">
+              <div class="field">
+                <label>الاسم الأول</label>
+                <input type="text" id="firstName" value="محمد">
+              </div>
+              <div class="field">
+                <label>اسم العائلة</label>
+                <input type="text" id="lastName" value="أحمد">
+              </div>
+            </div>
+            <div class="field">
+              <label>البريد الإلكتروني</label>
+              <input type="email" id="email" value="m.ahmed@example.com" disabled>
+            </div>
+            <div class="field">
+              <label>رقم الجوال</label>
+              <input type="tel" id="phone" value="+966 50 000 0000">
+            </div>
+            <div class="field">
+              <label>تاريخ الميلاد</label>
+              <input type="date" id="dob" value="1990-05-15">
+            </div>
+            <div class="field">
+              <label>الجنسية</label>
+              <select id="nationality">
+                <option value="SA" selected>سعودي</option>
+                <option value="AE">إماراتي</option>
+                <option value="KW">كويتي</option>
+                <option value="BH">بحريني</option>
+                <option value="QA">قطري</option>
+                <option value="OM">عُماني</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()">حفظ التغييرات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Panel -->
+      <div class="panel" id="panel-security">
+        <div class="card">
+          <div class="card-head"><h3>تغيير كلمة المرور</h3></div>
+          <div class="card-body">
+            <div id="securityStatus" class="status-bar"></div>
+            <div class="field">
+              <label>كلمة المرور الحالية</label>
+              <input type="password" id="currentPass" placeholder="••••••••">
+            </div>
+            <div class="field">
+              <label>كلمة المرور الجديدة</label>
+              <input type="password" id="newPass" placeholder="••••••••">
+            </div>
+            <div class="field">
+              <label>تأكيد كلمة المرور الجديدة</label>
+              <input type="password" id="confirmPass" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()">تحديث كلمة المرور</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>المصادقة الثنائية (2FA)</h3></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>تفعيل 2FA عبر الرسائل القصيرة</h4>
+                <p>رمز تحقق يُرسل لجوالك في كل تسجيل دخول</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="twoFaSms" checked onchange="save2FA()">
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>تفعيل 2FA عبر تطبيق المصادقة</h4>
+                <p>استخدم Google Authenticator أو Authy</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="twoFaApp" onchange="save2FA()">
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications Panel -->
+      <div class="panel" id="panel-notifications">
+        <div class="card">
+          <div class="card-head"><h3>إشعارات البريد الإلكتروني</h3></div>
+          <div class="card-body">
+            <div id="notifStatus" class="status-bar"></div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>تحديثات الصفقات</h4>
+                <p>تنبيهات عند إطلاق صفقة جديدة أو اكتمال التمويل</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifDeals" checked>
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>توزيعات الأرباح</h4>
+                <p>إشعار عند صرف دفعة ربح جديدة</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifDividends" checked>
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>تقارير الحساب الشهرية</h4>
+                <p>ملخص أداء محفظتك كل شهر</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifReports" checked>
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>تنبيهات الأمان</h4>
+                <p>تسجيل دخول من جهاز جديد أو تغيير كلمة المرور</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifSecurity" checked>
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>العروض والمحتوى التعليمي</h4>
+                <p>نصائح وفرص استثمارية مختارة</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifMarketing">
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>إشعارات الجوال (Push)</h3></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-label">
+                <h4>إشعارات فورية</h4>
+                <p>تلقّ إشعارات فورية على هاتفك</p>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notifPush" checked>
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveNotifications()">حفظ تفضيلات الإشعارات</button>
+      </div>
+
+      <!-- Banks Panel -->
+      <div class="panel" id="panel-banks">
+        <div class="card">
+          <div class="card-head">
+            <h3>الحسابات البنكية المرتبطة</h3>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="addBank()">+ إضافة حساب</button>
+          </div>
+          <div class="card-body" id="banksList">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.main-content -->
+  </div><!-- /.settings-layout -->
+</div>
+
+<script>
+const PANELS = ['profile','security','notifications','banks'];
+
+function showPanel(id) {
+  PANELS.forEach(p => {
+    const el = document.getElementById('panel-' + p);
+    if (el) el.classList.toggle('active', p === id);
+  });
+  document.querySelectorAll('.sidebar-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', PANELS[i] === id);
+  });
+  if (id === 'banks') renderBanks();
+}
+
+function showStatus(elId, type, msg) {
+  const el = document.getElementById(elId);
+  el.className = 'status-bar ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function getCSRF() {
+  return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrf='))?.split('=')[1] || 'demo-token';
+}
+
+function saveProfile() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const dob = document.getElementById('dob').value;
+  const nationality = document.getElementById('nationality').value;
+
+  if (!firstName || !lastName) {
+    showStatus('profileStatus', 'error', 'الاسم الأول واسم العائلة مطلوبان');
+    return;
+  }
+
+  fetch('/app/me/account/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCSRF() },
+    body: JSON.stringify({ firstName, lastName, phone, dob, nationality })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        const fullName = firstName + ' ' + lastName;
+        const nameEl = document.getElementById('avatarName');
+        nameEl.textContent = fullName;
+        const initialsEl = document.getElementById('avatarInitials');
+        initialsEl.textContent = (firstName[0] || '') + '.' + (lastName[0] || '');
+        showStatus('profileStatus', 'success', 'تم حفظ البيانات بنجاح');
+      } else {
+        showStatus('profileStatus', 'error', data.error || 'حدث خطأ');
+      }
+    })
+    .catch(() => showStatus('profileStatus', 'success', 'تم حفظ البيانات (وضع عرض)'));
+}
+
+function changePassword() {
+  const currentPass = document.getElementById('currentPass').value;
+  const newPass = document.getElementById('newPass').value;
+  const confirmPass = document.getElementById('confirmPass').value;
+
+  if (!currentPass || !newPass || !confirmPass) {
+    showStatus('securityStatus', 'error', 'يرجى ملء جميع الحقول');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    showStatus('securityStatus', 'error', 'كلمتا المرور غير متطابقتين');
+    return;
+  }
+  if (newPass.length < 8) {
+    showStatus('securityStatus', 'error', 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+    return;
+  }
+
+  fetch('/app/me/account/password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCSRF() },
+    body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('currentPass').value = '';
+        document.getElementById('newPass').value = '';
+        document.getElementById('confirmPass').value = '';
+        showStatus('securityStatus', 'success', 'تم تحديث كلمة المرور بنجاح');
+      } else {
+        showStatus('securityStatus', 'error', data.error || 'خطأ في كلمة المرور الحالية');
+      }
+    })
+    .catch(() => showStatus('securityStatus', 'success', 'تم التحديث (وضع عرض)'));
+}
+
+function save2FA() {
+  const sms = document.getElementById('twoFaSms').checked;
+  const app = document.getElementById('twoFaApp').checked;
+  fetch('/app/me/account/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCSRF() },
+    body: JSON.stringify({ twoFaSms: sms, twoFaApp: app })
+  }).catch(() => {});
+}
+
+function saveNotifications() {
+  const prefs = {
+    deals: document.getElementById('notifDeals').checked,
+    dividends: document.getElementById('notifDividends').checked,
+    reports: document.getElementById('notifReports').checked,
+    security: document.getElementById('notifSecurity').checked,
+    marketing: document.getElementById('notifMarketing').checked,
+    push: document.getElementById('notifPush').checked
+  };
+  fetch('/app/me/account/notifications-preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCSRF() },
+    body: JSON.stringify(prefs)
+  })
+    .then(r => r.json())
+    .then(data => {
+      showStatus('notifStatus', data.ok ? 'success' : 'error', data.ok ? 'تم حفظ تفضيلات الإشعارات' : (data.error || 'حدث خطأ'));
+    })
+    .catch(() => showStatus('notifStatus', 'success', 'تم الحفظ (وضع عرض)'));
+}
+
+const DEMO_BANKS = [
+  { id: 1, name: 'البنك الأهلي السعودي', iban: 'SA44 2000 0001 2345 6789 1234', primary: true },
+  { id: 2, name: 'بنك الراجحي', iban: 'SA36 8000 0002 6081 7890 8765', primary: false }
+];
+
+function renderBanks() {
+  const list = document.getElementById('banksList');
+  list.textContent = '';
+  if (DEMO_BANKS.length === 0) {
+    const p = document.createElement('p');
+    p.style.color = 'var(--muted)';
+    p.style.fontSize = '0.88rem';
+    p.textContent = 'لا توجد حسابات بنكية مرتبطة بعد';
+    list.appendChild(p);
+    return;
+  }
+  DEMO_BANKS.forEach(bank => {
+    const card = document.createElement('div');
+    card.className = 'bank-card';
+
+    const info = document.createElement('div');
+    info.className = 'bank-info';
+
+    const icon = document.createElement('div');
+    icon.className = 'bank-icon';
+    icon.textContent = '🏦';
+
+    const detail = document.createElement('div');
+    detail.className = 'bank-detail';
+
+    const nameRow = document.createElement('div');
+    nameRow.style.display = 'flex';
+    nameRow.style.alignItems = 'center';
+    nameRow.style.gap = '0.5rem';
+
+    const nameEl = document.createElement('h4');
+    nameEl.textContent = bank.name;
+    nameRow.appendChild(nameEl);
+
+    if (bank.primary) {
+      const badge = document.createElement('span');
+      badge.className = 'badge-def badge-primary-bank';
+      badge.textContent = 'الرئيسي';
+      nameRow.appendChild(badge);
+    }
+
+    const ibanEl = document.createElement('p');
+    const masked = bank.iban.slice(0, 8) + ' **** **** ' + bank.iban.slice(-4);
+    ibanEl.textContent = masked;
+
+    detail.appendChild(nameRow);
+    detail.appendChild(ibanEl);
+    info.appendChild(icon);
+    info.appendChild(detail);
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '0.5rem';
+
+    if (!bank.primary) {
+      const setPrimBtn = document.createElement('button');
+      setPrimBtn.className = 'btn btn-sm btn-primary';
+      setPrimBtn.textContent = 'تعيين رئيسي';
+      setPrimBtn.onclick = () => setPrimaryBank(bank.id);
+      actions.appendChild(setPrimBtn);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-danger';
+    delBtn.textContent = 'حذف';
+    delBtn.onclick = () => removeBank(bank.id);
+    actions.appendChild(delBtn);
+
+    card.appendChild(info);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+}
+
+function setPrimaryBank(id) {
+  DEMO_BANKS.forEach(b => { b.primary = b.id === id; });
+  renderBanks();
+}
+
+function removeBank(id) {
+  const idx = DEMO_BANKS.findIndex(b => b.id === id);
+  if (idx !== -1) DEMO_BANKS.splice(idx, 1);
+  renderBanks();
+}
+
+function addBank() {
+  const iban = prompt('أدخل رقم الآيبان (IBAN):');
+  if (!iban || iban.trim().length < 20) return;
+  const bankName = prompt('اسم البنك:');
+  if (!bankName || !bankName.trim()) return;
+  const newId = DEMO_BANKS.length ? Math.max(...DEMO_BANKS.map(b => b.id)) + 1 : 1;
+  DEMO_BANKS.push({ id: newId, name: bankName.trim(), iban: iban.trim(), primary: DEMO_BANKS.length === 0 });
+  renderBanks();
+}
+</script>
+</body>
+</html>

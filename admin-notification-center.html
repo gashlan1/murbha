@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مركز الإشعارات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.6fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.channel-list{padding:1rem;}
+.ch-item{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0.5rem;border-bottom:1px solid var(--line);}
+.ch-item:last-child{border-bottom:none;}
+.ch-name{font-size:0.86rem;font-weight:600;}
+.ch-sub{font-size:0.72rem;color:var(--muted);margin-top:0.1rem;}
+.toggle{width:38px;height:20px;border-radius:10px;cursor:pointer;border:none;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:#d0cbc0;}
+.notif-list{padding:1rem;}
+.notif-item{border:1px solid var(--line);border-radius:10px;padding:0.9rem;margin-bottom:0.75rem;display:flex;gap:0.85rem;align-items:flex-start;}
+.notif-item:last-child{margin-bottom:0;}
+.notif-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.dot-info{background:var(--green);}
+.dot-warn{background:var(--gold);}
+.dot-alert{background:#c0392b;}
+.notif-body{}
+.notif-title{font-size:0.86rem;font-weight:700;}
+.notif-meta{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مركز الإشعارات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مركز إدارة الإشعارات</h2>
+      <p>إرسال الإشعارات للمستثمرين وإدارة قنوات التواصل والتنبيهات</p>
+    </div>
+    <button class="btn btn-primary" onclick="sendBroadcast()">إرسال إشعار عام</button>
+  </div>
+
+  <div class="stats" id="ncStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قنوات الإشعارات</h3></div>
+      <div class="channel-list" id="channelList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>آخر الإشعارات المُرسلة</h3></div>
+      <div class="notif-list" id="notifList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>إرسال إشعار مخصص</h3>
+    </div>
+    <div style="padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;" id="composeForm"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="sendNotification()">إرسال الإشعار</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="scheduleNotification()">جدولة الإرسال</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٤,٢١٨', lbl: 'إجمالي المستقبلين' },
+  { val: '١٤٢', lbl: 'إشعار أُرسل هذا الشهر' },
+  { val: '٨٦٪', lbl: 'معدل الفتح' },
+  { val: '٣', lbl: 'إشعارات مجدولة' }
+];
+
+const CHANNELS = [
+  { name: 'البريد الإلكتروني', sub: 'لجميع المستثمرين المسجلين', on: true },
+  { name: 'رسائل SMS', sub: 'للمستثمرين ذوي التوثيق الكامل', on: true },
+  { name: 'إشعارات التطبيق', sub: 'مستخدمو التطبيق المحمول', on: true },
+  { name: 'واتساب', sub: 'للمشتركين في الخدمة', on: false }
+];
+
+const NOTIFS = [
+  { type: 'dot-info', title: 'تذكير بموعد توزيع أرباح مرابحة عقارية #4920', meta: 'أُرسل لـ ٤,٢١٨ مستثمر · منذ ٢ أيام' },
+  { type: 'dot-warn', title: 'تنبيه: انتهاء صلاحية وثيقة هوية لمستثمرين', meta: 'أُرسل لـ ١٢ مستثمر · منذ ٥ أيام' },
+  { type: 'dot-info', title: 'صفقة جديدة متاحة: مرابحة لوجستية بعائد ٩٪', meta: 'أُرسل لـ ٤,٢١٨ مستثمر · منذ ٧ أيام' },
+  { type: 'dot-alert', title: 'طلبات سحب معلقة تجاوزت ٤٨ ساعة', meta: 'أُرسل لفريق العمليات · منذ ١٠ أيام' }
+];
+
+const COMPOSE_FIELDS = [
+  { label: 'نوع الإشعار', type: 'select', opts: ['معلوماتي', 'تنبيه', 'تسويقي', 'عاجل'] },
+  { label: 'الجمهور المستهدف', type: 'select', opts: ['جميع المستثمرين', 'مستثمرو صفقة محددة', 'VIP فقط'] },
+  { label: 'عنوان الإشعار', type: 'input' },
+  { label: 'نص الرسالة', type: 'input' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('ncStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildChannels() {
+  const wrap = document.getElementById('channelList');
+  CHANNELS.forEach(c => {
+    const item = document.createElement('div'); item.className = 'ch-item';
+    const left = document.createElement('div');
+    const name = document.createElement('div'); name.className = 'ch-name'; name.textContent = c.name;
+    const sub = document.createElement('div'); sub.className = 'ch-sub'; sub.textContent = c.sub;
+    left.appendChild(name); left.appendChild(sub);
+    const toggle = document.createElement('button'); toggle.className = 'toggle ' + (c.on ? 'on' : 'off');
+    toggle.onclick = () => { c.on = !c.on; toggle.className = 'toggle ' + (c.on ? 'on' : 'off'); };
+    item.appendChild(left); item.appendChild(toggle);
+    wrap.appendChild(item);
+  });
+}
+
+function buildNotifs() {
+  const wrap = document.getElementById('notifList');
+  NOTIFS.forEach(n => {
+    const item = document.createElement('div'); item.className = 'notif-item';
+    const dot = document.createElement('div'); dot.className = 'notif-dot ' + n.type;
+    const body = document.createElement('div'); body.className = 'notif-body';
+    const title = document.createElement('div'); title.className = 'notif-title'; title.textContent = n.title;
+    const meta = document.createElement('div'); meta.className = 'notif-meta'; meta.textContent = n.meta;
+    body.appendChild(title); body.appendChild(meta);
+    item.appendChild(dot); item.appendChild(body);
+    wrap.appendChild(item);
+  });
+}
+
+function buildCompose() {
+  const wrap = document.getElementById('composeForm');
+  COMPOSE_FIELDS.forEach(f => {
+    const group = document.createElement('div');
+    const label = document.createElement('label'); label.style.cssText = 'display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);'; label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      input.style.cssText = 'width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:Cairo,sans-serif;font-size:0.86rem;background:#fff;';
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+    } else {
+      input = document.createElement('input'); input.type = 'text';
+      input.style.cssText = 'width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:Cairo,sans-serif;font-size:0.86rem;';
+    }
+    group.appendChild(label); group.appendChild(input);
+    wrap.appendChild(group);
+  });
+}
+
+function sendBroadcast() {
+  fetch('/app/admin/notification-center', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ type: 'broadcast' }) }).catch(() => {});
+  alert('جاري إرسال الإشعار العام لجميع المستثمرين...');
+}
+
+function sendNotification() {
+  fetch('/app/admin/notification-center', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ type: 'custom' }) }).catch(() => {});
+  alert('تم إرسال الإشعار بنجاح.');
+}
+
+function scheduleNotification() {
+  fetch('/app/admin/notification-center/schedule', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ scheduled: true }) }).catch(() => {});
+  alert('تم جدولة الإشعار للإرسال لاحقاً.');
+}
+
+buildStats(); buildChannels(); buildNotifs(); buildCompose();
+</script>
+</body>
+</html>

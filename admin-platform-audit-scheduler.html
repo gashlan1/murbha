@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>جدولة التدقيق - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.3fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.audit-schedule{padding:1.25rem;}
+.as-item{border:1px solid var(--line);border-radius:10px;padding:0.85rem;margin-bottom:0.6rem;cursor:pointer;transition:border-color 0.15s;}
+.as-item:hover{border-color:var(--green);}
+.as-item:last-child{margin-bottom:0;}
+.asi-head{display:flex;justify-content:space-between;margin-bottom:0.3rem;}
+.asi-name{font-size:0.86rem;font-weight:700;}
+.asi-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-scheduled{background:#e8f0fe;color:#1a56c4;}
+.pill-completed{background:#e8f5ed;color:#1e8449;}
+.pill-overdue{background:#fde8e8;color:#c0392b;}
+.asi-meta{font-size:0.72rem;color:var(--muted);}
+.audit-log{padding:1.25rem;overflow-x:auto;}
+.al-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.al-row:last-child{border-bottom:none;}
+.al-header{font-weight:700;font-size:0.72rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — جدولة التدقيق</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>جدولة عمليات تدقيق المنصة</h2>
+      <p>إدارة جدول التدقيق الداخلي والخارجي للمنصة</p>
+    </div>
+    <button class="btn btn-primary" onclick="scheduleAudit()">جدولة تدقيق جديد</button>
+  </div>
+
+  <div class="stats" id="auditStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>عمليات التدقيق المجدولة</h3></div>
+      <div class="audit-schedule" id="auditSchedule"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>سجل التدقيق السابق</h3></div>
+      <div class="audit-log" id="auditLog"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>المهام والإجراءات التصحيحية</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportAudit()">تصدير</button>
+    </div>
+    <div class="audit-log" id="actionItems"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="scheduleAudit()">تدقيق جديد</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportAudit()">تصدير التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'تدقيق مجدول' },
+  { val: '١٢', lbl: 'تدقيق مكتمل (هذا العام)' },
+  { val: '٢', lbl: 'إجراء تصحيحي مفتوح' },
+  { val: '٩٨٪', lbl: 'نسبة الامتثال' }
+];
+
+const SCHEDULED = [
+  { name: 'تدقيق مالي ربع سنوي Q1', pill: 'pill-scheduled', label: 'مجدول', meta: '٣١ مارس ٢٠٢٦ · خارجي' },
+  { name: 'تدقيق أمن المعلومات', pill: 'pill-scheduled', label: 'مجدول', meta: '١٥ أبريل ٢٠٢٦ · داخلي' },
+  { name: 'تدقيق الامتثال الشرعي', pill: 'pill-overdue', label: 'متأخر', meta: 'كان مجدولاً في مارس ٢٠٢٦' }
+];
+
+const LOG_DATA = [
+  { name: 'تدقيق مالي Q4 2025', auditor: 'ديلويت', result: 'نجح', date: 'ديسمبر ٢٠٢٥' },
+  { name: 'تدقيق الامتثال KYC', auditor: 'داخلي', result: 'نجح', date: 'نوفمبر ٢٠٢٥' },
+  { name: 'اختبار الاختراق', auditor: 'شركة أمن خارجية', result: 'نجح مع ملاحظات', date: 'أكتوبر ٢٠٢٥' }
+];
+
+const ACTIONS = [
+  { name: 'معالجة ثغرات الأمن المكتشفة', owner: 'فريق تقني', status: 'قيد التنفيذ' },
+  { name: 'تحديث سياسة حفظ البيانات', owner: 'الامتثال', status: 'مفتوح' },
+  { name: 'مراجعة إجراءات KYC المحدودة', owner: 'العمليات', status: 'مكتمل' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('auditStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildSchedule() {
+  const wrap = document.getElementById('auditSchedule');
+  SCHEDULED.forEach(s => {
+    const item = document.createElement('div'); item.className = 'as-item';
+    const head = document.createElement('div'); head.className = 'asi-head';
+    const name = document.createElement('span'); name.className = 'asi-name'; name.textContent = s.name;
+    const pill = document.createElement('span'); pill.className = 'asi-pill ' + s.pill; pill.textContent = s.label;
+    head.appendChild(name); head.appendChild(pill);
+    const meta = document.createElement('div'); meta.className = 'asi-meta'; meta.textContent = s.meta;
+    item.appendChild(head); item.appendChild(meta);
+    wrap.appendChild(item);
+  });
+}
+
+function buildLog() {
+  const wrap = document.getElementById('auditLog');
+  const header = document.createElement('div'); header.className = 'al-row al-header';
+  ['عملية التدقيق', 'المدقق', 'النتيجة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  LOG_DATA.forEach(l => {
+    const row = document.createElement('div'); row.className = 'al-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = l.name;
+    const auditor = document.createElement('div'); auditor.style.color = 'var(--muted)'; auditor.textContent = l.auditor;
+    const result = document.createElement('div'); result.style.color = 'var(--green)'; result.textContent = l.result;
+    row.appendChild(name); row.appendChild(auditor); row.appendChild(result);
+    wrap.appendChild(row);
+  });
+}
+
+function buildActions() {
+  const wrap = document.getElementById('actionItems');
+  const header = document.createElement('div'); header.className = 'al-row al-header';
+  ['الإجراء التصحيحي', 'المسؤول', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  ACTIONS.forEach(a => {
+    const row = document.createElement('div'); row.className = 'al-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = a.name;
+    const owner = document.createElement('div'); owner.style.color = 'var(--muted)'; owner.textContent = a.owner;
+    const status = document.createElement('div'); status.textContent = a.status; status.style.color = a.status === 'مكتمل' ? 'var(--green)' : a.status === 'مفتوح' ? '#c0392b' : 'var(--gold)';
+    row.appendChild(name); row.appendChild(owner); row.appendChild(status);
+    wrap.appendChild(row);
+  });
+}
+
+function scheduleAudit() {
+  fetch('/app/admin/platform-audit-scheduler', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'schedule' }) }).catch(() => {});
+  alert('جاري فتح نموذج جدولة تدقيق جديد...');
+}
+
+function exportAudit() {
+  fetch('/app/admin/platform-audit-scheduler/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير جدول التدقيق...');
+}
+
+buildStats(); buildSchedule(); buildLog(); buildActions();
+</script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متتبع التدفق النقدي - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.cf-hero{background:linear-gradient(135deg,#062b1e 0%,#0a4d36 100%);border-radius:14px;padding:1.75rem 2rem;color:#fff;display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:2rem;}
+.cfh-val{font-size:1.8rem;font-weight:700;color:#6de0a8;}
+.cfh-val.neg{color:#f1948a;}
+.cfh-lbl{font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.cfh-sub{font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:0.1rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.cf-chart{padding:1.25rem;}
+.cf-bar-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;}
+.cf-bar-row:last-child{margin-bottom:0;}
+.cf-month-label{width:55px;font-size:0.75rem;color:var(--muted);flex-shrink:0;}
+.cf-bars{flex:1;display:flex;flex-direction:column;gap:3px;}
+.bar-in-wrap,.bar-out-wrap{display:flex;align-items:center;gap:4px;}
+.bar-in{height:7px;background:#27ae60;border-radius:3px;}
+.bar-out{height:7px;background:#e74c3c;border-radius:3px;}
+.bar-legend{font-size:0.62rem;color:var(--muted);}
+.cf-transactions{padding:1.25rem;}
+.cf-tx{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.cf-tx:last-child{border-bottom:none;}
+.tx-left{display:flex;align-items:center;gap:0.6rem;}
+.tx-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.tx-icon.in{background:#e8f5ed;}
+.tx-icon.out{background:#fde8e8;}
+.tx-label{font-size:0.82rem;font-weight:600;}
+.tx-date{font-size:0.7rem;color:var(--muted);}
+.tx-amount{font-size:0.88rem;font-weight:700;}
+.tx-amount.in{color:#27ae60;}
+.tx-amount.out{color:#e74c3c;}
+.cf-summary{padding:1.25rem;}
+.sum-row{display:flex;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.sum-row:last-child{border-bottom:none;}
+.sum-lbl{font-size:0.82rem;}
+.sum-val{font-size:0.88rem;font-weight:700;}
+.sum-val.positive{color:#27ae60;}
+.sum-val.negative{color:#e74c3c;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:700px){.layout-2{grid-template-columns:1fr;}.cf-hero{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — التدفق النقدي</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>متتبع التدفق النقدي</h2>
+      <p>رصد الدخل والمصروفات الاستثمارية وصافي التدفق النقدي</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportCashflow()">تصدير التقرير</button>
+  </div>
+
+  <div class="cf-hero">
+    <div>
+      <div class="cfh-val">١٨,٤٠٠ ر.س</div>
+      <div class="cfh-lbl">إجمالي الدخل ٢٠٢٦</div>
+      <div class="cfh-sub">من الأرباح والتوزيعات</div>
+    </div>
+    <div>
+      <div class="cfh-val neg">٤,٨٠٠ ر.س</div>
+      <div class="cfh-lbl">إجمالي المصروفات</div>
+      <div class="cfh-sub">رسوم واشتراكات</div>
+    </div>
+    <div>
+      <div class="cfh-val">١٣,٦٠٠ ر.س</div>
+      <div class="cfh-lbl">صافي التدفق النقدي</div>
+      <div class="cfh-sub">بعد خصم جميع التكاليف</div>
+    </div>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>التدفق النقدي الشهري</h3></div>
+      <div class="cf-chart" id="cfChart"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>ملخص التدفق</h3></div>
+      <div class="cf-summary" id="cfSummary"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>آخر المعاملات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCashflow()">تصدير</button>
+    </div>
+    <div class="cf-transactions" id="cfTransactions"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="exportCashflow()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CHART_DATA = [
+  { month: 'يناير', inPct: 0, outPct: 20, inVal: '٠', outVal: '٤٠٠' },
+  { month: 'فبراير', inPct: 0, outPct: 15, inVal: '٠', outVal: '٣٠٠' },
+  { month: 'مارس', inPct: 72, outPct: 25, inVal: '٢,٨٠٠', outVal: '٥٠٠' },
+  { month: 'أبريل', inPct: 36, outPct: 20, inVal: '١,٤٠٠', outVal: '٤٠٠' },
+  { month: 'مايو', inPct: 0, outPct: 15, inVal: '٠', outVal: '٣٠٠' },
+  { month: 'يونيو', inPct: 100, outPct: 40, inVal: '٤,٨٠٠', outVal: '٨٠٠' }
+];
+
+const SUMMARY_ROWS = [
+  { lbl: 'الدخل من أرباح المرابحة', val: '١٥,٦٠٠ ر.س', cls: 'positive' },
+  { lbl: 'دخل إعادة الاستثمار', val: '٢,٨٠٠ ر.س', cls: 'positive' },
+  { lbl: 'رسوم إدارة المنصة', val: '-٢,٤٠٠ ر.س', cls: 'negative' },
+  { lbl: 'رسوم المعاملات', val: '-١,٢٠٠ ر.س', cls: 'negative' },
+  { lbl: 'ضريبة الدخل المحتسبة', val: '-١,٢٠٠ ر.س', cls: 'negative' },
+  { lbl: 'صافي التدفق النقدي', val: '١٣,٦٠٠ ر.س', cls: 'positive' }
+];
+
+const TRANSACTIONS = [
+  { icon: '💰', cls: 'in', label: 'أرباح مرابحة عقارية #4920', date: '٢٠٢٦/٠٦/٠١', amount: '+٢,٨٠٠ ر.س', amtCls: 'in' },
+  { icon: '💰', cls: 'in', label: 'أرباح مرابحة صناعية #4922', date: '٢٠٢٦/٠٦/٠١', amount: '+٢,٠٠٠ ر.س', amtCls: 'in' },
+  { icon: '📊', cls: 'out', label: 'رسوم إدارة المنصة', date: '٢٠٢٦/٠٥/٣١', amount: '-٤٠٠ ر.س', amtCls: 'out' },
+  { icon: '💰', cls: 'in', label: 'أرباح مرابحة تجارية #4921', date: '٢٠٢٦/٠٤/١٥', amount: '+١,٤٠٠ ر.س', amtCls: 'in' },
+  { icon: '📊', cls: 'out', label: 'رسوم معاملات استثمار جديد', date: '٢٠٢٦/٠٤/١٠', amount: '-٢٠٠ ر.س', amtCls: 'out' },
+  { icon: '💰', cls: 'in', label: 'أرباح مرابحة عقارية #4920', date: '٢٠٢٦/٠٣/٣١', amount: '+٢,٨٠٠ ر.س', amtCls: 'in' }
+];
+
+function buildChart() {
+  const wrap = document.getElementById('cfChart');
+  CHART_DATA.forEach(d => {
+    const row = document.createElement('div'); row.className = 'cf-bar-row';
+    const label = document.createElement('div'); label.className = 'cf-month-label'; label.textContent = d.month;
+    const bars = document.createElement('div'); bars.className = 'cf-bars';
+    const inRow = document.createElement('div'); inRow.className = 'bar-in-wrap';
+    const inBar = document.createElement('div'); inBar.className = 'bar-in'; inBar.style.width = d.inPct + '%'; inBar.style.minWidth = d.inPct > 0 ? '4px' : '0';
+    const inLbl = document.createElement('span'); inLbl.className = 'bar-legend'; inLbl.textContent = d.inVal + ' ر.س';
+    inRow.appendChild(inBar); inRow.appendChild(inLbl);
+    const outRow = document.createElement('div'); outRow.className = 'bar-out-wrap';
+    const outBar = document.createElement('div'); outBar.className = 'bar-out'; outBar.style.width = d.outPct + '%'; outBar.style.minWidth = d.outPct > 0 ? '4px' : '0';
+    const outLbl = document.createElement('span'); outLbl.className = 'bar-legend'; outLbl.textContent = '-' + d.outVal + ' ر.س';
+    outRow.appendChild(outBar); outRow.appendChild(outLbl);
+    bars.appendChild(inRow); bars.appendChild(outRow);
+    row.appendChild(label); row.appendChild(bars);
+    wrap.appendChild(row);
+  });
+}
+
+function buildSummary() {
+  const wrap = document.getElementById('cfSummary');
+  SUMMARY_ROWS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'sum-row';
+    const lbl = document.createElement('div'); lbl.className = 'sum-lbl'; lbl.textContent = r.lbl;
+    const val = document.createElement('div'); val.className = 'sum-val ' + r.cls; val.textContent = r.val;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function buildTransactions() {
+  const wrap = document.getElementById('cfTransactions');
+  TRANSACTIONS.forEach(t => {
+    const tx = document.createElement('div'); tx.className = 'cf-tx';
+    const left = document.createElement('div'); left.className = 'tx-left';
+    const icon = document.createElement('div'); icon.className = 'tx-icon ' + t.cls; icon.textContent = t.icon;
+    const info = document.createElement('div');
+    const lbl = document.createElement('div'); lbl.className = 'tx-label'; lbl.textContent = t.label;
+    const date = document.createElement('div'); date.className = 'tx-date'; date.textContent = t.date;
+    info.appendChild(lbl); info.appendChild(date);
+    left.appendChild(icon); left.appendChild(info);
+    const amount = document.createElement('div'); amount.className = 'tx-amount ' + t.amtCls; amount.textContent = t.amount;
+    tx.appendChild(left); tx.appendChild(amount);
+    wrap.appendChild(tx);
+  });
+}
+
+function exportCashflow() {
+  fetch('/app/me/cashflow-tracker/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير التدفق النقدي...');
+}
+
+buildChart(); buildSummary(); buildTransactions();
+</script>
+</body>
+</html>

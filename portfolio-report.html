@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تقرير محفظتي — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --green-dark: #062b1e; --green: #0a4d36;
+    --gold: #b08840; --muted: #6b7268; --line: rgba(13,22,18,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: #f3eed8; color: var(--ink); padding: 22px; }
+  .actions { max-width: 820px; margin: 0 auto 14px; display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+  .actions a { font: 800 12px Cairo,sans-serif; color: var(--green-dark); text-decoration: none; }
+  .actions button { background: var(--green-dark); color: #d4ac6e; border: 0; border-radius: 10px; padding: 10px 18px; font: 800 13px Cairo,sans-serif; cursor: pointer; }
+  .page { max-width: 820px; margin: 0 auto; background: #fff; padding: 38px 42px; border-radius: 14px; box-shadow: 0 4px 14px rgba(13,22,18,0.06); }
+  .hdr { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 14px; border-bottom: 2px solid var(--green-dark); margin-bottom: 22px; }
+  .hdr .brand { font: 900 22px Cairo,sans-serif; color: var(--green-dark); }
+  .hdr .brand small { display: block; font: 600 11px Tajawal,sans-serif; color: var(--muted); margin-top: 2px; }
+  .hdr .meta { text-align: end; font: 600 11px Tajawal,sans-serif; color: var(--muted); line-height: 1.7; }
+  h2 { font: 900 16px Cairo,sans-serif; color: var(--green-dark); margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 6px; }
+  .kpi { background: linear-gradient(135deg,#0a4d36,#062b1e); color: #d4ac6e; padding: 14px; border-radius: 12px; text-align: center; }
+  .kpi .v { font: 900 18px Cairo,sans-serif; color: #fbf6ea; }
+  .kpi .l { font: 600 11px Tajawal,sans-serif; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th, td { padding: 9px 8px; text-align: start; border-bottom: 1px solid var(--line); }
+  th { background: rgba(10,77,54,0.08); color: var(--green-dark); font: 800 12px Cairo,sans-serif; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .empty { text-align: center; color: var(--muted); padding: 26px; }
+  .footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font: 600 10px Tajawal,sans-serif; color: var(--muted); }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .actions { display: none; }
+    .page { box-shadow: none; border-radius: 0; padding: 22px 28px; }
+  }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="actions">
+  <a href="/portfolio.html">← العودة للمحفظة</a>
+  <button type="button" id="printBtn">🖨 طباعة / حفظ PDF</button>
+</div>
+<div class="page">
+  <div class="hdr">
+    <div class="brand">مُرابحة<small>منصة استثمار سعودي شرعي</small></div>
+    <div class="meta">
+      <div>تقرير محفظة</div>
+      <div id="reportDate"></div>
+      <div id="reportFor"></div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v" id="kBalance">—</div><div class="l">الرصيد المتاح</div></div>
+    <div class="kpi"><div class="v" id="kInvested">—</div><div class="l">المُستثمَر</div></div>
+    <div class="kpi"><div class="v" id="kReturns">—</div><div class="l">الأرباح المحققة</div></div>
+    <div class="kpi"><div class="v" id="kCount">—</div><div class="l">عدد الصفقات</div></div>
+  </div>
+
+  <h2>الاستثمارات</h2>
+  <table id="invTable">
+    <thead><tr><th>التاريخ</th><th>المشروع</th><th>المبلغ (ر.س)</th><th>العائد المتوقّع</th><th>الحالة</th></tr></thead>
+    <tbody><tr><td colspan="5" class="empty">جاري التحميل…</td></tr></tbody>
+  </table>
+
+  <h2>الإيداعات</h2>
+  <table id="depTable">
+    <thead><tr><th>التاريخ</th><th>الطريقة</th><th>المبلغ (ر.س)</th><th>الحالة</th></tr></thead>
+    <tbody><tr><td colspan="4" class="empty">جاري التحميل…</td></tr></tbody>
+  </table>
+
+  <h2>السحوبات</h2>
+  <table id="withTable">
+    <thead><tr><th>التاريخ</th><th>المبلغ (ر.س)</th><th>IBAN</th><th>الحالة</th></tr></thead>
+    <tbody><tr><td colspan="4" class="empty">جاري التحميل…</td></tr></tbody>
+  </table>
+
+  <div class="footer">
+    <span>تقرير غير رسمي للاستخدام الشخصي. للتقارير الضريبية الرسمية، استخدم شهادة الضريبة.</span>
+    <span>murabaha.example.sa</span>
+  </div>
+</div>
+<script src="/app.js" defer></script>
+<script>
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+  const date = (d) => d ? new Date(d).toLocaleDateString('ar-SA') : '—';
+
+  $('reportDate').textContent = 'بتاريخ ' + new Date().toLocaleDateString('ar-SA');
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  try {
+    const me = await App.me();
+    if (!me) { location.href = '/login.html?next=' + encodeURIComponent(location.pathname); return; }
+    $('reportFor').textContent = me.name + ' · ' + me.email;
+
+    const p = await App.api('GET', '/app/portfolio');
+    $('kBalance').textContent = fmt(p.balance);
+    $('kInvested').textContent = fmt(p.totalInvested || (p.investments || []).reduce((s, i) => s + Number(i.amount || 0), 0));
+    $('kReturns').textContent = fmt(p.totalReturns || p.returns || 0);
+    $('kCount').textContent = (p.investments || []).length;
+
+    const projects = await App.api('GET', '/app/projects').then(r => r.projects || []).catch(() => []);
+    const projIdx = Object.fromEntries(projects.map(x => [x.id, x.name]));
+
+    const renderTbody = (id, rows, cols) => {
+      const tbody = document.querySelector('#' + id + ' tbody');
+      tbody.replaceChildren();
+      if (!rows.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = cols; td.className = 'empty'; td.textContent = 'لا توجد سجلات';
+        tr.appendChild(td); tbody.appendChild(tr); return;
+      }
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        r.forEach((c, i) => {
+          const td = document.createElement('td');
+          if (i === 2) td.className = 'num';
+          td.textContent = c;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    };
+
+    renderTbody('invTable', (p.investments || []).map(i => [
+      date(i.createdAt), projIdx[i.projectId] || '—', fmt(i.amount), (i.expectedReturn || '—') + '%', (i.status || '—'),
+    ]), 5);
+    renderTbody('depTable', (p.deposits || []).map(d => [
+      date(d.createdAt), (d.method || '—'), fmt(d.amount), (d.status || '—'),
+    ]), 4);
+    renderTbody('withTable', (p.withdrawals || []).map(w => [
+      date(w.createdAt), fmt(w.amount), (w.iban || '—'), (w.status || '—'),
+    ]), 4);
+  } catch (e) {
+    alert(e.message || 'تعذّر التحميل');
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>ملف المستثمر — مُرابحة</title>
+<meta name="description" content="ملف عام لمستثمر اختياري على منصة مُرابحة." />
+<meta property="og:title" content="ملف مستثمر — مُرابحة" />
+<meta property="og:description" content="ملف عام اختياري." />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:26px 18px 80px; max-width:680px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  .head { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:20px; padding:28px 22px; margin-bottom:18px; display:flex; align-items:center; gap:16px; }
+  .avatar { width:60px; height:60px; border-radius:50%; background:rgba(212,172,110,0.22); color:#d4ac6e; display:flex; align-items:center; justify-content:center; font:900 24px Cairo,sans-serif; flex-shrink:0; }
+  .display { font:900 22px Cairo,sans-serif; margin-bottom:4px; }
+  .joined { font-size:12px; color:#e8d3a8; }
+  .stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:18px; }
+  @media (max-width:560px) { .stats { grid-template-columns:1fr 1fr; } }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center; }
+  .stat .v { font:900 18px Cairo,sans-serif; color:var(--green-dark); }
+  .stat .l { font:600 11px Tajawal,sans-serif; color:var(--muted); margin-top:3px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:14px; }
+  .card h3 { font:800 15px Cairo,sans-serif; color:var(--green-dark); margin-bottom:12px; }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:13px; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; }
+  .row .k { color:var(--muted); font-weight:600; }
+  .row .v { color:var(--green-dark); font-weight:800; }
+  .bar { height:6px; background:#fbf8ee; border-radius:6px; overflow:hidden; margin-top:4px; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--gold-light),var(--gold)); border-radius:6px; }
+  .empty { text-align:center; padding:50px 20px; color:var(--muted); }
+  .note { font-size:11px; color:var(--muted); line-height:1.7; background:#fbf8ee; border-radius:10px; padding:12px 14px; }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="crumbs"><a href="/leaderboard.html">← لوحة المستثمرين</a></div>
+<div id="root">
+  <div class="empty">جارٍ التحميل…</div>
+</div>
+
+<script>
+(async () => {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const root = document.getElementById('root');
+  root.textContent = '';
+  if (!id) {
+    const e = document.createElement('div'); e.className='empty'; e.textContent = 'معرّف المستثمر مفقود.';
+    root.appendChild(e); return;
+  }
+  let d;
+  try {
+    const r = await fetch('/app/public/investor/' + encodeURIComponent(id));
+    if (!r.ok) {
+      const e = document.createElement('div'); e.className='empty';
+      e.textContent = r.status === 404 ? 'هذا المستثمر غير عام أو غير موجود.' : 'تعذّر التحميل.';
+      root.appendChild(e); return;
+    }
+    d = await r.json();
+  } catch (e) { return; }
+
+  const head = document.createElement('div'); head.className = 'head';
+  const av = document.createElement('div'); av.className = 'avatar'; av.textContent = (d.display || 'م').trim()[0];
+  const meta = document.createElement('div');
+  const display = document.createElement('div'); display.className = 'display'; display.textContent = d.display;
+  const joined = document.createElement('div'); joined.className = 'joined';
+  joined.textContent = d.joinedAt ? 'منذ ' + new Date(d.joinedAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' }) : '';
+  meta.append(display, joined);
+  head.append(av, meta);
+  root.appendChild(head);
+
+  const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+  const stats = document.createElement('div'); stats.className = 'stats';
+  [
+    ['الصفقات', d.investmentCount],
+    ['الصفقات النشطة', d.activeDeals],
+    ['إجمالي الاستثمار', fmt(d.totalInvested) + ' ر.س'],
+    ['إجمالي العوائد', fmt(d.totalReturned) + ' ر.س'],
+  ].forEach(([l, v]) => {
+    const t = document.createElement('div'); t.className = 'stat';
+    const vv = document.createElement('div'); vv.className = 'v'; vv.textContent = v;
+    const ll = document.createElement('div'); ll.className = 'l'; ll.textContent = l;
+    t.append(vv, ll); stats.appendChild(t);
+  });
+  root.appendChild(stats);
+
+  if (d.categoryBreakdown.length) {
+    const card = document.createElement('div'); card.className = 'card';
+    const h = document.createElement('h3'); h.textContent = 'توزيع الاستثمارات حسب القطاع';
+    card.appendChild(h);
+    const total = d.categoryBreakdown.reduce((s, c) => s + c.amount, 0) || 1;
+    d.categoryBreakdown.forEach(c => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--line);';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:4px;';
+      const k = document.createElement('span'); k.textContent = c.category;
+      const v = document.createElement('span'); v.textContent = fmt(c.amount) + ' ر.س (' + Math.round((c.amount / total) * 100) + '٪)';
+      row.append(k, v);
+      const bar = document.createElement('div'); bar.className = 'bar';
+      const fill = document.createElement('i'); fill.style.width = Math.round((c.amount / total) * 100) + '%';
+      bar.appendChild(fill);
+      wrap.append(row, bar);
+      card.appendChild(wrap);
+    });
+    root.appendChild(card);
+  }
+
+  const note = document.createElement('div'); note.className = 'note';
+  note.textContent = d.sharia;
+  root.appendChild(note);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>اختبار ضغط المحفظة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;--orange:#e67e22;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:1.5rem;padding:1.5rem 2rem;max-width:1200px;margin:0 auto;align-items:start}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.card-head h3{font-size:.95rem;font-weight:700}
+.section-title{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:.9rem 1.25rem .3rem}
+.scenario-card{padding:.75rem 1.25rem;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;display:flex;align-items:center;gap:.75rem}
+.scenario-card:hover{background:#f5faf5}
+.scenario-card.active{background:#f0faf5;border-right:3px solid var(--green)}
+.scenario-icon{font-size:1.3rem}
+.scenario-info{flex:1}
+.scenario-name{font-weight:700;font-size:.9rem}
+.scenario-desc{font-size:.76rem;color:var(--muted);margin-top:.1rem}
+.scenario-severity{padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;flex-shrink:0}
+.sev-low{background:#d4edda;color:#155724}
+.sev-med{background:#fff3cd;color:#856404}
+.sev-high{background:#f8d7da;color:#721c24}
+.sev-extreme{background:#3a0008;color:#fff}
+/* Custom sliders */
+.param-section{padding:.75rem 1.25rem}
+.param-group{margin-bottom:.75rem}
+.param-group label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:.3rem;font-weight:600}
+.param-group label span{color:var(--red);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--red);cursor:pointer}
+.btn-run{display:block;width:calc(100% - 2.5rem);margin:1rem 1.25rem;padding:.6rem;border-radius:8px;background:var(--green-dark);color:#fff;border:none;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;text-align:center}
+.btn-run:hover{opacity:.9}
+/* Results */
+.impact-banner{padding:1.25rem;border-bottom:1px solid var(--line);background:#fff9f9}
+.impact-banner .impact-lbl{font-size:.8rem;color:var(--muted);margin-bottom:.25rem}
+.impact-banner .impact-val{font-size:2rem;font-weight:700;color:var(--red)}
+.impact-banner .impact-sub{font-size:.82rem;color:var(--muted);margin-top:.15rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem;border-bottom:1px solid var(--line)}
+.kpi{border-radius:10px;border:1px solid var(--line);padding:.9rem 1rem}
+.kpi .val{font-size:1.2rem;font-weight:700}
+.kpi .lbl{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.kpi.red .val{color:var(--red)}
+.kpi.orange .val{color:var(--orange)}
+.kpi.green .val{color:var(--green)}
+/* Waterfall chart */
+.chart-wrap{padding:1.25rem;border-bottom:1px solid var(--line)}
+.chart-title{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:.75rem}
+.waterfall{display:flex;align-items:flex-end;gap:6px;height:150px;padding-bottom:0;border-bottom:2px solid var(--line)}
+.wf-col{display:flex;flex-direction:column;align-items:center;flex:1}
+.wf-bar{width:100%;border-radius:4px 4px 0 0}
+.wf-lbl{font-size:.62rem;color:var(--muted);margin-top:.3rem;text-align:center}
+/* Exposure table */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:right;padding:.55rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)}
+td{padding:.6rem 1.25rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+.impact-bar{height:6px;border-radius:3px;background:var(--red);display:inline-block;vertical-align:middle}
+.badge-risk{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.73rem;font-weight:700}
+.badge-low{background:#d4edda;color:#155724}
+.badge-med{background:#fff3cd;color:#856404}
+.badge-high{background:#f8d7da;color:#721c24}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>اختبار ضغط المحفظة</h1>
+</header>
+
+<div class="layout">
+  <!-- Scenarios panel -->
+  <div>
+    <div class="card">
+      <div class="card-head"><span>🌩️</span><h3>سيناريوهات الضغط</h3></div>
+
+      <div class="section-title">سيناريوهات جاهزة</div>
+      <div id="scenarioList"></div>
+
+      <div class="section-title">معاملات مخصصة</div>
+      <div class="param-section">
+        <div class="param-group">
+          <label>تراجع معدلات العائد (%) <span id="lblRateShock">-3</span></label>
+          <input type="range" id="rRateShock" min="-10" max="0" step="0.5" value="-3" oninput="syncParam('RateShock',this.value)"/>
+        </div>
+        <div class="param-group">
+          <label>نسبة التخلف عن السداد (%) <span id="lblDefault">5</span></label>
+          <input type="range" id="rDefault" min="0" max="30" step="1" value="5" oninput="syncParam('Default',this.value)"/>
+        </div>
+        <div class="param-group">
+          <label>ضغط السيولة (%) <span id="lblLiquidity">10</span></label>
+          <input type="range" id="rLiquidity" min="0" max="50" step="5" value="10" oninput="syncParam('Liquidity',this.value)"/>
+        </div>
+        <div class="param-group">
+          <label>مدة الأزمة (أشهر) <span id="lblDuration">6</span></label>
+          <input type="range" id="rDuration" min="1" max="24" step="1" value="6" oninput="syncParam('Duration',this.value)"/>
+        </div>
+      </div>
+      <button class="btn-run" onclick="runStress()">تشغيل اختبار الضغط</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsPanel">
+    <div class="card" style="padding:3rem;text-align:center;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:.75rem">🔬</div>
+      <div style="font-weight:700;font-size:1rem;margin-bottom:.4rem">اختر سيناريو أو اضبط المعاملات</div>
+      <div style="font-size:.85rem">سيُحاكي النظام تأثير الأزمة على محفظتك</div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const SCENARIOS = [
+  {id:'mild',icon:'🌤️',name:'تراجع خفيف',desc:'تباطؤ اقتصادي محدود',severity:'low',rateShock:-1.5,defaultRate:2,liquidity:5,duration:3},
+  {id:'moderate',icon:'⛅',name:'أزمة معتدلة',desc:'ركود دوري متوسط',severity:'med',rateShock:-3,defaultRate:5,liquidity:15,duration:6},
+  {id:'severe',icon:'🌩️',name:'أزمة حادة',desc:'انكماش اقتصادي واسع',severity:'high',rateShock:-5,defaultRate:12,liquidity:30,duration:12},
+  {id:'covid',icon:'🦠',name:'صدمة وبائية',desc:'محاكاة أزمة كوفيد-19',severity:'high',rateShock:-4,defaultRate:8,liquidity:25,duration:9},
+  {id:'oil',icon:'🛢️',name:'صدمة نفطية',desc:'انهيار أسعار النفط',severity:'med',rateShock:-2.5,defaultRate:6,liquidity:20,duration:12},
+  {id:'extreme',icon:'☄️',name:'سيناريو متطرف',desc:'انهيار نظامي',severity:'extreme',rateShock:-8,defaultRate:25,liquidity:50,duration:18},
+];
+
+let activeScenario = null;
+let params = { rateShock:-3, defaultRate:5, liquidity:10, duration:6 };
+
+function renderScenarioList() {
+  const list = document.getElementById('scenarioList');
+  list.textContent = '';
+  SCENARIOS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'scenario-card' + (activeScenario?.id === s.id ? ' active' : '');
+    const icon = document.createElement('div'); icon.className = 'scenario-icon'; icon.textContent = s.icon;
+    const info = document.createElement('div'); info.className = 'scenario-info';
+    const nm = document.createElement('div'); nm.className = 'scenario-name'; nm.textContent = s.name;
+    const desc = document.createElement('div'); desc.className = 'scenario-desc'; desc.textContent = s.desc;
+    info.appendChild(nm); info.appendChild(desc);
+    const sev = document.createElement('div');
+    sev.className = 'scenario-severity sev-' + ({low:'low',med:'med',high:'high',extreme:'extreme'}[s.severity]);
+    sev.textContent = {low:'خفيف',med:'متوسط',high:'حاد',extreme:'متطرف'}[s.severity];
+    card.appendChild(icon); card.appendChild(info); card.appendChild(sev);
+    card.onclick = () => { activeScenario = s; syncToScenario(s); renderScenarioList(); runStress(); };
+    list.appendChild(card);
+  });
+}
+
+function syncToScenario(s) {
+  params = { rateShock: s.rateShock, defaultRate: s.defaultRate, liquidity: s.liquidity, duration: s.duration };
+  document.getElementById('rRateShock').value = s.rateShock;
+  document.getElementById('rDefault').value = s.defaultRate;
+  document.getElementById('rLiquidity').value = s.liquidity;
+  document.getElementById('rDuration').value = s.duration;
+  document.getElementById('lblRateShock').textContent = s.rateShock;
+  document.getElementById('lblDefault').textContent = s.defaultRate;
+  document.getElementById('lblLiquidity').textContent = s.liquidity;
+  document.getElementById('lblDuration').textContent = s.duration;
+}
+
+function syncParam(field, val) {
+  const v = parseFloat(val);
+  const map = {RateShock:'rateShock',Default:'defaultRate',Liquidity:'liquidity',Duration:'duration'};
+  params[map[field]] = v;
+  document.getElementById('lbl' + field).textContent = v;
+  activeScenario = null;
+  renderScenarioList();
+}
+
+function runStress() {
+  const portfolio = 250000; // example portfolio value
+  const { rateShock, defaultRate, liquidity, duration } = params;
+
+  const rateImpact = portfolio * Math.abs(rateShock) / 100 * (duration / 12);
+  const defaultImpact = portfolio * defaultRate / 100;
+  const liquidityImpact = portfolio * liquidity / 100 * 0.03;
+  const totalImpact = rateImpact + defaultImpact + liquidityImpact;
+  const remaining = portfolio - totalImpact;
+  const impactPct = totalImpact / portfolio * 100;
+
+  const panel = document.getElementById('resultsPanel');
+  panel.textContent = '';
+
+  // Main card
+  const card = document.createElement('div'); card.className = 'card';
+
+  // Impact banner
+  const banner = document.createElement('div'); banner.className = 'impact-banner';
+  const lbl = document.createElement('div'); lbl.className = 'impact-lbl'; lbl.textContent = 'الخسارة المتوقعة تحت هذا السيناريو';
+  const val = document.createElement('div'); val.className = 'impact-val';
+  val.textContent = '- ' + totalImpact.toLocaleString('ar-SA', {maximumFractionDigits:0}) + ' ر.س';
+  const sub = document.createElement('div'); sub.className = 'impact-sub';
+  sub.textContent = 'أي ' + impactPct.toFixed(1) + '% من إجمالي المحفظة — القيمة المتبقية: ' + remaining.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س';
+  banner.appendChild(lbl); banner.appendChild(val); banner.appendChild(sub);
+
+  // KPIs
+  const kpiGrid = document.createElement('div'); kpiGrid.className = 'kpi-grid';
+  [
+    {val: '-' + rateImpact.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س', lbl: 'تأثير معدل العائد', cls:'red'},
+    {val: '-' + defaultImpact.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س', lbl: 'تأثير التخلف عن السداد', cls:'red'},
+    {val: '-' + liquidityImpact.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س', lbl: 'تأثير ضغط السيولة', cls:'orange'},
+    {val: remaining.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س', lbl: 'القيمة المتبقية', cls:'green'},
+    {val: impactPct.toFixed(1) + '%', lbl: 'نسبة الخسارة الكلية', cls: impactPct > 20 ? 'red' : impactPct > 10 ? 'orange' : 'green'},
+    {val: duration + ' شهر', lbl: 'مدة الأزمة', cls:'orange'},
+  ].forEach(({val:v,lbl:l,cls}) => {
+    const k = document.createElement('div'); k.className = 'kpi ' + cls;
+    const kv = document.createElement('div'); kv.className = 'val'; kv.textContent = v;
+    const kl = document.createElement('div'); kl.className = 'lbl'; kl.textContent = l;
+    k.appendChild(kv); k.appendChild(kl); kpiGrid.appendChild(k);
+  });
+
+  // Waterfall chart
+  const cw = document.createElement('div'); cw.className = 'chart-wrap';
+  const ct = document.createElement('div'); ct.className = 'chart-title'; ct.textContent = 'تفكيك الخسائر';
+  const wf = document.createElement('div'); wf.className = 'waterfall';
+  const H = 130;
+  const max = portfolio;
+  const bars = [
+    {label:'المحفظة الأصلية',val:portfolio,color:getComputedStyle(document.documentElement).getPropertyValue('--green').trim()||'#0a4d36'},
+    {label:'خسارة العائد',val:rateImpact,color:'#c0392b'},
+    {label:'التخلف عن السداد',val:defaultImpact,color:'#e74c3c'},
+    {label:'ضغط السيولة',val:liquidityImpact,color:'#e67e22'},
+    {label:'القيمة المتبقية',val:remaining,color:'#27ae60'},
+  ];
+  bars.forEach(b => {
+    const col = document.createElement('div'); col.className = 'wf-col';
+    const bar = document.createElement('div'); bar.className = 'wf-bar';
+    bar.style.height = Math.round(Math.abs(b.val) / max * H) + 'px';
+    bar.style.background = b.color;
+    const lbl = document.createElement('div'); lbl.className = 'wf-lbl'; lbl.textContent = b.label;
+    col.appendChild(bar); col.appendChild(lbl); wf.appendChild(col);
+  });
+  cw.appendChild(ct); cw.appendChild(wf);
+
+  // Exposure breakdown table
+  const tw = document.createElement('div');
+  const tbl = document.createElement('table');
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  ['فئة الأصول','الوزن','التعرض','الخسارة المتوقعة','مستوى المخاطرة'].forEach(h => {
+    const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow); tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  [
+    {cat:'عقارات',wt:40,risk:'med'},
+    {cat:'تمويل تجاري',wt:30,risk:'high'},
+    {cat:'صناعة',wt:20,risk:'med'},
+    {cat:'تقنية',wt:10,risk:'low'},
+  ].forEach(row => {
+    const exposure = portfolio * row.wt / 100;
+    const riskMult = {low:0.5,med:1,high:1.5}[row.risk];
+    const loss = exposure * impactPct / 100 * riskMult;
+    const tr = document.createElement('tr');
+    [
+      row.cat,
+      row.wt + '%',
+      exposure.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س',
+      '-' + loss.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س',
+    ].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+    const td = document.createElement('td');
+    const b = document.createElement('span');
+    b.className = 'badge-risk badge-' + row.risk;
+    b.textContent = {low:'منخفض',med:'متوسط',high:'مرتفع'}[row.risk];
+    td.appendChild(b); tr.appendChild(td);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  tw.appendChild(tbl);
+
+  card.appendChild(banner);
+  card.appendChild(kpiGrid);
+  card.appendChild(cw);
+  card.appendChild(tw);
+  panel.appendChild(card);
+}
+
+renderScenarioList();
+</script>
+</body>
+</html>

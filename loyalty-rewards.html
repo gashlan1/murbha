@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Loyalty Rewards — Murbha">مكافآت الولاء — مُرابحة</title>
+<meta name="description" content="اكسب نقاط مع كل استثمار واستبدلها بمزايا حصرية وتخفيضات على الرسوم." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:780px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  /* Points hero card */
+  .points-card{background:linear-gradient(135deg,#b08840,#d4ac6e);border-radius:20px;padding:32px 28px;margin-bottom:22px;text-align:center;color:#fff;}
+  .points-val{font:900 52px Cairo,sans-serif;line-height:1;}
+  .points-lbl{font:500 14px Tajawal,sans-serif;opacity:.9;margin-top:6px;}
+  .points-exp{font:500 11px Tajawal,sans-serif;opacity:.8;margin-top:4px;}
+  .tier-row{display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .tier-pip{border-radius:20px;padding:4px 14px;font:700 10px Cairo,sans-serif;background:rgba(255,255,255,0.25);color:#fff;}
+  .tier-pip.active{background:#fff;color:#b08840;}
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  /* Rewards grid */
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .rewards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+  .reward-item{border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+  .reward-item.locked{opacity:.55;}
+  .reward-icon{font:900 28px Cairo,sans-serif;color:var(--gold);}
+  .reward-name{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .reward-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.5;}
+  .reward-cost{font:900 13px Cairo,sans-serif;color:var(--gold);}
+  .btn-redeem{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:8px;padding:8px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;margin-top:auto;}
+  .btn-redeem:hover{background:var(--green);}
+  .btn-redeem:disabled{background:#ccc;cursor:default;}
+  /* History */
+  .history-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .history-item:last-child{border-bottom:none;}
+  .history-desc{font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .history-date{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .history-pts{font:900 13px Cairo,sans-serif;}
+  .pts-earn{color:#2e7d32;}
+  .pts-spend{color:#c54a3a;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Loyalty Rewards">مكافآت الولاء</h1>
+    <p data-en="Earn points with every investment and redeem them for exclusive perks and instant discounts on management fees.">اكسب نقاطاً مع كل استثمار واستبدلها بمزايا حصرية وتخفيضات فورية على رسوم الإدارة.</p>
+  </div>
+
+  <div class="points-card" id="pointsCard">
+    <div class="points-val" id="pointsVal">—</div>
+    <div class="points-lbl">نقطة متاحة للاستبدال</div>
+    <div class="points-exp" id="pointsExp"></div>
+    <div class="tier-row" id="tierRow"></div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="Available Rewards">مكافآت متاحة للاستبدال</div>
+    <div class="rewards-grid" id="rewardsGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Points History">سجل النقاط</div>
+    <div id="historyList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(el, msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/loyalty');
+      if(!r.ok){ placeholder(document.getElementById('rewardsGrid'),'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      document.getElementById('pointsVal').textContent=fmt(d.points||0);
+      if(d.expiryDate){ document.getElementById('pointsExp').textContent='تنتهي صلاحية '+fmt(d.expiringPoints||0)+' نقطة في '+d.expiryDate; }
+
+      const tierLabels={bronze:'برونزي',silver:'فضي',gold:'ذهبي',diamond:'ماسي'};
+      const tiers=['bronze','silver','gold','diamond'];
+      const tierRow=document.getElementById('tierRow');
+      tiers.forEach(t=>{
+        const pip=document.createElement('div');
+        pip.className='tier-pip'+(t===d.tier?' active':'');
+        pip.textContent=tierLabels[t]||t;
+        tierRow.appendChild(pip);
+      });
+
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=[
+        ['نقاط مكتسبة',fmt(d.lifetimeEarned||0)],
+        ['نقاط مستبدلة',fmt(d.lifetimeRedeemed||0)],
+        ['صفقات مؤهِّلة',String(d.qualifyingDeals||0)],
+        ['مكافآت مستخدمة',String(d.redeemedCount||0)]
+      ];
+      kpis.forEach(([lbl,val])=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+
+      const grid=document.getElementById('rewardsGrid');
+      const rewards=d.rewards||[];
+      if(!rewards.length){ placeholder(grid,'لا توجد مكافآت متاحة حالياً.'); }
+      else{
+        rewards.forEach(rw=>{
+          const item=document.createElement('div');
+          item.className='reward-item'+(rw.locked?' locked':'');
+          const icon=document.createElement('div'); icon.className='reward-icon'; icon.textContent=rw.icon||'★';
+          const name=document.createElement('div'); name.className='reward-name'; name.textContent=rw.name||'—';
+          const desc=document.createElement('div'); desc.className='reward-desc'; desc.textContent=rw.description||'';
+          const cost=document.createElement('div'); cost.className='reward-cost'; cost.textContent=fmt(rw.pointsCost||0)+' نقطة';
+          const btn=document.createElement('button'); btn.className='btn-redeem'; btn.textContent='استبدل';
+          btn.disabled=rw.locked||(d.points||0)<(rw.pointsCost||0);
+          const rwId=rw.id;
+          btn.addEventListener('click', async()=>{
+            btn.disabled=true;
+            try{
+              const rs=await fetch('/app/me/loyalty/redeem',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({rewardId:rwId})});
+              if(!rs.ok){ btn.disabled=false; showToast('تعذّر الاستبدال.'); return; }
+              showToast('تم الاستبدال بنجاح!');
+              setTimeout(load, 600);
+            }catch{ btn.disabled=false; showToast('خطأ.'); }
+          });
+          item.appendChild(icon); item.appendChild(name); item.appendChild(desc); item.appendChild(cost); item.appendChild(btn);
+          grid.appendChild(item);
+        });
+      }
+
+      const histList=document.getElementById('historyList');
+      const history=d.history||[];
+      if(!history.length){ placeholder(histList,'لا توجد حركات نقاط بعد.'); }
+      else{
+        history.forEach(h=>{
+          const row=document.createElement('div'); row.className='history-item';
+          const info=document.createElement('div');
+          const desc=document.createElement('div'); desc.className='history-desc'; desc.textContent=h.description||'—';
+          const date=document.createElement('div'); date.className='history-date'; date.textContent=h.date||'—';
+          info.appendChild(desc); info.appendChild(date);
+          const pts=document.createElement('div'); pts.className='history-pts '+(h.type==='earn'?'pts-earn':'pts-spend');
+          pts.textContent=(h.type==='earn'?'+':'-')+fmt(Math.abs(h.points||0))+' ن';
+          row.appendChild(info); row.appendChild(pts);
+          histList.appendChild(row);
+        });
+      }
+    }catch{ placeholder(document.getElementById('rewardsGrid'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

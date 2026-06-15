@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>مفاتيح API — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem}
+.stat .val{font-size:1.4rem;font-weight:700;color:var(--green)}
+.stat .lbl{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+/* Key list */
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.85rem;cursor:pointer;border:none;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-danger{background:transparent;border:1.5px solid #fcc;color:var(--red);font-size:.78rem;padding:.3rem .65rem}
+.btn-danger:hover{background:var(--red);color:#fff}
+/* Key card */
+.key-card{padding:1.1rem 1.25rem;border-bottom:1px solid var(--line)}
+.key-card:last-child{border-bottom:none}
+.key-top{display:flex;align-items:flex-start;gap:.85rem;margin-bottom:.65rem}
+.key-icon{width:38px;height:38px;border-radius:10px;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.key-info{flex:1;min-width:0}
+.key-name{font-weight:700;font-size:.93rem;margin-bottom:.15rem}
+.key-desc{font-size:.76rem;color:var(--muted)}
+.key-badges{display:flex;gap:.4rem;margin-top:.25rem;flex-wrap:wrap}
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:12px;font-size:.72rem;font-weight:700}
+.badge-active{background:#d4edda;color:#155724}
+.badge-revoked{background:#f8d7da;color:#721c24}
+.badge-expired{background:#e2e3e5;color:#383d41}
+.badge-scope{background:#e8f4f8;color:#155680}
+.key-value-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.65rem}
+.key-field{flex:1;display:flex;align-items:center;gap:.5rem;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:.4rem .75rem}
+.key-value{font-family:monospace;font-size:.82rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.03em}
+.copy-btn{padding:.25rem .55rem;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:.76rem;font-family:'Cairo',sans-serif;font-weight:600;flex-shrink:0;transition:.15s}
+.copy-btn:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.eye-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem;flex-shrink:0}
+.key-meta{display:flex;align-items:center;gap:1.25rem;font-size:.76rem;color:var(--muted);flex-wrap:wrap}
+.key-actions{display:flex;gap:.5rem;align-items:center;margin-right:auto}
+/* Usage chart */
+.usage-mini{height:28px;background:#f5f5f5;border-radius:6px;overflow:hidden;display:flex;align-items:flex-end;gap:1px;padding:2px}
+.usage-bar-mini{flex:1;border-radius:2px;background:var(--green);opacity:.6;min-width:4px}
+/* Env tabs */
+.env-tabs{display:flex;gap:.4rem;margin-bottom:1.25rem}
+.env-btn{padding:.35rem .9rem;border-radius:20px;font-family:'Cairo',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.15s}
+.env-btn.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto}
+.modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff}
+.modal-head h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+.modal-body{padding:1.25rem}
+.form-group{margin-bottom:.9rem}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+.form-group input,.form-group select{width:100%;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.9rem;color:var(--green-dark);outline:none;background:#fff}
+.form-group input:focus,.form-group select:focus{border-color:var(--green)}
+.scope-checks{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.scope-check{display:flex;align-items:center;gap:.45rem;font-size:.83rem;cursor:pointer;padding:.3rem .4rem;border-radius:6px;border:1px solid var(--line)}
+.scope-check input[type=checkbox]{accent-color:var(--green);width:14px;height:14px}
+.modal-footer{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:.75rem;justify-content:flex-end}
+.new-key-reveal{background:#f0faf5;border:1.5px solid var(--green);border-radius:10px;padding:1rem;margin-top:1rem;font-size:.82rem}
+.new-key-reveal .key-code{font-family:monospace;font-size:.88rem;word-break:break-all;margin:.5rem 0;color:var(--green-dark)}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>إدارة مفاتيح API</h1>
+</header>
+
+<div class="page">
+  <div class="stats-row">
+    <div class="stat"><div class="val" id="statTotal">—</div><div class="lbl">إجمالي المفاتيح</div></div>
+    <div class="stat"><div class="val" id="statActive">—</div><div class="lbl">مفاتيح نشطة</div></div>
+    <div class="stat"><div class="val" id="statCalls">—</div><div class="lbl">طلبات اليوم</div></div>
+    <div class="stat"><div class="val" id="statErrors">—</div><div class="lbl">أخطاء اليوم</div></div>
+  </div>
+
+  <div class="env-tabs">
+    <button class="env-btn active" data-env="production" onclick="setEnv(this,'production')">إنتاج</button>
+    <button class="env-btn" data-env="sandbox" onclick="setEnv(this,'sandbox')">اختبار</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>🔑 مفاتيح API</h3>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ مفتاح جديد</button>
+    </div>
+    <div id="keysList"></div>
+  </div>
+
+  <!-- Usage log -->
+  <div class="card">
+    <div class="card-head"><h3>📊 سجل الاستخدام الأخير</h3></div>
+    <table style="width:100%;border-collapse:collapse;font-size:.84rem">
+      <thead>
+        <tr>
+          <th style="text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)">الوقت</th>
+          <th style="text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)">المفتاح</th>
+          <th style="text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)">النقطة</th>
+          <th style="text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)">الحالة</th>
+          <th style="text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)">زمن (ms)</th>
+        </tr>
+      </thead>
+      <tbody id="logTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-head"><h3>إنشاء مفتاح API جديد</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>اسم المفتاح</label><input type="text" id="fKeyName" placeholder="مثال: تكامل ERP"/></div>
+      <div class="form-group"><label>البيئة</label>
+        <select id="fEnv"><option value="production">إنتاج</option><option value="sandbox">اختبار</option></select>
+      </div>
+      <div class="form-group"><label>تاريخ الانتهاء (اختياري)</label><input type="date" id="fExpiry"/></div>
+      <div class="form-group"><label>الصلاحيات</label>
+        <div class="scope-checks">
+          <label class="scope-check"><input type="checkbox" value="deals:read"/> deals:read</label>
+          <label class="scope-check"><input type="checkbox" value="deals:write"/> deals:write</label>
+          <label class="scope-check"><input type="checkbox" value="investors:read"/> investors:read</label>
+          <label class="scope-check"><input type="checkbox" value="payments:read"/> payments:read</label>
+          <label class="scope-check"><input type="checkbox" value="kyc:read"/> kyc:read</label>
+          <label class="scope-check"><input type="checkbox" value="reports:read"/> reports:read</label>
+          <label class="scope-check"><input type="checkbox" value="webhooks:write"/> webhooks:write</label>
+          <label class="scope-check"><input type="checkbox" value="admin:full"/> admin:full</label>
+        </div>
+      </div>
+      <div id="newKeyReveal"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">إغلاق</button>
+      <button class="btn btn-primary" id="createBtn" onclick="createKey()">إنشاء المفتاح</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+let currentEnv = 'production';
+let masked = {};
+
+const API_KEYS = [
+  {id:'k1',name:'تكامل نظام ERP',env:'production',key:'mrb_live_xK9mP2nQwRt4sLvY8uJdFhCbEaGiWoNz',scopes:['deals:read','investors:read','payments:read'],status:'active',created:'2026-01-15',lastUsed:'منذ 5 دقائق',calls:12840,errors:23,usage:[45,62,38,71,55,80,42,68,59,73,61,48,78,65]},
+  {id:'k2',name:'موقع الشركاء',env:'production',key:'mrb_live_aB3cD7eF2gH6iJ9kL1mN5oP8qR4sT0uV',scopes:['deals:read','reports:read'],status:'active',created:'2026-03-01',lastUsed:'منذ ساعة',calls:4320,errors:5,usage:[20,18,25,22,30,28,35,19,24,21,27,23,26,22]},
+  {id:'k3',name:'مفتاح قديم — CRM',env:'production',key:'mrb_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',scopes:['investors:read'],status:'revoked',created:'2025-06-10',lastUsed:'منذ 3 أشهر',calls:0,errors:0,usage:[]},
+  {id:'k4',name:'اختبار التكامل',env:'sandbox',key:'mrb_test_yZ1aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT',scopes:['deals:read','deals:write','webhooks:write'],status:'active',created:'2026-05-20',lastUsed:'اليوم',calls:890,errors:12,usage:[10,15,8,20,12,18,14,22,16,19,11,17,13,21]},
+];
+
+const LOG_ENTRIES = [
+  {time:'14:52:03',key:'تكامل ERP',endpoint:'GET /app/deals','status':200,ms:142},
+  {time:'14:51:44',key:'موقع الشركاء',endpoint:'GET /app/deals/d1','status':200,ms:98},
+  {time:'14:51:12',key:'تكامل ERP',endpoint:'GET /app/investors','status':200,ms:215},
+  {time:'14:50:38',key:'اختبار التكامل',endpoint:'POST /app/deals','status':201,ms:380},
+  {time:'14:49:55',key:'تكامل ERP',endpoint:'GET /app/reports','status':403,ms:45},
+  {time:'14:49:22',key:'موقع الشركاء',endpoint:'GET /app/deals','status':200,ms:112},
+];
+
+function setEnv(el, env) {
+  document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); currentEnv = env; renderKeys();
+}
+
+function renderStats() {
+  const all = API_KEYS.filter(k => k.env === currentEnv);
+  const active = all.filter(k => k.status === 'active').length;
+  const calls = all.reduce((s,k) => s+k.calls, 0);
+  const errors = all.reduce((s,k) => s+k.errors, 0);
+  document.getElementById('statTotal').textContent = all.length;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statCalls').textContent = calls.toLocaleString('ar');
+  document.getElementById('statErrors').textContent = errors;
+}
+
+function renderKeys() {
+  renderStats();
+  const list = document.getElementById('keysList'); list.textContent = '';
+  API_KEYS.filter(k => k.env === currentEnv).forEach(k => {
+    const card = document.createElement('div'); card.className = 'key-card';
+
+    // Top row
+    const top = document.createElement('div'); top.className = 'key-top';
+    const icon = document.createElement('div'); icon.className = 'key-icon'; icon.textContent = k.env==='production'?'🔑':'🧪';
+    const info = document.createElement('div'); info.className = 'key-info';
+    const nm = document.createElement('div'); nm.className = 'key-name'; nm.textContent = k.name;
+    const desc = document.createElement('div'); desc.className = 'key-desc'; desc.textContent = 'إنشاء: ' + k.created + ' • آخر استخدام: ' + k.lastUsed;
+    const badges = document.createElement('div'); badges.className = 'key-badges';
+    const stBadge = document.createElement('span'); stBadge.className='badge badge-'+k.status;
+    stBadge.textContent={active:'نشط',revoked:'مُلغى',expired:'منتهي'}[k.status]; badges.appendChild(stBadge);
+    k.scopes.forEach(sc => { const b=document.createElement('span'); b.className='badge badge-scope'; b.textContent=sc; badges.appendChild(b); });
+    info.appendChild(nm); info.appendChild(desc); info.appendChild(badges);
+    top.appendChild(icon); top.appendChild(info); card.appendChild(top);
+
+    // Key value row
+    const valRow = document.createElement('div'); valRow.className = 'key-value-row';
+    const field = document.createElement('div'); field.className = 'key-field';
+    const eyeBtn = document.createElement('button'); eyeBtn.className = 'eye-btn'; eyeBtn.textContent = '👁';
+    eyeBtn.onclick = () => {
+      masked[k.id] = !masked[k.id];
+      valEl.textContent = masked[k.id] ? k.key : k.key.replace(/[a-zA-Z0-9]{24}$/, v => '•'.repeat(v.length));
+    };
+    const valEl = document.createElement('div'); valEl.className = 'key-value';
+    const displayKey = k.status==='revoked' ? '••••••••••••••••••••••••••••••••••••••••' : k.key.replace(/[a-zA-Z0-9]{24}$/, v => '•'.repeat(v.length));
+    valEl.textContent = displayKey;
+    const copyBtn = document.createElement('button'); copyBtn.className = 'copy-btn'; copyBtn.textContent = 'نسخ';
+    copyBtn.onclick = () => {
+      if (k.status === 'revoked') { toast('المفتاح مُلغى'); return; }
+      navigator.clipboard?.writeText(k.key).catch(()=>{});
+      toast('تم نسخ المفتاح');
+    };
+    field.appendChild(eyeBtn); field.appendChild(valEl); field.appendChild(copyBtn);
+    valRow.appendChild(field); card.appendChild(valRow);
+
+    // Meta + usage + actions
+    const meta = document.createElement('div'); meta.className = 'key-meta';
+    const callsEl = document.createElement('span'); callsEl.textContent = k.calls.toLocaleString('ar') + ' طلب';
+    const errEl = document.createElement('span'); errEl.textContent = k.errors + ' خطأ';
+
+    if (k.usage.length) {
+      const usageEl = document.createElement('div'); usageEl.className = 'usage-mini'; usageEl.style.flex='1';
+      const maxU = Math.max(...k.usage);
+      k.usage.forEach(v => {
+        const b = document.createElement('div'); b.className = 'usage-bar-mini';
+        b.style.height = Math.round(v/maxU*24)+'px'; usageEl.appendChild(b);
+      });
+      meta.appendChild(callsEl); meta.appendChild(errEl); meta.appendChild(usageEl);
+    } else {
+      meta.appendChild(callsEl); meta.appendChild(errEl);
+    }
+
+    const actions = document.createElement('div'); actions.className = 'key-actions';
+    if (k.status === 'active') {
+      const revokeBtn = document.createElement('button'); revokeBtn.className = 'btn-danger btn';
+      revokeBtn.textContent = 'إلغاء'; revokeBtn.onclick = () => revokeKey(k.id);
+      actions.appendChild(revokeBtn);
+    }
+    meta.appendChild(actions); card.appendChild(meta);
+    list.appendChild(card);
+  });
+}
+
+async function revokeKey(id) {
+  if (!confirm('هل أنت متأكد من إلغاء هذا المفتاح؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+  try {
+    const r = await fetch('/app/admin/api-keys/'+id+'/revoke', {method:'POST',headers:{'x-csrf-token':CSRF}});
+    if (!r.ok) throw new Error();
+  } catch {}
+  const k = API_KEYS.find(k => k.id === id);
+  if (k) k.status = 'revoked';
+  toast('تم إلغاء المفتاح'); renderKeys();
+}
+
+function openCreateModal() {
+  document.getElementById('fKeyName').value = '';
+  document.getElementById('fExpiry').value = '';
+  document.querySelectorAll('.scope-checks input').forEach(c => { c.checked = false; });
+  document.getElementById('newKeyReveal').textContent = '';
+  document.getElementById('createBtn').style.display = 'inline-flex';
+  document.getElementById('createModal').classList.add('open');
+}
+function closeModal() { document.getElementById('createModal').classList.remove('open'); }
+
+async function createKey() {
+  const name = document.getElementById('fKeyName').value.trim();
+  if (!name) { toast('أدخل اسم المفتاح'); return; }
+  const scopes = [...document.querySelectorAll('.scope-checks input:checked')].map(c => c.value);
+  const payload = { name, env: document.getElementById('fEnv').value, expiry: document.getElementById('fExpiry').value, scopes };
+  let newKey = 'mrb_' + (payload.env==='production'?'live':'test') + '_' + Array.from({length:36},()=>'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random()*62)]).join('');
+  try {
+    const r = await fetch('/app/admin/api-keys', {method:'POST',headers:{'Content-Type':'application/json','x-csrf-token':CSRF},body:JSON.stringify(payload)});
+    if (r.ok) { const d = await r.json(); newKey = d.key?.key || newKey; }
+  } catch {}
+  const reveal = document.getElementById('newKeyReveal');
+  reveal.textContent = '';
+  const box = document.createElement('div'); box.className = 'new-key-reveal';
+  const title = document.createElement('div'); title.style.fontWeight='700'; title.textContent='✅ تم إنشاء المفتاح — احفظه الآن، لن يظهر مجدداً:';
+  const code = document.createElement('div'); code.className = 'key-code'; code.textContent = newKey;
+  const warn = document.createElement('div'); warn.style.cssText='font-size:.75rem;color:var(--red);margin-top:.25rem';
+  warn.textContent = 'تحذير: لن تتمكن من رؤية هذا المفتاح مجدداً بعد إغلاق هذه النافذة.';
+  box.appendChild(title); box.appendChild(code); box.appendChild(warn);
+  reveal.appendChild(box);
+  document.getElementById('createBtn').style.display = 'none';
+  API_KEYS.unshift({id:'k'+Date.now(),name,env:payload.env,key:newKey,scopes,status:'active',created:new Date().toISOString().slice(0,10),lastUsed:'الآن',calls:0,errors:0,usage:[]});
+  renderKeys();
+}
+
+function renderLog() {
+  const tbody = document.getElementById('logTbody'); tbody.textContent = '';
+  LOG_ENTRIES.forEach(e => {
+    const tr = document.createElement('tr');
+    [e.time, e.key, e.endpoint, e.status, e.ms+'ms'].forEach((v,i) => {
+      const td = document.createElement('td');
+      td.style.cssText='padding:.6rem 1.25rem;border-bottom:1px solid var(--line)';
+      if (i===3) { td.style.color = e.status<300?'#27ae60':e.status<400?'#f39c12':'var(--red)'; td.style.fontWeight='700'; }
+      td.textContent = v; tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function toast(msg) {
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+renderKeys(); renderLog();
+</script>
+</body>
+</html>

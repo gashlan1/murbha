@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تجميع الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.syndication-list{display:flex;flex-direction:column;gap:1.25rem;margin-bottom:2rem;}
+.syn-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.syn-head{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fff;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.syn-title{font-size:1rem;font-weight:700;}
+.syn-status{font-size:0.74rem;padding:0.2rem 0.65rem;border-radius:20px;font-weight:700;}
+.status-open{background:#e6f4ef;color:var(--green);}
+.status-closed{background:#e8e3da;color:var(--muted);}
+.status-partial{background:#fff8e8;color:var(--gold);}
+.syn-body{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;}
+.syn-stat{display:flex;flex-direction:column;gap:0.2rem;}
+.syn-stat-label{font-size:0.74rem;color:var(--muted);}
+.syn-stat-value{font-size:1rem;font-weight:700;color:var(--green-dark);}
+.progress-wrap{margin:0 1.5rem 1rem;}
+.progress-label{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;}
+.progress-track{background:#e8e3da;border-radius:4px;height:8px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.4s;}
+.syn-footer{padding:0.75rem 1.5rem;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.syn-investors{font-size:0.8rem;color:var(--muted);}
+.syn-actions{display:flex;gap:0.5rem;}
+.table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.86rem;}
+tr:last-child td{border-bottom:none;}
+@media(max-width:900px){.syn-body{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تجميع الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة تجميع الصفقات</h2>
+    <button class="btn btn-primary" onclick="createSyndication()">+ إنشاء تجميع</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="syndication-list" id="synList"></div>
+
+  <div class="table-card">
+    <div class="table-head"><h3>سجل مشاركات المستثمرين</h3></div>
+    <table>
+      <thead>
+        <tr>
+          <th>الصفقة</th>
+          <th>المستثمر</th>
+          <th>الحصة</th>
+          <th>المبلغ (ر.س)</th>
+          <th>تاريخ الانضمام</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="participantsTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'إجمالي الصفقات المجمّعة',value:'٨',sub:'صفقة نشطة'},
+  {label:'إجمالي التمويل المجمّع',value:'١٢.٤M',sub:'ر.س'},
+  {label:'متوسط نسبة الاكتتاب',value:'٨٤٪',sub:'من المستهدف'},
+  {label:'المستثمرون المشاركون',value:'٢١٨',sub:'مستثمر'},
+];
+
+const syndicates = [
+  {
+    title:'مجمع الروضة السكني — الجولة الثانية',
+    status:'open',
+    target:'٨,٠٠٠,٠٠٠',
+    raised:'٥,٨٠٠,٠٠٠',
+    pct:72,
+    minTicket:'٥٠,٠٠٠',
+    returnRate:'١٠٪',
+    deadline:'٣٠ يونيو ٢٠٢٥',
+    investors:38,
+  },
+  {
+    title:'محطة طاقة شمسية — المرحلة الثانية',
+    status:'partial',
+    target:'٥,٠٠٠,٠٠٠',
+    raised:'٤,٢٠٠,٠٠٠',
+    pct:84,
+    minTicket:'١٠٠,٠٠٠',
+    returnRate:'١٤٪',
+    deadline:'١٥ يوليو ٢٠٢٥',
+    investors:24,
+  },
+  {
+    title:'برج المدينة التجاري',
+    status:'closed',
+    target:'١٢,٠٠٠,٠٠٠',
+    raised:'١٢,٠٠٠,٠٠٠',
+    pct:100,
+    minTicket:'٢٠٠,٠٠٠',
+    returnRate:'١١٪',
+    deadline:'مكتمل',
+    investors:61,
+  },
+];
+
+const participants = [
+  {deal:'مجمع الروضة',investor:'أحمد المنصور',share:'٥٪',amount:'٤٠٠,٠٠٠',date:'٢٠٢٥/٠٥/٠١',status:'مؤكد'},
+  {deal:'مجمع الروضة',investor:'سارة الزهراني',share:'٣٪',amount:'٢٤٠,٠٠٠',date:'٢٠٢٥/٠٥/١٢',status:'مؤكد'},
+  {deal:'طاقة شمسية',investor:'خالد العتيبي',share:'٨٪',amount:'٤٠٠,٠٠٠',date:'٢٠٢٥/٠٤/٢٠',status:'مؤكد'},
+  {deal:'طاقة شمسية',investor:'نورة السالم',share:'٢٪',amount:'١٠٠,٠٠٠',date:'٢٠٢٥/٠٦/٠١',status:'قيد المراجعة'},
+];
+
+const statusLabels = {open:'مفتوح',partial:'اكتتاب جزئي',closed:'مكتمل'};
+const statusCls = {open:'status-open',partial:'status-partial',closed:'status-closed'};
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderSynList(){
+  const list = document.getElementById('synList');
+  list.textContent = '';
+  syndicates.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'syn-card';
+    const head = document.createElement('div');
+    head.className = 'syn-head';
+    const title = document.createElement('span');
+    title.className = 'syn-title';
+    title.textContent = s.title;
+    const statusEl = document.createElement('span');
+    statusEl.className = 'syn-status ' + statusCls[s.status];
+    statusEl.textContent = statusLabels[s.status];
+    head.appendChild(title);
+    head.appendChild(statusEl);
+    const body = document.createElement('div');
+    body.className = 'syn-body';
+    [
+      {l:'المستهدف',v:s.target + ' ر.س'},
+      {l:'المُجمَّع',v:s.raised + ' ر.س'},
+      {l:'أدنى مشاركة',v:s.minTicket + ' ر.س'},
+      {l:'العائد المستهدف',v:s.returnRate},
+    ].forEach(st => {
+      const statEl = document.createElement('div');
+      statEl.className = 'syn-stat';
+      const lbl = document.createElement('span');
+      lbl.className = 'syn-stat-label';
+      lbl.textContent = st.l;
+      const val = document.createElement('span');
+      val.className = 'syn-stat-value';
+      val.textContent = st.v;
+      statEl.appendChild(lbl);
+      statEl.appendChild(val);
+      body.appendChild(statEl);
+    });
+    const progressWrap = document.createElement('div');
+    progressWrap.className = 'progress-wrap';
+    const progressLabel = document.createElement('div');
+    progressLabel.className = 'progress-label';
+    const plLeft = document.createElement('span');
+    plLeft.textContent = 'نسبة الاكتتاب';
+    const plRight = document.createElement('span');
+    plRight.textContent = s.pct + '٪';
+    progressLabel.appendChild(plLeft);
+    progressLabel.appendChild(plRight);
+    const track = document.createElement('div');
+    track.className = 'progress-track';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    fill.style.width = s.pct + '%';
+    if(s.pct >= 100) fill.style.background = '#27ae60';
+    track.appendChild(fill);
+    progressWrap.appendChild(progressLabel);
+    progressWrap.appendChild(track);
+    const footer = document.createElement('div');
+    footer.className = 'syn-footer';
+    const inv = document.createElement('span');
+    inv.className = 'syn-investors';
+    inv.textContent = s.investors + ' مستثمر · الموعد: ' + s.deadline;
+    const actions = document.createElement('div');
+    actions.className = 'syn-actions';
+    if(s.status !== 'closed'){
+      const inviteBtn = document.createElement('button');
+      inviteBtn.className = 'btn btn-sm btn-secondary';
+      inviteBtn.textContent = 'دعوة مستثمرين';
+      inviteBtn.onclick = () => inviteInvestors(s.title);
+      actions.appendChild(inviteBtn);
+    }
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'btn btn-sm btn-primary';
+    viewBtn.textContent = 'التفاصيل';
+    viewBtn.onclick = () => viewSyndication(s.title);
+    actions.appendChild(viewBtn);
+    footer.appendChild(inv);
+    footer.appendChild(actions);
+    card.appendChild(head);
+    card.appendChild(body);
+    card.appendChild(progressWrap);
+    card.appendChild(footer);
+    list.appendChild(card);
+  });
+}
+
+function renderParticipants(){
+  const tbody = document.getElementById('participantsTable');
+  tbody.textContent = '';
+  participants.forEach(p => {
+    const tr = document.createElement('tr');
+    [p.deal, p.investor, p.share, p.amount + ' ر.س', p.date, p.status].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+async function createSyndication(){
+  try {
+    await fetch('/app/admin/syndication', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function inviteInvestors(deal){
+  try {
+    await fetch('/app/admin/syndication/invite', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({deal})
+    });
+  } catch(e){}
+}
+
+async function viewSyndication(deal){
+  try {
+    const res = await fetch('/app/admin/syndication/' + encodeURIComponent(deal));
+    await res.json();
+  } catch(e){}
+}
+
+renderKpis();
+renderSynList();
+renderParticipants();
+</script>
+</body>
+</html>

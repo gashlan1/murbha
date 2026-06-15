@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>اختبار شخصيتك الاستثمارية — مُرابحة</title>
+<meta name="description" content="٧ أسئلة قصيرة لتحديد نمطك الاستثماري: محافظ، متوازن، أو طموح — مع توصية مخصّصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:680px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:36px 22px; margin-bottom:18px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; line-height:1.85; }
+  .progress { height:6px; background:rgba(255,255,255,0.2); border-radius:99px; overflow:hidden; margin-top:18px; max-width:300px; margin-inline:auto; }
+  .progress div { height:100%; width:0%; background:var(--gold); transition:width .4s; }
+  .question { background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:14px; }
+  .question .qn { font:700 11px Cairo,sans-serif; color:var(--gold); letter-spacing:2px; margin-bottom:6px; }
+  .question h2 { font:900 17px Cairo,sans-serif; color:var(--green-dark); margin-bottom:14px; line-height:1.6; }
+  .choices { display:flex; flex-direction:column; gap:8px; }
+  .choice { display:flex; align-items:center; gap:10px; padding:14px 16px; background:var(--paper); border:1px solid var(--line); border-radius:12px; cursor:pointer; transition:transform .15s, border-color .15s; font:600 13px Tajawal,sans-serif; color:var(--ink); text-align:start; }
+  .choice:hover { transform:translateY(-1px); border-color:var(--gold); }
+  .choice.sel { background:var(--green-dark); color:#fbf6ea; border-color:var(--green-dark); }
+  .nav-row { display:flex; gap:8px; margin-top:18px; }
+  .nav-row button { flex:1; padding:14px; border-radius:12px; font:900 14px Cairo,sans-serif; cursor:pointer; border:none; }
+  .btn-primary { background:var(--gold); color:var(--green-dark); }
+  .btn-primary:disabled { background:#dcdcdc; color:#888; cursor:not-allowed; }
+  .btn-secondary { background:#fff; color:var(--green-dark); border:1px solid var(--green-dark); }
+  .result-card { background:linear-gradient(135deg,#fbf6ea,#fff); border:3px solid var(--gold); border-radius:22px; padding:30px 24px; text-align:center; }
+  .result-card .ic { font-size:60px; margin-bottom:8px; }
+  .result-card h2 { font:900 26px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .result-card .tag { display:inline-block; background:var(--gold); color:var(--green-dark); padding:5px 18px; border-radius:99px; font:800 11px Cairo,sans-serif; margin-bottom:14px; }
+  .result-card p { font:500 13px Tajawal,sans-serif; color:var(--ink); line-height:2; margin-bottom:14px; }
+  .alloc { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:18px 0; }
+  .alloc .a { background:#fff; border-radius:10px; padding:14px 6px; text-align:center; border:1px solid var(--line); }
+  .alloc .a .v { font:900 18px Cairo,sans-serif; color:var(--gold); }
+  .alloc .a .l { font:600 11px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .ctas { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+  .ctas a { padding:12px 22px; border-radius:10px; font:900 13px Cairo,sans-serif; text-decoration:none; }
+  .ctas a.p { background:var(--green-dark); color:var(--gold-light); }
+  .ctas a.s { background:#fff; color:var(--green-dark); border:1px solid var(--green-dark); }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>🎯 شخصيّتك الاستثمارية</h1>
+    <p>٧ أسئلة قصيرة. ٢ دقيقة. نتيجة مع توصية محفظة مخصّصة لك.</p>
+    <div class="progress"><div id="progBar"></div></div>
+  </div>
+
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none;"></div>
+</main>
+
+<script>
+  const QUESTIONS = [
+    {
+      q: 'ما هو هدفك الاستثماري الأساسي؟',
+      choices: [
+        { t: '🛡 الحفاظ على رأس المال', v: 1 },
+        { t: '⚖️ نمو ثابت ومتوازن', v: 2 },
+        { t: '🚀 تحقيق أعلى عائد ممكن', v: 3 },
+      ],
+    },
+    {
+      q: 'كم سنة تخطّط للاستثمار؟',
+      choices: [
+        { t: '🕒 أقلّ من ٣ سنوات', v: 1 },
+        { t: '📅 ٣–٧ سنوات', v: 2 },
+        { t: '⏳ أكثر من ٧ سنوات', v: 3 },
+      ],
+    },
+    {
+      q: 'لو خسرت ١٥٪ من استثمارك في شهر، ماذا تفعل؟',
+      choices: [
+        { t: '😟 أبيع فوراً لأحدّ الخسارة', v: 1 },
+        { t: '🧘 أنتظر وأراقب', v: 2 },
+        { t: '💪 أشتري أكثر بأسعار أقلّ', v: 3 },
+      ],
+    },
+    {
+      q: 'كم ٪ من دخلك الشهري تخطّط لاستثماره؟',
+      choices: [
+        { t: '📊 أقلّ من ١٠٪', v: 1 },
+        { t: '📈 ١٠–٢٥٪', v: 2 },
+        { t: '🎯 أكثر من ٢٥٪', v: 3 },
+      ],
+    },
+    {
+      q: 'هل لديك صندوق طوارئ (٣–٦ أشهر)؟',
+      choices: [
+        { t: '❌ ليس بعد', v: 1 },
+        { t: '🟡 جزء منه', v: 2 },
+        { t: '✅ نعم، كامل', v: 3 },
+      ],
+    },
+    {
+      q: 'خبرتك السابقة في الاستثمار؟',
+      choices: [
+        { t: '🌱 مبتدئ تماماً', v: 1 },
+        { t: '📚 لديّ بعض الخبرة', v: 2 },
+        { t: '🎓 خبير', v: 3 },
+      ],
+    },
+    {
+      q: 'ما الأهمّ بالنسبة لك في الصفقة؟',
+      choices: [
+        { t: '🏛 الأمان والضمانات', v: 1 },
+        { t: '⚖️ التوازن بين الأمان والعائد', v: 2 },
+        { t: '📈 العائد المرتفع', v: 3 },
+      ],
+    },
+  ];
+
+  const PROFILES = {
+    conservative: {
+      ic: '🛡', name: 'محافظ', tag: 'CONSERVATIVE',
+      desc: 'تركّز على الحفاظ على رأس مالك. تفضّل الصفقات منخفضة المخاطرة والمدّة القصيرة. الأمان أولى من العائد المرتفع.',
+      alloc: { 'سكني وتجاري': '٧٠٪', 'سلع وتجارة': '٢٠٪', 'نقد سائل': '١٠٪' },
+    },
+    balanced: {
+      ic: '⚖️', name: 'متوازن', tag: 'BALANCED',
+      desc: 'تبحث عن نمو ثابت مع مخاطرة معتدلة. مستعدّ لتقبّل تقلبات قصيرة الأمد مقابل عائد أفضل على المدى المتوسط.',
+      alloc: { 'سكني': '٥٠٪', 'تجاري': '٢٥٪', 'صناعي + سلع': '٢٥٪' },
+    },
+    aggressive: {
+      ic: '🚀', name: 'طموح', tag: 'AGGRESSIVE',
+      desc: 'مستعدّ لتقبّل المخاطرة العالية مقابل عوائد كبيرة. تستهدف الصفقات النامية والأراضي والتطوير العقاري طويل الأمد.',
+      alloc: { 'أراضٍ وتطوير': '٤٠٪', 'تجاري وصناعي': '٣٥٪', 'سكني': '٢٥٪' },
+    },
+  };
+
+  let answers = new Array(QUESTIONS.length).fill(null);
+  let current = 0;
+
+  function render() {
+    const area = document.getElementById('quizArea');
+    document.getElementById('progBar').style.width = ((current / QUESTIONS.length) * 100) + '%';
+    if (current >= QUESTIONS.length) return finish();
+    area.replaceChildren();
+    const q = QUESTIONS[current];
+    const card = document.createElement('div'); card.className = 'question';
+    const qn = document.createElement('div'); qn.className = 'qn'; qn.textContent = 'سؤال ' + (current + 1) + ' من ' + QUESTIONS.length;
+    const h = document.createElement('h2'); h.textContent = q.q;
+    const ch = document.createElement('div'); ch.className = 'choices';
+    q.choices.forEach((c, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'choice' + (answers[current] === i ? ' sel' : '');
+      b.textContent = c.t;
+      b.addEventListener('click', () => { answers[current] = i; render(); });
+      ch.appendChild(b);
+    });
+    card.append(qn, h, ch);
+    const nav = document.createElement('div'); nav.className = 'nav-row';
+    const back = document.createElement('button'); back.type = 'button'; back.className = 'btn-secondary'; back.textContent = '← السابق'; back.disabled = current === 0;
+    back.addEventListener('click', () => { if (current > 0) { current--; render(); } });
+    const next = document.createElement('button'); next.type = 'button'; next.className = 'btn-primary';
+    next.textContent = current === QUESTIONS.length - 1 ? '🎯 احصل على النتيجة' : 'التالي →';
+    next.disabled = answers[current] === null;
+    next.addEventListener('click', () => { current++; render(); });
+    nav.append(back, next);
+    card.appendChild(nav);
+    area.appendChild(card);
+  }
+
+  function finish() {
+    document.getElementById('progBar').style.width = '100%';
+    document.getElementById('quizArea').style.display = 'none';
+    const total = answers.reduce((s, ai, i) => s + (QUESTIONS[i].choices[ai].v || 0), 0);
+    const avg = total / QUESTIONS.length;
+    let key = 'balanced';
+    if (avg < 1.7) key = 'conservative';
+    else if (avg >= 2.4) key = 'aggressive';
+    const p = PROFILES[key];
+    const r = document.getElementById('resultArea');
+    r.style.display = '';
+    const card = document.createElement('div'); card.className = 'result-card';
+    const ic = document.createElement('div'); ic.className = 'ic'; ic.textContent = p.ic;
+    const h = document.createElement('h2'); h.textContent = 'أنت مستثمر ' + p.name;
+    const tag = document.createElement('div'); tag.className = 'tag'; tag.textContent = p.tag;
+    const desc = document.createElement('p'); desc.textContent = p.desc;
+    const alloc = document.createElement('div'); alloc.className = 'alloc';
+    Object.entries(p.alloc).forEach(([l, v]) => {
+      const a = document.createElement('div'); a.className = 'a';
+      const vv = document.createElement('div'); vv.className = 'v'; vv.textContent = v;
+      const ll = document.createElement('div'); ll.className = 'l'; ll.textContent = l;
+      a.append(vv, ll); alloc.appendChild(a);
+    });
+    const ctas = document.createElement('div'); ctas.className = 'ctas';
+    const cta1 = document.createElement('a'); cta1.className = 'p'; cta1.href = '/search.html'; cta1.textContent = '🔍 تصفّح الصفقات';
+    const cta2 = document.createElement('a'); cta2.className = 's'; cta2.href = '/auto-invest.html'; cta2.textContent = '🔁 فعّل التلقائي';
+    const cta3 = document.createElement('a'); cta3.className = 's'; cta3.href = '/risk-assessment.html'; cta3.textContent = '⚠ قيّم مخاطرتي';
+    ctas.append(cta1, cta2, cta3);
+    card.append(ic, h, tag, desc, alloc, ctas);
+    const restart = document.createElement('button'); restart.className = 'btn-secondary'; restart.style.cssText = 'margin-top:14px;padding:12px 24px;border-radius:10px;font:900 12px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);border:1px solid var(--green-dark);';
+    restart.textContent = '↺ أعد الاختبار';
+    restart.addEventListener('click', () => { answers = new Array(QUESTIONS.length).fill(null); current = 0; r.style.display = 'none'; document.getElementById('quizArea').style.display = ''; render(); });
+    r.replaceChildren(); r.appendChild(card); r.appendChild(restart);
+  }
+
+  render();
+</script>
+<script src="/app.js" defer></script>
+</body>
+</html>

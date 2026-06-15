@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>حاسبة الصفقة — مُرابحة</title>
+<meta name="description" content="احسب العائد المتوقع والجدول الدوري والزكاة المقدّرة قبل الاستثمار في أي صفقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .input-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .form-input,.form-select{border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-input:focus,.form-select:focus{outline:none;border-color:var(--green);}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-calc{width:100%;background:var(--gold);color:#fff;border:none;border-radius:11px;padding:13px;font:900 14px Cairo,sans-serif;cursor:pointer;margin-top:14px;}
+  .btn-calc:hover{background:#a07020;}
+  .results-card{background:#fff;border:2px solid var(--gold);border-radius:18px;padding:24px;margin-bottom:18px;display:none;}
+  .results-card.visible{display:block;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:var(--paper);border-radius:12px;padding:14px;text-align:center;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .schedule-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;}
+  table{width:100%;border-collapse:collapse;}
+  th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);}
+  td{font:500 11px Tajawal,sans-serif;color:var(--ink);padding:9px 10px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .td-amount{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .zakat-note{background:#fff8e1;border:1px solid var(--gold);border-radius:10px;padding:12px 14px;font:500 11px Tajawal,sans-serif;color:#a07020;margin-top:14px;line-height:1.6;}
+  @media(max-width:540px){.form-grid{grid-template-columns:1fr;}}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>حاسبة الصفقة</h1>
+    <p>أدخل مبلغ استثمارك وشروط الصفقة لتحصل على توقعات العائد والجدول الدوري وتقدير الزكاة.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="card-title">بيانات الحساب</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-lbl" for="fldAmount">مبلغ الاستثمار (ر.س)</label>
+        <input class="form-input" id="fldAmount" type="number" min="1000" placeholder="50000" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="fldYield">العائد السنوي المتوقع (٪)</label>
+        <input class="form-input" id="fldYield" type="number" min="1" max="50" step="0.1" placeholder="14" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="fldDuration">مدة الصفقة (أشهر)</label>
+        <input class="form-input" id="fldDuration" type="number" min="1" max="60" placeholder="12" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="fldPayFreq">توزيع الأرباح</label>
+        <select class="form-select" id="fldPayFreq">
+          <option value="monthly">شهري</option>
+          <option value="quarterly">ربع سنوي</option>
+          <option value="endterm">عند الاستحقاق</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="fldFee">رسوم الإدارة (٪)</label>
+        <input class="form-input" id="fldFee" type="number" min="0" max="5" step="0.1" placeholder="1.5" />
+        <div class="form-hint">تُخصَم من العائد الإجمالي</div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="fldZakat">احتساب الزكاة؟</label>
+        <select class="form-select" id="fldZakat">
+          <option value="yes">نعم (ربع العُشر 2.5٪)</option>
+          <option value="no">لا</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" id="calcBtn">احسب العائد</button>
+  </div>
+
+  <div class="results-card" id="resultsCard">
+    <div class="card-title">نتائج الحساب</div>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="schedule-title">الجدول الدوري للمدفوعات</div>
+    <div id="scheduleArea"></div>
+    <div class="zakat-note" id="zakatNote" style="display:none"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+  function fmtAr(n){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    const amount = parseFloat(document.getElementById('fldAmount').value);
+    const yieldPct = parseFloat(document.getElementById('fldYield').value);
+    const duration = parseInt(document.getElementById('fldDuration').value);
+    const freq = document.getElementById('fldPayFreq').value;
+    const feePct = parseFloat(document.getElementById('fldFee').value)||0;
+    const calcZakat = document.getElementById('fldZakat').value==='yes';
+
+    if(!amount||amount<1000){ alert('الرجاء إدخال مبلغ استثمار صحيح (الحد الأدنى 1,000 ر.س).'); return; }
+    if(!yieldPct||yieldPct<=0){ alert('الرجاء إدخال عائد سنوي صحيح.'); return; }
+    if(!duration||duration<1){ alert('الرجاء إدخال مدة الصفقة.'); return; }
+
+    const netYield = yieldPct - feePct;
+    const monthlyRate = netYield / 100 / 12;
+    const totalGross = amount * (yieldPct/100) * (duration/12);
+    const totalFees = amount * (feePct/100) * (duration/12);
+    const totalNet = totalGross - totalFees;
+    const zakatDue = calcZakat ? (amount + totalNet) * 0.025 : 0;
+    const netAfterZakat = totalNet - zakatDue;
+
+    const kpiRow = document.getElementById('kpiRow'); kpiRow.textContent='';
+    const kpis=[
+      {lbl:'إجمالي العائد',val:fmtAr(totalGross)+' ر.س'},
+      {lbl:'صافي العائد (بعد الرسوم)',val:fmtAr(totalNet)+' ر.س'},
+      {lbl:'الزكاة المقدّرة',val:calcZakat?fmtAr(zakatDue)+' ر.س':'غير محسوبة'},
+      {lbl:'رأس المال + الأرباح',val:fmtAr(amount+totalNet)+' ر.س'}
+    ];
+    kpis.forEach(k=>{
+      const div=document.createElement('div'); div.className='kpi';
+      const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+      const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+      div.appendChild(val); div.appendChild(lbl); kpiRow.appendChild(div);
+    });
+
+    const schedArea=document.getElementById('scheduleArea'); schedArea.textContent='';
+    const tbl=document.createElement('table');
+    const hdr=document.createElement('tr');
+    ['الفترة','العائد الإجمالي','الرسوم','الصافي','الرصيد التراكمي'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hdr.appendChild(th); });
+    tbl.appendChild(hdr);
+
+    let freqMonths=1;
+    if(freq==='quarterly') freqMonths=3;
+    else if(freq==='endterm') freqMonths=duration;
+
+    let cumulative=0; let period=1;
+    for(let m=freqMonths; m<=duration; m+=freqMonths){
+      const periodMonths=Math.min(freqMonths, duration-m+freqMonths);
+      const gross=amount*(yieldPct/100)*(periodMonths/12);
+      const fee=amount*(feePct/100)*(periodMonths/12);
+      const net=gross-fee;
+      cumulative+=net;
+      const tr=document.createElement('tr');
+      const periodLabel=freq==='endterm'?'عند الاستحقاق':freq==='quarterly'?'ربع '+period:'شهر '+m;
+      [[periodLabel,false],[fmtAr(gross)+' ر.س',true],[fmtAr(fee)+' ر.س',true],[fmtAr(net)+' ر.س',true],[fmtAr(cumulative)+' ر.س',true]].forEach(([v,amt])=>{
+        const td=document.createElement('td'); if(amt) td.className='td-amount'; td.textContent=v; tr.appendChild(td);
+      });
+      tbl.appendChild(tr); period++;
+    }
+    schedArea.appendChild(tbl);
+
+    const zakatNote=document.getElementById('zakatNote');
+    if(calcZakat){
+      zakatNote.style.display='block';
+      zakatNote.textContent='تقدير الزكاة: 2.5٪ من (رأس المال '+fmtAr(amount)+' ر.س + صافي الأرباح '+fmtAr(totalNet)+' ر.س) = '+fmtAr(zakatDue)+' ر.س. هذا تقدير تقريبي؛ راجع العالم الشرعي للدقة.';
+    } else { zakatNote.style.display='none'; }
+
+    document.getElementById('resultsCard').classList.add('visible');
+    document.getElementById('resultsCard').scrollIntoView({behavior:'smooth'});
+  });
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مركز الضرائب - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.doc-list{list-style:none;}
+.doc-item{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.doc-item:last-child{border-bottom:none;}
+.doc-info{display:flex;flex-direction:column;gap:0.15rem;}
+.doc-name{font-size:0.88rem;font-weight:600;color:var(--green-dark);}
+.doc-meta{font-size:0.74rem;color:var(--muted);}
+.doc-badge{font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:8px;}
+.badge-ready{background:#e6f4ef;color:var(--green);}
+.badge-pending{background:#fff8e8;color:var(--gold);}
+.year-tabs{display:flex;gap:0.5rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.year-tab{padding:0.35rem 0.9rem;border-radius:20px;font-size:0.82rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:all 0.2s;}
+.year-tab.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark);}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.88rem;}
+.summary-row:last-child{border-bottom:none;font-weight:700;}
+.summary-row .label{color:var(--muted);}
+.summary-row .value{color:var(--green-dark);font-weight:600;}
+.disclaimer{font-size:0.76rem;color:var(--muted);background:#f5f0e8;border-radius:8px;padding:0.75rem 1rem;margin-top:2rem;line-height:1.5;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مركز الضرائب</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>مركز الضرائب والإفصاح</h2>
+    <button class="btn btn-primary" onclick="downloadAll()">تحميل جميع الوثائق</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head">
+        <h3>وثائق الضريبة</h3>
+        <button class="btn btn-sm btn-secondary" onclick="refreshDocs()">تحديث</button>
+      </div>
+      <div class="card-body">
+        <div class="year-tabs" id="yearTabs"></div>
+        <ul class="doc-list" id="docList"></ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>ملخص الدخل الخاضع للضريبة</h3></div>
+      <div class="card-body">
+        <div class="year-tabs" id="summaryYearTabs"></div>
+        <div id="taxSummary"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    هذه المعلومات مقدمة لأغراض إعلامية فقط ولا تُعدّ استشارة ضريبية. يُنصح بمراجعة مستشار ضريبي مؤهل للتحقق من الالتزامات الضريبية الخاصة بك وفق الأنظمة والتشريعات المعمول بها في المملكة العربية السعودية.
+  </p>
+</div>
+
+<script>
+const kpis = [
+  {label:'إجمالي الدخل ٢٠٢٥',value:'٨٤,٢٠٠',sub:'ر.س'},
+  {label:'ضريبة القيمة المضافة',value:'٠',sub:'معفى - استثمار إسلامي'},
+  {label:'الوثائق الجاهزة',value:'٦',sub:'من أصل ٦'},
+  {label:'آخر تحديث',value:'٢٠٢٥/٠٦',sub:'يونيو ٢٠٢٥'},
+];
+
+const years = ['٢٠٢٥','٢٠٢٤','٢٠٢٣'];
+
+const docs = {
+  '٢٠٢٥': [
+    {name:'بيان الربح السنوي',meta:'يناير - يونيو ٢٠٢٥',status:'ready'},
+    {name:'إفصاح توزيع الأرباح',meta:'الربع الأول والثاني',status:'ready'},
+    {name:'كشف أرباح المرابحة',meta:'كل الصفقات النشطة',status:'pending'},
+  ],
+  '٢٠٢٤': [
+    {name:'بيان الربح السنوي ٢٠٢٤',meta:'يناير - ديسمبر ٢٠٢٤',status:'ready'},
+    {name:'إفصاح توزيع الأرباح ٢٠٢٤',meta:'أربعة أرباع',status:'ready'},
+    {name:'كشف الأرباح الرأسمالية',meta:'صفقات مُغلقة ٢٠٢٤',status:'ready'},
+  ],
+  '٢٠٢٣': [
+    {name:'بيان الربح السنوي ٢٠٢٣',meta:'يناير - ديسمبر ٢٠٢٣',status:'ready'},
+  ],
+};
+
+const summaries = {
+  '٢٠٢٥': [
+    {label:'أرباح المرابحة',value:'٥٢,٠٠٠ ر.س'},
+    {label:'توزيعات الصناديق',value:'١٨,٥٠٠ ر.س'},
+    {label:'أرباح رأسمالية',value:'١٣,٧٠٠ ر.س'},
+    {label:'إجمالي الدخل الاستثماري',value:'٨٤,٢٠٠ ر.س'},
+  ],
+  '٢٠٢٤': [
+    {label:'أرباح المرابحة',value:'٤٤,٨٠٠ ر.س'},
+    {label:'توزيعات الصناديق',value:'١٥,٢٠٠ ر.س'},
+    {label:'أرباح رأسمالية',value:'٩,٥٠٠ ر.س'},
+    {label:'إجمالي الدخل الاستثماري',value:'٦٩,٥٠٠ ر.س'},
+  ],
+  '٢٠٢٣': [
+    {label:'أرباح المرابحة',value:'٣٨,١٠٠ ر.س'},
+    {label:'توزيعات الصناديق',value:'١٢,٤٠٠ ر.س'},
+    {label:'أرباح رأسمالية',value:'٥,٩٠٠ ر.س'},
+    {label:'إجمالي الدخل الاستثماري',value:'٥٦,٤٠٠ ر.س'},
+  ],
+};
+
+let activeYear = '٢٠٢٥';
+let activeSummaryYear = '٢٠٢٥';
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderYearTabs(containerId, active, onClick){
+  const cont = document.getElementById(containerId);
+  cont.textContent = '';
+  years.forEach(y => {
+    const tab = document.createElement('button');
+    tab.className = 'year-tab' + (y === active ? ' active' : '');
+    tab.textContent = y;
+    tab.onclick = () => onClick(y);
+    cont.appendChild(tab);
+  });
+}
+
+function renderDocs(){
+  const list = document.getElementById('docList');
+  list.textContent = '';
+  (docs[activeYear] || []).forEach(d => {
+    const li = document.createElement('li');
+    li.className = 'doc-item';
+    const info = document.createElement('div');
+    info.className = 'doc-info';
+    const name = document.createElement('span');
+    name.className = 'doc-name';
+    name.textContent = d.name;
+    const meta = document.createElement('span');
+    meta.className = 'doc-meta';
+    meta.textContent = d.meta;
+    info.appendChild(name);
+    info.appendChild(meta);
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '0.5rem';
+    const badge = document.createElement('span');
+    badge.className = 'doc-badge ' + (d.status === 'ready' ? 'badge-ready' : 'badge-pending');
+    badge.textContent = d.status === 'ready' ? 'جاهز' : 'جارٍ الإعداد';
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm btn-secondary';
+    btn.textContent = 'تحميل';
+    btn.disabled = d.status !== 'ready';
+    btn.onclick = () => downloadDoc(d.name);
+    right.appendChild(badge);
+    right.appendChild(btn);
+    li.appendChild(info);
+    li.appendChild(right);
+    list.appendChild(li);
+  });
+}
+
+function renderSummary(){
+  const cont = document.getElementById('taxSummary');
+  cont.textContent = '';
+  (summaries[activeSummaryYear] || []).forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'label';
+    lbl.textContent = r.label;
+    const val = document.createElement('span');
+    val.className = 'value';
+    val.textContent = r.value;
+    if(i === (summaries[activeSummaryYear].length - 1)){
+      row.style.marginTop = '0.5rem';
+    }
+    row.appendChild(lbl);
+    row.appendChild(val);
+    cont.appendChild(row);
+  });
+}
+
+async function downloadDoc(name){
+  try {
+    await fetch('/app/me/tax/documents/download', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({name, year: activeYear})
+    });
+  } catch(e){}
+}
+
+async function downloadAll(){
+  try {
+    await fetch('/app/me/tax/documents/download-all', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({years})
+    });
+  } catch(e){}
+}
+
+async function refreshDocs(){
+  try {
+    await fetch('/app/me/tax/documents/refresh', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+function setYear(y){ activeYear = y; renderYearTabs('yearTabs', activeYear, setYear); renderDocs(); }
+function setSummaryYear(y){ activeSummaryYear = y; renderYearTabs('summaryYearTabs', activeSummaryYear, setSummaryYear); renderSummary(); }
+
+renderKpis();
+renderYearTabs('yearTabs', activeYear, setYear);
+renderDocs();
+renderYearTabs('summaryYearTabs', activeSummaryYear, setSummaryYear);
+renderSummary();
+</script>
+</body>
+</html>

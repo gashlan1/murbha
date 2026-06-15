@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Deal Metrics — Admin — Murbha">مقاييس الصفقات — الإدارة — مُرابحة</title>
+<meta name="description" content="تحليلات ومقاييس أداء الصفقات التاريخية والنشطة في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:20px;}
+  /* Period selector */
+  .period-bar{display:flex;gap:6px;margin-bottom:20px;}
+  .period-btn{border:1.5px solid var(--line);border-radius:8px;padding:7px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .period-btn.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* KPI grid */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-sub{font:500 10px Tajawal,sans-serif;margin-top:3px;}
+  .kpi-up{color:#2e7d32;} .kpi-dn{color:#c54a3a;}
+  /* Charts row */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+  @media(max-width:650px){.charts-row{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .chart-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  /* Bar chart */
+  .bar-chart{display:flex;gap:4px;align-items:flex-end;height:100px;margin-bottom:6px;}
+  .bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+  .bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:4px;}
+  .bar-lbl{font:700 8px Cairo,sans-serif;color:var(--muted);}
+  /* Category donut-like legend */
+  .cat-list{display:flex;flex-direction:column;gap:8px;}
+  .cat-row{display:flex;align-items:center;gap:10px;}
+  .cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .cat-name{font:500 11px Tajawal,sans-serif;flex:1;}
+  .cat-bar-wrap{flex:2;height:6px;background:#f0ece0;border-radius:6px;overflow:hidden;}
+  .cat-bar-fill{height:100%;border-radius:6px;}
+  .cat-pct{font:700 10px Cairo,sans-serif;color:var(--green-dark);}
+  /* Top deals table */
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px;}
+  .table-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;border-radius:6px;padding:2px 8px;font:700 8px Cairo,sans-serif;}
+  .badge-murabaha{background:#e8f5e9;color:#2e7d32;}
+  .badge-sukuk{background:#fff8e1;color:#a07020;}
+  .badge-equity{background:#e3f2fd;color:#1565c0;}
+  .trend-up{color:#2e7d32;font:700 10px Cairo,sans-serif;}
+  .trend-dn{color:#c54a3a;font:700 10px Cairo,sans-serif;}
+  /* Funnel */
+  .funnel{display:flex;flex-direction:column;gap:6px;}
+  .funnel-step{display:flex;align-items:center;gap:10px;}
+  .funnel-label{font:500 11px Tajawal,sans-serif;min-width:100px;color:var(--muted);}
+  .funnel-bar-wrap{flex:1;height:24px;background:#f0ece0;border-radius:6px;overflow:hidden;}
+  .funnel-bar-fill{height:100%;border-radius:6px;background:var(--green);display:flex;align-items:center;padding-right:8px;}
+  .funnel-val{font:700 10px Cairo,sans-serif;color:#fff;}
+  .funnel-pct{font:700 10px Cairo,sans-serif;color:var(--muted);min-width:44px;text-align:left;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="page-title" data-en="Deal Performance Metrics">مقاييس أداء الصفقات</div>
+
+  <div class="period-bar">
+    <button class="period-btn active" data-period="30d">30 يوم</button>
+    <button class="period-btn" data-period="90d">90 يوم</button>
+    <button class="period-btn" data-period="1y">سنة</button>
+    <button class="period-btn" data-period="all">الكل</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title" data-en="Monthly Deals Closed">الصفقات المُغلقة شهرياً</div>
+      <div class="bar-chart" id="dealsChart"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" data-en="Volume by Category">الحجم حسب الفئة</div>
+      <div class="cat-list" id="catList"></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title" data-en="Return Rate Trend">اتجاه معدل العائد</div>
+      <div class="bar-chart" id="returnChart"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" data-en="Deal Funding Funnel">قمع تمويل الصفقات</div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-title" data-en="Top Performing Deals">أعلى الصفقات أداءً</div>
+    <div style="overflow-x:auto;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>اسم الصفقة</th>
+            <th>الفئة</th>
+            <th>الحجم</th>
+            <th>معدل التمويل</th>
+            <th>العائد الفعلي</th>
+            <th>عدد المستثمرين</th>
+            <th>الأداء</th>
+          </tr>
+        </thead>
+        <tbody id="topDealsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function fmt(n){return new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n);}
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const catColors={'murabaha':'#0a4d36','sukuk':'#b08840','equity':'#1565c0','other':'#7b1fa2'};
+  const catBadge={'murabaha':'badge-murabaha','sukuk':'badge-sukuk','equity':'badge-equity'};
+  const catNameAr={'murabaha':'مرابحة','sukuk':'صكوك','equity':'أسهم'};
+
+  let activePeriod='30d';
+
+  async function load(period){
+    try{
+      const r=await fetch('/app/admin/deal-metrics?period='+encodeURIComponent(period));
+      if(r.ok){ const d=await r.json(); render(d); return; }
+    }catch{}
+    renderFallback();
+  }
+
+  function renderFallback(){
+    render({
+      kpis:[
+        {label:'صفقات مكتملة',value:0,sub:'في الفترة',trend:0},
+        {label:'إجمالي الحجم',value:0,sub:'ريال',trend:0},
+        {label:'متوسط العائد',value:'0٪',sub:'سنوياً',trend:0},
+        {label:'متوسط مدة التمويل',value:'0 يوم',sub:'',trend:0},
+        {label:'معدل النجاح',value:'0٪',sub:'من الصفقات',trend:0},
+        {label:'متوسط المستثمرين',value:0,sub:'لكل صفقة',trend:0},
+      ],
+      monthlyDeals:[0,0,0,0,0,0],
+      returnTrend:[0,0,0,0,0,0],
+      categories:[],
+      funnel:[
+        {label:'صفقات مُقدَّمة',value:0,pct:100},
+        {label:'اجتازت المراجعة',value:0,pct:70},
+        {label:'حصلت على موافقة شرعية',value:0,pct:50},
+        {label:'تم إطلاقها',value:0,pct:35},
+        {label:'مكتملة التمويل',value:0,pct:25},
+      ],
+      topDeals:[],
+    });
+  }
+
+  function render(d){
+    // KPIs
+    const kpiRow=document.getElementById('kpiRow'); kpiRow.textContent='';
+    (d.kpis||[]).forEach(k=>{
+      const card=document.createElement('div'); card.className='kpi';
+      const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.label;
+      const val=document.createElement('div'); val.className='kpi-val'; val.textContent=typeof k.value==='number'?fmt(k.value):k.value;
+      const sub=document.createElement('div'); sub.className='kpi-sub';
+      if(k.trend!==undefined&&k.trend!==0){
+        sub.className+=' '+(k.trend>0?'kpi-up':'kpi-dn');
+        sub.textContent=(k.trend>0?'▲ +':'▼ ')+k.trend+'٪ '+k.sub;
+      } else { sub.textContent=k.sub||''; }
+      card.appendChild(lbl); card.appendChild(val); card.appendChild(sub); kpiRow.appendChild(card);
+    });
+
+    // Monthly deals chart
+    const dc=document.getElementById('dealsChart'); dc.textContent='';
+    const md=d.monthlyDeals||[];
+    const maxD=Math.max(...md,1);
+    const now=new Date();
+    md.forEach((v,i)=>{
+      const col=document.createElement('div'); col.className='bar-col';
+      const bar=document.createElement('div'); bar.className='bar-fill'; bar.style.height=Math.round((v/maxD)*80)+'px'; bar.style.background='var(--green)';
+      const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent=months[(now.getMonth()-md.length+i+12)%12].substring(0,3);
+      col.appendChild(bar); col.appendChild(lbl); dc.appendChild(col);
+    });
+
+    // Return trend
+    const rc=document.getElementById('returnChart'); rc.textContent='';
+    const rt=d.returnTrend||[];
+    const maxR=Math.max(...rt,1);
+    rt.forEach((v,i)=>{
+      const col=document.createElement('div'); col.className='bar-col';
+      const bar=document.createElement('div'); bar.className='bar-fill'; bar.style.height=Math.round((v/maxR)*80)+'px'; bar.style.background='var(--gold)';
+      const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent=months[(now.getMonth()-rt.length+i+12)%12].substring(0,3);
+      col.appendChild(bar); col.appendChild(lbl); rc.appendChild(col);
+    });
+
+    // Category list
+    const cl=document.getElementById('catList'); cl.textContent='';
+    const cats=d.categories||[];
+    if(!cats.length){ const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='لا بيانات.'; cl.appendChild(p); }
+    cats.forEach(c=>{
+      const row=document.createElement('div'); row.className='cat-row';
+      const dot=document.createElement('div'); dot.className='cat-dot'; dot.style.background=catColors[c.key]||'#999';
+      const name=document.createElement('div'); name.className='cat-name'; name.textContent=catNameAr[c.key]||c.key;
+      const bw=document.createElement('div'); bw.className='cat-bar-wrap';
+      const bf=document.createElement('div'); bf.className='cat-bar-fill'; bf.style.width=(c.pct||0)+'%'; bf.style.background=catColors[c.key]||'#999';
+      bw.appendChild(bf);
+      const pct=document.createElement('div'); pct.className='cat-pct'; pct.textContent=(c.pct||0)+'٪';
+      row.appendChild(dot); row.appendChild(name); row.appendChild(bw); row.appendChild(pct); cl.appendChild(row);
+    });
+
+    // Funnel
+    const fn=document.getElementById('funnel'); fn.textContent='';
+    (d.funnel||[]).forEach(step=>{
+      const s=document.createElement('div'); s.className='funnel-step';
+      const lbl=document.createElement('div'); lbl.className='funnel-label'; lbl.textContent=step.label;
+      const bw=document.createElement('div'); bw.className='funnel-bar-wrap';
+      const bf=document.createElement('div'); bf.className='funnel-bar-fill'; bf.style.width=(step.pct||0)+'%';
+      const vt=document.createElement('span'); vt.className='funnel-val'; vt.textContent=step.value||'0';
+      bf.appendChild(vt); bw.appendChild(bf);
+      const pt=document.createElement('div'); pt.className='funnel-pct'; pt.textContent=(step.pct||0)+'٪';
+      s.appendChild(lbl); s.appendChild(bw); s.appendChild(pt); fn.appendChild(s);
+    });
+
+    // Top deals table
+    const tbody=document.getElementById('topDealsBody'); tbody.textContent='';
+    if(!(d.topDeals||[]).length){
+      const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=7; td.className='placeholder-msg'; td.textContent='لا توجد صفقات.'; tr.appendChild(td); tbody.appendChild(tr);
+    } else {
+      d.topDeals.forEach(deal=>{
+        const tr=document.createElement('tr');
+        const data=[
+          deal.name||'—',
+          null,
+          fmt(deal.volume||0),
+          (deal.fundingRate||0).toFixed(0)+'٪',
+          (deal.actualReturn||0).toFixed(1)+'٪',
+          (deal.investors||0).toLocaleString('ar-SA'),
+          null,
+        ];
+        data.forEach((v,ci)=>{
+          const td=document.createElement('td');
+          if(ci===1){
+            const badge=document.createElement('span'); badge.className='badge '+(catBadge[deal.category]||'badge-murabaha'); badge.textContent=catNameAr[deal.category]||deal.category||'—';
+            td.appendChild(badge);
+          } else if(ci===6){
+            const diff=((deal.actualReturn||0)-(deal.targetReturn||8));
+            const span=document.createElement('span'); span.className=diff>=0?'trend-up':'trend-dn'; span.textContent=diff>=0?'▲ فوق الهدف':'▼ دون الهدف';
+            td.appendChild(span);
+          } else { td.textContent=v; }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  document.querySelectorAll('.period-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); activePeriod=btn.dataset.period; load(activePeriod);
+    });
+  });
+
+  load(activePeriod);
+}());
+</script>
+</body>
+</html>

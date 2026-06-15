@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>هل أنت جاهز للاستثمار؟ — مُرابحة</title>
+<meta name="description" content="٧ معايير لتعرف هل أنت جاهز مالياً وذهنياً للبدء بالاستثمار. تقييم تفاعلي ونصائح مخصّصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:720px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:36px 22px; margin-bottom:18px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; line-height:1.85; }
+  .checklist { background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:14px; }
+  .checklist h2 { font:900 18px Cairo,sans-serif; color:var(--green-dark); margin-bottom:14px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .item { display:flex; gap:12px; padding:14px; background:var(--paper); border-radius:12px; margin-bottom:10px; cursor:pointer; transition:transform .15s, border-color .15s; border:2px solid transparent; }
+  .item:hover { transform:translateY(-1px); }
+  .item.checked { border-color:#0f6e3a; background:linear-gradient(135deg,rgba(15,110,58,0.05),#fff); }
+  .item .box { width:24px; height:24px; border:2px solid var(--muted); border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font:900 13px Cairo,sans-serif; color:#fff; transition:all .15s; }
+  .item.checked .box { background:#0f6e3a; border-color:#0f6e3a; }
+  .item .body { flex:1; }
+  .item .t { font:800 14px Cairo,sans-serif; color:var(--green-dark); margin-bottom:4px; }
+  .item .d { font:500 12px Tajawal,sans-serif; color:var(--ink); line-height:1.7; }
+  .result { background:#fff; border:3px solid var(--gold); border-radius:22px; padding:28px 22px; text-align:center; margin-bottom:14px; }
+  .result .ring { width:140px; height:140px; margin:0 auto 14px; position:relative; }
+  .result .ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .result .ring .pct { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .result .ring .pct b { font:900 32px Cairo,sans-serif; color:var(--green-dark); }
+  .result .ring .pct span { font:600 10px Tajawal,sans-serif; color:var(--muted); }
+  .result h2 { font:900 22px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .result p { font:500 13px Tajawal,sans-serif; color:var(--ink); line-height:1.85; margin-bottom:14px; }
+  .result .ctas { display:flex; flex-direction:column; gap:8px; }
+  .result a { padding:12px 22px; border-radius:10px; font:900 13px Cairo,sans-serif; text-decoration:none; }
+  .result a.p { background:var(--gold); color:var(--green-dark); }
+  .result a.s { background:#fff; color:var(--green-dark); border:1px solid var(--green-dark); }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>✅ هل أنت جاهز للاستثمار؟</h1>
+    <p>٧ معايير لتعرف ما إذا كنت جاهزاً مالياً وذهنياً لبدء رحلة الاستثمار العقاري.</p>
+  </div>
+
+  <div class="checklist">
+    <h2>📋 القائمة المرجعية</h2>
+    <div id="items"></div>
+  </div>
+
+  <div id="resultBox"></div>
+</main>
+
+<script>
+  const ITEMS = [
+    { id: 'emergency',  t: '🛟 لديّ صندوق طوارئ', d: '٣-٦ أشهر من المصروفات في حساب يسهل الوصول إليه.' },
+    { id: 'debts',      t: '💳 لا توجد لديّ ديون عالية الفائدة', d: 'لا قروض بطاقات أو قروض شخصية بفوائد مرتفعة.' },
+    { id: 'income',     t: '💰 دخلي ثابت ومنتظم', d: 'وظيفة أو دخل تجاري ثابت لـ ٦+ أشهر.' },
+    { id: 'horizon',    t: '⏳ أستطيع تجميد المال ١٢+ شهراً', d: 'لن أحتاج هذا المبلغ خلال السنة القادمة.' },
+    { id: 'risk',       t: '⚖️ أتفهّم أن الاستثمار يحمل مخاطر', d: 'قد لا أحصل على العائد المتوقّع، وقد أخسر جزءاً من المال.' },
+    { id: 'goals',      t: '🎯 لديّ أهداف مالية واضحة', d: 'أعرف لماذا أستثمر (تقاعد، شراء منزل، تعليم...).' },
+    { id: 'research',   t: '📚 سأقرأ كل صفقة قبل المشاركة', d: 'لن أستثمر في صفقة دون فهم تفاصيلها ومخاطرها.' },
+  ];
+
+  const itemsEl = document.getElementById('items');
+  const state = {};
+  ITEMS.forEach(i => { state[i.id] = false; });
+
+  function render() {
+    itemsEl.replaceChildren();
+    ITEMS.forEach(i => {
+      const w = document.createElement('div');
+      w.className = 'item' + (state[i.id] ? ' checked' : '');
+      const box = document.createElement('div'); box.className = 'box';
+      if (state[i.id]) box.textContent = '✓';
+      const body = document.createElement('div'); body.className = 'body';
+      const t = document.createElement('div'); t.className = 't'; t.textContent = i.t;
+      const d = document.createElement('div'); d.className = 'd'; d.textContent = i.d;
+      body.append(t, d);
+      w.append(box, body);
+      w.addEventListener('click', () => { state[i.id] = !state[i.id]; render(); updateResult(); });
+      itemsEl.appendChild(w);
+    });
+  }
+
+  function updateResult() {
+    const checks = Object.values(state).filter(Boolean).length;
+    const total = ITEMS.length;
+    const pct = Math.round((checks / total) * 100);
+    let stage, msg, cta;
+    if (pct === 100) { stage = '🚀 جاهز تماماً'; msg = 'لديك كل ما تحتاجه لبدء رحلة الاستثمار. ابدأ بمبلغ صغير في صفقة منخفضة المخاطرة.'; cta = '/search.html'; }
+    else if (pct >= 70) { stage = '✓ جاهز إلى حد كبير'; msg = 'أنت قريب جداً من الجاهزية. اعمل على البنود المتبقّية ثم ابدأ.'; cta = '/financial-wellness.html'; }
+    else if (pct >= 40) { stage = '🟡 تحتاج إلى تحضير'; msg = 'هناك أساسيات مالية تحتاج لمعالجتها قبل البدء. ركّز على الادخار وسداد الديون.'; cta = '/financial-wellness.html'; }
+    else { stage = '⚠️ ليس الوقت المناسب'; msg = 'الأولوية الآن للأساسيات: صندوق طوارئ، سداد الديون، استقرار الدخل. ارجع لنا بعدها.'; cta = '/financial-wellness.html'; }
+    const box = document.getElementById('resultBox');
+    box.replaceChildren();
+    const w = document.createElement('div'); w.className = 'result';
+    const ring = document.createElement('div'); ring.className = 'ring';
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 100 100');
+    const bg = document.createElementNS(NS, 'circle'); bg.setAttribute('cx', 50); bg.setAttribute('cy', 50); bg.setAttribute('r', 42);
+    bg.setAttribute('fill', 'none'); bg.setAttribute('stroke', '#fbf6ea'); bg.setAttribute('stroke-width', '12');
+    const fg = document.createElementNS(NS, 'circle'); fg.setAttribute('cx', 50); fg.setAttribute('cy', 50); fg.setAttribute('r', 42);
+    fg.setAttribute('fill', 'none');
+    fg.setAttribute('stroke', pct >= 70 ? '#0f6e3a' : (pct >= 40 ? '#b08840' : '#c54a3a'));
+    fg.setAttribute('stroke-width', '12'); fg.setAttribute('stroke-linecap', 'round');
+    const C = 2 * Math.PI * 42;
+    fg.setAttribute('stroke-dasharray', C);
+    fg.setAttribute('stroke-dashoffset', C * (1 - pct / 100));
+    svg.append(bg, fg);
+    const txt = document.createElement('div'); txt.className = 'pct';
+    const b = document.createElement('b'); b.textContent = pct + '٪';
+    const s = document.createElement('span'); s.textContent = checks + ' من ' + total;
+    txt.append(b, s);
+    ring.append(svg, txt);
+    const h = document.createElement('h2'); h.textContent = stage;
+    const p = document.createElement('p'); p.textContent = msg;
+    const ctas = document.createElement('div'); ctas.className = 'ctas';
+    const a1 = document.createElement('a'); a1.className = 'p'; a1.href = cta;
+    a1.textContent = pct === 100 ? '🚀 تصفّح الصفقات' : '📚 ابدأ التحضير';
+    const a2 = document.createElement('a'); a2.className = 's'; a2.href = '/investor-quiz.html'; a2.textContent = '🎯 اكتشف شخصيّتك الاستثمارية';
+    ctas.append(a1, a2);
+    w.append(ring, h, p, ctas);
+    box.appendChild(w);
+  }
+
+  render(); updateResult();
+</script>
+<script src="/app.js" defer></script>
+</body>
+</html>

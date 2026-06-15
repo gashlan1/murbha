@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعلانات المنصة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.ann-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.ann-stat{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.ann-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.ann-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.compose-form{padding:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.35rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.88rem;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green);}
+.audience-chips{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;}
+.chip{padding:0.3rem 0.75rem;border-radius:20px;border:1.5px solid var(--line);font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+.chip.selected{background:var(--green);color:#fff;border-color:var(--green);}
+.ann-list{padding:0 1.25rem 1.25rem;}
+.ann-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.ann-item:last-child{margin-bottom:0;}
+.ann-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
+.ann-title{font-size:0.88rem;font-weight:700;}
+.ann-meta{font-size:0.72rem;color:var(--muted);}
+.ann-body{font-size:0.82rem;color:var(--muted);margin-bottom:0.6rem;}
+.ann-footer{display:flex;align-items:center;justify-content:space-between;}
+.ann-reach{font-size:0.72rem;color:#27ae60;}
+.ann-actions{display:flex;gap:0.4rem;}
+.pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;}
+.pill-live{background:#e8f5ed;color:#1e8449;}
+.pill-draft{background:#fef3cd;color:#92400e;}
+.pill-scheduled{background:#e8f0fd;color:#1a56a0;}
+.pill-ended{background:#f5f0e8;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:700px){.ann-stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — الإعلانات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة إعلانات المنصة</h2>
+      <p>إنشاء وجدولة الإعلانات لجميع المستخدمين أو شرائح محددة</p>
+    </div>
+    <button class="btn btn-primary" onclick="publishAnnouncement()">نشر إعلان جديد</button>
+  </div>
+
+  <div class="ann-stats" id="annStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>إنشاء إعلان جديد</h3></div>
+      <div class="compose-form">
+        <div class="form-group">
+          <label>عنوان الإعلان</label>
+          <input type="text" id="annTitle" placeholder="مثال: صفقة جديدة متاحة...">
+        </div>
+        <div class="form-group">
+          <label>نص الإعلان</label>
+          <textarea id="annBody" placeholder="اكتب نص الإعلان هنا..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>نوع الإعلان</label>
+          <select id="annType">
+            <option>إعلان عام</option>
+            <option>صفقة جديدة</option>
+            <option>تحديث النظام</option>
+            <option>تنبيه مهم</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الجمهور المستهدف</label>
+          <div class="audience-chips" id="audienceChips"></div>
+        </div>
+        <div class="form-group">
+          <label>تاريخ الجدولة (اختياري)</label>
+          <input type="datetime-local" id="annSchedule">
+        </div>
+        <button class="btn btn-primary" style="width:100%;" onclick="publishAnnouncement()">نشر الإعلان</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الإعلانات الحالية</h3></div>
+      <div class="ann-list" id="annList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>جميع الإعلانات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportAnn()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="allAnnList"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="publishAnnouncement()">إعلان جديد</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'إعلانات نشطة' },
+  { val: '٢', lbl: 'مجدولة' },
+  { val: '٤٢٠', lbl: 'مستخدم وصلهم الإعلان' },
+  { val: '٧٨٪', lbl: 'معدل القراءة' }
+];
+
+const AUDIENCE = ['جميع المستثمرين', 'المستثمرون المعتمدون', 'المستثمرون الجدد', 'المديرون'];
+
+const ANNOUNCEMENTS = [
+  { title: 'صفقة مرابحة عقارية جديدة', body: 'أعلنت المنصة عن صفقة عقارية جديدة في الرياض بعائد ١٤٪...', date: '٢٠٢٦/٠٦/١٥', reach: '٤٢٠ مستخدم', pill: 'pill-live', status: 'نشط' },
+  { title: 'تحديث واجهة المنصة', body: 'تم إطلاق تحديث شامل لواجهة المستخدم مع تحسينات في الأداء...', date: '٢٠٢٦/٠٦/١٠', reach: '٣٩٥ مستخدم', pill: 'pill-live', status: 'نشط' },
+  { title: 'صيانة مجدولة', body: 'سيتم إجراء أعمال صيانة وقائية يوم الجمعة ٢٠ يونيو...', date: '٢٠٢٦/٠٦/٢٠', reach: 'جدولة مسبقة', pill: 'pill-scheduled', status: 'مجدول' },
+  { title: 'ترحيب بالمستثمرين الجدد', body: 'مرحباً بأعضائنا الجدد الذين انضموا هذا الشهر...', date: '٢٠٢٦/٠٦/٠١', reach: '٤٨ مستثمر', pill: 'pill-draft', status: 'مسودة' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('annStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'ann-stat';
+    const val = document.createElement('div'); val.className = 'ann-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'ann-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function buildAudienceChips() {
+  const wrap = document.getElementById('audienceChips');
+  AUDIENCE.forEach((a, i) => {
+    const chip = document.createElement('div'); chip.className = 'chip' + (i === 0 ? ' selected' : '');
+    chip.textContent = a;
+    chip.onclick = () => chip.classList.toggle('selected');
+    wrap.appendChild(chip);
+  });
+}
+
+function buildAnnList(id) {
+  const wrap = document.getElementById(id);
+  const items = id === 'annList' ? ANNOUNCEMENTS.slice(0, 2) : ANNOUNCEMENTS;
+  items.forEach(a => {
+    const item = document.createElement('div'); item.className = 'ann-item';
+    const head = document.createElement('div'); head.className = 'ann-item-head';
+    const title = document.createElement('div'); title.className = 'ann-title'; title.textContent = a.title;
+    const pill = document.createElement('span'); pill.className = 'pill ' + a.pill; pill.textContent = a.status;
+    head.appendChild(title); head.appendChild(pill);
+    const meta = document.createElement('div'); meta.className = 'ann-meta'; meta.textContent = a.date;
+    const body = document.createElement('div'); body.className = 'ann-body'; body.textContent = a.body;
+    const footer = document.createElement('div'); footer.className = 'ann-footer';
+    const reach = document.createElement('div'); reach.className = 'ann-reach'; reach.textContent = '👥 ' + a.reach;
+    const actions = document.createElement('div'); actions.className = 'ann-actions';
+    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-primary btn-sm'; editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => alert('تعديل: ' + a.title);
+    const delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger btn-sm'; delBtn.textContent = 'حذف';
+    delBtn.onclick = () => deleteAnn(a.title);
+    actions.appendChild(editBtn); actions.appendChild(delBtn);
+    footer.appendChild(reach); footer.appendChild(actions);
+    item.appendChild(head); item.appendChild(meta); item.appendChild(body); item.appendChild(footer);
+    wrap.appendChild(item);
+  });
+}
+
+function publishAnnouncement() {
+  const title = document.getElementById('annTitle').value || 'إعلان جديد';
+  fetch('/app/admin/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ title, body: document.getElementById('annBody').value })
+  }).catch(() => {});
+  alert('تم نشر الإعلان بنجاح: ' + title);
+}
+
+function deleteAnn(title) {
+  fetch('/app/admin/announcements/1', { method: 'DELETE', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم حذف الإعلان: ' + title);
+}
+
+function exportAnn() {
+  fetch('/app/admin/announcements/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير الإعلانات...');
+}
+
+buildStats(); buildAudienceChips(); buildAnnList('annList'); buildAnnList('allAnnList');
+</script>
+</body>
+</html>

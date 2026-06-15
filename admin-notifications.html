@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Admin — Notifications — Murbha">الإشعارات — الإدارة — مُرابحة</title>
+<meta name="description" content="إدارة إشعارات المنصة وإرسال الرسائل الجماعية للمستثمرين." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:20px;}
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  /* Compose panel */
+  .compose-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:22px;}
+  .compose-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  @media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+  label{font:700 10px Cairo,sans-serif;color:var(--muted);display:block;margin-bottom:4px;}
+  input[type=text],select,textarea{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font:500 13px Tajawal,sans-serif;background:#fff;color:var(--ink);outline:none;}
+  input[type=text]:focus,select:focus,textarea:focus{border-color:var(--green);}
+  textarea{resize:vertical;min-height:90px;}
+  .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;}
+  .btn-send{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:10px 22px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-send:hover{background:var(--green);}
+  .btn-preview{border:1.5px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;padding:10px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  /* Audience chips */
+  .audience-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .aud-chip{border:1.5px solid var(--line);border-radius:20px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .aud-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* Notification log */
+  .log-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .log-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .log-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font:700 9px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--gold);background:var(--gold);color:#fff;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;border-radius:6px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-push{background:#e8f5e9;color:#2e7d32;}
+  .badge-email{background:#e3f2fd;color:#1565c0;}
+  .badge-sms{background:#fff8e1;color:#a07020;}
+  .badge-inapp{background:#f3e5f5;color:#7b1fa2;}
+  .status-sent{color:#2e7d32;font:700 10px Cairo,sans-serif;}
+  .status-draft{color:#a07020;font:700 10px Cairo,sans-serif;}
+  .status-scheduled{color:#1565c0;font:700 10px Cairo,sans-serif;}
+  .pagination{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:16px;}
+  .pg-btn{border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--ink);}
+  .pg-btn:hover{border-color:var(--green);}
+  .pg-info{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .success-msg{background:#e8f5e9;border:1px solid #2e7d32;border-radius:8px;padding:10px 14px;font:700 11px Cairo,sans-serif;color:#2e7d32;margin-top:12px;display:none;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="page-title" data-en="Notification Management">إدارة الإشعارات</div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="compose-card">
+    <div class="compose-title" data-en="Send Notification">إرسال إشعار</div>
+
+    <div class="form-row">
+      <div>
+        <label data-en="Notification Title">عنوان الإشعار</label>
+        <input type="text" id="notifTitle" placeholder="عنوان الرسالة…" data-en-placeholder="Notification title…" maxlength="120" />
+      </div>
+      <div>
+        <label data-en="Channel">القناة</label>
+        <select id="notifChannel">
+          <option value="push">إشعار فوري (Push)</option>
+          <option value="email">بريد إلكتروني</option>
+          <option value="sms">رسالة نصية (SMS)</option>
+          <option value="inapp">داخل التطبيق</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label data-en="Audience">الجمهور المستهدف</label>
+      <div class="audience-bar" id="audienceBar">
+        <div class="aud-chip active" data-aud="all">الجميع</div>
+        <div class="aud-chip" data-aud="active">مستثمرون نشطون</div>
+        <div class="aud-chip" data-aud="kyc_pending">KYC معلّق</div>
+        <div class="aud-chip" data-aud="new">مستخدمون جدد</div>
+        <div class="aud-chip" data-aud="premium">مشتركو بريميوم</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label data-en="Message Body">نص الرسالة</label>
+      <textarea id="notifBody" placeholder="اكتب نص الإشعار هنا…" data-en-placeholder="Write notification body…" maxlength="500"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label data-en="Schedule (optional)">جدولة الإرسال (اختياري)</label>
+        <input type="text" id="notifSchedule" placeholder="مثال: 2026-07-01 09:00" data-en-placeholder="e.g. 2026-07-01 09:00" />
+      </div>
+      <div>
+        <label data-en="Deep Link (optional)">رابط الوجهة (اختياري)</label>
+        <input type="text" id="notifLink" placeholder="مثال: /deals/123" data-en-placeholder="e.g. /deals/123" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-preview" id="btnPreview" data-en="Preview">معاينة</button>
+      <button class="btn-send" id="btnSend" data-en="Send Now">إرسال الآن</button>
+    </div>
+    <div class="success-msg" id="successMsg" data-en="Notification sent successfully!">تم إرسال الإشعار بنجاح!</div>
+  </div>
+
+  <div class="log-card">
+    <div class="log-header">
+      <div class="log-title" data-en="Notification History">سجل الإشعارات</div>
+    </div>
+    <div class="filter-row" id="filterRow">
+      <div class="filter-chip active" data-status="">الكل</div>
+      <div class="filter-chip" data-status="sent">مُرسَل</div>
+      <div class="filter-chip" data-status="scheduled">مجدوَل</div>
+      <div class="filter-chip" data-status="draft">مسوَّدة</div>
+    </div>
+    <div id="logArea"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+
+  const channelLabel={push:'Push',email:'Email',sms:'SMS',inapp:'داخل التطبيق'};
+  const channelBadge={push:'badge-push',email:'badge-email',sms:'badge-sms',inapp:'badge-inapp'};
+  const statusLabel={sent:'مُرسَل',scheduled:'مجدوَل',draft:'مسوَّدة'};
+  const statusClass={sent:'status-sent',scheduled:'status-scheduled',draft:'status-draft'};
+  const audLabel={all:'الجميع',active:'نشطون',kyc_pending:'KYC معلّق',new:'جدد',premium:'بريميوم'};
+
+  let activeAud='all', activeStatus='', page=1, totalPages=1;
+
+  // KPIs
+  async function loadKpis(){
+    try{
+      const r=await fetch('/app/admin/notifications/stats');
+      if(!r.ok) return;
+      const d=await r.json();
+      const kpiRow=document.getElementById('kpiRow'); kpiRow.textContent='';
+      const kpis=[
+        {label:'إجمالي المُرسَلة',val:d.totalSent||0},
+        {label:'هذا الشهر',val:d.thisMonth||0},
+        {label:'معدل الفتح',val:(d.openRate||0).toFixed(1)+'٪'},
+        {label:'معدل النقر',val:(d.clickRate||0).toFixed(1)+'٪'},
+      ];
+      kpis.forEach(k=>{
+        const card=document.createElement('div'); card.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.label;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        card.appendChild(lbl); card.appendChild(val); kpiRow.appendChild(card);
+      });
+    }catch{}
+  }
+
+  // Log
+  async function loadLog(){
+    const params=new URLSearchParams({page,perPage:20});
+    if(activeStatus) params.set('status',activeStatus);
+    try{
+      const r=await fetch('/app/admin/notifications?'+params);
+      const area=document.getElementById('logArea');
+      if(!r.ok){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='تعذّر التحميل.'; area.appendChild(p); return; }
+      const d=await r.json();
+      totalPages=Math.ceil((d.total||0)/20)||1;
+      area.textContent='';
+      if(!(d.items||[]).length){ const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='لا توجد إشعارات.'; area.appendChild(p); return; }
+      const tbl=document.createElement('table'); tbl.className='tbl';
+      const thead=document.createElement('thead');
+      const hr=document.createElement('tr');
+      ['العنوان','القناة','الجمهور','الحالة','المستقبلون','التاريخ'].forEach(h=>{
+        const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+      });
+      thead.appendChild(hr); tbl.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      (d.items||[]).forEach(n=>{
+        const tr=document.createElement('tr');
+        const cells=[
+          n.title||'—',
+          null,
+          audLabel[n.audience]||n.audience||'—',
+          null,
+          (n.recipients||0).toLocaleString('ar-SA'),
+          n.sentAt||n.scheduledAt||n.createdAt||'—',
+        ];
+        cells.forEach((c,ci)=>{
+          const td=document.createElement('td');
+          if(ci===1){
+            const badge=document.createElement('span'); badge.className='badge '+(channelBadge[n.channel]||'badge-push'); badge.textContent=channelLabel[n.channel]||n.channel||'—';
+            td.appendChild(badge);
+          } else if(ci===3){
+            const span=document.createElement('span'); span.className=statusClass[n.status]||''; span.textContent=statusLabel[n.status]||n.status||'—';
+            td.appendChild(span);
+          } else { td.textContent=c; }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody); area.appendChild(tbl);
+      renderPagination(d.total||0);
+    }catch{}
+  }
+
+  function renderPagination(total){
+    const pg=document.getElementById('pagination'); pg.textContent='';
+    if(totalPages<=1) return;
+    const prev=document.createElement('button'); prev.className='pg-btn'; prev.textContent='السابق'; prev.disabled=page<=1;
+    prev.addEventListener('click',()=>{ if(page>1){page--;loadLog();} });
+    const info=document.createElement('span'); info.className='pg-info'; info.textContent='صفحة '+page+' من '+totalPages;
+    const next=document.createElement('button'); next.className='pg-btn'; next.textContent='التالي'; next.disabled=page>=totalPages;
+    next.addEventListener('click',()=>{ if(page<totalPages){page++;loadLog();} });
+    pg.appendChild(prev); pg.appendChild(info); pg.appendChild(next);
+  }
+
+  document.getElementById('audienceBar').querySelectorAll('.aud-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.aud-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeAud=chip.dataset.aud;
+    });
+  });
+
+  document.getElementById('filterRow').querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeStatus=chip.dataset.status; page=1; loadLog();
+    });
+  });
+
+  document.getElementById('btnPreview').addEventListener('click',()=>{
+    const title=document.getElementById('notifTitle').value.trim();
+    const body=document.getElementById('notifBody').value.trim();
+    if(!title){ alert('أدخل عنوان الإشعار.'); return; }
+    alert('معاينة:\n\n'+title+(body?'\n\n'+body:''));
+  });
+
+  document.getElementById('btnSend').addEventListener('click',async()=>{
+    const title=document.getElementById('notifTitle').value.trim();
+    const body=document.getElementById('notifBody').value.trim();
+    const channel=document.getElementById('notifChannel').value;
+    const scheduled=document.getElementById('notifSchedule').value.trim();
+    const link=document.getElementById('notifLink').value.trim();
+    if(!title||!body){ alert('أدخل عنوان ونص الإشعار.'); return; }
+    const btn=document.getElementById('btnSend'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/admin/notifications',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({title,body,channel,audience:activeAud,scheduledAt:scheduled||null,deepLink:link||null})});
+      btn.disabled=false;
+      if(!r.ok){ alert('فشل الإرسال.'); return; }
+      document.getElementById('notifTitle').value='';
+      document.getElementById('notifBody').value='';
+      document.getElementById('notifSchedule').value='';
+      document.getElementById('notifLink').value='';
+      const msg=document.getElementById('successMsg'); msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },4000);
+      loadLog();
+    }catch{ btn.disabled=false; }
+  });
+
+  loadKpis(); loadLog();
+}());
+</script>
+</body>
+</html>

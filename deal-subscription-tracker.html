@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>تتبع الاكتتابات — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;--orange:#e67e22;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 2rem}
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem}
+.kpi .val{font-size:1.4rem;font-weight:700;color:var(--green)}
+.kpi .lbl{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+/* Deals grid */
+.deals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.deal-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.deal-card-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line)}
+.deal-type-badge{display:inline-block;padding:.15rem .6rem;border-radius:12px;font-size:.72rem;font-weight:700;margin-bottom:.4rem}
+.badge-real-estate{background:#d1ecf1;color:#0c5460}
+.badge-industry{background:#d4edda;color:#155724}
+.badge-tech{background:#e2d9f3;color:#432874}
+.badge-energy{background:#fff3cd;color:#856404}
+.deal-name{font-weight:700;font-size:.95rem;margin-bottom:.3rem}
+.deal-meta{font-size:.76rem;color:var(--muted)}
+/* Funding progress */
+.fund-section{padding:.85rem 1.25rem;border-bottom:1px solid var(--line)}
+.fund-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem;font-size:.8rem}
+.fund-pct{font-weight:700;color:var(--green)}
+.fund-bar{height:8px;background:#e8e8e8;border-radius:4px;overflow:hidden;margin-bottom:.35rem}
+.fund-fill{height:100%;border-radius:4px;transition:.5s;background:var(--green)}
+.fund-fill.near-full{background:var(--gold)}
+.fund-fill.full{background:#27ae60}
+.fund-amounts{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted)}
+/* Countdown */
+.countdown-section{padding:.7rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:.82rem}
+.countdown-label{color:var(--muted)}
+.countdown-val{font-weight:700}
+.countdown-val.urgent{color:var(--red)}
+/* Subscriber list snippet */
+.sub-section{padding:.75rem 1.25rem}
+.sub-title{font-size:.76rem;font-weight:700;color:var(--muted);margin-bottom:.4rem}
+.sub-avatars{display:flex;gap:-.3rem}
+.sub-avatar{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;border:2px solid #fff;margin-left:-8px;flex-shrink:0}
+.sub-avatar:first-child{margin-left:0}
+.sub-more{width:28px;height:28px;border-radius:50%;background:#e8e8e8;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;border:2px solid #fff;margin-left:-8px}
+.deal-actions{display:flex;gap:.5rem;padding:.75rem 1.25rem;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;cursor:pointer;border:none;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff;flex:1;justify-content:center}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+/* Waitlist panel */
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)}
+td{padding:.6rem 1.25rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcfa}
+.badge-st{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.73rem;font-weight:700}
+.badge-reserved{background:#d4edda;color:#155724}
+.badge-waitlist{background:#fff3cd;color:#856404}
+.badge-cancelled{background:#f8d7da;color:#721c24}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>تتبع اكتتابات الصفقات</h1>
+</header>
+
+<div class="page">
+  <div class="kpi-row">
+    <div class="kpi"><div class="val" id="kpiActive">—</div><div class="lbl">صفقات نشطة</div></div>
+    <div class="kpi"><div class="val" id="kpiTotal">—</div><div class="lbl">إجمالي المجموع (ر.س)</div></div>
+    <div class="kpi"><div class="val" id="kpiSubs">—</div><div class="lbl">إجمالي المكتتبين</div></div>
+    <div class="kpi"><div class="val" id="kpiWait">—</div><div class="lbl">قائمة الانتظار</div></div>
+  </div>
+
+  <div class="deals-grid" id="dealsGrid"></div>
+
+  <!-- Waitlist / recent subscriptions -->
+  <div class="card">
+    <div class="card-head"><h3>📋 آخر الاكتتابات وقائمة الانتظار</h3></div>
+    <table>
+      <thead>
+        <tr><th>المستثمر</th><th>الصفقة</th><th>المبلغ (ر.س)</th><th>تاريخ التقديم</th><th>الحالة</th></tr>
+      </thead>
+      <tbody id="subsTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/assets/lang.js" defer></script>
+<script>
+const DEALS = [
+  {id:'d1',name:'برج الخليج التجاري',type:'real-estate',typeLbl:'عقارات',target:5000000,raised:4250000,investors:42,waitlist:8,daysLeft:16,returnRate:14},
+  {id:'d2',name:'مصنع الأغذية العضوية',type:'industry',typeLbl:'صناعة',target:2000000,raised:1850000,investors:18,waitlist:5,daysLeft:5,returnRate:12},
+  {id:'d3',name:'منصة التجارة الإلكترونية',type:'tech',typeLbl:'تقنية',target:3000000,raised:1200000,investors:31,waitlist:0,daysLeft:28,returnRate:16},
+  {id:'d4',name:'محطة الطاقة الشمسية',type:'energy',typeLbl:'طاقة',target:4500000,raised:4500000,investors:56,waitlist:12,daysLeft:0,returnRate:11},
+];
+
+const SUBS = [
+  {investor:'أحمد المطيري',deal:'برج الخليج التجاري',amount:200000,date:'2026-06-14',status:'reserved'},
+  {investor:'سارة العتيبي',deal:'مصنع الأغذية العضوية',amount:100000,date:'2026-06-14',status:'waitlist'},
+  {investor:'خالد الدوسري',deal:'برج الخليج التجاري',amount:500000,date:'2026-06-13',status:'reserved'},
+  {investor:'نورا الحربي',deal:'منصة التجارة الإلكترونية',amount:75000,date:'2026-06-13',status:'reserved'},
+  {investor:'يوسف الشمري',deal:'محطة الطاقة الشمسية',amount:150000,date:'2026-06-12',status:'waitlist'},
+  {investor:'ريم الغامدي',deal:'مصنع الأغذية العضوية',amount:80000,date:'2026-06-12',status:'waitlist'},
+  {investor:'فهد القحطاني',deal:'برج الخليج التجاري',amount:300000,date:'2026-06-11',status:'reserved'},
+  {investor:'لمى العمري',deal:'منصة التجارة الإلكترونية',amount:50000,date:'2026-06-10',status:'cancelled'},
+];
+
+const INITIALS = ['أ','س','خ','ن','ي','ر','ف','ل','ب','م','ط','ه'];
+
+function renderKPIs() {
+  const active = DEALS.filter(d => d.daysLeft > 0).length;
+  const total = DEALS.reduce((s,d) => s+d.raised, 0);
+  const subs = DEALS.reduce((s,d) => s+d.investors, 0);
+  const wait = DEALS.reduce((s,d) => s+d.waitlist, 0);
+  document.getElementById('kpiActive').textContent = active;
+  document.getElementById('kpiTotal').textContent = total.toLocaleString('ar-SA',{maximumFractionDigits:0});
+  document.getElementById('kpiSubs').textContent = subs;
+  document.getElementById('kpiWait').textContent = wait;
+}
+
+function renderDeals() {
+  const grid = document.getElementById('dealsGrid'); grid.textContent = '';
+  DEALS.forEach(d => {
+    const pct = Math.round(d.raised / d.target * 100);
+    const card = document.createElement('div'); card.className = 'deal-card';
+
+    const head = document.createElement('div'); head.className = 'deal-card-head';
+    const badge = document.createElement('div'); badge.className = 'deal-type-badge badge-'+d.type; badge.textContent = d.typeLbl;
+    const nm = document.createElement('div'); nm.className = 'deal-name'; nm.textContent = d.name;
+    const meta = document.createElement('div'); meta.className = 'deal-meta';
+    meta.textContent = 'عائد ' + d.returnRate + '% سنوياً • ' + d.investors + ' مستثمر';
+    head.appendChild(badge); head.appendChild(nm); head.appendChild(meta);
+
+    const fund = document.createElement('div'); fund.className = 'fund-section';
+    const fundRow = document.createElement('div'); fundRow.className = 'fund-row';
+    const fundLbl = document.createElement('div'); fundLbl.textContent = 'الاكتتاب';
+    const fundPct = document.createElement('div'); fundPct.className = 'fund-pct'; fundPct.textContent = pct + '%';
+    fundRow.appendChild(fundLbl); fundRow.appendChild(fundPct);
+    const bar = document.createElement('div'); bar.className = 'fund-bar';
+    const fill = document.createElement('div'); fill.className = 'fund-fill' + (pct>=100?' full':pct>=85?' near-full':''); fill.style.width=Math.min(pct,100)+'%';
+    bar.appendChild(fill);
+    const amts = document.createElement('div'); amts.className = 'fund-amounts';
+    const raisedEl = document.createElement('span'); raisedEl.textContent = 'تم جمع: '+d.raised.toLocaleString('ar-SA')+' ر.س';
+    const targetEl = document.createElement('span'); targetEl.textContent = 'الهدف: '+d.target.toLocaleString('ar-SA')+' ر.س';
+    amts.appendChild(raisedEl); amts.appendChild(targetEl);
+    fund.appendChild(fundRow); fund.appendChild(bar); fund.appendChild(amts);
+
+    const countdown = document.createElement('div'); countdown.className = 'countdown-section';
+    const cdLbl = document.createElement('div'); cdLbl.className = 'countdown-label';
+    cdLbl.textContent = d.daysLeft > 0 ? 'ينتهي خلال' : 'حالة الصفقة';
+    const cdVal = document.createElement('div'); cdVal.className = 'countdown-val' + (d.daysLeft > 0 && d.daysLeft <= 7 ? ' urgent' : '');
+    cdVal.textContent = d.daysLeft > 0 ? d.daysLeft + ' يوم' : (d.raised >= d.target ? '✅ مكتمل' : '⏸ أُغلق');
+    countdown.appendChild(cdLbl); countdown.appendChild(cdVal);
+
+    const subSec = document.createElement('div'); subSec.className = 'sub-section';
+    const subTitle = document.createElement('div'); subTitle.className = 'sub-title';
+    subTitle.textContent = 'المستثمرون' + (d.waitlist ? ' + ' + d.waitlist + ' في قائمة الانتظار' : '');
+    const avatars = document.createElement('div'); avatars.className = 'sub-avatars';
+    for (let i = 0; i < Math.min(5, d.investors); i++) {
+      const av = document.createElement('div'); av.className = 'sub-avatar';
+      av.style.background = ['#0a4d36','#2471a3','#b08840','#8e44ad','#e67e22'][i%5];
+      av.textContent = INITIALS[i % INITIALS.length];
+      avatars.appendChild(av);
+    }
+    if (d.investors > 5) {
+      const more = document.createElement('div'); more.className = 'sub-more'; more.textContent = '+' + (d.investors - 5);
+      avatars.appendChild(more);
+    }
+    subSec.appendChild(subTitle); subSec.appendChild(avatars);
+
+    const actions = document.createElement('div'); actions.className = 'deal-actions';
+    const viewBtn = document.createElement('button'); viewBtn.className = 'btn btn-primary';
+    viewBtn.textContent = 'عرض التفاصيل';
+    viewBtn.onclick = () => { window.location.href = 'deal-room.html?id=' + d.id; };
+    const exportBtn = document.createElement('button'); exportBtn.className = 'btn btn-ghost'; exportBtn.textContent = '↓';
+    exportBtn.title = 'تصدير قائمة المكتتبين';
+    exportBtn.onclick = () => toast('جارٍ تصدير بيانات ' + d.name);
+    actions.appendChild(viewBtn); actions.appendChild(exportBtn);
+
+    card.appendChild(head); card.appendChild(fund); card.appendChild(countdown);
+    card.appendChild(subSec); card.appendChild(actions);
+    grid.appendChild(card);
+  });
+}
+
+function renderSubs() {
+  const tbody = document.getElementById('subsTbody'); tbody.textContent = '';
+  const stLbl = {reserved:'محجوز',waitlist:'قائمة انتظار',cancelled:'ملغى'};
+  SUBS.forEach(s => {
+    const tr = document.createElement('tr');
+    [s.investor, s.deal, s.amount.toLocaleString('ar-SA'), s.date].forEach(v => {
+      const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+    });
+    const stTd = document.createElement('td');
+    const b = document.createElement('span'); b.className = 'badge-st badge-'+s.status; b.textContent = stLbl[s.status]; stTd.appendChild(b); tr.appendChild(stTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+renderKPIs(); renderDeals(); renderSubs();
+</script>
+</body>
+</html>

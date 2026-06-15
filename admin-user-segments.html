@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شرائح المستخدمين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.seg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+.seg-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.seg-color-bar{height:5px;}
+.seg-body{padding:1.25rem;}
+.seg-name{font-size:1rem;font-weight:700;color:var(--green-dark);margin-bottom:0.25rem;}
+.seg-desc{font-size:0.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.4;}
+.seg-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;}
+.seg-stat{display:flex;flex-direction:column;gap:0.15rem;}
+.seg-stat-lbl{font-size:0.72rem;color:var(--muted);}
+.seg-stat-val{font-size:1rem;font-weight:700;color:var(--green-dark);}
+.seg-actions{display:flex;gap:0.5rem;}
+.criteria-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.criteria-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.criteria-head h3{font-size:1rem;font-weight:700;}
+.criteria-body{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.field{margin-bottom:0.75rem;}
+.field label{display:block;font-size:0.82rem;font-weight:600;color:var(--green-dark);margin-bottom:0.3rem;}
+.field input,.field select{width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;background:#fff;color:var(--green-dark);}
+.field-group-title{font-size:0.85rem;font-weight:700;color:var(--green-dark);margin-bottom:0.75rem;padding-bottom:0.4rem;border-bottom:1px solid var(--line);}
+.save-row{padding:0 1.25rem 1.25rem;display:flex;justify-content:flex-end;gap:0.75rem;}
+.table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.86rem;}
+tr:last-child td{border-bottom:none;}
+.seg-tag{display:inline-block;padding:0.18rem 0.55rem;border-radius:8px;font-size:0.72rem;font-weight:700;}
+@media(max-width:900px){.seg-grid{grid-template-columns:1fr 1fr;}.criteria-body{grid-template-columns:1fr;}}
+@media(max-width:600px){.seg-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — شرائح المستخدمين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة شرائح المستخدمين</h2>
+    <button class="btn btn-primary" onclick="createSegment()">+ شريحة جديدة</button>
+  </div>
+
+  <div class="seg-grid" id="segGrid"></div>
+
+  <div class="criteria-card">
+    <div class="criteria-head">
+      <h3>منشئ الشريحة المخصصة</h3>
+    </div>
+    <div class="criteria-body">
+      <div>
+        <div class="field-group-title">معايير المستخدم</div>
+        <div class="field">
+          <label>الشريحة الاستثمارية</label>
+          <select id="crit-tier">
+            <option value="">الكل</option>
+            <option>برونزي</option>
+            <option>فضي</option>
+            <option>ذهبي</option>
+            <option>بلاتيني</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>المنطقة الجغرافية</label>
+          <select id="crit-region">
+            <option value="">الكل</option>
+            <option>الرياض</option>
+            <option>جدة</option>
+            <option>الدمام</option>
+            <option>أخرى</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>الحالة</label>
+          <select id="crit-status">
+            <option value="">الكل</option>
+            <option>نشط</option>
+            <option>غير نشط</option>
+            <option>جديد</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="field-group-title">معايير الاستثمار</div>
+        <div class="field">
+          <label>الحد الأدنى للاستثمار (ر.س)</label>
+          <input type="number" id="crit-min" placeholder="0">
+        </div>
+        <div class="field">
+          <label>الحد الأقصى للاستثمار (ر.س)</label>
+          <input type="number" id="crit-max" placeholder="غير محدود">
+        </div>
+        <div class="field">
+          <label>عدد الصفقات (أدنى)</label>
+          <input type="number" id="crit-deals" placeholder="0">
+        </div>
+      </div>
+    </div>
+    <div class="save-row">
+      <button class="btn btn-secondary btn-sm" onclick="previewSegment()">معاينة الشريحة</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCustomSegment()">حفظ الشريحة</button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <h3>عينة من المستخدمين</h3>
+      <button class="btn btn-sm btn-secondary" onclick="exportSegments()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>المستخدم</th>
+          <th>الشريحة</th>
+          <th>إجمالي الاستثمار</th>
+          <th>آخر نشاط</th>
+          <th>المنطقة</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const segments = [
+  {name:'المستثمرون النشطون',desc:'مستثمرون أجروا ٣ صفقات أو أكثر في آخر ٦ أشهر',count:142,avgInvest:'٣٨٠,٠٠٠',color:'#0a4d36'},
+  {name:'المستثمرون الجدد',desc:'مستثمرون انضموا خلال آخر ٣٠ يوماً ولم يتجاوزوا صفقتين',count:38,avgInvest:'٩٢,٠٠٠',color:'#b08840'},
+  {name:'المستثمرون الخاملون',desc:'لم يُسجّل نشاط استثماري خلال آخر ٩٠ يوماً',count:61,avgInvest:'١٥٠,٠٠٠',color:'#c0392b'},
+  {name:'أصحاب الحافظات الكبيرة',desc:'إجمالي استثمارات تتجاوز ٥٠٠,٠٠٠ ر.س',count:54,avgInvest:'٨٤٠,٠٠٠',color:'#2d6b50'},
+  {name:'مستثمرو العقارات',desc:'٦٠٪ أو أكثر من المحفظة في القطاع العقاري',count:89,avgInvest:'٤٢٠,٠٠٠',color:'#6b7268'},
+  {name:'مستهدفو الترقية',desc:'مستثمرون على حافة الانتقال للشريحة التالية',count:27,avgInvest:'١٩٠,٠٠٠',color:'#6b7268'},
+];
+
+const users = [
+  {name:'أحمد المنصور',seg:'أصحاب الحافظات الكبيرة',total:'١,٢٠٠,٠٠٠',lastActive:'قبل يومين',region:'الرياض'},
+  {name:'سارة الزهراني',seg:'المستثمرون النشطون',total:'٦٨٠,٠٠٠',lastActive:'اليوم',region:'جدة'},
+  {name:'خالد العتيبي',seg:'المستثمرون النشطون',total:'٥٢٠,٠٠٠',lastActive:'أمس',region:'الرياض'},
+  {name:'نورة السالم',seg:'مستهدفو الترقية',total:'٣١٠,٠٠٠',lastActive:'قبل ٣ أيام',region:'الدمام'},
+  {name:'فهد الدوسري',seg:'المستثمرون الجدد',total:'٩٠,٠٠٠',lastActive:'اليوم',region:'الرياض'},
+];
+
+function renderSegments(){
+  const grid = document.getElementById('segGrid');
+  grid.textContent = '';
+  segments.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'seg-card';
+    const bar = document.createElement('div');
+    bar.className = 'seg-color-bar';
+    bar.style.background = s.color;
+    const body = document.createElement('div');
+    body.className = 'seg-body';
+    const name = document.createElement('div');
+    name.className = 'seg-name';
+    name.textContent = s.name;
+    const desc = document.createElement('div');
+    desc.className = 'seg-desc';
+    desc.textContent = s.desc;
+    const stats = document.createElement('div');
+    stats.className = 'seg-stats';
+    [{l:'الأعضاء',v:s.count + ' مستثمر'},{l:'متوسط الاستثمار',v:s.avgInvest + ' ر.س'}].forEach(st => {
+      const statEl = document.createElement('div');
+      statEl.className = 'seg-stat';
+      const lbl = document.createElement('span');
+      lbl.className = 'seg-stat-lbl';
+      lbl.textContent = st.l;
+      const val = document.createElement('span');
+      val.className = 'seg-stat-val';
+      val.textContent = st.v;
+      statEl.appendChild(lbl);
+      statEl.appendChild(val);
+      stats.appendChild(statEl);
+    });
+    const actions = document.createElement('div');
+    actions.className = 'seg-actions';
+    ['إرسال إشعار','تصدير'].forEach((lbl, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-sm ' + (i === 0 ? 'btn-primary' : 'btn-secondary');
+      btn.textContent = lbl;
+      btn.onclick = () => i === 0 ? notifySegment(s.name) : exportSegment(s.name);
+      actions.appendChild(btn);
+    });
+    body.appendChild(name);
+    body.appendChild(desc);
+    body.appendChild(stats);
+    body.appendChild(actions);
+    card.appendChild(bar);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
+
+function renderUsers(){
+  const tbody = document.getElementById('userTable');
+  tbody.textContent = '';
+  users.forEach(u => {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.textContent = u.name;
+    tr.appendChild(nameTd);
+    const segTd = document.createElement('td');
+    const tag = document.createElement('span');
+    tag.className = 'seg-tag';
+    tag.style.cssText = 'background:#e6f4ef;color:var(--green);';
+    tag.textContent = u.seg;
+    segTd.appendChild(tag);
+    tr.appendChild(segTd);
+    [u.total + ' ر.س', u.lastActive, u.region].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+async function createSegment(){
+  try {
+    await fetch('/app/admin/user-segments', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({name:'شريحة جديدة'})
+    });
+  } catch(e){}
+}
+
+async function saveCustomSegment(){
+  const body = {
+    tier: document.getElementById('crit-tier').value,
+    region: document.getElementById('crit-region').value,
+    status: document.getElementById('crit-status').value,
+    minInvest: document.getElementById('crit-min').value,
+    maxInvest: document.getElementById('crit-max').value,
+    minDeals: document.getElementById('crit-deals').value,
+  };
+  try {
+    await fetch('/app/admin/user-segments', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify(body)
+    });
+  } catch(e){}
+}
+
+async function previewSegment(){
+  try {
+    const res = await fetch('/app/admin/user-segments/preview?tier=' + encodeURIComponent(document.getElementById('crit-tier').value));
+    await res.json();
+  } catch(e){}
+}
+
+async function notifySegment(name){
+  try {
+    await fetch('/app/admin/user-segments/notify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({segment: name})
+    });
+  } catch(e){}
+}
+
+async function exportSegment(name){
+  try {
+    const res = await fetch('/app/admin/user-segments/export?segment=' + encodeURIComponent(name));
+    await res.json();
+  } catch(e){}
+}
+
+async function exportSegments(){
+  try {
+    const res = await fetch('/app/admin/user-segments/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderSegments();
+renderUsers();
+</script>
+</body>
+</html>

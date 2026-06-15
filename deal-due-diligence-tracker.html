@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>تتبع العناية الواجبة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:1.5rem;padding:1.5rem 2rem;max-width:1200px;margin:0 auto;align-items:start}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+/* Deal list */
+.deal-item{padding:.85rem 1.25rem;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+.deal-item:hover{background:#f5faf5}
+.deal-item.active{background:#f0faf5;border-right:3px solid var(--green)}
+.deal-item:last-child{border-bottom:none}
+.deal-name{font-weight:700;font-size:.9rem}
+.deal-meta{display:flex;align-items:center;justify-content:space-between;margin-top:.25rem}
+.deal-cat{font-size:.74rem;color:var(--muted)}
+.progress-mini{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--green)}
+.prog-bar{width:50px;height:4px;background:#e0e0e0;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:var(--green)}
+/* Checklist */
+.checklist-header{padding:1rem 1.25rem;border-bottom:1px solid var(--line)}
+.deal-title{font-size:1.1rem;font-weight:700;margin-bottom:.4rem}
+.deal-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem}
+.tag{padding:.15rem .6rem;border-radius:12px;font-size:.74rem;font-weight:600}
+.tag-type{background:#d1ecf1;color:#0c5460}
+.tag-stage{background:#fff3cd;color:#856404}
+.overall-progress{display:flex;align-items:center;gap:.75rem}
+.big-bar{flex:1;height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden}
+.big-fill{height:100%;border-radius:5px;background:var(--green);transition:.4s}
+.prog-label{font-size:.82rem;font-weight:700;color:var(--green)}
+/* Sections */
+.dd-section{border-bottom:1px solid var(--line)}
+.section-toggle{display:flex;align-items:center;gap:.65rem;padding:.85rem 1.25rem;cursor:pointer;user-select:none;transition:.1s}
+.section-toggle:hover{background:#fafcfa}
+.section-icon{font-size:1.1rem}
+.section-label{font-size:.9rem;font-weight:700;flex:1}
+.section-stats{font-size:.76rem;color:var(--muted)}
+.section-arrow{color:var(--muted);transition:.2s;font-size:.8rem}
+.section-body{display:none;padding:.5rem 1.25rem 1rem}
+.section-body.open{display:block}
+/* Checklist items */
+.chk-item{display:flex;align-items:flex-start;gap:.65rem;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.chk-item:last-child{border-bottom:none}
+.chk-box{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;margin-top:.15rem}
+.chk-box.checked{background:var(--green);border-color:var(--green)}
+.chk-box.na{background:#e0e0e0;border-color:#ccc}
+.chk-content{flex:1}
+.chk-title{font-size:.85rem;font-weight:600}
+.chk-desc{font-size:.76rem;color:var(--muted);margin-top:.1rem}
+.chk-status{display:flex;align-items:center;gap:.5rem;margin-top:.3rem}
+.chk-actions{display:flex;gap:.35rem;margin-right:auto}
+.btn-tiny{padding:.15rem .5rem;border-radius:5px;font-size:.72rem;cursor:pointer;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-weight:600;transition:.15s}
+.btn-tiny:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-tiny.na-btn{color:var(--muted)}
+/* Score card */
+.score-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:1.25rem;border-top:1px solid var(--line)}
+.score-card{text-align:center;padding:.75rem;border-radius:8px;border:1px solid var(--line)}
+.score-card .sv{font-size:1.3rem;font-weight:700;color:var(--green)}
+.score-card .sl{font-size:.74rem;color:var(--muted)}
+.btn-full{display:block;margin:0 1.25rem 1.25rem;padding:.55rem;border-radius:8px;background:var(--green);color:#fff;border:none;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;text-align:center}
+.btn-full:hover{background:var(--green-dark)}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+.empty-state{padding:3rem;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>تتبع العناية الواجبة للصفقات</h1>
+</header>
+
+<div class="layout">
+  <!-- Deal list -->
+  <div>
+    <div class="card">
+      <div class="card-head"><h3>الصفقات قيد المراجعة</h3></div>
+      <div id="dealList"></div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div id="checklistPanel">
+    <div class="card">
+      <div class="empty-state">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">📋</div>
+        <div style="font-weight:700;margin-bottom:.35rem">اختر صفقة للمراجعة</div>
+        <div style="font-size:.85rem">ستظهر قائمة العناية الواجبة هنا</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+
+const DEALS = [
+  {id:'d1',name:'مشروع برج الخليج التجاري',type:'عقارات',stage:'مراجعة أولية'},
+  {id:'d2',name:'تمويل مصنع الأغذية العضوية',type:'صناعة',stage:'مراجعة نهائية'},
+  {id:'d3',name:'منصة التجارة الإلكترونية - سلسلة B',type:'تقنية',stage:'توثيق'},
+  {id:'d4',name:'مشروع الطاقة الشمسية - القصيم',type:'طاقة',stage:'مراجعة أولية'},
+];
+
+const SECTIONS = [
+  {
+    id:'legal', label:'الوثائق القانونية', icon:'⚖️',
+    items:[
+      {id:'l1',title:'عقد التأسيس',desc:'التحقق من عقد التأسيس ووثائق الشركة الرسمية'},
+      {id:'l2',title:'السجل التجاري',desc:'التأكد من صلاحية السجل وسريانه'},
+      {id:'l3',title:'تراخيص العمل',desc:'التحقق من جميع التراخيص اللازمة لمزاولة النشاط'},
+      {id:'l4',title:'العقود النشطة',desc:'مراجعة العقود المبرمة مع العملاء والموردين'},
+      {id:'l5',title:'المنازعات القانونية',desc:'التحقق من خلو الشركة من قضايا قانونية مفتوحة'},
+    ]
+  },
+  {
+    id:'financial', label:'التحليل المالي', icon:'💰',
+    items:[
+      {id:'f1',title:'القوائم المالية (3 سنوات)',desc:'مراجعة الميزانية وقائمة الدخل والتدفق النقدي'},
+      {id:'f2',title:'تقرير المراجع الخارجي',desc:'التأكد من حصول الشركة على تقرير مراجعة نظيف'},
+      {id:'f3',title:'تحليل التدفق النقدي',desc:'تقييم قدرة الشركة على خدمة الدين'},
+      {id:'f4',title:'نسب الرفع المالي',desc:'التحقق من مستويات الدين مقارنة بحقوق الملكية'},
+      {id:'f5',title:'خطة العمل والتوقعات',desc:'مراجعة خطة العمل وواقعية التوقعات المالية'},
+    ]
+  },
+  {
+    id:'sharia', label:'الامتثال الشرعي', icon:'🕌',
+    items:[
+      {id:'sh1',title:'شهادة الامتثال الشرعي',desc:'الحصول على موافقة الهيئة الشرعية المعتمدة'},
+      {id:'sh2',title:'طهارة النشاط التجاري',desc:'التحقق من أن النشاط خالٍ من المحرمات'},
+      {id:'sh3',title:'هيكل العقد الشرعي',desc:'مراجعة صياغة عقد المرابحة مع المستشار الشرعي'},
+      {id:'sh4',title:'نسبة الديون والأصول',desc:'التحقق من نسب الاستدانة وفق الضوابط الشرعية'},
+    ]
+  },
+  {
+    id:'operational', label:'العمليات والإدارة', icon:'⚙️',
+    items:[
+      {id:'o1',title:'مقابلات الإدارة',desc:'لقاء مع الرئيس التنفيذي والفريق الإداري الرئيسي'},
+      {id:'o2',title:'تقرير الجدارة الائتمانية',desc:'الحصول على تقرير الائتمان من جهة معتمدة'},
+      {id:'o3',title:'زيارة الموقع',desc:'التحقق الميداني من الأصول والعمليات'},
+      {id:'o4',title:'تقييم المنافسة',desc:'تحليل موقع الشركة في السوق'},
+      {id:'o5',title:'خطة الخروج',desc:'مراجعة استراتيجية سداد الصفقة'},
+    ]
+  },
+];
+
+let activeDeal = null;
+let checkState = {}; // { itemId: 'checked'|'na'|'' }
+
+function loadState(dealId) {
+  try {
+    const raw = localStorage.getItem('dd_' + dealId);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveState(dealId) {
+  try { localStorage.setItem('dd_' + dealId, JSON.stringify(checkState)); } catch {}
+}
+
+function calcProgress() {
+  let total = 0, done = 0;
+  SECTIONS.forEach(s => s.items.forEach(item => {
+    total++;
+    if (checkState[item.id] === 'checked' || checkState[item.id] === 'na') done++;
+  }));
+  return total ? Math.round(done / total * 100) : 0;
+}
+
+function renderDealList() {
+  const list = document.getElementById('dealList');
+  list.textContent = '';
+  DEALS.forEach(d => {
+    const state = loadState(d.id);
+    let done = 0, total = 0;
+    SECTIONS.forEach(s => s.items.forEach(i => { total++; if (state[i.id]) done++; }));
+    const pct = total ? Math.round(done/total*100) : 0;
+
+    const item = document.createElement('div');
+    item.className = 'deal-item' + (activeDeal?.id === d.id ? ' active' : '');
+    const nm = document.createElement('div'); nm.className = 'deal-name'; nm.textContent = d.name;
+    const meta = document.createElement('div'); meta.className = 'deal-meta';
+    const cat = document.createElement('div'); cat.className = 'deal-cat'; cat.textContent = d.type + ' • ' + d.stage;
+    const prog = document.createElement('div'); prog.className = 'progress-mini';
+    const pbar = document.createElement('div'); pbar.className = 'prog-bar';
+    const pfill = document.createElement('div'); pfill.className = 'prog-fill'; pfill.style.width = pct + '%';
+    pbar.appendChild(pfill); prog.appendChild(pbar);
+    const plbl = document.createElement('span'); plbl.textContent = pct + '%'; prog.appendChild(plbl);
+    meta.appendChild(cat); meta.appendChild(prog);
+    item.appendChild(nm); item.appendChild(meta);
+    item.onclick = () => { activeDeal = d; checkState = loadState(d.id); renderDealList(); renderChecklist(); };
+    list.appendChild(item);
+  });
+}
+
+function renderChecklist() {
+  if (!activeDeal) return;
+  const panel = document.getElementById('checklistPanel');
+  panel.textContent = '';
+
+  const card = document.createElement('div'); card.className = 'card';
+
+  // Header
+  const hdr = document.createElement('div'); hdr.className = 'checklist-header';
+  const title = document.createElement('div'); title.className = 'deal-title'; title.textContent = activeDeal.name;
+  const tags = document.createElement('div'); tags.className = 'deal-tags';
+  const t1 = document.createElement('span'); t1.className = 'tag tag-type'; t1.textContent = activeDeal.type;
+  const t2 = document.createElement('span'); t2.className = 'tag tag-stage'; t2.textContent = activeDeal.stage;
+  tags.appendChild(t1); tags.appendChild(t2);
+  const pct = calcProgress();
+  const op = document.createElement('div'); op.className = 'overall-progress';
+  const bb = document.createElement('div'); bb.className = 'big-bar';
+  const bf = document.createElement('div'); bf.className = 'big-fill'; bf.style.width = pct + '%';
+  bb.appendChild(bf);
+  const pl = document.createElement('div'); pl.className = 'prog-label'; pl.textContent = pct + '% مكتمل';
+  op.appendChild(bb); op.appendChild(pl);
+  hdr.appendChild(title); hdr.appendChild(tags); hdr.appendChild(op);
+  card.appendChild(hdr);
+
+  // Sections
+  SECTIONS.forEach(sec => {
+    const done = sec.items.filter(i => checkState[i.id]).length;
+    const div = document.createElement('div'); div.className = 'dd-section';
+    const toggle = document.createElement('div'); toggle.className = 'section-toggle';
+    const icon = document.createElement('span'); icon.className = 'section-icon'; icon.textContent = sec.icon;
+    const lbl = document.createElement('span'); lbl.className = 'section-label'; lbl.textContent = sec.label;
+    const stats = document.createElement('span'); stats.className = 'section-stats'; stats.textContent = done + '/' + sec.items.length;
+    const arrow = document.createElement('span'); arrow.className = 'section-arrow'; arrow.textContent = '▼';
+    toggle.appendChild(icon); toggle.appendChild(lbl); toggle.appendChild(stats); toggle.appendChild(arrow);
+
+    const body = document.createElement('div');
+    body.className = 'section-body' + (done < sec.items.length ? ' open' : '');
+    if (body.classList.contains('open')) arrow.textContent = '▲';
+
+    toggle.onclick = () => {
+      const isOpen = body.classList.toggle('open');
+      arrow.textContent = isOpen ? '▲' : '▼';
+    };
+
+    sec.items.forEach(item => {
+      const row = document.createElement('div'); row.className = 'chk-item';
+      const box = document.createElement('div');
+      box.className = 'chk-box' + (checkState[item.id] === 'checked' ? ' checked' : checkState[item.id] === 'na' ? ' na' : '');
+
+      if (checkState[item.id] === 'checked') {
+        const tick = document.createElement('span'); tick.textContent = '✓'; tick.style.color = '#fff'; tick.style.fontSize = '.75rem';
+        box.appendChild(tick);
+      } else if (checkState[item.id] === 'na') {
+        const dash = document.createElement('span'); dash.textContent = '—'; dash.style.color = '#999'; dash.style.fontSize = '.75rem';
+        box.appendChild(dash);
+      }
+
+      const content = document.createElement('div'); content.className = 'chk-content';
+      const ct = document.createElement('div'); ct.className = 'chk-title'; ct.textContent = item.title;
+      const cd = document.createElement('div'); cd.className = 'chk-desc'; cd.textContent = item.desc;
+      content.appendChild(ct); content.appendChild(cd);
+
+      const statusDiv = document.createElement('div'); statusDiv.className = 'chk-status';
+      const actions = document.createElement('div'); actions.className = 'chk-actions';
+      const completeBtn = document.createElement('button'); completeBtn.className = 'btn-tiny';
+      completeBtn.textContent = checkState[item.id] === 'checked' ? '↩ إلغاء' : '✓ مكتمل';
+      completeBtn.onclick = () => {
+        checkState[item.id] = checkState[item.id] === 'checked' ? '' : 'checked';
+        saveState(activeDeal.id);
+        renderChecklist();
+        renderDealList();
+      };
+      const naBtn = document.createElement('button'); naBtn.className = 'btn-tiny na-btn';
+      naBtn.textContent = checkState[item.id] === 'na' ? '↩ إلغاء' : 'لا ينطبق';
+      naBtn.onclick = () => {
+        checkState[item.id] = checkState[item.id] === 'na' ? '' : 'na';
+        saveState(activeDeal.id);
+        renderChecklist();
+        renderDealList();
+      };
+      actions.appendChild(completeBtn); actions.appendChild(naBtn);
+      statusDiv.appendChild(actions);
+      content.appendChild(statusDiv);
+
+      row.appendChild(box); row.appendChild(content);
+      body.appendChild(row);
+    });
+
+    div.appendChild(toggle); div.appendChild(body);
+    card.appendChild(div);
+  });
+
+  // Score summary
+  const totalItems = SECTIONS.reduce((s,sec) => s + sec.items.length, 0);
+  const checked = Object.values(checkState).filter(v => v === 'checked').length;
+  const naCount = Object.values(checkState).filter(v => v === 'na').length;
+  const score = document.createElement('div'); score.className = 'score-row';
+  [
+    {v: checked + '/' + totalItems, l: 'بنود مكتملة'},
+    {v: naCount, l: 'لا ينطبق'},
+    {v: calcProgress() + '%', l: 'نسبة الاكتمال'},
+  ].forEach(({v,l}) => {
+    const sc = document.createElement('div'); sc.className = 'score-card';
+    const sv = document.createElement('div'); sv.className = 'sv'; sv.textContent = v;
+    const sl = document.createElement('div'); sl.className = 'sl'; sl.textContent = l;
+    sc.appendChild(sv); sc.appendChild(sl); score.appendChild(sc);
+  });
+  card.appendChild(score);
+
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'btn-full';
+  submitBtn.textContent = 'رفع للاعتماد النهائي';
+  submitBtn.onclick = submitForApproval;
+  card.appendChild(submitBtn);
+
+  panel.appendChild(card);
+}
+
+async function submitForApproval() {
+  if (!activeDeal) return;
+  const pct = calcProgress();
+  if (pct < 80) { toast('يجب إكمال 80% على الأقل قبل الرفع'); return; }
+  try {
+    const r = await fetch('/app/admin/deals/' + activeDeal.id + '/due-diligence', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-csrf-token':CSRF},
+      body: JSON.stringify({ progress: pct, checkState }),
+    });
+    if (!r.ok) throw new Error();
+  } catch {}
+  toast('تم رفع العناية الواجبة للاعتماد');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+renderDealList();
+</script>
+</body>
+</html>

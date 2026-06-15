@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>التقرير الضريبي — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page{max-width:960px;margin:0 auto;padding:1.5rem 2rem}
+/* Year selector */
+.year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.year-row h2{font-size:1.05rem;font-weight:700}
+.year-tabs{display:flex;gap:.4rem}
+.year-btn{padding:.35rem .9rem;border-radius:20px;font-family:'Cairo',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.15s}
+.year-btn.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+/* Summary box */
+.summary-box{background:var(--green-dark);color:#fff;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.25rem}
+.sum-item .sum-lbl{font-size:.76rem;color:rgba(255,255,255,.6);margin-bottom:.2rem}
+.sum-item .sum-val{font-size:1.3rem;font-weight:700}
+.sum-item .sum-sub{font-size:.74rem;color:rgba(255,255,255,.5);margin-top:.15rem}
+/* Cards */
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+.btn-export{padding:.35rem .9rem;border-radius:8px;background:var(--green);color:#fff;border:none;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer}
+.btn-export:hover{background:var(--green-dark)}
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:right;padding:.6rem 1.25rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:.65rem 1.25rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none;font-weight:700;background:#f5f9f5}
+tr:hover td{background:#fafcfa}
+.badge-type{display:inline-block;padding:.15rem .55rem;border-radius:12px;font-size:.73rem;font-weight:700}
+.badge-profit{background:#d4edda;color:#155724}
+.badge-return{background:#d1ecf1;color:#0c5460}
+.badge-bonus{background:#fff3cd;color:#856404}
+/* Monthly breakdown chart */
+.chart-area{padding:1.25rem}
+.monthly-chart{display:flex;align-items:flex-end;gap:6px;height:120px;border-bottom:2px solid var(--line);margin-bottom:.5rem}
+.m-col{display:flex;flex-direction:column;align-items:center;flex:1}
+.m-bar{width:100%;border-radius:3px 3px 0 0;transition:.3s}
+.m-lbl{font-size:.64rem;color:var(--muted);margin-top:.3rem}
+/* VAT section */
+.vat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1.25rem}
+.vat-card{background:var(--paper);border-radius:10px;padding:1rem;border:1px solid var(--line)}
+.vat-card .val{font-size:1.1rem;font-weight:700;color:var(--green)}
+.vat-card .lbl{font-size:.76rem;color:var(--muted);margin-top:.15rem}
+/* Disclaimer */
+.disclaimer{background:#fff9e6;border:1px solid #ffe082;border-radius:10px;padding:1rem 1.25rem;font-size:.8rem;color:#795548;line-height:1.6;margin-bottom:1.25rem}
+.disclaimer strong{color:#5d4037}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>التقرير الضريبي السنوي</h1>
+</header>
+
+<div class="page">
+  <div class="year-row">
+    <h2>ملخص الدخل الاستثماري</h2>
+    <div class="year-tabs">
+      <button class="year-btn" data-y="2024" onclick="setYear(this,2024)">2024</button>
+      <button class="year-btn active" data-y="2025" onclick="setYear(this,2025)">2025</button>
+      <button class="year-btn" data-y="2026" onclick="setYear(this,2026)">2026</button>
+    </div>
+  </div>
+
+  <!-- Summary box -->
+  <div class="summary-box">
+    <div class="sum-item"><div class="sum-lbl">إجمالي الأرباح</div><div class="sum-val" id="sumGross">—</div><div class="sum-sub">قبل الرسوم</div></div>
+    <div class="sum-item"><div class="sum-lbl">رسوم المنصة</div><div class="sum-val" id="sumFees">—</div><div class="sum-sub">محسومة</div></div>
+    <div class="sum-item"><div class="sum-lbl">صافي الدخل</div><div class="sum-val" id="sumNet">—</div><div class="sum-sub">الخاضع للإفصاح</div></div>
+    <div class="sum-item"><div class="sum-lbl">ضريبة القيمة المضافة</div><div class="sum-val" id="sumVat">—</div><div class="sum-sub">على رسوم المنصة</div></div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>تنبيه:</strong> هذا التقرير إرشادي للمساعدة في الإفصاح الضريبي. الأرباح من المرابحة الإسلامية قد تخضع لأحكام ضريبية خاصة. يُرجى الرجوع إلى مستشار ضريبي معتمد للحصول على توجيهات مخصصة لظروفك.
+  </div>
+
+  <!-- Monthly breakdown -->
+  <div class="card">
+    <div class="card-head"><h3>التوزيع الشهري للأرباح</h3><button class="btn-export" onclick="exportCSV()">تصدير CSV</button></div>
+    <div class="chart-area">
+      <div class="monthly-chart" id="monthlyChart"></div>
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)" id="monthLabels"></div>
+    </div>
+  </div>
+
+  <!-- Transaction details table -->
+  <div class="card">
+    <div class="card-head"><h3>تفاصيل التوزيعات</h3><button class="btn-export" onclick="exportPDF()">تصدير PDF</button></div>
+    <table>
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الصفقة</th>
+          <th>نوع الدخل</th>
+          <th>المبلغ الإجمالي (ر.س)</th>
+          <th>رسوم المنصة (ر.س)</th>
+          <th>ضريبة القيمة المضافة (ر.س)</th>
+          <th>الصافي (ر.س)</th>
+        </tr>
+      </thead>
+      <tbody id="txTbody"></tbody>
+    </table>
+  </div>
+
+  <!-- VAT details -->
+  <div class="card">
+    <div class="card-head"><h3>تفاصيل ضريبة القيمة المضافة</h3></div>
+    <div class="vat-grid">
+      <div class="vat-card"><div class="val" id="vatBase">—</div><div class="lbl">الوعاء الخاضع للضريبة (رسوم المنصة)</div></div>
+      <div class="vat-card"><div class="val" id="vatRate">15%</div><div class="lbl">نسبة ضريبة القيمة المضافة (المملكة)</div></div>
+      <div class="vat-card"><div class="val" id="vatAmount">—</div><div class="lbl">إجمالي ضريبة القيمة المضافة المدفوعة</div></div>
+      <div class="vat-card"><div class="val" id="vatPeriods">—</div><div class="lbl">عدد التوزيعات</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+let currentYear = 2025;
+
+const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function genTransactions(year) {
+  const deals = [
+    'برج الخليج التجاري','مصنع الأغذية العضوية','منصة التجارة الإلكترونية',
+    'مشروع الطاقة الشمسية','مجمع سكني — جدة',
+  ];
+  const txs = [];
+  for (let m = 0; m < (year === 2026 ? 6 : 12); m++) {
+    const nDeals = Math.floor(Math.random()*2)+1;
+    for (let d = 0; d < nDeals; d++) {
+      const gross = Math.round((Math.random()*8000+2000) / 100)*100;
+      const fee = Math.round(gross * 0.015);
+      const vat = Math.round(fee * 0.15);
+      const net = gross - fee;
+      txs.push({
+        date: year + '-' + String(m+1).padStart(2,'0') + '-01',
+        deal: deals[d % deals.length],
+        type: d === 0 ? 'profit' : 'return',
+        gross, fee, vat, net,
+      });
+    }
+  }
+  return txs;
+}
+
+function setYear(el, y) {
+  document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentYear = y;
+  render();
+}
+
+function render() {
+  const txs = genTransactions(currentYear);
+  const totalGross = txs.reduce((s,t) => s + t.gross, 0);
+  const totalFees = txs.reduce((s,t) => s + t.fee, 0);
+  const totalVat = txs.reduce((s,t) => s + t.vat, 0);
+  const totalNet = txs.reduce((s,t) => s + t.net, 0);
+
+  const f = n => n.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س';
+  document.getElementById('sumGross').textContent = f(totalGross);
+  document.getElementById('sumFees').textContent = f(totalFees);
+  document.getElementById('sumNet').textContent = f(totalNet);
+  document.getElementById('sumVat').textContent = f(totalVat);
+  document.getElementById('vatBase').textContent = f(totalFees);
+  document.getElementById('vatAmount').textContent = f(totalVat);
+  document.getElementById('vatPeriods').textContent = txs.length;
+
+  // Monthly chart
+  const months = currentYear === 2026 ? 6 : 12;
+  const monthlyData = Array(months).fill(0);
+  txs.forEach(t => {
+    const m = parseInt(t.date.split('-')[1]) - 1;
+    if (m < months) monthlyData[m] += t.net;
+  });
+  const chart = document.getElementById('monthlyChart');
+  const labelsEl = document.getElementById('monthLabels');
+  chart.textContent = ''; labelsEl.textContent = '';
+  const maxM = Math.max(...monthlyData);
+  const H = 100;
+  monthlyData.forEach((v, i) => {
+    const col = document.createElement('div'); col.className = 'm-col';
+    const bar = document.createElement('div'); bar.className = 'm-bar';
+    bar.style.height = (v ? Math.round(v/maxM*H) : 2) + 'px';
+    bar.style.background = 'var(--green)';
+    bar.style.opacity = v ? '0.85' : '0.2';
+    const lbl = document.createElement('div'); lbl.className = 'm-lbl'; lbl.textContent = MONTHS[i].slice(0,3);
+    col.appendChild(bar); col.appendChild(lbl); chart.appendChild(col);
+  });
+
+  // Transactions table
+  const tbody = document.getElementById('txTbody');
+  tbody.textContent = '';
+  const typeLabel = {profit:'ربح مرابحة',return:'عائد استثماري',bonus:'مكافأة'};
+  const typeCls = {profit:'badge-profit',return:'badge-return',bonus:'badge-bonus'};
+  txs.forEach(tx => {
+    const tr = document.createElement('tr');
+    const badge = `<span class="badge-type ${typeCls[tx.type]||''}">${typeLabel[tx.type]||tx.type}</span>`;
+    [tx.date, tx.deal].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+    const typeTd = document.createElement('td');
+    const b = document.createElement('span');
+    b.className = 'badge-type ' + (typeCls[tx.type]||'');
+    b.textContent = typeLabel[tx.type] || tx.type;
+    typeTd.appendChild(b); tr.appendChild(typeTd);
+    [tx.gross, tx.fee, tx.vat, tx.net].forEach(v => { const td = document.createElement('td'); td.textContent = v.toLocaleString('ar-SA'); tr.appendChild(td); });
+    tbody.appendChild(tr);
+  });
+  // Totals
+  const totRow = document.createElement('tr');
+  ['المجموع', '—', '—', totalGross, totalFees, totalVat, totalNet].forEach((v,i) => {
+    const td = document.createElement('td');
+    td.textContent = i > 2 ? v.toLocaleString('ar-SA') : v;
+    totRow.appendChild(td);
+  });
+  tbody.appendChild(totRow);
+}
+
+function exportCSV() {
+  toast('جارٍ تصدير ملف CSV...');
+}
+
+function exportPDF() {
+  toast('جارٍ تصدير ملف PDF...');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast') || (() => {
+    const t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999';
+    document.body.appendChild(t); return t;
+  })();
+  el.textContent = msg;
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 2800);
+}
+
+render();
+</script>
+<div id="toast" style="position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999"></div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>صحة المحفظة — مُرابحة</title>
+<meta name="description" content="تحليل التركّز والتنويع في محفظتك الاستثمارية مع توصيات لتحسين توزيع المخاطر." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .score-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;margin-bottom:18px;display:flex;align-items:center;gap:28px;}
+  @media(max-width:560px){.score-card{flex-direction:column;align-items:flex-start;gap:16px;}}
+  .score-ring{width:100px;height:100px;flex-shrink:0;}
+  .score-info{flex:1;}
+  .score-label{font:700 12px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;}
+  .score-value{font:900 38px Cairo,sans-serif;color:var(--green-dark);line-height:1;}
+  .score-grade{font:700 14px Cairo,sans-serif;margin-top:6px;}
+  .score-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:6px;line-height:1.7;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:640px){.grid-2{grid-template-columns:1fr;}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .card h2{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed var(--line);}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .bar-label{font:700 11px Cairo,sans-serif;color:var(--green-dark);width:80px;flex-shrink:0;}
+  .bar-track{flex:1;background:var(--paper);border-radius:99px;height:12px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:99px;background:var(--green);transition:width .5s;}
+  .bar-fill.warn{background:var(--gold);}
+  .bar-fill.danger{background:#c54a3a;}
+  .bar-val{font:900 11px Cairo,sans-serif;color:var(--green-dark);width:50px;text-align:start;}
+  .recs-list{display:grid;gap:8px;}
+  .rec-item{background:var(--paper);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;}
+  .rec-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+  .rec-text{font:500 11px Tajawal,sans-serif;color:var(--ink);line-height:1.7;}
+  .rec-text strong{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>💊 صحة المحفظة</h1>
+    <p>تحليل شامل لتنويع محفظتك ومخاطر التركّز مع توصيات عملية للتحسين.</p>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div id="scoreArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>🏭 توزيع القطاعات</h2>
+      <div id="sectorBars"><p class="placeholder-msg" style="padding:16px 0">جارٍ التحميل…</p></div>
+    </div>
+    <div class="card">
+      <h2>📊 توزيع المدد</h2>
+      <div id="tenorBars"><p class="placeholder-msg" style="padding:16px 0">جارٍ التحميل…</p></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>💡 توصيات التنويع</h2>
+    <div id="recsArea"><p class="placeholder-msg" style="padding:16px 0">جارٍ التحميل…</p></div>
+  </div>
+</main>
+<script>
+(function(){
+  const SCORE_COLORS = {A:'#2e7d32',B:'#558b2f',C:'#f9a825',D:'#e65100',F:'#c54a3a'};
+
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  function renderKPIs(d){
+    const grid=document.getElementById('kpiGrid'); grid.textContent='';
+    [
+      {val:fmt(d.totalInvested||0)+' ر.س',lbl:'إجمالي المستثمر'},
+      {val:(d.dealCount||0)+' صفقة',lbl:'عدد الصفقات'},
+      {val:(d.avgYield||0)+'٪',lbl:'متوسط العائد'},
+      {val:(d.topConcentration||0)+'٪',lbl:'أعلى تركّز (صفقة واحدة)'},
+    ].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); grid.appendChild(k);
+    });
+  }
+
+  function renderScore(d){
+    const area=document.getElementById('scoreArea'); area.textContent='';
+    const card=document.createElement('div'); card.className='score-card';
+    const score=d.score||0; const grade=d.grade||'—';
+
+    const svgNS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(svgNS,'svg'); svg.setAttribute('viewBox','0 0 100 100'); svg.setAttribute('class','score-ring');
+    const r=40, cx=50, cy=50, circ=2*Math.PI*r;
+    const bg=document.createElementNS(svgNS,'circle'); bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r',r); bg.setAttribute('fill','none'); bg.setAttribute('stroke','#e8f5e9'); bg.setAttribute('stroke-width','10');
+    const fg=document.createElementNS(svgNS,'circle'); fg.setAttribute('cx',cx); fg.setAttribute('cy',cy); fg.setAttribute('r',r); fg.setAttribute('fill','none'); fg.setAttribute('stroke',SCORE_COLORS[grade]||'#0a4d36'); fg.setAttribute('stroke-width','10'); fg.setAttribute('stroke-linecap','round'); fg.setAttribute('stroke-dasharray',circ); fg.setAttribute('stroke-dashoffset',circ*(1-score/100)); fg.setAttribute('transform','rotate(-90 50 50)');
+    const txt=document.createElementNS(svgNS,'text'); txt.setAttribute('x','50'); txt.setAttribute('y','50'); txt.setAttribute('dominant-baseline','middle'); txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-size','22'); txt.setAttribute('font-weight','900'); txt.setAttribute('fill',SCORE_COLORS[grade]||'#0a4d36'); txt.textContent=score;
+    svg.appendChild(bg); svg.appendChild(fg); svg.appendChild(txt);
+
+    const info=document.createElement('div'); info.className='score-info';
+    const lbl=document.createElement('div'); lbl.className='score-label'; lbl.textContent='نقاط صحة المحفظة (من ١٠٠)';
+    const grade_el=document.createElement('div'); grade_el.className='score-grade'; grade_el.style.color=SCORE_COLORS[grade]||'#0a4d36'; grade_el.textContent='التقييم: '+grade;
+    const desc=document.createElement('div'); desc.className='score-desc'; desc.textContent=d.summary||'—';
+    info.appendChild(lbl); info.appendChild(grade_el); info.appendChild(desc);
+    card.appendChild(svg); card.appendChild(info); area.appendChild(card);
+  }
+
+  function renderBars(containerId, items, maxVal){
+    const area=document.getElementById(containerId); area.textContent='';
+    items.forEach(it=>{
+      const row=document.createElement('div'); row.className='bar-row';
+      const lbl=document.createElement('div'); lbl.className='bar-label'; lbl.textContent=it.label;
+      const track=document.createElement('div'); track.className='bar-track';
+      const fill=document.createElement('div'); fill.className='bar-fill'+(it.pct>40?' danger':it.pct>25?' warn':'');
+      fill.style.width=Math.min(100,Math.round((it.pct/maxVal)*100))+'%';
+      track.appendChild(fill);
+      const val=document.createElement('div'); val.className='bar-val'; val.textContent=it.pct+'٪';
+      row.appendChild(lbl); row.appendChild(track); row.appendChild(val); area.appendChild(row);
+    });
+    if(!items.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.style.padding='12px 0'; m.textContent='لا توجد بيانات.'; area.appendChild(m); }
+  }
+
+  function renderRecs(recs){
+    const area=document.getElementById('recsArea'); area.textContent='';
+    if(!recs.length){ const m=document.createElement('p'); m.className='placeholder-msg'; m.style.padding='12px 0'; m.textContent='محفظتك في وضع جيد. استمر!'; area.appendChild(m); return; }
+    const list=document.createElement('div'); list.className='recs-list';
+    recs.forEach(rec=>{
+      const item=document.createElement('div'); item.className='rec-item';
+      const icon=document.createElement('div'); icon.className='rec-icon'; icon.textContent=rec.icon||'💡';
+      const txt=document.createElement('div'); txt.className='rec-text';
+      const strong=document.createElement('strong'); strong.textContent=rec.title+': ';
+      const body=document.createTextNode(rec.body);
+      txt.appendChild(strong); txt.appendChild(body);
+      item.appendChild(icon); item.appendChild(txt); list.appendChild(item);
+    });
+    area.appendChild(list);
+  }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/portfolio-health');
+      if(!r.ok){
+        ['kpiGrid','scoreArea','sectorBars','tenorBars','recsArea'].forEach(id=>{
+          const el=document.getElementById(id); el.textContent='';
+          const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; el.appendChild(m);
+        }); return;
+      }
+      const d=await r.json();
+      renderKPIs(d);
+      renderScore(d);
+      const maxSector=Math.max(...(d.sectors||[]).map(s=>s.pct),1);
+      renderBars('sectorBars', d.sectors||[], maxSector);
+      const maxTenor=Math.max(...(d.tenors||[]).map(t=>t.pct),1);
+      renderBars('tenorBars', d.tenors||[], maxTenor);
+      renderRecs(d.recommendations||[]);
+    }catch{
+      const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل. حاول لاحقاً.';
+      document.getElementById('scoreArea').textContent=''; document.getElementById('scoreArea').appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

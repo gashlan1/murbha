@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>برنامج الإحالة — مُرابحة</title>
+<meta name="description" content="أحل أصدقاءك واربح مكافآت حين يستثمرون عبر رابط الإحالة الخاص بك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 16px;text-align:center;}
+  .kpi-val{font:900 24px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .link-card{background:#fff;border:2px solid var(--gold);border-radius:18px;padding:26px;margin-bottom:18px;text-align:center;}
+  .link-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .link-box{background:var(--paper);border:1px dashed var(--gold);border-radius:10px;padding:14px 16px;font:700 13px Cairo,sans-serif;color:var(--green-dark);letter-spacing:.5px;word-break:break-all;margin-bottom:14px;}
+  .share-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .btn-copy{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:10px 20px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-copy:hover{background:var(--green);}
+  .btn-copy.copied{background:#2e7d32;}
+  .btn-share{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 20px;font:700 12px Cairo,sans-serif;cursor:pointer;color:var(--ink);}
+  .btn-share:hover{background:#f0ebe0;}
+  .how-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .how-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .steps{display:grid;gap:12px;}
+  .step{display:flex;gap:14px;align-items:flex-start;}
+  .step-num{background:var(--gold);color:#fff;border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;font:900 12px Cairo,sans-serif;flex-shrink:0;}
+  .step-text{font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.7;padding-top:4px;}
+  .reward-note{background:#e8f5e9;border-radius:10px;padding:12px 16px;font:500 11px Tajawal,sans-serif;color:#2e7d32;margin-top:12px;}
+  .referrals-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .referrals-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .ref-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .ref-item:last-child{border-bottom:none;}
+  .ref-name{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .ref-date{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .ref-status{border-radius:6px;padding:3px 10px;font:700 9px Cairo,sans-serif;}
+  .status-invested{background:#e8f5e9;color:#2e7d32;}
+  .status-registered{background:#fff8e1;color:#a07020;}
+  .ref-reward{font:900 12px Cairo,sans-serif;color:var(--gold);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>برنامج الإحالة</h1>
+    <p>أحل أصدقاءك وعائلتك إلى منصة مُرابحة واربح مكافأة نقدية لكل مستثمر جديد ينضم عبر رابطك.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="link-card">
+    <div class="link-title">رابط الإحالة الخاص بك</div>
+    <div class="link-box" id="refLink">جارٍ التحميل…</div>
+    <div class="share-row">
+      <button class="btn-copy" id="copyBtn">نسخ الرابط</button>
+      <button class="btn-share" id="whatsappBtn">مشاركة واتساب</button>
+      <button class="btn-share" id="twitterBtn">مشاركة تويتر</button>
+    </div>
+  </div>
+
+  <div class="how-card">
+    <div class="how-title">كيف يعمل البرنامج؟</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">انسخ رابط الإحالة الخاص بك وشاركه مع أصدقائك أو عبر وسائل التواصل.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">يسجّل صديقك حساباً جديداً عبر رابطك ويُكمل التحقق من الهوية (KYC).</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">حين يُجري صديقك أول استثمار بمبلغ 5,000 ر.س أو أكثر، تُضاف مكافأتك تلقائياً.</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">تحصل على 200 ر.س لكل مُحال ناجح دون حدٍّ أقصى لعدد الإحالات.</div></div>
+    </div>
+    <div class="reward-note">المكافأة الحالية: 200 ر.س لك + 100 ر.س خصم رسوم لصديقك عند أول استثمار.</div>
+  </div>
+
+  <div class="referrals-card">
+    <div class="referrals-title">سجل الإحالات</div>
+    <div id="refList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  let referralLink = '';
+
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    if(!referralLink){ showToast('الرابط غير متاح.'); return; }
+    navigator.clipboard.writeText(referralLink).then(()=>{
+      const btn=document.getElementById('copyBtn'); btn.textContent='تم النسخ'; btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent='نسخ الرابط'; btn.classList.remove('copied'); },2000);
+    }).catch(()=>showToast('تعذّر النسخ.'));
+  });
+
+  document.getElementById('whatsappBtn').addEventListener('click', ()=>{
+    if(!referralLink){ showToast('الرابط غير متاح.'); return; }
+    const msg = 'انضم إلى منصة مُرابحة للاستثمار الإسلامي واحصل على خصم على رسوم أول استثمار: ' + referralLink;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank', 'noopener');
+  });
+
+  document.getElementById('twitterBtn').addEventListener('click', ()=>{
+    if(!referralLink){ showToast('الرابط غير متاح.'); return; }
+    const msg = 'أستثمر عبر منصة مُرابحة الإسلامية — انضم عبر رابطي واستفد من خصم أول استثمار: ' + referralLink;
+    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(msg), '_blank', 'noopener');
+  });
+
+  (async function load(){
+    const refList = document.getElementById('refList');
+    placeholder(refList, 'جارٍ التحميل…');
+    try{
+      const r = await fetch('/app/me/referral');
+      if(!r.ok){ placeholder(refList, r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d = await r.json();
+
+      referralLink = d.referralLink || '';
+      document.getElementById('refLink').textContent = referralLink || 'غير متاح';
+
+      const kpiRow = document.getElementById('kpiRow');
+      const kpis = [
+        { lbl:'إجمالي الإحالات', val:String(d.totalReferrals||0) },
+        { lbl:'مستثمر فعلي', val:String(d.investedCount||0) },
+        { lbl:'قيد التسجيل', val:String(d.pendingCount||0) },
+        { lbl:'مكافآت مكتسبة', val:fmt(d.totalRewards||0)+' ر.س' }
+      ];
+      kpis.forEach(k=>{
+        const div=document.createElement('div'); div.className='kpi';
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+        div.appendChild(val); div.appendChild(lbl); kpiRow.appendChild(div);
+      });
+
+      const refs = d.referrals||[];
+      refList.textContent='';
+      if(!refs.length){ placeholder(refList,'لا توجد إحالات حتى الآن.'); return; }
+      refs.forEach(ref=>{
+        const item=document.createElement('div'); item.className='ref-item';
+        const left=document.createElement('div');
+        const name=document.createElement('div'); name.className='ref-name'; name.textContent=ref.name||'مستخدم';
+        const date=document.createElement('div'); date.className='ref-date'; date.textContent=ref.joinDate||'—';
+        left.appendChild(name); left.appendChild(date);
+        const mid=document.createElement('div');
+        const badge=document.createElement('div');
+        badge.className='ref-status '+(ref.status==='invested'?'status-invested':'status-registered');
+        badge.textContent=ref.status==='invested'?'استثمر':'مسجّل فقط';
+        mid.appendChild(badge);
+        const reward=document.createElement('div'); reward.className='ref-reward';
+        reward.textContent=ref.reward?fmt(ref.reward)+' ر.س':'—';
+        item.appendChild(left); item.appendChild(mid); item.appendChild(reward); refList.appendChild(item);
+      });
+    }catch{ placeholder(document.getElementById('refList'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

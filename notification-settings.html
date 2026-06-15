@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>إعدادات الإشعارات — مُرابحة</title>
+<meta name="description" content="تخصيص إشعارات البريد الإلكتروني والرسائل القصيرة وإشعارات التطبيق لكل حدث استثماري." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:800px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .channels-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
+  .channel-chip{background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;text-align:center;cursor:pointer;transition:border-color .2s;}
+  .channel-chip.active{border-color:var(--green);}
+  .channel-icon{font-size:24px;margin-bottom:6px;}
+  .channel-name{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .channel-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .section-card{background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden;}
+  .section-hdr{background:var(--paper);padding:14px 20px;font:900 13px Cairo,sans-serif;color:var(--green-dark);border-bottom:1px solid var(--line);}
+  .notif-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);}
+  .notif-row:last-child{border-bottom:none;}
+  .notif-info{flex:1;}
+  .notif-title{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .notif-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .notif-channels{display:flex;gap:8px;margin-top:6px;}
+  .ch-toggle{display:flex;align-items:center;gap:4px;cursor:pointer;}
+  .ch-toggle input{width:14px;height:14px;accent-color:var(--green);cursor:pointer;}
+  .ch-label{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .save-bar{position:sticky;bottom:0;background:rgba(251,246,234,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:14px 18px;display:flex;justify-content:flex-end;gap:10px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:10px 28px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-reset{background:var(--paper);color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:10px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔔 إعدادات الإشعارات</h1>
+    <p>تحكّم في إشعاراتك لكل حدث استثماري عبر البريد الإلكتروني والرسائل القصيرة وإشعارات التطبيق.</p>
+  </div>
+
+  <div id="settingsArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="save-bar">
+    <button class="btn-reset" id="resetBtn">إعادة تعيين</button>
+    <button class="btn-save" id="saveBtn">حفظ الإعدادات</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+  const GROUPS=[
+    {group:'صفقات',key:'deals',items:[
+      {id:'deal_open',title:'صفقة جديدة متاحة',desc:'إشعار عند فتح صفقة جديدة للاستثمار'},
+      {id:'deal_closing',title:'صفقة على وشك الإغلاق',desc:'تنبيه قبل 48 ساعة من إغلاق الجولة'},
+      {id:'deal_funded',title:'اكتملت تغطية الصفقة',desc:'إشعار عند اكتمال تمويل صفقة استثمرت بها'},
+      {id:'deal_closed',title:'إغلاق الصفقة',desc:'إشعار نهاية مرحلة الجمع'},
+    ]},
+    {group:'محفظتي',key:'portfolio',items:[
+      {id:'profit_paid',title:'دفعة ربح واردة',desc:'إشعار عند إيداع دفعة ربح في حسابك'},
+      {id:'principal_returned',title:'استرداد رأس المال',desc:'إشعار عند إتمام استرداد رأس المال'},
+      {id:'status_change',title:'تغيّر حالة الصفقة',desc:'إشعار عند أي تغيير على صفقة نشطة'},
+      {id:'escrow_release',title:'إفراج عن ضمان',desc:'إشعار عند الإفراج الجزئي أو الكامل عن الضمان'},
+    ]},
+    {group:'حسابي',key:'account',items:[
+      {id:'kyc_status',title:'تحديث حالة KYC',desc:'إشعار عند قبول أو رفض مستنداتك'},
+      {id:'deposit_received',title:'استلام إيداع',desc:'تأكيد استلام تحويل لرصيدك'},
+      {id:'withdrawal_done',title:'تأكيد سحب',desc:'إشعار إتمام طلب السحب'},
+      {id:'login_new',title:'تسجيل دخول من جهاز جديد',desc:'تنبيه أمني عند كل تسجيل دخول غير معتاد'},
+    ]},
+    {group:'التقارير',key:'reports',items:[
+      {id:'monthly_statement',title:'كشف الحساب الشهري',desc:'إرسال كشف حساب شهري بعد نهاية كل شهر'},
+      {id:'tax_cert',title:'شهادة الزكاة السنوية',desc:'إشعار عند توفّر شهادة الزكاة للسنة الضريبية'},
+      {id:'quarterly_report',title:'التقرير الربعي',desc:'ملخص ربعي بأداء محفظتك'},
+    ]},
+  ];
+
+  const CHANNELS=['email','sms','push'];
+  const CH_LABELS={email:'بريد',sms:'رسالة',push:'تطبيق'};
+  let prefs={};
+
+  function buildUI(serverPrefs){
+    prefs=serverPrefs||{};
+    const area=document.getElementById('settingsArea'); area.textContent='';
+    GROUPS.forEach(g=>{
+      const card=document.createElement('div'); card.className='section-card';
+      const hdr=document.createElement('div'); hdr.className='section-hdr'; hdr.textContent=g.group;
+      card.appendChild(hdr);
+      g.items.forEach(item=>{
+        const row=document.createElement('div'); row.className='notif-row';
+        const info=document.createElement('div'); info.className='notif-info';
+        const title=document.createElement('div'); title.className='notif-title'; title.textContent=item.title;
+        const desc=document.createElement('div'); desc.className='notif-desc'; desc.textContent=item.desc;
+        const channels=document.createElement('div'); channels.className='notif-channels';
+        CHANNELS.forEach(ch=>{
+          const lbl=document.createElement('label'); lbl.className='ch-toggle';
+          const inp=document.createElement('input'); inp.type='checkbox'; inp.dataset.id=item.id; inp.dataset.ch=ch;
+          const pref=(prefs[item.id]||{})[ch];
+          inp.checked=pref!==false;
+          const span=document.createElement('span'); span.className='ch-label'; span.textContent=CH_LABELS[ch];
+          lbl.appendChild(inp); lbl.appendChild(span); channels.appendChild(lbl);
+        });
+        info.appendChild(title); info.appendChild(desc); info.appendChild(channels);
+        row.appendChild(info); card.appendChild(row);
+      });
+      area.appendChild(card);
+    });
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async ()=>{
+    const inputs=document.querySelectorAll('input[data-id]');
+    const updated={};
+    inputs.forEach(inp=>{ if(!updated[inp.dataset.id]) updated[inp.dataset.id]={}; updated[inp.dataset.id][inp.dataset.ch]=inp.checked; });
+    try{
+      const r=await fetch('/app/me/notification-settings',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({prefs:updated})});
+      if(!r.ok){ showToast('تعذّر الحفظ.'); return; }
+      prefs=updated; showToast('تم حفظ إعدادات الإشعارات ✅');
+    }catch{ showToast('خطأ في الاتصال.'); }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click',()=>{ buildUI(null); showToast('تمت إعادة التعيين.'); });
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/notification-settings');
+      if(!r.ok){ buildUI(null); return; }
+      const d=await r.json(); buildUI(d.prefs||{});
+    }catch{ buildUI(null); }
+  }());
+}());
+</script>
+</body>
+</html>

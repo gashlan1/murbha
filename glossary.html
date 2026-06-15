@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>قاموس المصطلحات — مُرابحة</title>
+<meta name="description" content="قاموس مصطلحات التمويل الإسلامي والمرابحة بالعربي والإنجليزي." />
+<meta property="og:title" content="قاموس المصطلحات — مُرابحة" />
+<meta property="og:description" content="مصطلحات التمويل الإسلامي بالعربي والإنجليزي." />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://murabaha.example.sa/og-image.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea;
+    --green: #0a4d36; --green-dark: #062b1e;
+    --gold: #b08840; --gold-light: #d4ac6e;
+    --muted: #6b7268; --line: rgba(13,22,18,0.10); --line-strong: rgba(13,22,18,0.20);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); padding: 24px 18px 80px; max-width: 820px; margin: 0 auto; }
+  .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .crumbs a { color: var(--green-dark); text-decoration: none; font-weight: 700; }
+  h1 { font: 900 26px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 6px; }
+  .lede { color: var(--muted); font-size: 14px; margin-bottom: 18px; line-height: 1.8; }
+  .search-box { background: #fff; border: 1.5px solid var(--line-strong); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+  .search-box input { flex: 1; border: 0; outline: 0; font: 600 15px Tajawal,sans-serif; color: var(--ink); background: transparent; }
+  .alphabet { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 18px; }
+  .alphabet button { padding: 6px 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; font: 800 12px Cairo,sans-serif; color: var(--green-dark); cursor: pointer; }
+  .alphabet button:hover { background: var(--green-dark); color: #fff; }
+  .term { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 10px; }
+  .term h3 { font: 800 16px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 4px; }
+  .term .en { font: 600 12px 'SF Mono',Menlo,monospace; color: var(--gold); direction: ltr; margin-bottom: 6px; }
+  .term p { font-size: 14px; line-height: 1.8; color: var(--ink); }
+  .empty { text-align: center; padding: 40px; color: var(--muted); }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="crumbs"><a href="/">الرئيسية</a> / قاموس المصطلحات</div>
+<h1>قاموس المصطلحات</h1>
+<p class="lede">قاموس مرجعي للمصطلحات الشرعية والمالية المستخدمة على مُرابحة، بالعربي والإنجليزي. ابحث أو تصفّح حسب الحرف.</p>
+
+<div class="search-box">
+  <span style="color:var(--muted);">⌕</span>
+  <input id="q" type="search" placeholder="ابحث عن مصطلح..." autocomplete="off" />
+</div>
+
+<div id="termsList"></div>
+
+<script>
+const TERMS = [
+  { ar: 'مرابحة', en: 'Murabaha', def: 'بيع سلعة بثمنها الأصلي معلوماً للمشتري، مضافاً إليه ربح متّفق عليه. أحد عقود البيع الإسلامية المباحة.' },
+  { ar: 'مضاربة', en: 'Mudaraba', def: 'عقد شراكة يقدّم فيه طرف رأس المال والآخر العمل والإدارة، ويتقاسمان الربح وفق نسبة متّفق عليها.' },
+  { ar: 'مشاركة', en: 'Musharaka', def: 'شراكة في رأس المال والعمل بين طرفين أو أكثر، يتقاسمان الربح والخسارة بنسب متفق عليها.' },
+  { ar: 'إجارة', en: 'Ijara', def: 'عقد تأجير يَنقل بمقتضاه المالك حق استعمال أصل معيّن لطرف آخر مقابل أجرة متّفق عليها.' },
+  { ar: 'سُكوك', en: 'Sukuk', def: 'صكوك إسلامية تمثّل حصصاً شائعة في موجودات أو منافع أو خدمات، بديل عن السندات التقليدية.' },
+  { ar: 'هامش الربح', en: 'Profit margin', def: 'النسبة المضافة إلى سعر التكلفة في عقد المرابحة، معلومة ومتّفق عليها عند توقيع العقد.' },
+  { ar: 'سَلَم', en: 'Salam', def: 'عقد على سلعة موصوفة في الذمّة، تُسلَّم آجلاً مقابل ثمن مدفوع عاجلاً.' },
+  { ar: 'استصناع', en: 'Istisna\'a', def: 'عقد على شيء مصنوع موصوف في الذمّة، يُصنَع وفق مواصفات محدّدة بثمن متّفق عليه.' },
+  { ar: 'قَرْض حسن', en: 'Qard hasan', def: 'قرض بدون ربا أو فائدة، يُردّ بمثله دون زيادة. يُستخدَم أحياناً كمساعدة قصيرة المدى.' },
+  { ar: 'ربا', en: 'Riba', def: 'الزيادة المحرّمة في عقد البيع أو القرض. مُحرَّم في الشريعة الإسلامية وتقوم عليه ضوابط التمويل الإسلامي.' },
+  { ar: 'غَرَر', en: 'Gharar', def: 'الجهالة أو المخاطرة المفرطة في العقد. تجنّبه شرط لصحة العقود التجارية الشرعية.' },
+  { ar: 'هيئة شرعية', en: 'Sharia board', def: 'مجموعة من العلماء المؤهلين تراجع المنتجات المالية وتعتمدها قبل طرحها للجمهور.' },
+  { ar: 'تأكّد من العميل (KYC)', en: 'Know Your Customer', def: 'عملية التحقق من هوية المستخدم ومصدر أمواله، التزاماً بأنظمة مكافحة غسل الأموال.' },
+  { ar: 'مكافحة غسل الأموال (AML)', en: 'Anti-Money Laundering', def: 'مجموعة الإجراءات والأنظمة التي تمنع استخدام النظام المالي في تبييض الأموال.' },
+  { ar: 'تمويل الجموع', en: 'Crowdfunding', def: 'جمع تمويل من عدد كبير من الأفراد عبر منصة إلكترونية مرخّصة لتمويل مشروع أو صفقة.' },
+  { ar: 'العقد الذكي', en: 'Smart contract', def: 'عقد يُنفَّذ تلقائياً عند تحقّق شروطه. لا يُلغي العقد القانوني التقليدي بل يُكمّله.' },
+  { ar: 'صفقة المرابحة', en: 'Murabaha deal', def: 'صفقة تجارية محدّدة الأصل والبائع والمشتري والمدّة والهامش، يُموَّلها المستثمرون عبر المنصة.' },
+  { ar: 'الجهة المتعاقدة', en: 'Counterparty', def: 'الجهة التي ستشتري الأصل بعد إتمام المرابحة، عادةً وفق عقد مُسبَق.' },
+  { ar: 'المستثمر المؤهَّل', en: 'Qualified investor', def: 'مستثمر مستوفٍ لمعايير محدّدة (دخل، ثروة، خبرة) يحقّ له الدخول في فرص أكثر مخاطرة.' },
+  { ar: 'سقف الاستثمار', en: 'Investment cap', def: 'الحدّ الأقصى الذي يستطيع المستثمر الفرد ضخّه في صفقة واحدة أو خلال سنة، وفق ضوابط الجهة الرقابية.' },
+  { ar: 'العائد الداخلي (IRR)', en: 'Internal Rate of Return', def: 'مقياس لمعدّل النمو السنوي المتوقّع للاستثمار، يأخذ بعين الاعتبار التوقيت الزمني للتدفقات.' },
+  { ar: 'العائد على الاستثمار (ROI)', en: 'Return on Investment', def: 'نسبة الربح إلى رأس المال الأصلي، تُعبّر عن كفاءة الاستثمار في فترة معيّنة.' },
+];
+
+const list = document.getElementById('termsList');
+const q = document.getElementById('q');
+
+function render(filter) {
+  const f = (filter || '').trim().toLowerCase();
+  const matches = TERMS.filter(t =>
+    !f || t.ar.toLowerCase().includes(f) || t.en.toLowerCase().includes(f) || t.def.toLowerCase().includes(f)
+  ).sort((a, b) => a.ar.localeCompare(b.ar, 'ar'));
+  list.textContent = '';
+  if (!matches.length) {
+    const e = document.createElement('div'); e.className = 'empty'; e.textContent = 'لا يوجد مصطلح مطابق.';
+    list.appendChild(e); return;
+  }
+  matches.forEach(t => {
+    const c = document.createElement('div'); c.className = 'term';
+    const h = document.createElement('h3'); h.textContent = t.ar;
+    const en = document.createElement('div'); en.className = 'en'; en.textContent = t.en;
+    const p = document.createElement('p'); p.textContent = t.def;
+    c.appendChild(h); c.appendChild(en); c.appendChild(p);
+    list.appendChild(c);
+  });
+}
+q.addEventListener('input', () => render(q.value));
+render('');
+</script>
+</body>
+</html>

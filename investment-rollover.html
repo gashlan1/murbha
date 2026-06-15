@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>إعدادات التجديد التلقائي — مُرابحة</title>
+<meta name="description" content="اختر ما يحدث لرأس مالك وأرباحك تلقائياً حين تنتهي مدة الصفقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 80px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .section-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .section-title{font:900 15px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;}
+  .section-desc{font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;margin-bottom:18px;}
+  .option-grid{display:grid;gap:10px;}
+  .option-item{border:2px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;gap:14px;align-items:flex-start;}
+  .option-item:hover{border-color:var(--gold-light);}
+  .option-item.selected{border-color:var(--green);background:#f0f9f4;}
+  .radio-circle{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:border-color .15s;}
+  .option-item.selected .radio-circle{border-color:var(--green);}
+  .radio-dot{width:10px;height:10px;border-radius:50%;background:var(--green);display:none;}
+  .option-item.selected .radio-dot{display:block;}
+  .option-label{font:900 13px Cairo,sans-serif;color:var(--ink);}
+  .option-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.6;}
+  .pref-row{display:flex;gap:14px;align-items:center;margin-bottom:14px;}
+  .pref-lbl{font:700 12px Cairo,sans-serif;color:var(--ink);flex:1;}
+  .pref-select{border:1.5px solid var(--line);border-radius:9px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:var(--paper);}
+  .pref-select:focus{outline:none;border-color:var(--green);}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-info{}
+  .toggle-label{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .toggle-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;position:absolute;}
+  .toggle-slider{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--line);border-radius:24px;cursor:pointer;transition:.2s;}
+  .toggle input:checked+.toggle-slider{background:var(--green);}
+  .toggle-slider:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;bottom:3px;right:3px;transition:.2s;}
+  .toggle input:checked+.toggle-slider:before{transform:translateX(-20px);}
+  .save-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:14px 18px;display:flex;gap:12px;justify-content:center;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:11px;padding:13px 36px;font:900 14px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-save:disabled{opacity:.5;cursor:default;}
+  .btn-reset{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:13px 22px;font:700 13px Cairo,sans-serif;cursor:pointer;color:var(--muted);}
+  .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>التجديد التلقائي للاستثمار</h1>
+    <p>حدّد ما يحدث لرأس مالك وأرباحك تلقائياً حين تنتهي مدة الصفقة دون تدخل منك.</p>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">إجراء رأس المال عند انتهاء الصفقة</div>
+    <div class="section-desc">ينطبق على رأس المال الأصلي الذي ترده الشركة عند اكتمال مدة الصفقة.</div>
+    <div class="option-grid" id="capitalOptions">
+      <div class="option-item" data-val="reinvest_same"><div class="radio-circle"><div class="radio-dot"></div></div><div><div class="option-label">إعادة الاستثمار في صفقة مماثلة</div><div class="option-desc">يُوجَّه رأس المال تلقائياً إلى أقرب صفقة ذات شروط مماثلة.</div></div></div>
+      <div class="option-item" data-val="reinvest_any"><div class="radio-circle"><div class="radio-dot"></div></div><div><div class="option-label">إعادة الاستثمار في أي صفقة متاحة</div><div class="option-desc">يُوجَّه رأس المال إلى أفضل صفقة متاحة حسب العائد والمخاطرة.</div></div></div>
+      <div class="option-item" data-val="to_wallet"><div class="radio-circle"><div class="radio-dot"></div></div><div><div class="option-label">إيداع في المحفظة</div><div class="option-desc">يُودَع رأس المال في رصيد محفظتك ليكون جاهزاً للسحب أو الاستثمار اليدوي.</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">إجراء الأرباح عند استحقاقها</div>
+    <div class="section-desc">ينطبق على الأرباح الدورية الناتجة عن المُرابحة أو المُشاركة.</div>
+    <div class="option-grid" id="profitOptions">
+      <div class="option-item" data-val="reinvest"><div class="radio-circle"><div class="radio-dot"></div></div><div><div class="option-label">إعادة استثمار الأرباح</div><div class="option-desc">تُضاف الأرباح تلقائياً إلى رأس المال لزيادة العائد المركّب.</div></div></div>
+      <div class="option-item" data-val="to_wallet"><div class="radio-circle"><div class="radio-dot"></div></div><div><div class="option-label">تحويل الأرباح إلى المحفظة</div><div class="option-desc">تُودَع الأرباح في رصيد المحفظة لتستطيع سحبها في أي وقت.</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">تفضيلات إضافية</div>
+    <div class="section-desc">ضبط دقيق لسلوك التجديد التلقائي.</div>
+    <div class="pref-row">
+      <div class="pref-lbl">الحد الأدنى لإعادة الاستثمار</div>
+      <select class="pref-select" id="minReinvestSel">
+        <option value="1000">1,000 ر.س</option>
+        <option value="5000">5,000 ر.س</option>
+        <option value="10000">10,000 ر.س</option>
+        <option value="25000">25,000 ر.س</option>
+      </select>
+    </div>
+    <div class="pref-row">
+      <div class="pref-lbl">أقصى مدة مقبولة للصفقة الجديدة</div>
+      <select class="pref-select" id="maxDurationSel">
+        <option value="3">3 أشهر</option>
+        <option value="6">6 أشهر</option>
+        <option value="12">12 شهراً</option>
+        <option value="any">أي مدة</option>
+      </select>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><div class="toggle-label">إشعار قبل التجديد بـ 48 ساعة</div><div class="toggle-hint">تلقّ إشعاراً يتيح لك إلغاء التجديد قبل تنفيذه.</div></div>
+      <label class="toggle"><input type="checkbox" id="notify48h"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><div class="toggle-label">السماح بصفقات مُشاركة فقط</div><div class="toggle-hint">تقييد إعادة الاستثمار على صفقات المُشاركة دون المُرابحة.</div></div>
+      <label class="toggle"><input type="checkbox" id="musharakaOnly"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><div class="toggle-label">إيقاف التجديد التلقائي مؤقتاً</div><div class="toggle-hint">تعطيل كل إجراءات التجديد حتى تُعيد التفعيل يدوياً.</div></div>
+      <label class="toggle"><input type="checkbox" id="pauseAll"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+</main>
+<div class="save-bar">
+  <button class="btn-reset" id="resetBtn">استعادة الأصل</button>
+  <button class="btn-save" id="saveBtn">حفظ الإعدادات</button>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+
+  let original={};
+
+  function selectOption(groupId, val){
+    document.querySelectorAll('#'+groupId+' .option-item').forEach(item=>{
+      item.classList.toggle('selected', item.dataset.val===val);
+    });
+  }
+
+  function getSelected(groupId){
+    const sel=document.querySelector('#'+groupId+' .option-item.selected');
+    return sel ? sel.dataset.val : null;
+  }
+
+  document.querySelectorAll('.option-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      const group=item.closest('.option-grid').id;
+      selectOption(group, item.dataset.val);
+    });
+  });
+
+  function applySettings(s){
+    selectOption('capitalOptions', s.capitalAction||'to_wallet');
+    selectOption('profitOptions', s.profitAction||'to_wallet');
+    document.getElementById('minReinvestSel').value=String(s.minReinvestAmount||5000);
+    document.getElementById('maxDurationSel').value=String(s.maxDurationMonths||'any');
+    document.getElementById('notify48h').checked=!!s.notify48h;
+    document.getElementById('musharakaOnly').checked=!!s.musharakaOnly;
+    document.getElementById('pauseAll').checked=!!s.pauseAll;
+    original={...s};
+  }
+
+  function collectSettings(){
+    return {
+      capitalAction: getSelected('capitalOptions')||'to_wallet',
+      profitAction: getSelected('profitOptions')||'to_wallet',
+      minReinvestAmount: Number(document.getElementById('minReinvestSel').value)||5000,
+      maxDurationMonths: document.getElementById('maxDurationSel').value,
+      notify48h: document.getElementById('notify48h').checked,
+      musharakaOnly: document.getElementById('musharakaOnly').checked,
+      pauseAll: document.getElementById('pauseAll').checked
+    };
+  }
+
+  document.getElementById('resetBtn').addEventListener('click',()=>{ applySettings(original); showToast('تمت الاستعادة.'); });
+
+  document.getElementById('saveBtn').addEventListener('click', async()=>{
+    const btn=document.getElementById('saveBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/rollover-settings',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify(collectSettings())});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر الحفظ.'); return; }
+      original=collectSettings();
+      showToast('تم حفظ الإعدادات بنجاح.');
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/rollover-settings');
+      if(!r.ok){ applySettings({}); return; }
+      const d=await r.json();
+      applySettings(d);
+    }catch{ applySettings({}); }
+  }());
+}());
+</script>
+</body>
+</html>

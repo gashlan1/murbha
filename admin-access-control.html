@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>التحكم بالصلاحيات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.role-list{padding:1rem;}
+.role-item{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0.5rem;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:0.2rem;}
+.role-item:hover{background:#f5f0e8;}
+.role-item.active{background:#e8f5ed;}
+.role-name{font-size:0.88rem;font-weight:700;}
+.role-count{font-size:0.72rem;color:var(--muted);}
+.role-badge{padding:0.15rem 0.55rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.badge-admin{background:#fde8e8;color:#c0392b;}
+.badge-manager{background:#fef3cd;color:#92400e;}
+.badge-staff{background:#e8f5ed;color:#1e8449;}
+.badge-viewer{background:#f0f0f0;color:var(--muted);}
+.perm-matrix{padding:1.25rem;overflow-x:auto;}
+.pm-row{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:0.4rem;padding:0.45rem 0;border-bottom:1px solid var(--line);align-items:center;font-size:0.78rem;}
+.pm-header{font-weight:700;font-size:0.72rem;color:var(--muted);}
+.pm-module{font-weight:600;}
+.pm-check{text-align:center;}
+.perm-yes{color:var(--green);font-weight:700;}
+.perm-no{color:#d0cbc0;}
+.perm-edit{color:var(--gold);font-weight:700;}
+.admin-table{padding:1.25rem;}
+.at-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.at-row:last-child{border-bottom:none;}
+.at-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}.pm-row{grid-template-columns:2fr repeat(2,1fr);}.pm-row>:nth-child(4),.pm-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — التحكم بالصلاحيات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة الأدوار والصلاحيات</h2>
+      <p>تحديد صلاحيات فريق الإدارة والتحكم في وصول كل دور للوحة</p>
+    </div>
+    <button class="btn btn-primary" onclick="addAdmin()">إضافة مسؤول</button>
+  </div>
+
+  <div class="stats" id="acStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الأدوار المتاحة</h3></div>
+      <div class="role-list" id="roleList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>مصفوفة الصلاحيات</h3></div>
+      <div class="perm-matrix" id="permMatrix"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>المسؤولون والموظفون</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportAccess()">تصدير</button>
+    </div>
+    <div class="admin-table" id="adminTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="addAdmin()">إضافة مسؤول جديد</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportAccess()">تصدير السجل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'مديرو النظام' },
+  { val: '٨', lbl: 'موظفو الإدارة' },
+  { val: '٤', lbl: 'أدوار مُعرَّفة' },
+  { val: '٢٤', lbl: 'إذن فردي' }
+];
+
+const ROLES = [
+  { name: 'مدير النظام', count: '٣ مستخدمين', badge: 'badge-admin', label: 'Admin', active: true },
+  { name: 'مدير العمليات', count: '٤ مستخدمين', badge: 'badge-manager', label: 'Manager', active: false },
+  { name: 'موظف دعم', count: '٣ مستخدمين', badge: 'badge-staff', label: 'Staff', active: false },
+  { name: 'مُراقب فقط', count: '٢ مستخدمين', badge: 'badge-viewer', label: 'Viewer', active: false }
+];
+
+const MODULES = ['الصفقات', 'المستثمرون', 'المدفوعات', 'التقارير', 'الإعدادات'];
+const PERMS = [
+  ['الصفقات',       '✓', '✓', '✎', '—'],
+  ['المستثمرون',   '✓', '✓', '✎', '✎'],
+  ['المدفوعات',    '✓', '✎', '—', '—'],
+  ['التقارير',     '✓', '✓', '✓', '✓'],
+  ['الإعدادات',    '✓', '—', '—', '—']
+];
+
+const ADMINS = [
+  { name: 'فيصل الأحمدي', role: 'مدير النظام', last: 'منذ ١٠ دقائق', badge: 'badge-admin', label: 'Admin' },
+  { name: 'ريم السالم', role: 'مدير العمليات', last: 'منذ ساعة', badge: 'badge-manager', label: 'Manager' },
+  { name: 'عمر الحربي', role: 'موظف دعم', last: 'منذ ٣ ساعات', badge: 'badge-staff', label: 'Staff' },
+  { name: 'لين العتيبي', role: 'مُراقب فقط', last: 'أمس', badge: 'badge-viewer', label: 'Viewer' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('acStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildRoles() {
+  const wrap = document.getElementById('roleList');
+  ROLES.forEach((r, i) => {
+    const item = document.createElement('div'); item.className = 'role-item' + (r.active ? ' active' : '');
+    item.onclick = () => { ROLES.forEach((x, j) => x.active = j === i); buildRoles(); };
+    const left = document.createElement('div');
+    const name = document.createElement('div'); name.className = 'role-name'; name.textContent = r.name;
+    const count = document.createElement('div'); count.className = 'role-count'; count.textContent = r.count;
+    left.appendChild(name); left.appendChild(count);
+    const badge = document.createElement('span'); badge.className = 'role-badge ' + r.badge; badge.textContent = r.label;
+    item.appendChild(left); item.appendChild(badge);
+    wrap.appendChild(item);
+  });
+}
+
+function buildMatrix() {
+  const wrap = document.getElementById('permMatrix');
+  while (wrap.firstChild) wrap.removeChild(wrap.firstChild);
+  const header = document.createElement('div'); header.className = 'pm-row pm-header';
+  ['الوحدة', 'Admin', 'Manager', 'Staff', 'Viewer'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  PERMS.forEach(row => {
+    const r = document.createElement('div'); r.className = 'pm-row';
+    row.forEach((cell, i) => {
+      const c = document.createElement('div');
+      if (i === 0) { c.className = 'pm-module'; c.textContent = cell; }
+      else {
+        c.className = 'pm-check';
+        const span = document.createElement('span');
+        span.className = cell === '✓' ? 'perm-yes' : cell === '✎' ? 'perm-edit' : 'perm-no';
+        span.textContent = cell;
+        c.appendChild(span);
+      }
+      r.appendChild(c);
+    });
+    wrap.appendChild(r);
+  });
+}
+
+function buildAdmins() {
+  const wrap = document.getElementById('adminTable');
+  const header = document.createElement('div'); header.className = 'at-row at-header';
+  ['الاسم', 'الدور', 'آخر نشاط', 'إجراء'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  ADMINS.forEach((a, i) => {
+    const row = document.createElement('div'); row.className = 'at-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = a.name;
+    const rolePill = document.createElement('span'); rolePill.className = 'role-badge ' + a.badge; rolePill.textContent = a.role;
+    const last = document.createElement('div'); last.style.color = 'var(--muted)'; last.textContent = a.last;
+    const actions = document.createElement('div'); actions.style.display = 'flex'; actions.style.gap = '0.4rem';
+    const edit = document.createElement('button'); edit.className = 'btn btn-sm'; edit.style.cssText = 'background:#f5f0e8;color:var(--green-dark);'; edit.textContent = 'تعديل';
+    edit.onclick = () => editAdmin(i);
+    actions.appendChild(edit);
+    row.appendChild(name); row.appendChild(rolePill); row.appendChild(last); row.appendChild(actions);
+    wrap.appendChild(row);
+  });
+}
+
+function editAdmin(idx) {
+  fetch('/app/admin/access-control/' + idx, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'edit' }) }).catch(() => {});
+  alert('تعديل صلاحيات: ' + ADMINS[idx].name);
+}
+
+function addAdmin() {
+  fetch('/app/admin/access-control', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'add' }) }).catch(() => {});
+  alert('جاري إضافة مسؤول جديد...');
+}
+
+function exportAccess() {
+  fetch('/app/admin/access-control/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل الصلاحيات...');
+}
+
+buildStats(); buildRoles(); buildMatrix(); buildAdmins();
+</script>
+</body>
+</html>

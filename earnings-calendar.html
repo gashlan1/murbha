@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقويم التوزيعات — مُرابحة</title>
+<meta name="description" content="جدول توزيعات الأرباح والمدفوعات القادمة لجميع استثماراتك في مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:40px 22px; margin-bottom:22px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; max-width:620px; margin:0 auto; line-height:1.85; }
+  section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:14px; }
+  section h2 { font:900 18px Cairo,sans-serif; color:var(--green-dark); margin-bottom:12px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .summary-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .sum-card { background:var(--paper); border-radius:12px; padding:14px; text-align:center; border:1px solid var(--line); }
+  .sum-num { font:900 20px Cairo,sans-serif; color:var(--green-dark); }
+  .sum-lbl { font:500 11px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .month-group { margin-bottom:18px; }
+  .month-hdr { font:900 14px Cairo,sans-serif; color:var(--green); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .month-hdr::after { content:''; flex:1; height:1px; background:var(--line); }
+  .payout-row { display:flex; align-items:center; gap:12px; background:var(--paper); border-radius:10px; padding:12px 14px; margin-bottom:7px; border:1px solid var(--line); }
+  .payout-date { width:44px; text-align:center; flex-shrink:0; }
+  .pdate-day { font:900 18px Cairo,sans-serif; color:var(--green-dark); line-height:1; }
+  .pdate-mo { font:500 10px Tajawal,sans-serif; color:var(--muted); }
+  .payout-body { flex:1; }
+  .payout-name { font:900 12px Cairo,sans-serif; color:var(--green-dark); }
+  .payout-note { font:500 11px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .payout-amt { font:900 14px Cairo,sans-serif; color:var(--green); white-space:nowrap; }
+  .payout-amt.pending { color:var(--gold); }
+  .badge { display:inline-block; border-radius:6px; padding:2px 8px; font:700 10px Cairo,sans-serif; }
+  .badge.done { background:#e8f5e9; color:var(--green); }
+  .badge.soon { background:#fdf5e4; color:var(--gold); }
+  .badge.future { background:var(--line); color:var(--muted); }
+  .empty-msg { font:500 13px Tajawal,sans-serif; color:var(--muted); text-align:center; padding:30px 0; }
+  .cta { background:linear-gradient(135deg,#0a4d36,#062b1e); color:#d4ac6e; border-radius:18px; padding:26px; text-align:center; }
+  .cta h2 { font:900 18px Cairo,sans-serif; color:#fbf6ea; padding:0; border:none; margin-bottom:8px; }
+  .cta p { color:#fbf6ea; opacity:0.9; font:500 13px Tajawal,sans-serif; margin-bottom:14px; }
+  .cta a { display:inline-block; background:#d4ac6e; color:#062b1e; border-radius:10px; padding:10px 28px; font:900 14px Cairo,sans-serif; text-decoration:none; }
+  @media(max-width:540px){ .summary-row{grid-template-columns:1fr 1fr;} }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📅 تقويم التوزيعات</h1>
+    <p>كلّ توزيع ربح وسداد قادم في جدول واحد. خطّط تدفّقاتك النقديّة بوضوح.</p>
+  </div>
+
+  <section>
+    <h2>💰 ملخّص السنة الجارية</h2>
+    <div class="summary-row">
+      <div class="sum-card">
+        <div class="sum-num" id="sumReceived">—</div>
+        <div class="sum-lbl">مُستلم حتّى اليوم (ر.س)</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-num" id="sumPending">—</div>
+        <div class="sum-lbl">قادم هذا الشهر (ر.س)</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-num" id="sumFull">—</div>
+        <div class="sum-lbl">إجمالي متوقّع (ر.س)</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>📆 جدول التوزيعات</h2>
+    <div id="calBody"><p class="empty-msg">جارٍ التحميل…</p></div>
+  </section>
+
+  <div class="cta">
+    <h2>هل تريد إشعارات تلقائية؟</h2>
+    <p>فعّل إشعارات التوزيع في إعدادات الحساب لتصلك رسالة قبل يوم من كلّ دفعة.</p>
+    <a href="/profile.html#notifications">إعدادات الإشعارات</a>
+  </div>
+</main>
+<script>
+(function () {
+  const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const calBody = document.getElementById('calBody');
+
+  function fmt(n) { return Number(n).toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+
+  function renderCal(payouts) {
+    calBody.textContent = '';
+    if (!payouts.length) {
+      const msg = document.createElement('p');
+      msg.className = 'empty-msg';
+      msg.textContent = 'لا توجد توزيعات مجدولة. استثمر الآن لتبدأ في تلقّي الأرباح.';
+      calBody.appendChild(msg);
+      return;
+    }
+
+    const grouped = {};
+    payouts.forEach(p => {
+      const d = new Date(p.date);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      if (!grouped[key]) grouped[key] = { label: MONTHS_AR[d.getMonth()] + ' ' + d.getFullYear(), items: [] };
+      grouped[key].items.push(p);
+    });
+
+    Object.keys(grouped).sort().forEach(key => {
+      const grp = grouped[key];
+      const section = document.createElement('div');
+      section.className = 'month-group';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'month-hdr';
+      hdr.textContent = grp.label;
+      section.appendChild(hdr);
+
+      grp.items.forEach(p => {
+        const d = new Date(p.date);
+        const now = Date.now();
+        const daysAway = Math.round((d.getTime() - now) / 86400000);
+        const statusCls = p.paid ? 'done' : daysAway <= 7 ? 'soon' : 'future';
+        const statusLabel = p.paid ? 'مُستلم' : daysAway <= 7 ? 'قريب' : 'قادم';
+
+        const row = document.createElement('div');
+        row.className = 'payout-row';
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'payout-date';
+        const dayEl = document.createElement('div');
+        dayEl.className = 'pdate-day';
+        dayEl.textContent = d.getDate().toLocaleString('ar-SA');
+        const moEl = document.createElement('div');
+        moEl.className = 'pdate-mo';
+        moEl.textContent = MONTHS_AR[d.getMonth()];
+        dateDiv.appendChild(dayEl);
+        dateDiv.appendChild(moEl);
+
+        const body = document.createElement('div');
+        body.className = 'payout-body';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'payout-name';
+        nameEl.textContent = p.projectName;
+        const noteEl = document.createElement('div');
+        noteEl.className = 'payout-note';
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + statusCls;
+        badge.textContent = statusLabel;
+        noteEl.appendChild(badge);
+        const noteText = document.createTextNode(' · ' + (p.type === 'profit' ? 'توزيع ربح' : 'سداد أصل'));
+        noteEl.appendChild(noteText);
+        body.appendChild(nameEl);
+        body.appendChild(noteEl);
+
+        const amt = document.createElement('div');
+        amt.className = 'payout-amt' + (p.paid ? '' : ' pending');
+        amt.textContent = fmt(p.amount) + ' ر.س';
+
+        row.appendChild(dateDiv);
+        row.appendChild(body);
+        row.appendChild(amt);
+        section.appendChild(row);
+      });
+
+      calBody.appendChild(section);
+    });
+  }
+
+  (async function load() {
+    try {
+      const r = await fetch('/app/me/earnings-calendar');
+      if (!r.ok) {
+        calBody.textContent = '';
+        const msg = document.createElement('p');
+        msg.className = 'empty-msg';
+        msg.textContent = 'يجب تسجيل الدخول لعرض التقويم.';
+        calBody.appendChild(msg);
+        return;
+      }
+      const d = await r.json();
+      document.getElementById('sumReceived').textContent = fmt(d.summary.received);
+      document.getElementById('sumPending').textContent = fmt(d.summary.pending);
+      document.getElementById('sumFull').textContent = fmt(d.summary.full);
+      renderCal(d.payouts);
+    } catch {
+      calBody.textContent = '';
+      const msg = document.createElement('p');
+      msg.className = 'empty-msg';
+      msg.textContent = 'تعذّر التحميل. حاول لاحقاً.';
+      calBody.appendChild(msg);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

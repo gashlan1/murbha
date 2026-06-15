@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>متابعة الضمان — مُرابحة</title>
+<meta name="description" content="تتبّع حالة حسابات الضمان لصفقاتك النشطة. شروط الإفراج والجدول الزمني." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .summary-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;}
+  .chip-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .chip-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .escrow-list{display:grid;gap:14px;}
+  .escrow-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .escrow-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .escrow-deal{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .escrow-sector{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .escrow-status-badge{border-radius:7px;padding:4px 12px;font:700 10px Cairo,sans-serif;}
+  .badge-held{background:#fff8e1;color:#a07020;}
+  .badge-released{background:#e8f5e9;color:#2e7d32;}
+  .badge-partial{background:#e3f2fd;color:#1565c0;}
+  .amounts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+  @media(max-width:500px){.amounts-grid{grid-template-columns:1fr 1fr;}}
+  .amount-box{background:var(--paper);border-radius:10px;padding:12px;}
+  .amount-val{font:900 16px Cairo,sans-serif;color:var(--green-dark);}
+  .amount-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .progress-wrap{margin-bottom:14px;}
+  .progress-label{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .progress-label span{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .progress-track{background:var(--paper);border-radius:99px;height:10px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:99px;background:var(--green);transition:width .5s;}
+  .conditions-title{font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:8px;}
+  .conditions-list{display:grid;gap:6px;}
+  .condition-item{display:flex;align-items:center;gap:8px;}
+  .condition-icon{font-size:13px;flex-shrink:0;}
+  .condition-text{font:500 11px Tajawal,sans-serif;color:var(--ink);}
+  .condition-item.met .condition-text{color:var(--muted);text-decoration:line-through;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔐 متابعة الضمان</h1>
+    <p>تتبّع حسابات الضمان لصفقاتك النشطة — الأموال المحجوزة، شروط الإفراج، والجدول الزمني.</p>
+  </div>
+
+  <div class="summary-row" id="summaryRow">
+    <div class="chip"><div class="chip-val">—</div><div class="chip-lbl">إجمالي محجوز (ر.س)</div></div>
+    <div class="chip"><div class="chip-val">—</div><div class="chip-lbl">تم الإفراج (ر.س)</div></div>
+    <div class="chip"><div class="chip-val">—</div><div class="chip-lbl">صفقات نشطة</div></div>
+  </div>
+
+  <div class="escrow-list" id="escrowList"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+</main>
+<script>
+(function(){
+  const CAT={real_estate:'عقارات',logistics:'لوجستيات',agri:'زراعة',tech:'تقنية',energy:'طاقة'};
+  const STATUS_LABELS={held:'محجوز',released:'مُفرَج عنه',partial:'إفراج جزئي'};
+
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  function renderSummary(escrows){
+    const row=document.getElementById('summaryRow'); row.textContent='';
+    const totalHeld=escrows.reduce((s,e)=>s+(e.heldAmount||0),0);
+    const totalReleased=escrows.reduce((s,e)=>s+(e.releasedAmount||0),0);
+    [{val:fmt(totalHeld)+' ر.س',lbl:'إجمالي محجوز'},{val:fmt(totalReleased)+' ر.س',lbl:'تم الإفراج'},{val:escrows.length,lbl:'صفقات نشطة'}].forEach(it=>{
+      const chip=document.createElement('div'); chip.className='chip';
+      const v=document.createElement('div'); v.className='chip-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='chip-lbl'; l.textContent=it.lbl;
+      chip.appendChild(v); chip.appendChild(l); row.appendChild(chip);
+    });
+  }
+
+  function renderEscrows(escrows){
+    const list=document.getElementById('escrowList'); list.textContent='';
+    if(!escrows.length){ const m=document.createElement('p'); m.className='empty-msg'; m.textContent='لا توجد حسابات ضمان نشطة.'; list.appendChild(m); return; }
+    escrows.forEach(e=>{
+      const card=document.createElement('div'); card.className='escrow-card';
+
+      const top=document.createElement('div'); top.className='escrow-top';
+      const dealInfo=document.createElement('div');
+      const dealName=document.createElement('div'); dealName.className='escrow-deal'; dealName.textContent=e.dealTitle||'—';
+      const sector=document.createElement('div'); sector.className='escrow-sector'; sector.textContent=CAT[e.sector]||e.sector||'—';
+      dealInfo.appendChild(dealName); dealInfo.appendChild(sector);
+      const badge=document.createElement('div'); badge.className='escrow-status-badge badge-'+(e.status||'held');
+      badge.textContent=STATUS_LABELS[e.status]||e.status||'—';
+      top.appendChild(dealInfo); top.appendChild(badge); card.appendChild(top);
+
+      const amounts=document.createElement('div'); amounts.className='amounts-grid';
+      [{val:fmt(e.totalAmount||0)+' ر.س',lbl:'إجمالي الضمان'},{val:fmt(e.heldAmount||0)+' ر.س',lbl:'محجوز حالياً'},{val:fmt(e.releasedAmount||0)+' ر.س',lbl:'مُفرَج عنه'}].forEach(it=>{
+        const box=document.createElement('div'); box.className='amount-box';
+        const av=document.createElement('div'); av.className='amount-val'; av.textContent=it.val;
+        const al=document.createElement('div'); al.className='amount-lbl'; al.textContent=it.lbl;
+        box.appendChild(av); box.appendChild(al); amounts.appendChild(box);
+      });
+      card.appendChild(amounts);
+
+      const total=e.totalAmount||1;
+      const released=e.releasedAmount||0;
+      const pct=Math.round((released/total)*100);
+      const pw=document.createElement('div'); pw.className='progress-wrap';
+      const pl=document.createElement('div'); pl.className='progress-label';
+      const plLeft=document.createElement('span'); plLeft.textContent='تقدّم الإفراج';
+      const plRight=document.createElement('span'); plRight.textContent=pct+'٪';
+      pl.appendChild(plLeft); pl.appendChild(plRight);
+      const pt=document.createElement('div'); pt.className='progress-track';
+      const pf=document.createElement('div'); pf.className='progress-fill'; pf.style.width=pct+'%';
+      pt.appendChild(pf); pw.appendChild(pl); pw.appendChild(pt); card.appendChild(pw);
+
+      if((e.conditions||[]).length){
+        const ctitle=document.createElement('div'); ctitle.className='conditions-title'; ctitle.textContent='شروط الإفراج:';
+        const clist=document.createElement('div'); clist.className='conditions-list';
+        e.conditions.forEach(c=>{
+          const item=document.createElement('div'); item.className='condition-item'+(c.met?' met':'');
+          const icon=document.createElement('div'); icon.className='condition-icon'; icon.textContent=c.met?'✅':'⏳';
+          const text=document.createElement('div'); text.className='condition-text'; text.textContent=c.label;
+          item.appendChild(icon); item.appendChild(text); clist.appendChild(item);
+        });
+        card.appendChild(ctitle); card.appendChild(clist);
+      }
+
+      list.appendChild(card);
+    });
+  }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/escrow');
+      if(!r.ok){ const list=document.getElementById('escrowList'); list.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; list.appendChild(m); return; }
+      const d=await r.json();
+      renderSummary(d.escrows||[]);
+      renderEscrows(d.escrows||[]);
+    }catch{
+      const list=document.getElementById('escrowList'); list.textContent='';
+      const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل. حاول لاحقاً.'; list.appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

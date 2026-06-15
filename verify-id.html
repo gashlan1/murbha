@@ -144,6 +144,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 </style>
 <link rel="stylesheet" href="/assets/site.css" />
 <meta name="description" content="خطوة التحقق من الهوية الوطنية أو الإقامة لتفعيل حسابك في منصة مُرابحة." />
+<script src="/assets/lang.js"></script>
 </head>
 <body>
 <main id="main">
@@ -267,7 +268,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 
     <div class="auth-form-group">
       <label>صورة الهوية الوطنية / الإقامة (الوجه الأمامي)</label>
-      <input type="file" id="idDocInput" accept="image/*,application/pdf" style="display: none;" />
+      <input type="file" id="idDocInput" accept="image/jpeg,image/png,image/webp,application/pdf,image/heic" style="display: none;" />
       
       <div class="upload-area" id="uploadArea" onclick="triggerFileInput()">
         <div class="scanner-line" id="scannerLine"></div>
@@ -285,8 +286,27 @@ button, a { font-family: inherit; touch-action: manipulation; }
         </div>
 
         <div class="scan-result" id="scanResult">
-          <span>✓ تم فحص ومطابقة الهوية بنجاح</span>
+          <span>✓ تم رفع صورة الهوية</span>
         </div>
+      </div>
+    </div>
+
+    <div class="auth-form-group">
+      <label>صورة شخصية (سيلفي) للتحقق من المطابقة</label>
+      <input type="file" id="selfieInput" accept="image/jpeg,image/png,image/webp,image/heic" capture="user" style="display:none;" />
+      <div class="upload-area" id="selfieArea" onclick="document.getElementById('selfieInput').click()">
+        <div id="selfiePrompt">
+          <div class="upload-icon">🤳</div>
+          <div class="upload-text">التقط صورة شخصية</div>
+          <div class="upload-subtext">JPG / PNG / WebP / HEIC (حد أقصى 5MB)</div>
+        </div>
+        <div class="progress-container" id="selfieProgress" style="display:none;">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="selfieProgressFill"></div>
+          </div>
+          <span class="progress-text" id="selfieProgressText">جاري الرفع... 0%</span>
+        </div>
+        <div class="scan-result" id="selfieResult"><span>✓ تم رفع الصورة الشخصية</span></div>
       </div>
     </div>
 
@@ -394,65 +414,86 @@ document.addEventListener('DOMContentLoaded', async () => {
     nationalIdInput.value = user.nationalId;
   }
 
-  const fileInput = document.getElementById('idDocInput');
-  const uploadArea = document.getElementById('uploadArea');
-  const uploadPrompt = document.getElementById('uploadPrompt');
-  const scannerLine = document.getElementById('scannerLine');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBarFill = document.getElementById('progressBarFill');
-  const progressText = document.getElementById('progressText');
-  const scanResult = document.getElementById('scanResult');
   const submitBtn = document.getElementById('idSubmitBtn');
+  const uploadState = { id_front: false, selfie: false };
 
-  // Handle file selection
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-      simulateScan();
-    }
+  const updateSubmitGate = () => {
+    submitBtn.disabled = !(uploadState.id_front && uploadState.selfie);
+  };
+
+  // Read a File into base64 (no data: prefix)
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const s = String(r.result || '');
+      const i = s.indexOf(',');
+      resolve(i >= 0 ? s.slice(i + 1) : s);
+    };
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
   });
 
-  // Simulated scan animation
-  function simulateScan() {
-    uploadPrompt.style.display = 'none';
-    scannerLine.style.display = 'block';
-    progressContainer.style.display = 'block';
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      progressBarFill.style.width = progress + '%';
-      progressText.textContent = `جاري قراءة ومطابقة بيانات الهوية... ${progress}%`;
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          scannerLine.style.display = 'none';
-          progressContainer.style.display = 'none';
-          scanResult.style.display = 'flex';
-          submitBtn.disabled = false;
-          App.toast('تم مسح وثيقة الهوية ومطابقتها بنجاح ✓', 'success');
-        }, 300);
-      }
-    }, 80);
+  async function uploadDoc(kind, file, els) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      App.toast('الملف كبير جداً. الحد الأقصى 5 ميجابايت.', 'error');
+      return;
+    }
+    els.prompt.style.display = 'none';
+    els.progress.style.display = 'block';
+    els.fill.style.width = '10%';
+    els.text.textContent = 'جاري التحضير...';
+    try {
+      const data = await fileToBase64(file);
+      els.fill.style.width = '40%';
+      els.text.textContent = 'جاري الرفع...';
+      await App.api('POST', '/app/auth/kyc/upload', { kind, data });
+      els.fill.style.width = '100%';
+      els.text.textContent = 'تم بنجاح';
+      setTimeout(() => {
+        els.progress.style.display = 'none';
+        els.result.style.display = 'flex';
+        uploadState[kind] = true;
+        updateSubmitGate();
+        App.toast('تم رفع الملف بنجاح ✓', 'success');
+      }, 300);
+    } catch (e) {
+      els.progress.style.display = 'none';
+      els.prompt.style.display = 'block';
+      App.toast(e.message || 'تعذّر رفع الملف.', 'error');
+    }
   }
 
-  // Drag and drop events
-  uploadArea.addEventListener('dragover', (e) => {
+  // ID front upload
+  const idEls = {
+    input:    document.getElementById('idDocInput'),
+    area:     document.getElementById('uploadArea'),
+    prompt:   document.getElementById('uploadPrompt'),
+    progress: document.getElementById('progressContainer'),
+    fill:     document.getElementById('progressBarFill'),
+    text:     document.getElementById('progressText'),
+    result:   document.getElementById('scanResult'),
+  };
+  idEls.input.addEventListener('change', () => idEls.input.files[0] && uploadDoc('id_front', idEls.input.files[0], idEls));
+  idEls.area.addEventListener('dragover', (e) => { e.preventDefault(); idEls.area.style.borderColor = 'var(--green)'; });
+  idEls.area.addEventListener('dragleave', () => { idEls.area.style.borderColor = 'var(--line-strong)'; });
+  idEls.area.addEventListener('drop', (e) => {
     e.preventDefault();
-    uploadArea.style.borderColor = 'var(--green)';
+    idEls.area.style.borderColor = 'var(--line-strong)';
+    if (e.dataTransfer?.files?.[0]) uploadDoc('id_front', e.dataTransfer.files[0], idEls);
   });
 
-  uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.borderColor = 'var(--line-strong)';
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = 'var(--line-strong)';
-    const result = document.getElementById('scanResult');
-    if (result.style.display === 'flex') return;
-    simulateScan();
-  });
+  // Selfie upload
+  const selfieEls = {
+    input:    document.getElementById('selfieInput'),
+    area:     document.getElementById('selfieArea'),
+    prompt:   document.getElementById('selfiePrompt'),
+    progress: document.getElementById('selfieProgress'),
+    fill:     document.getElementById('selfieProgressFill'),
+    text:     document.getElementById('selfieProgressText'),
+    result:   document.getElementById('selfieResult'),
+  };
+  selfieEls.input.addEventListener('change', () => selfieEls.input.files[0] && uploadDoc('selfie', selfieEls.input.files[0], selfieEls));
 
   const form = document.getElementById('verifyIdForm');
   const errorEl = document.getElementById('idError');

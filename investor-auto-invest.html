@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الاستثمار التلقائي - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.form-wrap{padding:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;background:#fff;}
+.rule-list{padding:1.25rem;}
+.rule-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.rule-item:last-child{margin-bottom:0;}
+.rule-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;}
+.rule-title{font-size:0.88rem;font-weight:700;}
+.rule-pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;}
+.pill-active{background:#e8f5ed;color:#1e8449;}
+.pill-paused{background:#fef3cd;color:#92400e;}
+.rule-meta{font-size:0.72rem;color:var(--muted);}
+.rule-actions{display:flex;gap:0.5rem;margin-top:0.6rem;}
+.history-list{padding:1.25rem;}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.hist-row:last-child{border-bottom:none;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — الاستثمار التلقائي</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>قواعد الاستثمار التلقائي</h2>
+      <p>اضبط قواعد تلقائية لاستثمار الأرباح والسيولة في صفقات مرابحة جديدة</p>
+    </div>
+    <button class="btn btn-primary" onclick="addRule()">إضافة قاعدة جديدة</button>
+  </div>
+
+  <div class="stats" id="aiStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قواعد نشطة</h3></div>
+      <div class="rule-list" id="ruleList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>إضافة قاعدة</h3></div>
+      <div class="form-wrap" id="addForm"></div>
+      <div class="action-bar">
+        <button class="btn btn-gold btn-sm" onclick="saveRule()">حفظ القاعدة</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>سجل التنفيذ التلقائي</h3></div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢', lbl: 'قواعد نشطة' },
+  { val: '٣٥,٠٠٠ ر.س', lbl: 'مُستثمَر تلقائياً هذا العام' },
+  { val: '٨', lbl: 'تنفيذات ناجحة' },
+  { val: '١١.٢٪', lbl: 'متوسط العائد التلقائي' }
+];
+
+const RULES = [
+  { title: 'استثمار الأرباح تلقائياً', pill: 'pill-active', label: 'نشطة', meta: 'عند استلام أي عائد > ١,٠٠٠ ر.س — استثمر ٨٠٪ في أقل صفقة مخاطرة متاحة' },
+  { title: 'استثمار السيولة الشهرية', pill: 'pill-paused', label: 'موقوفة', meta: 'في أول كل شهر — استثمر ٥,٠٠٠ ر.س في صفقة بعائد > ٩٪' }
+];
+
+const FORM_FIELDS = [
+  { label: 'اسم القاعدة', type: 'input', placeholder: 'مثال: استثمار الأرباح' },
+  { label: 'المحفز', type: 'select', opts: ['استلام أرباح', 'بداية الشهر', 'انتهاء صفقة'] },
+  { label: 'المبلغ الأدنى للتنفيذ (ر.س)', type: 'number', placeholder: '1000' },
+  { label: 'نسبة المبلغ للاستثمار (%)', type: 'number', placeholder: '80' },
+  { label: 'تفضيل نوع الصفقة', type: 'select', opts: ['أي صفقة', 'عقارية', 'تجارية', 'لوجستية'] }
+];
+
+const HISTORY = [
+  { date: '٢٠٢٦/٠٦/١٠', rule: 'استثمار الأرباح تلقائياً', amount: '٤,٦٠٠ ر.س', deal: 'مرابحة عقارية #4922' },
+  { date: '٢٠٢٦/٠٥/١٥', rule: 'استثمار الأرباح تلقائياً', amount: '٣,٢٠٠ ر.س', deal: 'مرابحة تجارية #4921' },
+  { date: '٢٠٢٦/٠٣/٣١', rule: 'استثمار الأرباح تلقائياً', amount: '١٢,٨٠٠ ر.س', deal: 'مرابحة عقارية #4920' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('aiStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildRules() {
+  const wrap = document.getElementById('ruleList');
+  RULES.forEach((r, i) => {
+    const item = document.createElement('div'); item.className = 'rule-item';
+    const head = document.createElement('div'); head.className = 'rule-head';
+    const title = document.createElement('div'); title.className = 'rule-title'; title.textContent = r.title;
+    const pill = document.createElement('span'); pill.className = 'rule-pill ' + r.pill; pill.textContent = r.label;
+    head.appendChild(title); head.appendChild(pill);
+    const meta = document.createElement('div'); meta.className = 'rule-meta'; meta.textContent = r.meta;
+    const actions = document.createElement('div'); actions.className = 'rule-actions';
+    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-sm'; editBtn.style.cssText = 'background:#f5f0e8;color:var(--green-dark);'; editBtn.textContent = 'تعديل';
+    const toggleBtn = document.createElement('button'); toggleBtn.className = 'btn btn-sm'; toggleBtn.style.cssText = 'background:' + (r.pill === 'pill-active' ? '#fde8e8;color:#c0392b;' : 'var(--green);color:#fff;'); toggleBtn.textContent = r.pill === 'pill-active' ? 'إيقاف' : 'تفعيل';
+    toggleBtn.onclick = () => toggleRule(i);
+    actions.appendChild(editBtn); actions.appendChild(toggleBtn);
+    item.appendChild(head); item.appendChild(meta); item.appendChild(actions);
+    wrap.appendChild(item);
+  });
+}
+
+function buildForm() {
+  const wrap = document.getElementById('addForm');
+  FORM_FIELDS.forEach(f => {
+    const group = document.createElement('div'); group.className = 'form-group';
+    const label = document.createElement('label'); label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+    } else {
+      input = document.createElement('input'); input.type = f.type;
+      if (f.placeholder) input.placeholder = f.placeholder;
+    }
+    group.appendChild(label); group.appendChild(input);
+    wrap.appendChild(group);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyList');
+  HISTORY.forEach(h => {
+    const row = document.createElement('div'); row.className = 'hist-row';
+    const left = document.createElement('div');
+    const date = document.createElement('span'); date.style.color = 'var(--muted)'; date.textContent = h.date + ' — ';
+    const rule = document.createElement('span'); rule.style.fontWeight = '600'; rule.textContent = h.rule;
+    const deal = document.createElement('div'); deal.style.cssText = 'font-size:0.72rem;color:var(--muted);'; deal.textContent = h.deal;
+    left.appendChild(date); left.appendChild(rule); left.appendChild(deal);
+    const amt = document.createElement('div'); amt.style.cssText = 'font-weight:700;color:var(--green);'; amt.textContent = h.amount;
+    row.appendChild(left); row.appendChild(amt);
+    wrap.appendChild(row);
+  });
+}
+
+function toggleRule(idx) {
+  fetch('/app/me/auto-invest/' + idx, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ toggle: true }) }).catch(() => {});
+  alert('تم تحديث حالة القاعدة.');
+}
+
+function addRule() { alert('انتقل لنموذج إضافة القاعدة أدناه.'); }
+
+function saveRule() {
+  fetch('/app/me/auto-invest', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ rule: 'new' }) }).catch(() => {});
+  alert('تم حفظ القاعدة الجديدة بنجاح.');
+}
+
+buildStats(); buildRules(); buildForm(); buildHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة المحتوى - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.main-layout{display:grid;grid-template-columns:260px 1fr;gap:1.5rem;}
+.sidebar{display:flex;flex-direction:column;gap:0.5rem;}
+.sidebar-section{margin-bottom:0.5rem;}
+.sidebar-title{font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;padding:0 0.5rem;margin-bottom:0.4rem;}
+.sidebar-item{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.85rem;border-radius:10px;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s;}
+.sidebar-item:hover{background:#fff;}
+.sidebar-item.active{background:#fff;border-color:var(--line);color:var(--green);font-weight:700;}
+.sidebar-icon{font-size:1rem;}
+.sidebar-label{font-size:0.88rem;color:var(--green-dark);}
+.sidebar-count{margin-right:auto;font-size:0.72rem;background:#f0f0f0;padding:0.1rem 0.45rem;border-radius:10px;color:var(--muted);}
+.content-area{display:flex;flex-direction:column;gap:1rem;}
+.toolbar{display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
+.toolbar input{flex:1;min-width:180px;padding:0.55rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);}
+.toolbar input:focus{outline:none;border-color:var(--green);}
+.toolbar select{padding:0.55rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+.content-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.content-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;transition:box-shadow 0.2s;}
+.content-card:hover{box-shadow:0 4px 14px rgba(6,43,30,0.1);}
+.content-card-img{height:130px;background:linear-gradient(135deg,var(--green-dark),var(--green));display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+.content-card-body{padding:1rem 1.25rem;}
+.content-card-type{font-size:0.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:0.3rem;}
+.content-card-title{font-size:0.92rem;font-weight:700;color:var(--green-dark);margin-bottom:0.35rem;line-height:1.4;}
+.content-card-meta{font-size:0.75rem;color:var(--muted);margin-bottom:0.75rem;}
+.content-card-actions{display:flex;gap:0.4rem;justify-content:flex-end;}
+.badge{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.badge-published{background:#e6f4ef;color:#27ae60;}
+.badge-draft{background:#f8f0e0;color:var(--gold);}
+.badge-scheduled{background:#f0f4ff;color:#6c7cd4;}
+.editor-panel{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;display:none;}
+.editor-panel.open{display:block;}
+.editor-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.editor-head h3{font-size:1rem;font-weight:700;}
+.editor-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.editor-toolbar{display:flex;gap:0.3rem;padding:0.5rem;background:#f5f0e8;border-radius:8px;margin-bottom:0.5rem;flex-wrap:wrap;}
+.editor-btn{padding:0.3rem 0.6rem;border:none;background:#fff;border-radius:6px;cursor:pointer;font-size:0.82rem;font-family:'Cairo',sans-serif;font-weight:600;color:var(--green-dark);transition:background 0.1s;}
+.editor-btn:hover{background:#e6f4ef;color:var(--green);}
+.editor-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:900px){.main-layout{grid-template-columns:1fr;}.content-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة المحتوى</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة المحتوى والمقالات</h2>
+    <button class="btn btn-primary" onclick="openEditor()">+ محتوى جديد</button>
+  </div>
+
+  <div class="main-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">نوع المحتوى</div>
+        <div id="contentTypes"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">الحالة</div>
+        <div id="statusFilters"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">اللغة</div>
+        <div id="langFilters"></div>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div class="toolbar">
+        <input type="text" id="contentSearch" placeholder="بحث في المحتوى..." oninput="filterContent()">
+        <select id="sortBy" onchange="filterContent()">
+          <option value="newest">الأحدث أولاً</option>
+          <option value="oldest">الأقدم أولاً</option>
+          <option value="views">الأكثر مشاهدة</option>
+        </select>
+      </div>
+      <div class="content-grid" id="contentGrid"></div>
+
+      <div class="editor-panel" id="editorPanel">
+        <div class="editor-head">
+          <h3 id="editorTitle">محتوى جديد</h3>
+          <button class="btn btn-sm btn-secondary" style="border-color:rgba(255,255,255,0.4);color:#fff;background:rgba(255,255,255,0.1);" onclick="closeEditor()">✕ إغلاق</button>
+        </div>
+        <div class="editor-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>نوع المحتوى</label>
+              <select id="contentType">
+                <option value="article">مقالة</option>
+                <option value="faq">سؤال وجواب</option>
+                <option value="announcement">إعلان</option>
+                <option value="guide">دليل</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>اللغة</label>
+              <select id="contentLang">
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>العنوان</label>
+            <input type="text" id="contentTitle" placeholder="عنوان المقالة أو المحتوى">
+          </div>
+          <div class="form-group">
+            <label>المحتوى</label>
+            <div class="editor-toolbar">
+              <button class="editor-btn">B</button>
+              <button class="editor-btn">I</button>
+              <button class="editor-btn">U</button>
+              <button class="editor-btn">H1</button>
+              <button class="editor-btn">H2</button>
+              <button class="editor-btn">• قائمة</button>
+              <button class="editor-btn">رابط</button>
+              <button class="editor-btn">صورة</button>
+            </div>
+            <textarea id="contentBody" rows="8" placeholder="اكتب محتواك هنا..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>الوسوم (tags)</label>
+              <input type="text" id="contentTags" placeholder="استثمار، مرابحة، ...">
+            </div>
+            <div class="form-group">
+              <label>جدولة النشر</label>
+              <input type="datetime-local" id="contentSchedule">
+            </div>
+          </div>
+        </div>
+        <div class="editor-footer">
+          <button class="btn btn-secondary" onclick="saveContent('draft')">حفظ كمسودة</button>
+          <button class="btn btn-primary" onclick="saveContent('published')">نشر الآن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeType = 'all';
+let activeStatus = 'all';
+
+const contentTypes = [
+  {id:'all',icon:'📂',label:'الكل',count:18},
+  {id:'article',icon:'📝',label:'مقالات',count:8},
+  {id:'faq',icon:'❓',label:'أسئلة وأجوبة',count:4},
+  {id:'announcement',icon:'📢',label:'إعلانات',count:3},
+  {id:'guide',icon:'📖',label:'أدلة',count:3},
+];
+const statuses = [
+  {id:'all',label:'الكل'},
+  {id:'published',label:'منشور'},
+  {id:'draft',label:'مسودة'},
+  {id:'scheduled',label:'مجدول'},
+];
+const langs = [
+  {id:'all',label:'الكل'},
+  {id:'ar',label:'العربية'},
+  {id:'en',label:'English'},
+];
+
+const content = [
+  {id:1,type:'article',icon:'🏠',title:'دليل الاستثمار في العقارات عبر المرابحة',meta:'نشر: ٢٠٢٦/٦/١٠ · ١٢٤٠ مشاهدة',status:'published',lang:'ar'},
+  {id:2,type:'faq',icon:'❓',title:'ما الفرق بين المرابحة والسلم والإجارة؟',meta:'نشر: ٢٠٢٦/٦/٠٥ · ٩٨٠ مشاهدة',status:'published',lang:'ar'},
+  {id:3,type:'announcement',icon:'📢',title:'إطلاق ميزة إعادة توازن المحفظة تلقائياً',meta:'مسودة · آخر تعديل: ٢٠٢٦/٦/١٤',status:'draft',lang:'ar'},
+  {id:4,type:'guide',icon:'📖',title:'كيف تبدأ استثمارك الأول في مُرابحة',meta:'مجدول: ٢٠٢٦/٦/٢٠',status:'scheduled',lang:'ar'},
+  {id:5,type:'article',icon:'💡',title:'Shariah-Compliant Investment Guide',meta:'Published: Jun 8, 2026 · 440 views',status:'published',lang:'en'},
+  {id:6,type:'faq',icon:'❓',title:'كيف يتم احتساب الأرباح الدورية؟',meta:'نشر: ٢٠٢٦/٥/٢٢ · ٧٦٠ مشاهدة',status:'published',lang:'ar'},
+];
+
+function buildSidebar(){
+  const typesCont = document.getElementById('contentTypes');
+  typesCont.textContent = '';
+  contentTypes.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-item' + (t.id===activeType?' active':'');
+    const icon = document.createElement('span');
+    icon.className = 'sidebar-icon';
+    icon.textContent = t.icon;
+    const label = document.createElement('span');
+    label.className = 'sidebar-label';
+    label.textContent = t.label;
+    const count = document.createElement('span');
+    count.className = 'sidebar-count';
+    count.textContent = t.count;
+    item.appendChild(icon);
+    item.appendChild(label);
+    item.appendChild(count);
+    item.onclick = () => { activeType = t.id; buildSidebar(); filterContent(); };
+    typesCont.appendChild(item);
+  });
+
+  const statusCont = document.getElementById('statusFilters');
+  statusCont.textContent = '';
+  statuses.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-item' + (s.id===activeStatus?' active':'');
+    const label = document.createElement('span');
+    label.className = 'sidebar-label';
+    label.textContent = s.label;
+    item.appendChild(label);
+    item.onclick = () => { activeStatus = s.id; buildSidebar(); filterContent(); };
+    statusCont.appendChild(item);
+  });
+
+  const langCont = document.getElementById('langFilters');
+  langCont.textContent = '';
+  langs.forEach(l => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-item';
+    const label = document.createElement('span');
+    label.className = 'sidebar-label';
+    label.textContent = l.label;
+    item.appendChild(label);
+    langCont.appendChild(item);
+  });
+}
+
+function filterContent(){
+  const search = document.getElementById('contentSearch').value.trim().toLowerCase();
+  const filtered = content.filter(c => {
+    if(activeType !== 'all' && c.type !== activeType) return false;
+    if(activeStatus !== 'all' && c.status !== activeStatus) return false;
+    if(search && !c.title.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderGrid(filtered);
+}
+
+function renderGrid(list){
+  const grid = document.getElementById('contentGrid');
+  grid.textContent = '';
+  list.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'content-card';
+    const img = document.createElement('div');
+    img.className = 'content-card-img';
+    img.textContent = c.icon;
+    const body = document.createElement('div');
+    body.className = 'content-card-body';
+    const typeEl = document.createElement('div');
+    typeEl.className = 'content-card-type';
+    const typeMap = {article:'مقالة',faq:'سؤال وجواب',announcement:'إعلان',guide:'دليل'};
+    typeEl.textContent = typeMap[c.type] || c.type;
+    const title = document.createElement('div');
+    title.className = 'content-card-title';
+    title.textContent = c.title;
+    const meta = document.createElement('div');
+    meta.className = 'content-card-meta';
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-' + c.status;
+    const statusMap = {published:'منشور',draft:'مسودة',scheduled:'مجدول'};
+    badge.textContent = statusMap[c.status] || c.status;
+    meta.appendChild(badge);
+    meta.appendChild(document.createTextNode(' · ' + c.meta));
+    const acts = document.createElement('div');
+    acts.className = 'content-card-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => openEditor(c);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-secondary';
+    delBtn.style.cssText = 'color:#c0392b;border-color:#c0392b;';
+    delBtn.textContent = 'حذف';
+    delBtn.onclick = () => deleteContent(c.id);
+    acts.appendChild(editBtn);
+    acts.appendChild(delBtn);
+    body.appendChild(typeEl);
+    body.appendChild(title);
+    body.appendChild(meta);
+    body.appendChild(acts);
+    card.appendChild(img);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
+
+function openEditor(item){
+  document.getElementById('editorTitle').textContent = item ? 'تعديل: ' + item.title : 'محتوى جديد';
+  document.getElementById('contentTitle').value = item ? item.title : '';
+  document.getElementById('contentBody').value = '';
+  document.getElementById('editorPanel').classList.add('open');
+  document.getElementById('editorPanel').scrollIntoView({behavior:'smooth'});
+}
+
+function closeEditor(){ document.getElementById('editorPanel').classList.remove('open'); }
+
+async function saveContent(status){
+  const title = document.getElementById('contentTitle').value.trim();
+  if(!title){ alert('يرجى إدخال عنوان المحتوى'); return; }
+  try {
+    await fetch('/app/admin/content', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({
+        title,
+        type: document.getElementById('contentType').value,
+        lang: document.getElementById('contentLang').value,
+        body: document.getElementById('contentBody').value,
+        tags: document.getElementById('contentTags').value,
+        scheduledAt: document.getElementById('contentSchedule').value,
+        status
+      })
+    });
+    closeEditor();
+  } catch(e){}
+}
+
+async function deleteContent(id){
+  try {
+    await fetch('/app/admin/content/' + id, {
+      method:'DELETE',
+      headers:{'x-csrf-token':'1'}
+    });
+  } catch(e){}
+}
+
+buildSidebar();
+filterContent();
+</script>
+</body>
+</html>

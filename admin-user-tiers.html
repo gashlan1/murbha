@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="User Tiers — Murbha Admin">مستويات المستخدمين — إدارة مُرابحة</title>
+<meta name="description" content="إدارة مستويات المستخدمين وامتيازاتهم في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:22px;}
+  .tier-card{border-radius:16px;padding:20px;border:2px solid transparent;}
+  .tier-card.bronze{background:linear-gradient(135deg,#f9f0e6,#ede0c8);border-color:#cd7f32;}
+  .tier-card.silver{background:linear-gradient(135deg,#f5f5f5,#e0e0e0);border-color:#a8a8a8;}
+  .tier-card.gold{background:linear-gradient(135deg,#fffde7,#fff3c4);border-color:#b08840;}
+  .tier-card.diamond{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:#1b5e20;}
+  .tier-name{font:900 16px Cairo,sans-serif;margin-bottom:4px;}
+  .tier-card.bronze .tier-name{color:#7d4a00;}
+  .tier-card.silver .tier-name{color:#424242;}
+  .tier-card.gold .tier-name{color:#7a5c00;}
+  .tier-card.diamond .tier-name{color:#1b5e20;}
+  .tier-count{font:900 28px Cairo,sans-serif;margin-bottom:4px;}
+  .tier-pct{font:700 11px Cairo,sans-serif;opacity:.8;}
+  .tier-min{font:500 10px Tajawal,sans-serif;opacity:.75;margin-top:8px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .search-inp{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .search-inp:focus{outline:none;border-color:var(--green);}
+  .users-table{width:100%;border-collapse:collapse;min-width:600px;}
+  .users-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .users-table td{font:500 11px Tajawal,sans-serif;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .users-table tr:last-child td{border-bottom:none;}
+  .users-table tr:hover td{background:#fafaf7;}
+  .tier-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;white-space:nowrap;}
+  .badge-bronze{background:#fdf3e7;color:#7d4a00;}
+  .badge-silver{background:#f5f5f5;color:#424242;}
+  .badge-gold{background:#fffde7;color:#7a5c00;}
+  .badge-diamond{background:#e8f5e9;color:#1b5e20;}
+  .btn-upgrade{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:7px;padding:5px 12px;font:700 9px Cairo,sans-serif;cursor:pointer;}
+  .btn-upgrade:hover{background:var(--green);}
+  .btn-upgrade:disabled{background:#ccc;cursor:default;}
+  .paging{display:flex;justify-content:center;gap:8px;margin-top:16px;}
+  .page-btn{border:1.5px solid var(--line);border-radius:7px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .page-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="User Tiers">مستويات المستخدمين</h1>
+    <p data-en="Manage user tiers and privileges across the Murbha platform.">أدر مستويات المستخدمين وامتيازاتهم في منصة مُرابحة.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="tier-grid" id="tierGrid"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="Users by Tier">المستخدمون حسب المستوى</div>
+    <div class="filter-bar">
+      <div class="filter-chip active" data-tier="">الكل</div>
+      <div class="filter-chip" data-tier="bronze">برونزي</div>
+      <div class="filter-chip" data-tier="silver">فضي</div>
+      <div class="filter-chip" data-tier="gold">ذهبي</div>
+      <div class="filter-chip" data-tier="diamond">ألماسي</div>
+      <input class="search-inp" id="searchInp" type="text" placeholder="بحث باسم المستخدم أو البريد…" />
+    </div>
+    <table class="users-table">
+      <thead><tr>
+        <th data-en="Name">الاسم</th>
+        <th data-en="Email">البريد</th>
+        <th data-en="Tier">المستوى</th>
+        <th data-en="Total Invested">إجمالي الاستثمار</th>
+        <th data-en="Since">عضو منذ</th>
+        <th data-en="Action">إجراء</th>
+      </tr></thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+    <div class="paging" id="paging"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  const tierLabels={bronze:'برونزي',silver:'فضي',gold:'ذهبي',diamond:'ألماسي'};
+  const tierBadge={bronze:'badge-bronze',silver:'badge-silver',gold:'badge-gold',diamond:'badge-diamond'};
+  const tierColors={bronze:'bronze',silver:'silver',gold:'gold',diamond:'diamond'};
+  const PAGE_SIZE=20;
+  let allUsers=[], activeTier='', activeSearch='', currentPage=1;
+
+  function filtered(){
+    return allUsers.filter(u=>{
+      if(activeTier && u.tier!==activeTier) return false;
+      if(activeSearch){
+        const q=activeSearch.toLowerCase();
+        if(!(u.name||'').toLowerCase().includes(q)&&!(u.email||'').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPage(page){
+    currentPage=page;
+    const body=document.getElementById('usersBody'); body.textContent='';
+    const items=filtered(); const slice=items.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
+    if(!slice.length){ placeholder(body,'لا يوجد مستخدمون.'); renderPaging(0); return; }
+    slice.forEach(u=>{
+      const tr=document.createElement('tr');
+      const tdName=document.createElement('td'); tdName.style.fontWeight='700'; tdName.style.fontSize='11px'; tdName.textContent=u.name||'—';
+      const tdEmail=document.createElement('td'); tdEmail.style.color='var(--muted)'; tdEmail.style.fontSize='10px'; tdEmail.textContent=u.email||'—';
+      const tdTier=document.createElement('td');
+      const badge=document.createElement('span'); badge.className='tier-badge '+(tierBadge[u.tier]||'badge-bronze'); badge.textContent=tierLabels[u.tier]||u.tier||'—';
+      tdTier.appendChild(badge);
+      const tdInv=document.createElement('td'); tdInv.textContent=fmt(u.totalInvested||0)+' ر.س';
+      const tdSince=document.createElement('td'); tdSince.style.color='var(--muted)'; tdSince.textContent=(u.createdAt||'—').slice(0,10);
+      const tdAct=document.createElement('td');
+      const tiers=['bronze','silver','gold','diamond'];
+      const idx=tiers.indexOf(u.tier||'bronze');
+      if(idx<tiers.length-1){
+        const btn=document.createElement('button'); btn.className='btn-upgrade'; btn.textContent='ترقية';
+        const uid=u.id;
+        btn.addEventListener('click',async()=>{
+          btn.disabled=true;
+          try{
+            const rp=await fetch('/app/admin/users/'+encodeURIComponent(uid)+'/tier',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({tier:tiers[idx+1]})});
+            if(!rp.ok){ btn.disabled=false; showToast('تعذّرت الترقية.'); return; }
+            showToast('تمت الترقية.'); load();
+          }catch{ btn.disabled=false; showToast('خطأ.'); }
+        });
+        tdAct.appendChild(btn);
+      } else {
+        tdAct.textContent='أعلى مستوى';
+      }
+      tr.appendChild(tdName); tr.appendChild(tdEmail); tr.appendChild(tdTier); tr.appendChild(tdInv); tr.appendChild(tdSince); tr.appendChild(tdAct);
+      body.appendChild(tr);
+    });
+    renderPaging(Math.ceil(items.length/PAGE_SIZE));
+  }
+
+  function renderPaging(total){
+    const pg=document.getElementById('paging'); pg.textContent='';
+    const start=Math.max(1,currentPage-2); const end=Math.min(total,currentPage+2);
+    for(let i=start;i<=end;i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===currentPage?' active':''); btn.textContent=String(i);
+      const p=i; btn.addEventListener('click',()=>renderPage(p));
+      pg.appendChild(btn);
+    }
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeTier=chip.dataset.tier||''; renderPage(1);
+    });
+  });
+  document.getElementById('searchInp').addEventListener('input',e=>{ activeSearch=e.target.value.trim(); renderPage(1); });
+
+  async function load(){
+    try{
+      const r=await fetch('/app/admin/user-tiers');
+      if(!r.ok){ placeholder(document.getElementById('usersBody'),r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      // KPIs
+      const kpiRow=document.getElementById('kpiRow');
+      kpiRow.textContent='';
+      const kpis=d.kpis||{};
+      [{lbl:'إجمالي المستخدمين',val:String(kpis.total||0)},{lbl:'الذهبيون والألماسيون',val:String((kpis.gold||0)+(kpis.diamond||0))},{lbl:'متوسط الاستثمار',val:fmt(kpis.avgInvestment||0)+' ر.س'},{lbl:'ترقيات هذا الشهر',val:String(kpis.upgrades||0)}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      // Tier cards
+      const tg=document.getElementById('tierGrid'); tg.textContent='';
+      const total=d.users?d.users.length:1;
+      [['bronze','برونزي',kpis.bronze,kpis.bronzeMin],[' silver','فضي',kpis.silver,kpis.silverMin],['gold','ذهبي',kpis.gold,kpis.goldMin],['diamond','ألماسي',kpis.diamond,kpis.diamondMin]].forEach(([tier,name,count,min])=>{
+        const card=document.createElement('div'); card.className='tier-card '+tier.trim();
+        const n=document.createElement('div'); n.className='tier-name'; n.textContent=name;
+        const c=document.createElement('div'); c.className='tier-count'; c.textContent=String(count||0);
+        const p=document.createElement('div'); p.className='tier-pct'; p.textContent=total?Math.round(((count||0)/total)*100)+'% من المستخدمين':'0%';
+        const m=document.createElement('div'); m.className='tier-min'; m.textContent=min?'الحد الأدنى: '+fmt(min)+' ر.س':'';
+        card.appendChild(n); card.appendChild(c); card.appendChild(p); card.appendChild(m);
+        tg.appendChild(card);
+      });
+      allUsers=d.users||[];
+      renderPage(1);
+    }catch{ placeholder(document.getElementById('usersBody'),'خطأ في الاتصال.'); }
+  }
+
+  load();
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مراجعة KYC — مُرابحة</title>
+<meta name="description" content="لوحة مراجعة طلبات التحقّق من الهوية للمديرين." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:600px;margin:0 auto;line-height:1.85;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:12px;}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  .search-box{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .search-box:focus{outline:none;border-color:var(--green);}
+  .status-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .status-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .kpi-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .kpi-chip{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 18px;text-align:center;}
+  .kpi-chip-num{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-chip-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .kyc-table-wrap{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+  .kyc-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .kyc-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:12px;text-align:start;border-bottom:1px solid var(--line);}
+  .kyc-table td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .kyc-table tr:last-child td{border-bottom:none;}
+  .status-badge{display:inline-block;border-radius:6px;padding:2px 8px;font:700 10px Cairo,sans-serif;}
+  .status-pending{background:#fff8e1;color:#f9a825;}
+  .status-approved{background:#e8f5e9;color:#2e7d32;}
+  .status-rejected{background:#fdecea;color:#c54a3a;}
+  .status-info_required{background:#e3f2fd;color:#1565c0;}
+  .doc-type{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .action-btns{display:flex;gap:6px;}
+  .btn-approve{background:var(--green);color:#fbf6ea;border:none;border-radius:6px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .btn-reject{background:#fdecea;color:#c54a3a;border:1px solid #f5c6c0;border-radius:6px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .btn-info{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .btn-view{background:var(--paper);color:var(--green);border:1px solid var(--green);border-radius:6px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .risk-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px;}
+  .risk-low{background:#2e7d32;} .risk-medium{background:#f9a825;} .risk-high{background:#c54a3a;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>🪪 مراجعة طلبات KYC</h1>
+    <p>قائمة طلبات التحقّق من الهوية. راجع الوثائق وأقرّ أو ارفض كل طلب.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-row">
+    <input type="text" class="search-box" id="searchBox" placeholder="ابحث بالاسم أو رقم الهوية…" autocomplete="off" />
+    <button class="status-btn active" data-status="">الكلّ</button>
+    <button class="status-btn" data-status="pending">قيد المراجعة</button>
+    <button class="status-btn" data-status="info_required">يحتاج معلومات</button>
+    <button class="status-btn" data-status="approved">مقبول</button>
+    <button class="status-btn" data-status="rejected">مرفوض</button>
+  </div>
+
+  <div class="kyc-table-wrap">
+    <table class="kyc-table" id="kycTable">
+      <thead>
+        <tr>
+          <th>المستخدم</th>
+          <th>نوع الوثيقة</th>
+          <th>الحالة</th>
+          <th>مستوى المخاطرة</th>
+          <th>تاريخ التقديم</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="kycBody">
+        <tr><td colspan="6"><p class="empty-msg">جارٍ التحميل…</p></td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  let allItems = [];
+  let activeStatus = '';
+  let searchQ = '';
+
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function fmtDate(s){ return s ? new Date(s).toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric'}) : '—'; }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  const STATUS_LABELS = { pending:'قيد المراجعة', approved:'مقبول', rejected:'مرفوض', info_required:'يحتاج معلومات' };
+  const STATUS_CLASS = { pending:'status-pending', approved:'status-approved', rejected:'status-rejected', info_required:'status-info_required' };
+  const RISK_CLASS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+  const RISK_LABELS = { low:'منخفض', medium:'متوسّط', high:'مرتفع' };
+  const DOC_LABELS = { national_id:'هوية وطنية', iqama:'إقامة', passport:'جواز سفر' };
+
+  function renderKPIs(){
+    const row = document.getElementById('kpiRow');
+    row.textContent = '';
+    const counts = { total: allItems.length, pending: 0, approved: 0, rejected: 0 };
+    allItems.forEach(i => { if(counts[i.status]!==undefined) counts[i.status]++; });
+    [
+      {num:counts.total,lbl:'إجمالي الطلبات'},
+      {num:counts.pending,lbl:'قيد المراجعة'},
+      {num:counts.approved,lbl:'مقبولة'},
+      {num:counts.rejected,lbl:'مرفوضة'},
+    ].forEach(it=>{
+      const chip = document.createElement('div');
+      chip.className = 'kpi-chip';
+      const num = document.createElement('div'); num.className='kpi-chip-num'; num.textContent=it.num;
+      const lbl = document.createElement('div'); lbl.className='kpi-chip-lbl'; lbl.textContent=it.lbl;
+      chip.appendChild(num); chip.appendChild(lbl);
+      row.appendChild(chip);
+    });
+  }
+
+  function render(){
+    const tbody = document.getElementById('kycBody');
+    tbody.textContent = '';
+    const q = searchQ.toLowerCase();
+    const filtered = allItems.filter(item => {
+      if(activeStatus && item.status !== activeStatus) return false;
+      if(q && !(item.name||'').toLowerCase().includes(q) && !(item.idNumber||'').includes(q)) return false;
+      return true;
+    });
+    if(!filtered.length){
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      const m = document.createElement('p'); m.className='empty-msg'; m.textContent='لا توجد طلبات مطابقة.';
+      td.appendChild(m); tr.appendChild(td); tbody.appendChild(tr);
+      return;
+    }
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+
+      const tdName = document.createElement('td');
+      const nameDiv = document.createElement('div');
+      nameDiv.style.fontWeight = '700';
+      nameDiv.style.fontFamily = 'Cairo,sans-serif';
+      nameDiv.style.fontSize = '12px';
+      nameDiv.textContent = item.name || '—';
+      const emailDiv = document.createElement('div');
+      emailDiv.style.fontSize = '10px';
+      emailDiv.style.color = 'var(--muted)';
+      emailDiv.textContent = item.email || item.userId || '';
+      tdName.appendChild(nameDiv);
+      tdName.appendChild(emailDiv);
+
+      const tdDoc = document.createElement('td');
+      tdDoc.textContent = DOC_LABELS[item.docType] || item.docType || '—';
+
+      const tdStatus = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = 'status-badge ' + (STATUS_CLASS[item.status] || '');
+      badge.textContent = STATUS_LABELS[item.status] || item.status;
+      tdStatus.appendChild(badge);
+
+      const tdRisk = document.createElement('td');
+      const dot = document.createElement('span');
+      dot.className = 'risk-dot ' + (RISK_CLASS[item.riskLevel] || 'risk-medium');
+      const riskText = document.createTextNode(RISK_LABELS[item.riskLevel] || '—');
+      tdRisk.appendChild(dot);
+      tdRisk.appendChild(riskText);
+
+      const tdDate = document.createElement('td');
+      tdDate.textContent = fmtDate(item.submittedAt);
+
+      const tdAct = document.createElement('td');
+      const actRow = document.createElement('div');
+      actRow.className = 'action-btns';
+
+      if(item.status === 'pending' || item.status === 'info_required'){
+        const approveBtn = document.createElement('button');
+        approveBtn.className = 'btn-approve';
+        approveBtn.textContent = '✓ قبول';
+        approveBtn.addEventListener('click', () => updateStatus(item.id, 'approved', tr));
+
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn-reject';
+        rejectBtn.textContent = '✗ رفض';
+        rejectBtn.addEventListener('click', () => updateStatus(item.id, 'rejected', tr));
+
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'btn-info';
+        infoBtn.textContent = '? معلومات';
+        infoBtn.addEventListener('click', () => updateStatus(item.id, 'info_required', tr));
+
+        actRow.appendChild(approveBtn);
+        actRow.appendChild(rejectBtn);
+        actRow.appendChild(infoBtn);
+      } else {
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'btn-view';
+        viewBtn.textContent = '👁 عرض';
+        viewBtn.addEventListener('click', () => showToast('عرض وثائق: ' + item.name));
+        actRow.appendChild(viewBtn);
+      }
+      tdAct.appendChild(actRow);
+
+      [tdName,tdDoc,tdStatus,tdRisk,tdDate,tdAct].forEach(td=>tr.appendChild(td));
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function updateStatus(itemId, newStatus, tr){
+    try{
+      const r = await fetch('/app/admin/kyc/'+encodeURIComponent(itemId)+'/status', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf() },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if(!r.ok){ showToast('تعذّر تحديث الحالة.'); return; }
+      const item = allItems.find(i => i.id === itemId);
+      if(item) item.status = newStatus;
+      const labels = { approved:'تم القبول ✓', rejected:'تم الرفض ✗', info_required:'طُلبت معلومات إضافية' };
+      showToast(labels[newStatus] || 'تم التحديث');
+      renderKPIs();
+      render();
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('searchBox').addEventListener('input', e => { searchQ = e.target.value.trim(); render(); });
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeStatus = btn.dataset.status;
+      render();
+    });
+  });
+
+  (async function load(){
+    try{
+      const r = await fetch('/app/admin/kyc-queue');
+      if(!r.ok){
+        const tbody = document.getElementById('kycBody');
+        tbody.textContent = '';
+        const tr=document.createElement('tr');
+        const td=document.createElement('td'); td.colSpan=6;
+        const m=document.createElement('p');m.className='empty-msg';
+        m.textContent=r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.';
+        td.appendChild(m); tr.appendChild(td); tbody.appendChild(tr);
+        return;
+      }
+      const d = await r.json();
+      allItems = d.items || [];
+      renderKPIs();
+      render();
+    }catch{
+      const tbody = document.getElementById('kycBody');
+      tbody.textContent = '';
+      const tr=document.createElement('tr');
+      const td=document.createElement('td'); td.colSpan=6;
+      const m=document.createElement('p');m.className='empty-msg';m.textContent='تعذّر التحميل. حاول لاحقاً.';
+      td.appendChild(m); tr.appendChild(td); tbody.appendChild(tr);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

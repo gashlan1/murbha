@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أهداف المحفظة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-danger{background:#fff;color:#c0392b;border:1.5px solid #c0392b;}
+.btn-danger:hover{background:#c0392b;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+.summary-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.summary-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.summary-value{font-size:1.6rem;font-weight:700;color:var(--green-dark);}
+.summary-value.gold{color:var(--gold);}
+.summary-sub{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.goal-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;transition:box-shadow 0.2s;}
+.goal-card:hover{box-shadow:0 4px 20px rgba(6,43,30,0.1);}
+.goal-card.achieved{border-color:#27ae60;}
+.goal-banner{height:6px;}
+.goal-body{padding:1.25rem 1.5rem;}
+.goal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
+.goal-icon{font-size:1.8rem;margin-bottom:0.25rem;}
+.goal-name{font-size:1rem;font-weight:700;color:var(--green-dark);}
+.goal-deadline{font-size:0.75rem;color:var(--muted);margin-top:0.15rem;}
+.goal-actions{display:flex;gap:0.4rem;}
+.goal-amounts{display:flex;justify-content:space-between;margin-bottom:0.75rem;}
+.goal-current{font-size:1.1rem;font-weight:700;color:var(--green);}
+.goal-target{font-size:0.85rem;color:var(--muted);}
+.progress-track{background:#e8e3da;border-radius:6px;height:10px;overflow:hidden;margin-bottom:0.4rem;}
+.progress-fill{height:100%;border-radius:6px;transition:width 0.5s;}
+.progress-meta{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);}
+.goal-contrib{margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--line);font-size:0.8rem;color:var(--muted);}
+.goal-contrib span{font-weight:600;color:var(--green-dark);}
+.add-goal-card{background:#fff;border-radius:14px;border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem;cursor:pointer;transition:border-color 0.2s;gap:0.5rem;}
+.add-goal-card:hover{border-color:var(--green);}
+.add-goal-icon{font-size:2rem;color:var(--muted);}
+.add-goal-text{font-size:0.9rem;color:var(--muted);font-weight:600;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(6,43,30,0.5);z-index:100;justify-content:center;align-items:flex-start;padding-top:5rem;}
+.modal-backdrop.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:500px;max-width:92vw;box-shadow:0 8px 32px rgba(6,43,30,0.18);}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.5rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;}
+.modal-close:hover{color:#fff;}
+.modal-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--green);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.icon-picker{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;}
+.icon-option{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--line);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all 0.15s;}
+.icon-option:hover,.icon-option.selected{border-color:var(--green);background:#e6f4ef;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:768px){.goals-grid{grid-template-columns:1fr;}.summary-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — أهداف المحفظة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>أهداف الاستثمار</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ هدف جديد</button>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="summary-label">أهداف نشطة</div>
+      <div class="summary-value">٤</div>
+      <div class="summary-sub">هدف قيد التنفيذ</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">إجمالي المدخرات نحو الأهداف</div>
+      <div class="summary-value gold">٣٨٢,٠٠٠</div>
+      <div class="summary-sub">من أصل ٧٥٠,٠٠٠ ر.س</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">أهداف مكتملة</div>
+      <div class="summary-value">٢</div>
+      <div class="summary-sub">منذ بداية الرحلة الاستثمارية</div>
+    </div>
+  </div>
+
+  <div class="goals-grid" id="goalsGrid"></div>
+</div>
+
+<div class="modal-backdrop" id="goalModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">إضافة هدف جديد</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اختر رمزاً للهدف</label>
+        <div class="icon-picker" id="iconPicker"></div>
+      </div>
+      <div class="form-group">
+        <label>اسم الهدف</label>
+        <input type="text" id="goalName" placeholder="مثال: شراء شقة">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>المبلغ المستهدف (ر.س)</label>
+          <input type="number" id="goalTarget" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>المبلغ الحالي (ر.س)</label>
+          <input type="number" id="goalCurrent" placeholder="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>تاريخ الاستحقاق</label>
+          <input type="date" id="goalDeadline">
+        </div>
+        <div class="form-group">
+          <label>مساهمة شهرية (ر.س)</label>
+          <input type="number" id="goalMonthly" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الأولوية</label>
+        <select id="goalPriority">
+          <option value="high">عالية</option>
+          <option value="medium">متوسطة</option>
+          <option value="low">منخفضة</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveGoal()">حفظ الهدف</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const icons = ['🏠','🚗','🎓','✈️','💒','🏦','👶','🌴','⚕️','🏋️','📈','🕌'];
+let selectedIcon = icons[0];
+
+const goals = [
+  {id:1,icon:'🏠',name:'شراء شقة في الرياض',deadline:'٢٠٢٨/١/١',current:185000,target:400000,monthly:8000,color:'#0a4d36',priority:'high'},
+  {id:2,icon:'🎓',name:'تعليم الأبناء',deadline:'٢٠٣٠/٩/١',current:62000,target:150000,monthly:3000,color:'#b08840',priority:'medium'},
+  {id:3,icon:'✈️',name:'رحلة عائلية',deadline:'٢٠٢٦/١٢/١',current:18000,target:25000,monthly:2000,color:'#2d6b50',priority:'low'},
+  {id:4,icon:'🏦',name:'صندوق الطوارئ',deadline:'٢٠٢٧/٦/١',current:117000,target:175000,monthly:5000,color:'#6b7268',priority:'high'},
+];
+
+function buildIconPicker(){
+  const cont = document.getElementById('iconPicker');
+  cont.textContent = '';
+  icons.forEach(ic => {
+    const opt = document.createElement('div');
+    opt.className = 'icon-option' + (ic===selectedIcon?' selected':'');
+    opt.textContent = ic;
+    opt.onclick = () => {
+      selectedIcon = ic;
+      document.querySelectorAll('.icon-option').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+    };
+    cont.appendChild(opt);
+  });
+}
+
+function renderGoals(){
+  const grid = document.getElementById('goalsGrid');
+  grid.textContent = '';
+  goals.forEach(g => {
+    const pct = Math.min(100, Math.round((g.current/g.target)*100));
+    const achieved = pct >= 100;
+    const card = document.createElement('div');
+    card.className = 'goal-card' + (achieved?' achieved':'');
+
+    const banner = document.createElement('div');
+    banner.className = 'goal-banner';
+    banner.style.background = g.color;
+
+    const body = document.createElement('div');
+    body.className = 'goal-body';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'goal-header';
+    const left = document.createElement('div');
+    const iconEl = document.createElement('div');
+    iconEl.className = 'goal-icon';
+    iconEl.textContent = g.icon;
+    const nameEl = document.createElement('div');
+    nameEl.className = 'goal-name';
+    nameEl.textContent = g.name;
+    const dlEl = document.createElement('div');
+    dlEl.className = 'goal-deadline';
+    dlEl.textContent = 'الموعد: ' + g.deadline;
+    left.appendChild(iconEl);
+    left.appendChild(nameEl);
+    left.appendChild(dlEl);
+    const acts = document.createElement('div');
+    acts.className = 'goal-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => openModal(g);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-danger';
+    delBtn.textContent = 'حذف';
+    delBtn.onclick = () => deleteGoal(g.id);
+    acts.appendChild(editBtn);
+    acts.appendChild(delBtn);
+    hdr.appendChild(left);
+    hdr.appendChild(acts);
+
+    const amounts = document.createElement('div');
+    amounts.className = 'goal-amounts';
+    const curr = document.createElement('div');
+    curr.className = 'goal-current';
+    curr.textContent = g.current.toLocaleString('ar-SA') + ' ر.س';
+    const tgt = document.createElement('div');
+    tgt.className = 'goal-target';
+    tgt.textContent = 'من ' + g.target.toLocaleString('ar-SA') + ' ر.س';
+    amounts.appendChild(curr);
+    amounts.appendChild(tgt);
+
+    const track = document.createElement('div');
+    track.className = 'progress-track';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    fill.style.cssText = 'width:' + pct + '%;background:' + g.color;
+    track.appendChild(fill);
+
+    const meta = document.createElement('div');
+    meta.className = 'progress-meta';
+    const pctEl = document.createElement('span');
+    pctEl.textContent = pct + '٪ مكتمل';
+    const remEl = document.createElement('span');
+    const rem = g.target - g.current;
+    remEl.textContent = rem > 0 ? 'متبقي ' + rem.toLocaleString('ar-SA') + ' ر.س' : '✓ تم الإنجاز!';
+    meta.appendChild(pctEl);
+    meta.appendChild(remEl);
+
+    const contrib = document.createElement('div');
+    contrib.className = 'goal-contrib';
+    const monthsLeft = rem > 0 ? Math.ceil(rem/g.monthly) : 0;
+    const contribText = document.createTextNode('مساهمة شهرية: ');
+    const contribSpan = document.createElement('span');
+    contribSpan.textContent = g.monthly.toLocaleString('ar-SA') + ' ر.س';
+    const monthText = document.createTextNode(rem > 0 ? ' · تقدير الإنجاز: ' + monthsLeft + ' شهر' : ' · هدف مكتمل');
+    contrib.appendChild(contribText);
+    contrib.appendChild(contribSpan);
+    contrib.appendChild(monthText);
+
+    body.appendChild(hdr);
+    body.appendChild(amounts);
+    body.appendChild(track);
+    body.appendChild(meta);
+    body.appendChild(contrib);
+    card.appendChild(banner);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+
+  // Add-goal card
+  const addCard = document.createElement('div');
+  addCard.className = 'add-goal-card';
+  addCard.onclick = () => openModal();
+  const addIcon = document.createElement('div');
+  addIcon.className = 'add-goal-icon';
+  addIcon.textContent = '+';
+  const addText = document.createElement('div');
+  addText.className = 'add-goal-text';
+  addText.textContent = 'إضافة هدف جديد';
+  addCard.appendChild(addIcon);
+  addCard.appendChild(addText);
+  grid.appendChild(addCard);
+}
+
+function openModal(goal){
+  document.getElementById('modalTitle').textContent = goal ? 'تعديل الهدف' : 'إضافة هدف جديد';
+  document.getElementById('goalName').value = goal ? goal.name : '';
+  document.getElementById('goalTarget').value = goal ? goal.target : '';
+  document.getElementById('goalCurrent').value = goal ? goal.current : '';
+  document.getElementById('goalMonthly').value = goal ? goal.monthly : '';
+  buildIconPicker();
+  document.getElementById('goalModal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('goalModal').classList.remove('open'); }
+
+async function saveGoal(){
+  const name = document.getElementById('goalName').value.trim();
+  const target = parseFloat(document.getElementById('goalTarget').value) || 0;
+  if(!name || !target){ alert('يرجى إدخال اسم وهدف الادخار'); return; }
+  try {
+    await fetch('/app/me/portfolio/goals', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({
+        name, icon: selectedIcon, target,
+        current: parseFloat(document.getElementById('goalCurrent').value)||0,
+        monthly: parseFloat(document.getElementById('goalMonthly').value)||0,
+        deadline: document.getElementById('goalDeadline').value,
+        priority: document.getElementById('goalPriority').value
+      })
+    });
+    closeModal();
+  } catch(e){}
+}
+
+async function deleteGoal(id){
+  try {
+    await fetch('/app/me/portfolio/goals/' + id, {
+      method:'DELETE',
+      headers:{'x-csrf-token':'1'}
+    });
+    const idx = goals.findIndex(g=>g.id===id);
+    if(idx>=0) goals.splice(idx,1);
+    renderGoals();
+  } catch(e){}
+}
+
+renderGoals();
+</script>
+</body>
+</html>

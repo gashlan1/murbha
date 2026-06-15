@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تأهيل المستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.funnel-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0.85rem;margin-bottom:2rem;}
+.funnel-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem;text-align:center;position:relative;}
+.funnel-card::after{content:'→';position:absolute;left:-0.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.9rem;}
+.funnel-card:last-child::after{display:none;}
+.funnel-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.funnel-lbl{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.funnel-cvr{font-size:0.7rem;color:#27ae60;margin-top:0.1rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-review{background:#e8f0fd;color:#1a56a0;}
+.pill-approved{background:#e8f5ed;color:#1e8449;}
+.pill-rejected{background:#fde8e8;color:#c0392b;}
+.step-flow{padding:1.25rem;}
+.step-row{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;}
+.step-row:last-child{margin-bottom:0;}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;margin-top:0.15rem;}
+.sn-done{background:#e8f5ed;color:#1e8449;}
+.sn-active{background:var(--green);color:#fff;}
+.sn-todo{background:#f5f0e8;color:var(--muted);}
+.step-info{}
+.step-title{font-size:0.85rem;font-weight:700;}
+.step-desc{font-size:0.73rem;color:var(--muted);margin-top:0.15rem;}
+.step-rate{font-size:0.7rem;color:#27ae60;margin-top:0.1rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:900px){.funnel-stats{grid-template-columns:repeat(3,1fr);}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تأهيل المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>لوحة تأهيل المستثمرين</h2>
+      <p>متابعة مسار التسجيل والتحقق لجميع المستثمرين الجدد</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportOnboarding()">تصدير التقرير</button>
+  </div>
+
+  <div class="funnel-stats" id="funnelStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>خطوات مسار التأهيل</h3></div>
+      <div class="step-flow" id="stepFlow"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>معدلات الإنجاز اليومية</h3></div>
+      <div style="padding:1.25rem;" id="dailyChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>قائمة انتظار التأهيل</h3>
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.7);">٤٧ مستثمر</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>المستثمر</th><th>البريد</th><th>تاريخ التسجيل</th><th>الخطوة الحالية</th><th>الحالة</th><th>إجراء</th></tr>
+      </thead>
+      <tbody id="onboardingTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="approveSelected()">موافقة على المحددين</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="sendReminder()">إرسال تذكير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FUNNEL = [
+  { val: '٢١٤', lbl: 'تسجيل', cvr: '—' },
+  { val: '١٨٦', lbl: 'توثيق الهوية', cvr: '٨٧٪' },
+  { val: '١٤٢', lbl: 'رفع المستندات', cvr: '٧٦٪' },
+  { val: '٩٨', lbl: 'مراجعة KYC', cvr: '٦٩٪' },
+  { val: '٧٣', lbl: 'مُفعّل', cvr: '٧٤٪' }
+];
+
+const STEPS = [
+  { num: '١', cls: 'sn-done', title: 'إنشاء الحساب', desc: 'البريد + كلمة المرور', rate: '٩٧٪ إتمام' },
+  { num: '٢', cls: 'sn-done', title: 'التحقق من الهاتف', desc: 'رمز OTP للجوال', rate: '٩٤٪ إتمام' },
+  { num: '٣', cls: 'sn-done', title: 'بيانات التعريف', desc: 'الاسم والعنوان والجنسية', rate: '٨٩٪ إتمام' },
+  { num: '٤', cls: 'sn-active', title: 'توثيق الهوية', desc: 'هوية وطنية أو جواز سفر', rate: '٧٦٪ إتمام' },
+  { num: '٥', cls: 'sn-todo', title: 'الكشف المالي', desc: 'الدخل ومصدر الأموال', rate: '٦٨٪ إتمام' },
+  { num: '٦', cls: 'sn-todo', title: 'الموافقة النهائية', desc: 'مراجعة وتفعيل الحساب', rate: '٧٤٪ إتمام' }
+];
+
+const INVESTORS = [
+  { name: 'أحمد الشمري', email: 'ahmad@example.com', date: '٢٠٢٦/٠٦/١٤', step: 'توثيق الهوية', pill: 'pill-review', status: 'مراجعة' },
+  { name: 'فاطمة العتيبي', email: 'fatima@example.com', date: '٢٠٢٦/٠٦/١٣', step: 'رفع المستندات', pill: 'pill-pending', status: 'معلّق' },
+  { name: 'خالد الزهراني', email: 'khalid@example.com', date: '٢٠٢٦/٠٦/١٢', step: 'الموافقة النهائية', pill: 'pill-approved', status: 'مكتمل' },
+  { name: 'سارة المالكي', email: 'sara@example.com', date: '٢٠٢٦/٠٦/١٢', step: 'الكشف المالي', pill: 'pill-pending', status: 'معلّق' },
+  { name: 'عمر القحطاني', email: 'omar@example.com', date: '٢٠٢٦/٠٦/١١', step: 'توثيق الهوية', pill: 'pill-rejected', status: 'مرفوض' }
+];
+
+function buildFunnel() {
+  const wrap = document.getElementById('funnelStats');
+  FUNNEL.forEach(f => {
+    const card = document.createElement('div'); card.className = 'funnel-card';
+    const val = document.createElement('div'); val.className = 'funnel-val'; val.textContent = f.val;
+    const lbl = document.createElement('div'); lbl.className = 'funnel-lbl'; lbl.textContent = f.lbl;
+    const cvr = document.createElement('div'); cvr.className = 'funnel-cvr'; cvr.textContent = f.cvr;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(cvr);
+    wrap.appendChild(card);
+  });
+}
+
+function buildSteps() {
+  const wrap = document.getElementById('stepFlow');
+  STEPS.forEach(s => {
+    const row = document.createElement('div'); row.className = 'step-row';
+    const num = document.createElement('div'); num.className = 'step-num ' + s.cls; num.textContent = s.num;
+    const info = document.createElement('div'); info.className = 'step-info';
+    const title = document.createElement('div'); title.className = 'step-title'; title.textContent = s.title;
+    const desc = document.createElement('div'); desc.className = 'step-desc'; desc.textContent = s.desc;
+    const rate = document.createElement('div'); rate.className = 'step-rate'; rate.textContent = s.rate;
+    info.appendChild(title); info.appendChild(desc); info.appendChild(rate);
+    row.appendChild(num); row.appendChild(info);
+    wrap.appendChild(row);
+  });
+}
+
+function buildDailyChart() {
+  const wrap = document.getElementById('dailyChart');
+  const days = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+  const vals = [12, 8, 15, 11, 18, 14, 9];
+  const max = Math.max(...vals);
+  const chart = document.createElement('div');
+  chart.style.cssText = 'display:flex;align-items:flex-end;gap:0.5rem;height:100px;';
+  days.forEach((d, i) => {
+    const col = document.createElement('div');
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:0.3rem;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'width:100%;background:var(--green);border-radius:4px 4px 0 0;';
+    bar.style.height = Math.round((vals[i] / max) * 85) + 'px';
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:0.6rem;color:var(--muted);';
+    lbl.textContent = d.substring(0, 3);
+    col.appendChild(bar); col.appendChild(lbl);
+    chart.appendChild(col);
+  });
+  wrap.appendChild(chart);
+}
+
+function buildTable() {
+  const tbody = document.getElementById('onboardingTable');
+  INVESTORS.forEach(inv => {
+    const tr = document.createElement('tr');
+    [inv.name, inv.email, inv.date, inv.step].forEach(t => {
+      const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+    });
+    const pillTd = document.createElement('td');
+    const pill = document.createElement('span'); pill.className = 'pill ' + inv.pill; pill.textContent = inv.status;
+    pillTd.appendChild(pill); tr.appendChild(pillTd);
+    const actTd = document.createElement('td');
+    const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-sm'; btn.textContent = 'عرض';
+    btn.onclick = () => viewInvestor(inv.name);
+    actTd.appendChild(btn); tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function viewInvestor(name) { alert('عرض ملف: ' + name); }
+function approveSelected() {
+  fetch('/app/admin/onboarding/batch-approve', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تمت الموافقة على المحددين');
+}
+function sendReminder() {
+  fetch('/app/admin/onboarding/send-reminder', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم إرسال التذكيرات');
+}
+function exportOnboarding() {
+  fetch('/app/admin/onboarding/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير بيانات التأهيل...');
+}
+
+buildFunnel(); buildSteps(); buildDailyChart(); buildTable();
+</script>
+</body>
+</html>

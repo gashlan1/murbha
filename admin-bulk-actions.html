@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>الإجراءات الجماعية — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;--orange:#e67e22;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.layout{display:grid;grid-template-columns:1fr 380px;gap:1.5rem;padding:1.5rem 2rem;max-width:1300px;margin:0 auto;align-items:start}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.card-head h3{font-size:.95rem;font-weight:700;flex:1}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.85rem;cursor:pointer;border:none;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:.85}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:.65rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.search-box{display:flex;align-items:center;gap:.5rem;border:1.5px solid var(--line);border-radius:8px;padding:.35rem .75rem;background:#fff;flex:1;min-width:180px}
+.search-box input{border:none;outline:none;font-family:'Cairo',sans-serif;font-size:.88rem;width:100%;background:transparent;direction:rtl}
+.filter-select{padding:.38rem .65rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.83rem;color:var(--muted);background:#fff;outline:none}
+.filter-select:focus{border-color:var(--green)}
+.sel-count{font-size:.83rem;color:var(--muted);white-space:nowrap}
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:right;padding:.6rem 1rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line);white-space:nowrap}
+th:first-child{width:36px}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcfa}
+tr.selected td{background:#f0faf5}
+input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;cursor:pointer}
+.badge{display:inline-block;padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:700}
+.badge-active{background:#d4edda;color:#155724}
+.badge-suspended{background:#f8d7da;color:#721c24}
+.badge-pending{background:#fff3cd;color:#856404}
+/* Action panel */
+.action-panel{display:flex;flex-direction:column;gap:1rem}
+.action-section{padding:1rem 1.25rem;border-bottom:1px solid var(--line)}
+.action-section:last-child{border-bottom:none}
+.action-section h4{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+.action-btn-list{display:flex;flex-direction:column;gap:.5rem}
+.action-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;border-radius:8px;border:1.5px solid var(--line);cursor:pointer;transition:.15s;background:#fff}
+.action-item:hover{border-color:var(--green);background:#f5faf5}
+.action-item.destructive:hover{border-color:var(--red);background:#fff5f5}
+.action-item.disabled{opacity:.4;pointer-events:none}
+.action-icon{font-size:1.1rem;flex-shrink:0}
+.action-info{flex:1}
+.action-name{font-size:.88rem;font-weight:700}
+.action-desc{font-size:.74rem;color:var(--muted)}
+/* Progress modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:440px;padding:1.5rem}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.progress-bar{height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;margin:1rem 0}
+.progress-fill{height:100%;border-radius:5px;background:var(--green);transition:.3s}
+.modal-log{background:var(--paper);border-radius:8px;padding:.75rem;font-size:.8rem;color:var(--muted);max-height:120px;overflow-y:auto;line-height:1.7;margin-bottom:1rem}
+.modal-actions{display:flex;justify-content:flex-end;gap:.75rem}
+/* History */
+.history-item{padding:.75rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.75rem}
+.history-item:last-child{border-bottom:none}
+.hist-icon{font-size:1.1rem;flex-shrink:0}
+.hist-info{flex:1}
+.hist-action{font-size:.86rem;font-weight:700}
+.hist-meta{font-size:.74rem;color:var(--muted)}
+.hist-status{font-size:.75rem;font-weight:700}
+.hist-status.ok{color:#27ae60}
+.hist-status.fail{color:var(--red)}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>الإجراءات الجماعية</h1>
+</header>
+
+<div class="layout">
+  <!-- User table -->
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <h3>اختيار المستخدمين</h3>
+        <span class="sel-count" id="selCount">0 محدد</span>
+      </div>
+      <div class="toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="بحث بالاسم أو البريد..." oninput="applyFilters()"/>
+        </div>
+        <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+          <option value="">كل الحالات</option>
+          <option value="active">نشط</option>
+          <option value="suspended">موقوف</option>
+          <option value="pending">معلق</option>
+        </select>
+        <select class="filter-select" id="tierFilter" onchange="applyFilters()">
+          <option value="">كل الفئات</option>
+          <option value="standard">عادي</option>
+          <option value="premium">مميز</option>
+          <option value="vip">VIP</option>
+        </select>
+        <button class="btn btn-ghost" onclick="selectAll()">تحديد الكل</button>
+        <button class="btn btn-ghost" onclick="clearSel()">إلغاء</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="masterChk" onchange="toggleAll(this)"/></th>
+              <th>الاسم</th>
+              <th>البريد</th>
+              <th>الفئة</th>
+              <th>إجمالي الاستثمار</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card" style="margin-top:1.25rem">
+      <div class="card-head"><h3>📋 سجل الإجراءات السابقة</h3></div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- Action panel -->
+  <div>
+    <div class="card">
+      <div class="card-head"><h3>⚡ الإجراءات المتاحة</h3></div>
+      <div class="action-panel">
+
+        <div class="action-section">
+          <h4>📧 التواصل</h4>
+          <div class="action-btn-list">
+            <div class="action-item" onclick="runAction('email','إرسال بريد جماعي')">
+              <div class="action-icon">✉️</div>
+              <div class="action-info"><div class="action-name">إرسال بريد إلكتروني</div><div class="action-desc">إرسال رسالة مخصصة للمحددين</div></div>
+            </div>
+            <div class="action-item" onclick="runAction('sms','إرسال رسائل SMS')">
+              <div class="action-icon">📱</div>
+              <div class="action-info"><div class="action-name">إرسال SMS</div><div class="action-desc">رسالة نصية قصيرة</div></div>
+            </div>
+            <div class="action-item" onclick="runAction('notification','إرسال إشعار')">
+              <div class="action-icon">🔔</div>
+              <div class="action-info"><div class="action-name">إشعار داخل التطبيق</div><div class="action-desc">إشعار فوري للمحددين</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-section">
+          <h4>🏷️ إدارة الحسابات</h4>
+          <div class="action-btn-list">
+            <div class="action-item" onclick="runAction('tier','ترقية الفئة')">
+              <div class="action-icon">⬆️</div>
+              <div class="action-info"><div class="action-name">ترقية إلى مميز</div><div class="action-desc">رفع مستوى الحساب</div></div>
+            </div>
+            <div class="action-item" onclick="runAction('tag','إضافة تصنيف')">
+              <div class="action-icon">🏷️</div>
+              <div class="action-info"><div class="action-name">إضافة تصنيف</div><div class="action-desc">تصنيف المستخدمين المحددين</div></div>
+            </div>
+            <div class="action-item" onclick="runAction('segment','إضافة إلى شريحة')">
+              <div class="action-icon">👥</div>
+              <div class="action-info"><div class="action-name">إضافة إلى شريحة</div><div class="action-desc">نقل إلى مجموعة محددة</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-section">
+          <h4>⚠️ إجراءات حساسة</h4>
+          <div class="action-btn-list">
+            <div class="action-item" onclick="runAction('suspend','إيقاف الحسابات')">
+              <div class="action-icon">🚫</div>
+              <div class="action-info"><div class="action-name">إيقاف مؤقت</div><div class="action-desc">تعليق الوصول للحسابات</div></div>
+            </div>
+            <div class="action-item" onclick="runAction('activate','تفعيل الحسابات')">
+              <div class="action-icon">✅</div>
+              <div class="action-info"><div class="action-name">تفعيل</div><div class="action-desc">استعادة الوصول</div></div>
+            </div>
+            <div class="action-item destructive" onclick="runAction('export','تصدير البيانات')">
+              <div class="action-icon">📤</div>
+              <div class="action-info"><div class="action-name">تصدير بيانات</div><div class="action-desc">CSV لبيانات المحددين</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Modal -->
+<div class="modal-overlay" id="progressModal">
+  <div class="modal">
+    <h3 id="modalActionTitle">جارٍ تنفيذ الإجراء...</h3>
+    <div class="progress-bar"><div class="progress-fill" id="modalProgress" style="width:0%"></div></div>
+    <div class="modal-log" id="modalLog"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="modalCloseBtn" style="display:none" onclick="closeProgressModal()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+let users = [];
+let selected = new Set();
+let filtered = [];
+
+const HISTORY = [
+  {icon:'✉️',action:'إرسال بريد جماعي — 145 مستخدم',meta:'أمس 14:30 — بواسطة المدير',ok:true},
+  {icon:'⬆️',action:'ترقية فئة — 12 مستخدم',meta:'منذ 3 أيام — بواسطة المدير',ok:true},
+  {icon:'🚫',action:'إيقاف حسابات — 3 مستخدمين',meta:'منذ 5 أيام — بواسطة المدير',ok:true},
+  {icon:'📤',action:'تصدير بيانات — 500 مستخدم',meta:'منذ أسبوع',ok:true},
+];
+
+function genUsers() {
+  const names = ['أحمد المطيري','سارة العتيبي','خالد الدوسري','نورا الحربي','يوسف الشمري','ريم الغامدي','فهد القحطاني','لمى العمري','بدر السبيعي','منى الرشيد','طارق العنزي','هنا المالكي','عمر الزهراني','سلمى الشهري','ناصر الحارثي','دانة البقمي'];
+  const statuses = ['active','active','active','active','pending','suspended'];
+  const tiers = ['standard','standard','premium','vip'];
+  return names.map((name,i) => ({
+    id:'u'+(i+1), name, email: name.replace(/\s+/g,'').toLowerCase() + '@mail.sa',
+    tier: tiers[i%tiers.length], status: statuses[i%statuses.length],
+    invest: Math.round((Math.random()*200+10)*1000),
+  }));
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const st = document.getElementById('statusFilter').value;
+  const tr = document.getElementById('tierFilter').value;
+  filtered = users.filter(u => {
+    const mq = !q || u.name.includes(q) || u.email.includes(q);
+    const ms = !st || u.status === st;
+    const mt = !tr || u.tier === tr;
+    return mq && ms && mt;
+  });
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('userTbody');
+  tbody.textContent = '';
+  const statusLbl = {active:'نشط',suspended:'موقوف',pending:'معلق'};
+  const tierLbl = {standard:'عادي',premium:'مميز',vip:'VIP'};
+  filtered.forEach(u => {
+    const tr = document.createElement('tr');
+    if (selected.has(u.id)) tr.classList.add('selected');
+    const chkTd = document.createElement('td');
+    const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = selected.has(u.id);
+    chk.onchange = () => { selected.has(u.id) ? selected.delete(u.id) : selected.add(u.id); tr.classList.toggle('selected'); updateSelCount(); };
+    chkTd.appendChild(chk); tr.appendChild(chkTd);
+    [u.name, u.email, tierLbl[u.tier]].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+    const invTd = document.createElement('td'); invTd.textContent = u.invest.toLocaleString('ar-SA') + ' ر.س'; tr.appendChild(invTd);
+    const stTd = document.createElement('td');
+    const b = document.createElement('span'); b.className = 'badge badge-' + u.status; b.textContent = statusLbl[u.status]; stTd.appendChild(b); tr.appendChild(stTd);
+    tbody.appendChild(tr);
+  });
+  updateSelCount();
+}
+
+function updateSelCount() {
+  document.getElementById('selCount').textContent = selected.size + ' محدد';
+}
+
+function toggleAll(chk) {
+  if (chk.checked) { filtered.forEach(u => selected.add(u.id)); }
+  else { filtered.forEach(u => selected.delete(u.id)); }
+  renderTable();
+}
+
+function selectAll() { filtered.forEach(u => selected.add(u.id)); renderTable(); }
+function clearSel() { selected.clear(); renderTable(); }
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  HISTORY.forEach(h => {
+    const item = document.createElement('div'); item.className = 'history-item';
+    const icon = document.createElement('div'); icon.className = 'hist-icon'; icon.textContent = h.icon;
+    const info = document.createElement('div'); info.className = 'hist-info';
+    const act = document.createElement('div'); act.className = 'hist-action'; act.textContent = h.action;
+    const meta = document.createElement('div'); meta.className = 'hist-meta'; meta.textContent = h.meta;
+    info.appendChild(act); info.appendChild(meta);
+    const status = document.createElement('div'); status.className = 'hist-status ' + (h.ok?'ok':'fail'); status.textContent = h.ok?'✓ ناجح':'✗ فشل';
+    item.appendChild(icon); item.appendChild(info); item.appendChild(status);
+    list.appendChild(item);
+  });
+}
+
+async function runAction(type, label) {
+  if (!selected.size) { toast('الرجاء تحديد مستخدم واحد على الأقل'); return; }
+  document.getElementById('modalActionTitle').textContent = label + ' — ' + selected.size + ' مستخدم';
+  document.getElementById('modalProgress').style.width = '0%';
+  document.getElementById('modalLog').textContent = '';
+  document.getElementById('modalCloseBtn').style.display = 'none';
+  document.getElementById('progressModal').classList.add('open');
+
+  const log = document.getElementById('modalLog');
+  const ids = [...selected];
+  for (let i = 0; i < ids.length; i++) {
+    const u = users.find(x => x.id === ids[i]);
+    await new Promise(r => setTimeout(r, 60));
+    const pct = Math.round((i+1)/ids.length*100);
+    document.getElementById('modalProgress').style.width = pct + '%';
+    const line = document.createElement('div');
+    line.textContent = '✓ ' + (u?.name || ids[i]);
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // POST to API
+  try {
+    await fetch('/app/admin/bulk-actions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':CSRF},
+      body:JSON.stringify({action:type, userIds:ids}),
+    });
+  } catch {}
+
+  document.getElementById('modalCloseBtn').style.display = 'inline-flex';
+  HISTORY.unshift({icon:'⚡',action:label+' — '+ids.length+' مستخدم',meta:'الآن — بواسطة المدير',ok:true});
+  document.getElementById('historyList').textContent = '';
+  renderHistory();
+}
+
+function closeProgressModal() {
+  document.getElementById('progressModal').classList.remove('open');
+  clearSel();
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+users = genUsers();
+filtered = [...users];
+renderTable();
+renderHistory();
+</script>
+</body>
+</html>

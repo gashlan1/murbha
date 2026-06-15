@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>خزنة المستندات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.btn-ghost{background:none;color:var(--green);border:1.5px solid var(--green);}
+.vault-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.vs-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.2rem;text-align:center;}
+.vs-icon{font-size:1.6rem;margin-bottom:0.4rem;}
+.vs-val{font-size:1.4rem;font-weight:700;color:var(--green-dark);}
+.vs-lbl{font-size:0.76rem;color:var(--muted);margin-top:0.15rem;}
+.search-bar{background:#fff;border-radius:12px;border:1px solid var(--line);padding:0.85rem 1.25rem;display:flex;gap:0.75rem;margin-bottom:1.5rem;align-items:center;}
+.search-bar input{flex:1;border:none;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:none;}
+.search-bar input:focus{outline:none;}
+.search-bar select{border:1.5px solid var(--line);border-radius:7px;padding:0.4rem 0.65rem;font-family:'Cairo',sans-serif;font-size:0.84rem;background:#fff;}
+.section-title{font-size:0.88rem;font-weight:700;color:var(--muted);margin-bottom:0.75rem;padding-bottom:0.4rem;border-bottom:1px solid var(--line);}
+.docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.doc-card{background:#fff;border-radius:12px;border:1.5px solid var(--line);padding:1.1rem;transition:border-color 0.2s;cursor:pointer;}
+.doc-card:hover{border-color:var(--green);}
+.doc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:0.75rem;}
+.icon-pdf{background:#fde8e8;}
+.icon-img{background:#e8f0fe;}
+.icon-sheet{background:#e8f5ed;}
+.doc-name{font-size:0.88rem;font-weight:700;margin-bottom:0.2rem;}
+.doc-meta{font-size:0.74rem;color:var(--muted);}
+.doc-actions{display:flex;gap:0.4rem;margin-top:0.75rem;}
+.badge-new{display:inline-block;background:#fef3cd;color:var(--gold);font-size:0.68rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:3px;margin-right:0.3rem;}
+.empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:0.88rem;}
+@media(max-width:700px){.docs-grid{grid-template-columns:repeat(2,1fr);}.vault-summary{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — خزنة المستندات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>خزنة المستندات</h2>
+    <p>جميع عقودك وشهاداتك وكشوفاتك في مكان واحد آمن</p>
+  </div>
+
+  <div class="vault-summary" id="vaultSummary"></div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="بحث في المستندات..." oninput="filterDocs()">
+    <select id="filterCat" onchange="filterDocs()">
+      <option value="">جميع الفئات</option>
+      <option value="contract">عقود</option>
+      <option value="statement">كشوفات</option>
+      <option value="tax">ضريبية</option>
+      <option value="certificate">شهادات</option>
+      <option value="kyc">هوية وتحقق</option>
+    </select>
+  </div>
+
+  <div id="docSections"></div>
+</div>
+
+<script>
+const SUMMARY = [
+  { icon: '📁', val: '٢٤', lbl: 'إجمالي المستندات' },
+  { icon: '🆕', val: '٣', lbl: 'مستندات جديدة' },
+  { icon: '🔒', val: '١٠٠٪', lbl: 'مشفّرة وآمنة' }
+];
+
+const DOCS = [
+  { cat: 'contract', catLbl: 'عقود', icon: '📄', iconCls: 'icon-pdf', name: 'عقد الاستثمار — صفقة #4892', meta: 'PDF · ٢.٤ MB · ٣ يونيو ٢٠٢٦', isNew: true },
+  { cat: 'contract', catLbl: 'عقود', icon: '📄', iconCls: 'icon-pdf', name: 'عقد الاستثمار — صفقة #4801', meta: 'PDF · ١.٩ MB · ١ مارس ٢٠٢٦', isNew: false },
+  { cat: 'contract', catLbl: 'عقود', icon: '📄', iconCls: 'icon-pdf', name: 'اتفاقية المستثمر الأساسية', meta: 'PDF · ٣.١ MB · ١٥ يناير ٢٠٢٦', isNew: false },
+  { cat: 'statement', catLbl: 'كشوفات', icon: '📊', iconCls: 'icon-sheet', name: 'كشف حساب — مايو ٢٠٢٦', meta: 'PDF · ٠.٨ MB · ١ يونيو ٢٠٢٦', isNew: true },
+  { cat: 'statement', catLbl: 'كشوفات', icon: '📊', iconCls: 'icon-sheet', name: 'كشف حساب — أبريل ٢٠٢٦', meta: 'PDF · ٠.٧ MB · ١ مايو ٢٠٢٦', isNew: false },
+  { cat: 'tax', catLbl: 'ضريبية', icon: '🧾', iconCls: 'icon-pdf', name: 'شهادة استقطاع ضريبي ٢٠٢٥', meta: 'PDF · ١.٢ MB · ١٥ فبراير ٢٠٢٦', isNew: false },
+  { cat: 'certificate', catLbl: 'شهادات', icon: '🏅', iconCls: 'icon-img', name: 'شهادة المستثمر المعتمد', meta: 'PDF · ٠.٥ MB · ١ أبريل ٢٠٢٦', isNew: true },
+  { cat: 'kyc', catLbl: 'هوية وتحقق', icon: '🪪', iconCls: 'icon-img', name: 'نسخة الهوية الوطنية', meta: 'JPG · ١.١ MB · ١٠ يناير ٢٠٢٦', isNew: false },
+  { cat: 'kyc', catLbl: 'هوية وتحقق', icon: '🪪', iconCls: 'icon-img', name: 'إثبات العنوان (فاتورة كهرباء)', meta: 'PDF · ٠.٦ MB · ١٠ يناير ٢٠٢٦', isNew: false }
+];
+
+function buildSummary() {
+  const wrap = document.getElementById('vaultSummary');
+  SUMMARY.forEach(s => {
+    const c = document.createElement('div');
+    c.className = 'vs-card';
+    const ic = document.createElement('div');
+    ic.className = 'vs-icon';
+    ic.textContent = s.icon;
+    const v = document.createElement('div');
+    v.className = 'vs-val';
+    v.textContent = s.val;
+    const l = document.createElement('div');
+    l.className = 'vs-lbl';
+    l.textContent = s.lbl;
+    c.appendChild(ic); c.appendChild(v); c.appendChild(l);
+    wrap.appendChild(c);
+  });
+}
+
+function filterDocs() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('filterCat').value;
+  const filtered = DOCS.filter(d =>
+    (!cat || d.cat === cat) &&
+    (!q || d.name.toLowerCase().includes(q))
+  );
+  renderSections(filtered);
+}
+
+function renderSections(docs) {
+  const wrap = document.getElementById('docSections');
+  wrap.textContent = '';
+  if (!docs.length) {
+    const e = document.createElement('div');
+    e.className = 'empty-state';
+    e.textContent = 'لا توجد مستندات تطابق البحث';
+    wrap.appendChild(e);
+    return;
+  }
+  const groups = {};
+  docs.forEach(d => {
+    if (!groups[d.catLbl]) groups[d.catLbl] = [];
+    groups[d.catLbl].push(d);
+  });
+  Object.entries(groups).forEach(([catLbl, items]) => {
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = catLbl;
+    wrap.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'docs-grid';
+    items.forEach(doc => {
+      const card = document.createElement('div');
+      card.className = 'doc-card';
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'doc-icon ' + doc.iconCls;
+      iconWrap.textContent = doc.icon;
+      const name = document.createElement('div');
+      name.className = 'doc-name';
+      if (doc.isNew) {
+        const badge = document.createElement('span');
+        badge.className = 'badge-new';
+        badge.textContent = 'جديد';
+        name.appendChild(badge);
+      }
+      name.appendChild(document.createTextNode(doc.name));
+      const meta = document.createElement('div');
+      meta.className = 'doc-meta';
+      meta.textContent = doc.meta;
+      const actions = document.createElement('div');
+      actions.className = 'doc-actions';
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn btn-primary btn-sm';
+      dlBtn.textContent = 'تنزيل';
+      dlBtn.onclick = () => downloadDoc(doc.name);
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'btn btn-ghost btn-sm';
+      viewBtn.textContent = 'معاينة';
+      viewBtn.onclick = () => previewDoc(doc.name);
+      actions.appendChild(dlBtn);
+      actions.appendChild(viewBtn);
+      card.appendChild(iconWrap);
+      card.appendChild(name);
+      card.appendChild(meta);
+      card.appendChild(actions);
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+  });
+}
+
+function downloadDoc(name) {
+  fetch('/app/me/documents/download', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ name })
+  }).catch(() => {});
+  alert('جاري تنزيل: ' + name);
+}
+
+function previewDoc(name) {
+  alert('معاينة: ' + name);
+}
+
+buildSummary();
+filterDocs();
+</script>
+</body>
+</html>

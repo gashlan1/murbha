@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Bank Accounts — Murbha">الحسابات البنكية — مُرابحة</title>
+<meta name="description" content="أضف وأدر حساباتك البنكية المرتبطة بحسابك في مُرابحة للإيداع والسحب." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:700px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Bank account card */
+  .bank-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+  .bank-item:last-child{margin-bottom:0;}
+  .bank-item.primary-acc{border-color:var(--green);background:#f0faf4;}
+  .bank-logo{width:44px;height:44px;border-radius:10px;background:#f9f7f2;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .bank-logo-txt{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .bank-info{flex:1;}
+  .bank-name{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .bank-iban{font:700 11px Cairo,sans-serif;color:var(--muted);direction:ltr;text-align:right;margin-top:2px;}
+  .bank-holder{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .bank-badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+  .b-badge{border-radius:5px;padding:2px 8px;font:700 8px Cairo,sans-serif;}
+  .badge-verified{background:#e8f5e9;color:#2e7d32;}
+  .badge-pending{background:#fff8e1;color:#a07020;}
+  .badge-primary{background:var(--green-dark);color:#fbf6ea;}
+  .bank-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .btn-set-primary{background:#f0ece0;border:1.5px solid var(--line);border-radius:7px;padding:6px 12px;font:700 9px Cairo,sans-serif;cursor:pointer;color:var(--ink);white-space:nowrap;}
+  .btn-set-primary:hover{background:#e8e2d0;}
+  .btn-remove{background:#fdecea;border:1px solid #f8d7da;border-radius:7px;padding:6px 12px;font:700 9px Cairo,sans-serif;cursor:pointer;color:#c54a3a;white-space:nowrap;}
+  .btn-remove:hover{background:#ffcdd2;}
+  /* Add account form */
+  .form-group{margin-bottom:14px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:6px;}
+  .form-inp{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:11px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);}
+  .form-inp:focus{outline:none;border-color:var(--green);}
+  .form-inp.iban-inp{direction:ltr;text-align:left;font:700 13px Cairo,sans-serif;letter-spacing:1px;}
+  .form-sel{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:11px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-sel:focus{outline:none;border-color:var(--green);}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .btn-add{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;width:100%;}
+  .btn-add:hover{background:var(--green);}
+  .btn-add:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  .warn-box{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px 14px;font:500 11px Tajawal,sans-serif;color:#a07020;line-height:1.6;margin-bottom:14px;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Bank Accounts">الحسابات البنكية</h1>
+    <p data-en="Add and manage the bank accounts linked to your Murbha account for deposits and withdrawals.">أضف وأدر الحسابات البنكية المرتبطة بحسابك للإيداع والسحب.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Linked Accounts">الحسابات المرتبطة</div>
+    <div id="bankList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Add New Account">إضافة حساب جديد</div>
+    <div class="warn-box">تأكد من أن الحساب البنكي باسمك الكامل المطابق لهويتك الموثّقة. يستغرق التحقق من الحساب الجديد حتى يومي عمل.</div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Bank">البنك</label>
+      <select class="form-sel" id="bankSel">
+        <option value="">— اختر البنك —</option>
+        <option value="al_rajhi">بنك الراجحي</option>
+        <option value="snb">البنك الأهلي السعودي</option>
+        <option value="riyad">بنك الرياض</option>
+        <option value="alinma">مصرف الإنماء</option>
+        <option value="sab">البنك السعودي للاستثمار</option>
+        <option value="bsf">البنك السعودي الفرنسي</option>
+        <option value="arab_national">البنك العربي الوطني</option>
+        <option value="other">بنك آخر</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="IBAN">رقم الآيبان (IBAN)</label>
+      <input class="form-inp iban-inp" id="ibanInp" type="text" placeholder="SA00 0000 0000 0000 0000 0000" maxlength="29" />
+      <div class="form-hint">مثال: SA29 6000 0000 0000 0123 4567 — 24 رقماً بعد SA</div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Account Holder Name">اسم صاحب الحساب</label>
+      <input class="form-inp" id="holderInp" type="text" placeholder="الاسم كما يظهر في البنك" />
+    </div>
+    <button class="btn-add" id="btnAdd" data-en="Add Account">إضافة الحساب</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const bankNames={al_rajhi:'الراجحي',snb:'الأهلي',riyad:'الرياض',alinma:'الإنماء',sab:'الاستثمار',bsf:'الفرنسي',arab_national:'العربي الوطني',other:'بنك آخر'};
+
+  function ibanFormat(v){ return v.replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim().toUpperCase(); }
+
+  document.getElementById('ibanInp').addEventListener('input',function(){ this.value=ibanFormat(this.value.replace(/[^A-Za-z0-9]/g,'')).slice(0,29); });
+
+  async function load(){
+    const list=document.getElementById('bankList');
+    try{
+      const r=await fetch('/app/me/bank-accounts');
+      if(!r.ok){ placeholder(list,'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      list.textContent='';
+      const accounts=d.accounts||[];
+      if(!accounts.length){ placeholder(list,'لم تُضف أي حساب بنكي بعد.'); return; }
+      accounts.forEach(acc=>{
+        const item=document.createElement('div'); item.className='bank-item'+(acc.isPrimary?' primary-acc':'');
+        const logo=document.createElement('div'); logo.className='bank-logo';
+        const lt=document.createElement('div'); lt.className='bank-logo-txt'; lt.textContent=(bankNames[acc.bankCode]||acc.bankName||'بنك').slice(0,2);
+        logo.appendChild(lt);
+        const info=document.createElement('div'); info.className='bank-info';
+        const name=document.createElement('div'); name.className='bank-name'; name.textContent=bankNames[acc.bankCode]||acc.bankName||'بنك';
+        const iban=document.createElement('div'); iban.className='bank-iban'; iban.textContent=ibanFormat(acc.iban||'');
+        const holder=document.createElement('div'); holder.className='bank-holder'; holder.textContent=acc.holderName||'—';
+        const badges=document.createElement('div'); badges.className='bank-badges';
+        if(acc.isPrimary){ const b=document.createElement('span'); b.className='b-badge badge-primary'; b.textContent='الحساب الرئيسي'; badges.appendChild(b); }
+        const vb=document.createElement('span'); vb.className='b-badge '+(acc.verified?'badge-verified':'badge-pending'); vb.textContent=acc.verified?'موثّق':'قيد التحقق';
+        badges.appendChild(vb);
+        info.appendChild(name); info.appendChild(iban); info.appendChild(holder); info.appendChild(badges);
+        const actions=document.createElement('div'); actions.className='bank-actions';
+        if(!acc.isPrimary){
+          const btnP=document.createElement('button'); btnP.className='btn-set-primary'; btnP.textContent='تعيين رئيسياً';
+          const aId=acc.id;
+          btnP.addEventListener('click', async()=>{
+            btnP.disabled=true;
+            try{
+              const rp=await fetch('/app/me/bank-accounts/'+encodeURIComponent(aId)+'/primary',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({})});
+              if(!rp.ok){ btnP.disabled=false; showToast('تعذّرت العملية.'); return; }
+              showToast('تم تعيين الحساب الرئيسي.'); load();
+            }catch{ btnP.disabled=false; showToast('خطأ.'); }
+          });
+          actions.appendChild(btnP);
+          const btnR=document.createElement('button'); btnR.className='btn-remove'; btnR.textContent='إزالة';
+          btnR.addEventListener('click', async()=>{
+            if(!confirm('هل أنت متأكد من إزالة هذا الحساب؟')) return;
+            btnR.disabled=true;
+            try{
+              const rd=await fetch('/app/me/bank-accounts/'+encodeURIComponent(aId),{method:'DELETE',headers:{'X-CSRF-Token':csrf()}});
+              if(!rd.ok){ btnR.disabled=false; showToast('تعذّر الحذف.'); return; }
+              showToast('تم إزالة الحساب.'); load();
+            }catch{ btnR.disabled=false; showToast('خطأ.'); }
+          });
+          actions.appendChild(btnR);
+        }
+        item.appendChild(logo); item.appendChild(info); item.appendChild(actions);
+        list.appendChild(item);
+      });
+    }catch{ placeholder(document.getElementById('bankList'),'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('btnAdd').addEventListener('click', async()=>{
+    const bank=document.getElementById('bankSel').value;
+    const iban=document.getElementById('ibanInp').value.replace(/\s/g,'');
+    const holder=document.getElementById('holderInp').value.trim();
+    if(!bank||!iban||!holder){ showToast('يرجى تعبئة جميع الحقول.'); return; }
+    if(!/^SA\d{22}$/.test(iban)){ showToast('رقم الآيبان غير صحيح. يجب أن يبدأ بـ SA ويحتوي 24 رقماً.'); return; }
+    document.getElementById('btnAdd').disabled=true;
+    try{
+      const r=await fetch('/app/me/bank-accounts',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({bankCode:bank,iban,holderName:holder})});
+      document.getElementById('btnAdd').disabled=false;
+      if(!r.ok){ showToast('تعذّرت الإضافة. تحقق من البيانات.'); return; }
+      document.getElementById('bankSel').value='';
+      document.getElementById('ibanInp').value='';
+      document.getElementById('holderInp').value='';
+      showToast('تمت إضافة الحساب. جارٍ التحقق منه.'); load();
+    }catch{ document.getElementById('btnAdd').disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>

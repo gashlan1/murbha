@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>التقرير الدوري للمستثمر — مُرابحة</title>
+<meta name="description" content="تقرير ربعي وسنوي شامل عن أداء محفظتك الاستثمارية. قابل للتحميل والطباعة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+  .control-select{border:1px solid var(--line);border-radius:10px;padding:9px 14px;font:700 12px Cairo,sans-serif;background:var(--paper);color:var(--ink);}
+  .btn-dl{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:10px 22px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-print{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 22px;font:700 12px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);}
+  .report-wrap{background:#fff;border:1px solid var(--line);border-radius:18px;padding:32px;margin-bottom:18px;}
+  .report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--green-dark);}
+  .report-logo{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .report-title-block{text-align:center;}
+  .report-title{font:900 17px Cairo,sans-serif;color:var(--green-dark);}
+  .report-period{font:500 12px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .report-date{font:700 11px Cairo,sans-serif;color:var(--muted);text-align:left;}
+  .section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin:20px 0 12px;padding-bottom:6px;border-bottom:1px dashed var(--line);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+  .kpi{background:var(--paper);border-radius:10px;padding:14px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .deals-table{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;margin-bottom:12px;}
+  .deals-table th{background:var(--paper);font:900 10px Cairo,sans-serif;color:var(--green-dark);padding:8px 10px;border-bottom:1px solid var(--line);text-align:start;}
+  .deals-table td{padding:8px 10px;border-bottom:1px solid var(--line);}
+  .deals-table tr:last-child td{border-bottom:none;}
+  .status-active{color:#2e7d32;font:700 10px Cairo,sans-serif;}
+  .status-completed{color:var(--gold);font:700 10px Cairo,sans-serif;}
+  .timeline-list{display:grid;gap:8px;}
+  .timeline-item{display:flex;gap:12px;align-items:flex-start;}
+  .t-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px;}
+  .t-body{flex:1;}
+  .t-title{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .t-date{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .report-footer{margin-top:24px;padding-top:14px;border-top:1px dashed var(--line);text-align:center;}
+  .footer-txt{font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.8;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  @media print{
+    .hero,.controls{display:none!important;}
+    .report-wrap{border:none;padding:0;}
+    main{padding:0;}
+  }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📊 التقرير الدوري للمستثمر</h1>
+    <p>تقرير شامل عن أداء محفظتك خلال الفترة المحددة. قابل للتحميل بصيغة PDF أو للطباعة.</p>
+  </div>
+
+  <div class="controls">
+    <select class="control-select" id="reportType">
+      <option value="quarterly">ربعي</option>
+      <option value="annual">سنوي</option>
+    </select>
+    <select class="control-select" id="reportPeriod">
+      <option value="Q1-2026">الربع الأول 2026</option>
+      <option value="Q4-2025">الربع الرابع 2025</option>
+      <option value="Q3-2025">الربع الثالث 2025</option>
+      <option value="2025">السنة الكاملة 2025</option>
+    </select>
+    <button class="btn-dl" id="btnPdf">⬇ PDF</button>
+    <button class="btn-print" id="btnPrint">🖨 طباعة</button>
+  </div>
+
+  <div id="reportArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+</main>
+<script>
+(function(){
+  function fmt(n,d){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+
+  function renderReport(d, period){
+    const area=document.getElementById('reportArea'); area.textContent='';
+    const wrap=document.createElement('div'); wrap.className='report-wrap';
+
+    // header
+    const hdr=document.createElement('div'); hdr.className='report-header';
+    const logo=document.createElement('div'); logo.className='report-logo'; logo.textContent='مُرابحة';
+    const tb=document.createElement('div'); tb.className='report-title-block';
+    const rtitle=document.createElement('div'); rtitle.className='report-title'; rtitle.textContent='التقرير الدوري للمستثمر';
+    const rperiod=document.createElement('div'); rperiod.className='report-period'; rperiod.textContent='الفترة: '+period;
+    tb.appendChild(rtitle); tb.appendChild(rperiod);
+    const dateEl=document.createElement('div'); dateEl.className='report-date'; dateEl.textContent='تاريخ الإصدار: '+new Date().toLocaleDateString('ar-SA');
+    hdr.appendChild(logo); hdr.appendChild(tb); hdr.appendChild(dateEl); wrap.appendChild(hdr);
+
+    // KPIs
+    const s1=document.createElement('div'); s1.className='section-title'; s1.textContent='ملخص الأداء';
+    wrap.appendChild(s1);
+    const grid=document.createElement('div'); grid.className='kpi-grid';
+    [
+      {val:fmt(d.openingBalance||0)+' ر.س',lbl:'رصيد الافتتاح'},
+      {val:fmt(d.closingBalance||0)+' ر.س',lbl:'رصيد الختام'},
+      {val:fmt(d.totalReturn||0,2)+' ر.س',lbl:'إجمالي العائد'},
+      {val:(d.returnRate||0)+'٪',lbl:'معدل العائد'},
+      {val:(d.activeDeals||0)+' صفقة',lbl:'صفقات نشطة'},
+      {val:(d.completedDeals||0)+' صفقة',lbl:'صفقات مكتملة'},
+    ].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); grid.appendChild(k);
+    });
+    wrap.appendChild(grid);
+
+    // deals table
+    const s2=document.createElement('div'); s2.className='section-title'; s2.textContent='تفاصيل الصفقات';
+    wrap.appendChild(s2);
+    const table=document.createElement('table'); table.className='deals-table';
+    const thead=document.createElement('thead'); const hr=document.createElement('tr');
+    ['الصفقة','القطاع','المبلغ (ر.س)','العائد السنوي','المدة','الحالة'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    (d.deals||[]).forEach(deal=>{
+      const tr=document.createElement('tr');
+      [deal.title||'—',deal.sector||'—',fmt(deal.amount||0),deal.yield+'٪',deal.tenor+' شهر'].forEach(val=>{ const td=document.createElement('td'); td.textContent=val; tr.appendChild(td); });
+      const tdS=document.createElement('td');
+      const st=document.createElement('span'); st.className=deal.status==='active'?'status-active':'status-completed';
+      st.textContent=deal.status==='active'?'نشطة':'مكتملة'; tdS.appendChild(st); tr.appendChild(tdS);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); wrap.appendChild(table);
+
+    // activity timeline
+    if((d.timeline||[]).length){
+      const s3=document.createElement('div'); s3.className='section-title'; s3.textContent='أبرز الأحداث خلال الفترة';
+      wrap.appendChild(s3);
+      const tl=document.createElement('div'); tl.className='timeline-list';
+      d.timeline.forEach(ev=>{
+        const item=document.createElement('div'); item.className='timeline-item';
+        const dot=document.createElement('div'); dot.className='t-dot';
+        const body=document.createElement('div'); body.className='t-body';
+        const ttitle=document.createElement('div'); ttitle.className='t-title'; ttitle.textContent=ev.title;
+        const tdate=document.createElement('div'); tdate.className='t-date'; tdate.textContent=ev.date;
+        body.appendChild(ttitle); body.appendChild(tdate);
+        item.appendChild(dot); item.appendChild(body); tl.appendChild(item);
+      });
+      wrap.appendChild(tl);
+    }
+
+    // footer
+    const footer=document.createElement('div'); footer.className='report-footer';
+    const ftxt=document.createElement('div'); ftxt.className='footer-txt';
+    ftxt.textContent='هذا التقرير صادر تلقائياً من منصة مُرابحة. جميع الأرقام بالريال السعودي. للاستفسار: support@murabaha.example.sa';
+    footer.appendChild(ftxt); wrap.appendChild(footer);
+    area.appendChild(wrap);
+  }
+
+  async function load(){
+    const type=document.getElementById('reportType').value;
+    const period=document.getElementById('reportPeriod').value;
+    const area=document.getElementById('reportArea'); area.textContent='';
+    const loading=document.createElement('p'); loading.className='placeholder-msg'; loading.textContent='جارٍ التحميل…'; area.appendChild(loading);
+    try{
+      const r=await fetch('/app/me/investor-report?type='+encodeURIComponent(type)+'&period='+encodeURIComponent(period));
+      if(!r.ok){ area.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; area.appendChild(m); return; }
+      const d=await r.json();
+      renderReport(d, period);
+    }catch{ area.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; area.appendChild(m); }
+  }
+
+  document.getElementById('btnPdf').addEventListener('click',()=>{
+    const period=document.getElementById('reportPeriod').value;
+    window.open('/app/me/investor-report/pdf?period='+encodeURIComponent(period),'_blank');
+  });
+  document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+  document.getElementById('reportType').addEventListener('change', load);
+  document.getElementById('reportPeriod').addEventListener('change', load);
+  load();
+}());
+</script>
+</body>
+</html>

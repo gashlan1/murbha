@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>الدعم الفني — مُرابحة</title>
+<meta name="description" content="أرسل طلب دعم فني وتابع حالة التذاكر المفتوحة والمغلقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .new-ticket-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .form-group{margin-bottom:14px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);margin-bottom:5px;display:block;}
+  .form-select,.form-input,.form-textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-select:focus,.form-input:focus,.form-textarea:focus{outline:none;border-color:var(--green);}
+  .form-textarea{resize:vertical;min-height:90px;}
+  .btn-submit{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 26px;font:900 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-submit:hover{background:var(--green);}
+  .btn-submit:disabled{opacity:.5;cursor:default;}
+  .tickets-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .ticket-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;}
+  .ticket-item:last-child{margin-bottom:0;}
+  .ticket-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .ticket-subject{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .ticket-meta{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .ticket-status{border-radius:5px;padding:2px 9px;font:700 9px Cairo,sans-serif;flex-shrink:0;}
+  .status-open{background:#fff8e1;color:#a07020;}
+  .status-answered{background:#e8f5e9;color:#2e7d32;}
+  .status-closed{background:#f5f5f5;color:#888;}
+  .ticket-preview{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .thread-card{background:#fff;border:2px solid var(--green);border-radius:16px;padding:22px;margin-bottom:18px;display:none;}
+  .thread-card.visible{display:block;}
+  .thread-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .message-list{display:grid;gap:12px;margin-bottom:14px;}
+  .msg{border-radius:10px;padding:12px 14px;}
+  .msg-user{background:var(--paper);border:1px solid var(--line);}
+  .msg-support{background:#e8f5e9;}
+  .msg-author{font:700 10px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .msg-body{font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.6;}
+  .msg-date{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .reply-row{display:flex;gap:10px;}
+  .reply-input{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .reply-input:focus{outline:none;border-color:var(--green);}
+  .btn-reply{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:10px 18px;font:700 12px Cairo,sans-serif;cursor:pointer;flex-shrink:0;}
+  .btn-reply:hover{background:var(--green);}
+  .btn-reply:disabled{opacity:.5;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>الدعم الفني</h1>
+    <p>أرسل استفسارك أو مشكلتك لفريق الدعم وتابع حالة ردودهم من هنا.</p>
+  </div>
+
+  <div class="new-ticket-card">
+    <div class="card-title">فتح تذكرة جديدة</div>
+    <div class="form-group">
+      <label class="form-lbl" for="categorySelect">التصنيف</label>
+      <select class="form-select" id="categorySelect">
+        <option value="account">حساب وتسجيل</option>
+        <option value="investment">استثمار وصفقات</option>
+        <option value="withdrawal">سحب وإيداع</option>
+        <option value="kyc">التحقق من الهوية</option>
+        <option value="technical">مشكلة تقنية</option>
+        <option value="other">أخرى</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" for="subjectInput">الموضوع</label>
+      <input class="form-input" id="subjectInput" type="text" maxlength="120" placeholder="وصف مختصر للمشكلة…" />
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" for="messageInput">التفاصيل</label>
+      <textarea class="form-textarea" id="messageInput" maxlength="2000" placeholder="اشرح مشكلتك بالتفصيل لنتمكن من مساعدتك…"></textarea>
+    </div>
+    <button class="btn-submit" id="submitBtn">إرسال التذكرة</button>
+  </div>
+
+  <div class="thread-card" id="threadCard">
+    <div class="thread-title" id="threadTitle">—</div>
+    <div class="message-list" id="messageList"></div>
+    <div class="reply-row">
+      <input class="reply-input" id="replyInput" type="text" maxlength="1000" placeholder="ردّك هنا…" />
+      <button class="btn-reply" id="replyBtn">إرسال</button>
+    </div>
+  </div>
+
+  <div class="tickets-card">
+    <div class="card-title">تذاكرك السابقة</div>
+    <div id="ticketList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+  function statusLabel(s){ const m={open:'مفتوحة',answered:'مُجاب',closed:'مغلقة'}; return m[s]||s||'—'; }
+  function statusCls(s){ return 'ticket-status status-'+(s==='answered'?'answered':s==='closed'?'closed':'open'); }
+
+  let openTicketId = null;
+
+  function openThread(ticket){
+    openTicketId = ticket.id;
+    const card = document.getElementById('threadCard'); card.classList.add('visible');
+    document.getElementById('threadTitle').textContent='#'+ticket.id+' — '+(ticket.subject||'تذكرة');
+    const msgList = document.getElementById('messageList'); msgList.textContent='';
+    (ticket.messages||[]).forEach(m=>{
+      const div=document.createElement('div'); div.className='msg '+(m.from==='support'?'msg-support':'msg-user');
+      const auth=document.createElement('div'); auth.className='msg-author'; auth.textContent=m.from==='support'?'فريق الدعم':'أنت';
+      const body=document.createElement('div'); body.className='msg-body'; body.textContent=m.body||'—';
+      const date=document.createElement('div'); date.className='msg-date'; date.textContent=m.date||'—';
+      div.appendChild(auth); div.appendChild(body); div.appendChild(date); msgList.appendChild(div);
+    });
+    card.scrollIntoView({behavior:'smooth'});
+  }
+
+  async function loadTickets(){
+    const list = document.getElementById('ticketList');
+    placeholder(list,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/me/support-tickets');
+      if(!r.ok){ placeholder(list, r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const tickets=d.tickets||[];
+      list.textContent='';
+      if(!tickets.length){ placeholder(list,'لا توجد تذاكر سابقة.'); return; }
+      tickets.forEach(tk=>{
+        const item=document.createElement('div'); item.className='ticket-item';
+        const hdr=document.createElement('div'); hdr.className='ticket-header';
+        const left=document.createElement('div');
+        const subj=document.createElement('div'); subj.className='ticket-subject'; subj.textContent=(tk.subject||'تذكرة')+' #'+tk.id;
+        const meta=document.createElement('div'); meta.className='ticket-meta'; meta.textContent=(tk.category||'—')+' · '+(tk.date||'—');
+        left.appendChild(subj); left.appendChild(meta);
+        const badge=document.createElement('div'); badge.className=statusCls(tk.status); badge.textContent=statusLabel(tk.status);
+        hdr.appendChild(left); hdr.appendChild(badge);
+        const preview=document.createElement('div'); preview.className='ticket-preview'; preview.textContent=tk.preview||'—';
+        item.appendChild(hdr); item.appendChild(preview);
+        item.addEventListener('click',()=>openThread(tk));
+        list.appendChild(item);
+      });
+    }catch{ placeholder(document.getElementById('ticketList'),'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async()=>{
+    const subject=document.getElementById('subjectInput').value.trim();
+    const category=document.getElementById('categorySelect').value;
+    const message=document.getElementById('messageInput').value.trim();
+    if(!subject){ showToast('الرجاء إدخال موضوع التذكرة.'); return; }
+    if(!message){ showToast('الرجاء إدخال تفاصيل المشكلة.'); return; }
+    const btn=document.getElementById('submitBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/support-tickets',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({subject,category,message})});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر إرسال التذكرة.'); return; }
+      showToast('تم إرسال التذكرة بنجاح. سيردّ عليك فريق الدعم خلال 24 ساعة.');
+      document.getElementById('subjectInput').value=''; document.getElementById('messageInput').value='';
+      loadTickets();
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  document.getElementById('replyBtn').addEventListener('click', async()=>{
+    if(!openTicketId) return;
+    const text=document.getElementById('replyInput').value.trim();
+    if(!text){ showToast('الرجاء كتابة ردّك.'); return; }
+    const btn=document.getElementById('replyBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/support-tickets/'+encodeURIComponent(openTicketId)+'/reply',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر إرسال الرد.'); return; }
+      const msgList=document.getElementById('messageList');
+      const div=document.createElement('div'); div.className='msg msg-user';
+      const auth=document.createElement('div'); auth.className='msg-author'; auth.textContent='أنت';
+      const body=document.createElement('div'); body.className='msg-body'; body.textContent=text;
+      const date=document.createElement('div'); date.className='msg-date'; date.textContent='الآن';
+      div.appendChild(auth); div.appendChild(body); div.appendChild(date); msgList.appendChild(div);
+      document.getElementById('replyInput').value='';
+      showToast('تم إرسال ردّك.');
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  loadTickets();
+}());
+</script>
+</body>
+</html>

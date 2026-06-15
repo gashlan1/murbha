@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محرك المخاطر - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.score-banner{background:linear-gradient(135deg,#062b1e,#0a4d36);border-radius:14px;padding:1.75rem 2rem;display:flex;align-items:center;gap:2rem;margin-bottom:2rem;color:#fff;}
+.score-dial{width:100px;height:100px;border-radius:50%;border:6px solid rgba(255,255,255,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.score-dial .score-num{font-size:2rem;font-weight:700;color:#fff;}
+.score-dial .score-max{font-size:0.7rem;color:rgba(255,255,255,0.6);}
+.score-info{flex:1;}
+.score-title{font-size:1.1rem;font-weight:700;}
+.score-sub{font-size:0.83rem;color:rgba(255,255,255,0.75);margin-top:0.3rem;}
+.risk-chips{display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;}
+.risk-chip{padding:0.2rem 0.7rem;border-radius:20px;font-size:0.74rem;font-weight:700;}
+.chip-low{background:#e6f4ef;color:var(--green);}
+.chip-med{background:#fff8e8;color:var(--gold);}
+.chip-high{background:#fde9e9;color:#c0392b;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.risk-factor-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;}
+.risk-factor-row:last-child{margin-bottom:0;}
+.rf-label{flex:1;font-size:0.85rem;color:var(--green-dark);}
+.rf-bar-track{flex:2;background:#e8e3da;border-radius:4px;height:8px;overflow:hidden;}
+.rf-bar-fill{height:100%;border-radius:4px;}
+.rf-score{font-size:0.78rem;font-weight:700;width:28px;text-align:left;}
+.alert-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--line);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:0.3rem;}
+.dot-high{background:#c0392b;}
+.dot-med{background:var(--gold);}
+.dot-low{background:var(--green);}
+.alert-text{flex:1;}
+.alert-title{font-size:0.85rem;font-weight:600;color:var(--green-dark);}
+.alert-meta{font-size:0.74rem;color:var(--muted);margin-top:0.15rem;}
+.rule-row{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0;border-bottom:1px solid var(--line);font-size:0.86rem;}
+.rule-row:last-child{border-bottom:none;}
+.rule-name{color:var(--green-dark);}
+.toggle-wrap{display:flex;align-items:center;gap:0.5rem;}
+.toggle{width:36px;height:20px;background:#ccc;border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:right 0.2s;}
+.toggle.on::after{right:calc(100% - 18px);}
+.threshold-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;font-size:0.86rem;}
+.threshold-row:last-child{margin-bottom:0;}
+.th-label{color:var(--muted);}
+.th-input{width:80px;padding:0.3rem 0.5rem;border:1.5px solid var(--line);border-radius:6px;font-family:'Cairo',sans-serif;font-size:0.84rem;text-align:center;}
+.save-row{margin-top:1rem;display:flex;justify-content:flex-end;}
+@media(max-width:900px){.three-col{grid-template-columns:1fr 1fr;}.two-col{grid-template-columns:1fr;}}
+@media(max-width:600px){.three-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — محرك المخاطر</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>محرك تقييم المخاطر</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="runFullScan()">فحص شامل</button>
+      <button class="btn btn-primary" onclick="exportReport()">تصدير التقرير</button>
+    </div>
+  </div>
+
+  <div class="score-banner">
+    <div class="score-dial">
+      <span class="score-num" id="overallScore">٧٢</span>
+      <span class="score-max">/ ١٠٠</span>
+    </div>
+    <div class="score-info">
+      <div class="score-title">درجة المخاطرة الكلية: متوسطة</div>
+      <div class="score-sub">آخر فحص: اليوم، ٠٩:٤٠ ص · ١٨ صفقة نشطة · ٣١٢ مستثمر</div>
+      <div class="risk-chips" id="riskChips"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="recalculateScore()">إعادة حساب</button>
+  </div>
+
+  <div class="three-col">
+    <div class="card" id="riskFactorsCard">
+      <div class="card-head"><h3>عوامل المخاطر</h3></div>
+      <div class="card-body" id="riskFactors"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>تنبيهات نشطة</h3></div>
+      <div class="card-body" id="alertsList"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>قواعد المخاطر</h3></div>
+      <div class="card-body" id="rulesList"></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head"><h3>حدود المخاطر</h3></div>
+      <div class="card-body" id="thresholds">
+        <div class="threshold-row">
+          <span class="th-label">أقصى تركّز قطاعي (%)</span>
+          <input type="number" class="th-input" value="40" id="th-sector">
+        </div>
+        <div class="threshold-row">
+          <span class="th-label">أقصى نسبة تعثّر مقبولة (%)</span>
+          <input type="number" class="th-input" value="5" id="th-default">
+        </div>
+        <div class="threshold-row">
+          <span class="th-label">أدنى نسبة سيولة (%)</span>
+          <input type="number" class="th-input" value="15" id="th-liquidity">
+        </div>
+        <div class="threshold-row">
+          <span class="th-label">أقصى رافعة مالية (×)</span>
+          <input type="number" class="th-input" value="3" id="th-leverage">
+        </div>
+        <div class="save-row">
+          <button class="btn btn-primary btn-sm" onclick="saveThresholds()">حفظ الحدود</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>محفظة المخاطر العالية</h3></div>
+      <div class="card-body" id="highRiskDeals"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const chips = [
+  {label:'تركّز قطاعي منخفض',cls:'chip-low'},
+  {label:'سيولة مقبولة',cls:'chip-low'},
+  {label:'تعثّر جزئي',cls:'chip-med'},
+  {label:'ارتفاع المديونية',cls:'chip-high'},
+];
+
+const riskFactors = [
+  {label:'تركّز قطاع العقارات',score:46,color:'#c0392b'},
+  {label:'تعثّر المدينين',score:28,color:getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()||'#b08840'},
+  {label:'مخاطر السيولة',score:35,color:getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()||'#b08840'},
+  {label:'مخاطر العملة',score:12,color:'#27ae60'},
+  {label:'مخاطر التشغيل',score:20,color:'#27ae60'},
+];
+
+const alerts = [
+  {level:'high',title:'تركّز عقاري يتجاوز ٤٥٪',meta:'مجمع الروضة + برج المدينة · تجاوز حد ٤٠٪'},
+  {level:'med',title:'صفقة FinTech متأخرة ١٥ يوماً',meta:'منصة FinTech B2B · الدفعة رقم ٤'},
+  {level:'med',title:'انخفاض السيولة النقدية',meta:'الاحتياطي ١٤٪ من الهدف ١٥٪'},
+  {level:'low',title:'مراجعة ربع سنوية مستحقة',meta:'تاريخ الاستحقاق: ٣٠ يونيو ٢٠٢٥'},
+];
+
+const rules = [
+  {name:'حد تركّز القطاع',on:true},
+  {name:'تنبيه التعثّر المبكر',on:true},
+  {name:'إشعار مخاطر السيولة',on:true},
+  {name:'فحص الامتثال الشريعي',on:true},
+  {name:'تحليل الارتباط',on:false},
+  {name:'نمذجة إجهاد الضغط',on:false},
+];
+
+const highRiskDeals = [
+  {name:'مجمع الروضة السكني',score:'٨٦',reason:'تركّز عالٍ + مديونية'},
+  {name:'مشروع الأفق التجاري',score:'٧٤',reason:'سيولة منخفضة'},
+  {name:'منصة FinTech B2B',score:'٦٨',reason:'تأخر في السداد'},
+];
+
+function renderChips(){
+  const cont = document.getElementById('riskChips');
+  cont.textContent = '';
+  chips.forEach(c => {
+    const el = document.createElement('span');
+    el.className = 'risk-chip ' + c.cls;
+    el.textContent = c.label;
+    cont.appendChild(el);
+  });
+}
+
+function renderFactors(){
+  const cont = document.getElementById('riskFactors');
+  cont.textContent = '';
+  riskFactors.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'risk-factor-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'rf-label';
+    lbl.textContent = f.label;
+    const track = document.createElement('div');
+    track.className = 'rf-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'rf-bar-fill';
+    fill.style.width = f.score + '%';
+    fill.style.background = f.color;
+    track.appendChild(fill);
+    const score = document.createElement('span');
+    score.className = 'rf-score';
+    score.style.color = f.color;
+    score.textContent = f.score;
+    row.appendChild(lbl);
+    row.appendChild(track);
+    row.appendChild(score);
+    cont.appendChild(row);
+  });
+}
+
+function renderAlerts(){
+  const cont = document.getElementById('alertsList');
+  cont.textContent = '';
+  alerts.forEach(a => {
+    const item = document.createElement('div');
+    item.className = 'alert-item';
+    const dot = document.createElement('div');
+    dot.className = 'alert-dot dot-' + a.level;
+    const text = document.createElement('div');
+    text.className = 'alert-text';
+    const title = document.createElement('div');
+    title.className = 'alert-title';
+    title.textContent = a.title;
+    const meta = document.createElement('div');
+    meta.className = 'alert-meta';
+    meta.textContent = a.meta;
+    text.appendChild(title);
+    text.appendChild(meta);
+    item.appendChild(dot);
+    item.appendChild(text);
+    cont.appendChild(item);
+  });
+}
+
+function renderRules(){
+  const cont = document.getElementById('rulesList');
+  cont.textContent = '';
+  rules.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'rule-row';
+    const name = document.createElement('span');
+    name.className = 'rule-name';
+    name.textContent = r.name;
+    const wrap = document.createElement('div');
+    wrap.className = 'toggle-wrap';
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle' + (r.on ? ' on' : '');
+    toggle.onclick = () => {
+      r.on = !r.on;
+      toggle.className = 'toggle' + (r.on ? ' on' : '');
+      updateRule(r.name, r.on);
+    };
+    wrap.appendChild(toggle);
+    row.appendChild(name);
+    row.appendChild(wrap);
+    cont.appendChild(row);
+  });
+}
+
+function renderHighRisk(){
+  const cont = document.getElementById('highRiskDeals');
+  cont.textContent = '';
+  highRiskDeals.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'alert-item';
+    const dot = document.createElement('div');
+    dot.className = 'alert-dot dot-high';
+    const text = document.createElement('div');
+    text.className = 'alert-text';
+    const title = document.createElement('div');
+    title.className = 'alert-title';
+    title.textContent = d.name;
+    const meta = document.createElement('div');
+    meta.className = 'alert-meta';
+    meta.textContent = 'درجة المخاطرة: ' + d.score + ' · ' + d.reason;
+    text.appendChild(title);
+    text.appendChild(meta);
+    item.appendChild(dot);
+    item.appendChild(text);
+    cont.appendChild(item);
+  });
+}
+
+async function updateRule(name, on){
+  try {
+    await fetch('/app/admin/risk-engine/rules', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({name, enabled: on})
+    });
+  } catch(e){}
+}
+
+async function saveThresholds(){
+  const body = {
+    sectorConcentration: document.getElementById('th-sector').value,
+    defaultRate: document.getElementById('th-default').value,
+    liquidityMin: document.getElementById('th-liquidity').value,
+    leverageMax: document.getElementById('th-leverage').value,
+  };
+  try {
+    await fetch('/app/admin/risk-engine/thresholds', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify(body)
+    });
+  } catch(e){}
+}
+
+async function recalculateScore(){
+  try {
+    const res = await fetch('/app/admin/risk-engine/score');
+    await res.json();
+  } catch(e){}
+}
+
+async function runFullScan(){
+  try {
+    await fetch('/app/admin/risk-engine/scan', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function exportReport(){
+  try {
+    const res = await fetch('/app/admin/risk-engine/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderChips();
+renderFactors();
+renderAlerts();
+renderRules();
+renderHighRisk();
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>محاكي الصفقات — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.layout{display:grid;grid-template-columns:380px 1fr;gap:1.5rem;padding:1.5rem 2rem;max-width:1200px;margin:0 auto;align-items:start}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}
+.card-head h3{font-size:1rem;font-weight:700}
+.card-head .icon{font-size:1.2rem}
+.form-section{padding:1rem 1.25rem;border-bottom:1px solid var(--line)}
+.form-section:last-child{border-bottom:none}
+.section-title{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem}
+.form-group{margin-bottom:.75rem}
+.form-group:last-child{margin-bottom:0}
+.form-group label{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+.form-group label span{font-weight:700;color:var(--green);font-size:.9rem}
+input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;height:6px}
+.form-group select,.form-group input[type=number]{
+  width:100%;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:8px;
+  font-family:'Cairo',sans-serif;font-size:.9rem;color:var(--green-dark);outline:none;background:#fff;
+}
+.form-group select:focus,.form-group input[type=number]:focus{border-color:var(--green)}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.2rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.9rem;cursor:pointer;border:none;font-weight:700;transition:.15s;width:100%;justify-content:center}
+.btn-primary{background:var(--green);color:#fff;margin:1rem 1.25rem;width:calc(100% - 2.5rem)}
+.btn-primary:hover{background:var(--green-dark)}
+/* Results panel */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1.25rem}
+.kpi{background:var(--paper);border-radius:10px;padding:1rem 1.25rem;border:1px solid var(--line)}
+.kpi .val{font-size:1.4rem;font-weight:700;color:var(--green)}
+.kpi .lbl{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+.kpi.gold .val{color:var(--gold)}
+.kpi.highlight{grid-column:span 2;background:var(--green-dark);border-color:var(--green-dark)}
+.kpi.highlight .val{color:#fff;font-size:1.6rem}
+.kpi.highlight .lbl{color:rgba(255,255,255,.65)}
+/* Chart */
+.chart-wrap{padding:1.25rem}
+.chart-title{font-size:.88rem;font-weight:700;margin-bottom:.75rem;color:var(--muted)}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:140px;border-bottom:2px solid var(--line);padding-bottom:0}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.bar-seg{width:100%;border-radius:3px 3px 0 0;transition:.4s}
+.bar-seg.principal{background:var(--green)}
+.bar-seg.profit{background:var(--gold)}
+.bar-label{font-size:.65rem;color:var(--muted);margin-top:.35rem}
+/* Schedule table */
+.schedule-wrap{padding:1.25rem;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{text-align:right;padding:.5rem .75rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)}
+td{padding:.55rem .75rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none;font-weight:700;background:#f5f9f5}
+/* Scenario comparison */
+.scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem}
+.scenario{border-radius:10px;border:2px solid var(--line);padding:1rem;text-align:center;cursor:pointer;transition:.15s}
+.scenario:hover,.scenario.active{border-color:var(--green);background:#f0faf5}
+.scenario .s-name{font-weight:700;font-size:.9rem;margin-bottom:.4rem}
+.scenario .s-return{font-size:1.1rem;font-weight:700;color:var(--green)}
+.scenario .s-label{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+/* Legend */
+.legend{display:flex;gap:1rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-item{display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>محاكي الصفقات — تحليل العوائد</h1>
+</header>
+
+<div class="layout">
+  <!-- Controls -->
+  <div>
+    <div class="card">
+      <div class="card-head"><span class="icon">🎛️</span><h3>معاملات الصفقة</h3></div>
+
+      <div class="form-section">
+        <div class="section-title">مبلغ الاستثمار</div>
+        <div class="form-group">
+          <label>المبلغ (ر.س) <span id="lblAmount">50,000</span></label>
+          <input type="range" id="rAmount" min="5000" max="500000" step="5000" value="50000" oninput="sync('Amount',this.value)"/>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">معدل العائد</div>
+        <div class="form-group">
+          <label>معدل الربح السنوي (%) <span id="lblRate">12</span></label>
+          <input type="range" id="rRate" min="6" max="25" step="0.5" value="12" oninput="sync('Rate',this.value)"/>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">مدة الاستثمار</div>
+        <div class="form-group">
+          <label>المدة (أشهر) <span id="lblTenor">12</span></label>
+          <input type="range" id="rTenor" min="3" max="60" step="3" value="12" oninput="sync('Tenor',this.value)"/>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">هيكل الصفقة</div>
+        <div class="form-group">
+          <label>نوع الصفقة</label>
+          <select id="sDealType" onchange="simulate()">
+            <option value="murabaha">مرابحة</option>
+            <option value="ijara">إجارة</option>
+            <option value="musharaka">مشاركة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>طريقة توزيع الأرباح</label>
+          <select id="sDist" onchange="simulate()">
+            <option value="monthly">شهري</option>
+            <option value="quarterly">ربع سنوي</option>
+            <option value="maturity">عند الاستحقاق</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>رسوم المنصة (%)</label>
+          <select id="sFee" onchange="simulate()">
+            <option value="1">1%</option>
+            <option value="1.5" selected>1.5%</option>
+            <option value="2">2%</option>
+            <option value="2.5">2.5%</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="simulate()">احسب العوائد</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- KPIs -->
+    <div class="card">
+      <div class="card-head"><span class="icon">📊</span><h3>ملخص العوائد</h3></div>
+      <div class="kpi-grid">
+        <div class="kpi highlight">
+          <div class="val" id="kpiNetReturn">—</div>
+          <div class="lbl">صافي العائد (بعد الرسوم)</div>
+        </div>
+        <div class="kpi">
+          <div class="val" id="kpiGross">—</div>
+          <div class="lbl">العائد الإجمالي</div>
+        </div>
+        <div class="kpi">
+          <div class="val" id="kpiFee">—</div>
+          <div class="lbl">رسوم المنصة</div>
+        </div>
+        <div class="kpi gold">
+          <div class="val" id="kpiEffRate">—</div>
+          <div class="lbl">معدل العائد الفعلي</div>
+        </div>
+        <div class="kpi">
+          <div class="val" id="kpiPerMonth">—</div>
+          <div class="lbl">متوسط الربح الشهري</div>
+        </div>
+        <div class="kpi">
+          <div class="val" id="kpiTotal">—</div>
+          <div class="lbl">إجمالي المبلغ عند الاستحقاق</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenarios -->
+    <div class="card">
+      <div class="card-head"><span class="icon">🔮</span><h3>سيناريوهات المقارنة</h3></div>
+      <div class="scenarios" id="scenariosGrid"></div>
+    </div>
+
+    <!-- Growth chart -->
+    <div class="card">
+      <div class="card-head"><span class="icon">📈</span><h3>نمو رأس المال</h3></div>
+      <div class="chart-wrap">
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span>رأس المال</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div><span>الأرباح المتراكمة</span></div>
+        </div>
+        <div class="bar-chart" id="growthChart"></div>
+      </div>
+    </div>
+
+    <!-- Payment schedule -->
+    <div class="card">
+      <div class="card-head"><span class="icon">📋</span><h3>جدول التوزيعات</h3></div>
+      <div class="schedule-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>التاريخ</th>
+              <th>الأرباح (ر.س)</th>
+              <th>رسوم المنصة (ر.س)</th>
+              <th>صافي الربح (ر.س)</th>
+              <th>الرصيد التراكمي (ر.س)</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const fmt = (n, d=0) => n.toLocaleString('ar-SA', {minimumFractionDigits:d, maximumFractionDigits:d});
+const pct = n => n.toFixed(2) + '%';
+
+function sync(field, val) {
+  const v = parseFloat(val);
+  const lbl = document.getElementById('lbl' + field);
+  if (field === 'Amount') lbl.textContent = fmt(v);
+  else if (field === 'Rate') lbl.textContent = v;
+  else if (field === 'Tenor') lbl.textContent = v;
+  simulate();
+}
+
+function getParams() {
+  return {
+    amount: parseFloat(document.getElementById('rAmount').value),
+    rate: parseFloat(document.getElementById('rRate').value) / 100,
+    tenor: parseInt(document.getElementById('rTenor').value),
+    dist: document.getElementById('sDist').value,
+    fee: parseFloat(document.getElementById('sFee').value) / 100,
+  };
+}
+
+function calcReturns(amount, rate, tenor, feeRate) {
+  const annualGross = amount * rate;
+  const tenorYears = tenor / 12;
+  const grossReturn = annualGross * tenorYears;
+  const feeAmt = grossReturn * feeRate;
+  const netReturn = grossReturn - feeAmt;
+  const effRate = netReturn / amount / tenorYears * 100;
+  const total = amount + netReturn;
+  return { grossReturn, feeAmt, netReturn, effRate, total, annualGross };
+}
+
+function buildSchedule(amount, rate, tenor, feeRate, dist) {
+  const rows = [];
+  let interval;
+  if (dist === 'monthly') interval = 1;
+  else if (dist === 'quarterly') interval = 3;
+  else interval = tenor;
+
+  const now = new Date(2026, 5, 1);
+  let cumNet = 0;
+  let rowIdx = 1;
+
+  for (let m = interval; m <= tenor; m += interval) {
+    const months = interval;
+    const gross = amount * rate / 12 * months;
+    const fee = gross * feeRate;
+    const net = gross - fee;
+    cumNet += net;
+    const dt = new Date(now);
+    dt.setMonth(dt.getMonth() + m);
+    const dateStr = dt.toLocaleDateString('ar-SA', {year:'numeric',month:'2-digit',day:'2-digit'});
+    rows.push({ idx: rowIdx++, date: dateStr, gross, fee, net, balance: amount + cumNet });
+  }
+  return rows;
+}
+
+function simulate() {
+  const { amount, rate, tenor, dist, fee } = getParams();
+  const { grossReturn, feeAmt, netReturn, effRate, total, annualGross } = calcReturns(amount, rate, tenor, fee);
+  const perMonth = netReturn / tenor;
+
+  document.getElementById('kpiNetReturn').textContent = fmt(netReturn) + ' ر.س';
+  document.getElementById('kpiGross').textContent = fmt(grossReturn) + ' ر.س';
+  document.getElementById('kpiFee').textContent = fmt(feeAmt) + ' ر.س';
+  document.getElementById('kpiEffRate').textContent = pct(effRate);
+  document.getElementById('kpiPerMonth').textContent = fmt(perMonth) + ' ر.س';
+  document.getElementById('kpiTotal').textContent = fmt(total) + ' ر.س';
+
+  // Scenarios
+  const scenarios = [
+    { label: 'متحفظ', rate: Math.max(rate - 0.03, 0.05), desc: 'عائد منخفض' },
+    { label: 'معتدل', rate: rate, desc: 'العائد الحالي' },
+    { label: 'متفائل', rate: rate + 0.03, desc: 'عائد مرتفع' },
+  ];
+  const grid = document.getElementById('scenariosGrid');
+  grid.textContent = '';
+  scenarios.forEach((s, i) => {
+    const res = calcReturns(amount, s.rate, tenor, fee);
+    const div = document.createElement('div');
+    div.className = 'scenario' + (i === 1 ? ' active' : '');
+    const name = document.createElement('div'); name.className = 's-name'; name.textContent = s.label;
+    const ret = document.createElement('div'); ret.className = 's-return'; ret.textContent = fmt(res.netReturn) + ' ر.س';
+    const lbl = document.createElement('div'); lbl.className = 's-label'; lbl.textContent = pct(res.effRate) + ' / سنة';
+    div.appendChild(name); div.appendChild(ret); div.appendChild(lbl);
+    grid.appendChild(div);
+  });
+
+  // Schedule
+  const rows = buildSchedule(amount, rate, tenor, fee, dist);
+  const tbody = document.getElementById('scheduleTbody');
+  tbody.textContent = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.idx, r.date, fmt(r.gross,2), fmt(r.fee,2), fmt(r.net,2), fmt(r.balance,2)].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  // Totals row
+  const totalRow = document.createElement('tr');
+  const totals = rows.reduce((a,r) => ({gross:a.gross+r.gross, fee:a.fee+r.fee, net:a.net+r.net}), {gross:0,fee:0,net:0});
+  ['الإجمالي', '—', fmt(totals.gross,2), fmt(totals.fee,2), fmt(totals.net,2), fmt(amount+totals.net,2)].forEach(v => {
+    const td = document.createElement('td'); td.textContent = v; totalRow.appendChild(td);
+  });
+  tbody.appendChild(totalRow);
+
+  // Chart — show quarterly growth (up to 12 bars)
+  const chart = document.getElementById('growthChart');
+  chart.textContent = '';
+  const chartPoints = Math.min(12, tenor);
+  const step = Math.max(1, Math.floor(tenor / chartPoints));
+  const chartRows = [];
+  for (let m = step; m <= tenor; m += step) {
+    const g = amount * rate / 12 * m;
+    const f = g * fee;
+    chartRows.push({ label: m + 'م', principal: amount, profit: g - f });
+  }
+  const maxH = Math.max(...chartRows.map(r => r.principal + r.profit));
+  const H = 120;
+  chartRows.forEach(r => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const profH = Math.round((r.profit / maxH) * H);
+    const prinH = Math.round((r.principal / maxH) * H);
+    const seg1 = document.createElement('div');
+    seg1.className = 'bar-seg profit';
+    seg1.style.height = profH + 'px';
+    const seg2 = document.createElement('div');
+    seg2.className = 'bar-seg principal';
+    seg2.style.height = prinH + 'px';
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = r.label;
+    col.appendChild(seg1);
+    col.appendChild(seg2);
+    col.appendChild(lbl);
+    chart.appendChild(col);
+  });
+}
+
+simulate();
+</script>
+</body>
+</html>

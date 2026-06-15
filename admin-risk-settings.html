@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Risk Settings — Admin — Murbha">إعدادات المخاطر — الإدارة — مُرابحة</title>
+<meta name="description" content="ضبط حدود المخاطر وسياسات التعرض والتدقيق في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;}
+  .page-sub{font:500 13px Tajawal,sans-serif;color:var(--muted);margin-bottom:22px;}
+  /* Risk score card */
+  .risk-overview{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:22px;}
+  @media(max-width:600px){.risk-overview{grid-template-columns:1fr;}}
+  .risk-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;}
+  .risk-card.alert{border-color:#ffcdd2;background:#fff5f5;}
+  .risk-card.warn{border-color:#fff9c4;background:#fffde7;}
+  .risk-card.ok{border-color:#c8e6c9;background:#f1f8e9;}
+  .risk-score{font:900 36px Cairo,sans-serif;margin-bottom:4px;}
+  .risk-score.red{color:#c54a3a;} .risk-score.amber{color:#a07020;} .risk-score.green{color:#2e7d32;}
+  .risk-lbl{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  /* Section cards */
+  .section{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;}
+  .section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Limit rows */
+  .limit-row{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .limit-row:last-child{border-bottom:none;}
+  .limit-info{flex:1;}
+  .limit-name{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .limit-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .limit-control{display:flex;align-items:center;gap:8px;}
+  .limit-input{width:90px;border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font:700 12px Cairo,sans-serif;text-align:center;color:var(--green-dark);outline:none;}
+  .limit-input:focus{border-color:var(--green);}
+  .limit-unit{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .limit-status{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .status-ok{background:#2e7d32;} .status-warn{background:#a07020;} .status-alert{background:#c54a3a;}
+  /* Toggle row */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-info{flex:1;}
+  .toggle-name{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .toggle-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .toggle-switch{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:20px;transition:.2s;}
+  .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+  .toggle-switch input:checked + .toggle-slider{background:var(--green);}
+  .toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px);}
+  /* Breaches table */
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 10px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .badge-breach{background:#fdecea;color:#c54a3a;border-radius:6px;padding:2px 8px;font:700 8px Cairo,sans-serif;}
+  .badge-warning{background:#fff8e1;color:#a07020;border-radius:6px;padding:2px 8px;font:700 8px Cairo,sans-serif;}
+  /* Save */
+  .save-bar{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:11px 28px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2e7d32;color:#fff;border-radius:10px;padding:12px 24px;font:700 12px Cairo,sans-serif;z-index:999;display:none;}
+  .placeholder-msg{font:500 12px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:28px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<main>
+  <div class="page-title" data-en="Risk Management Settings">إعدادات إدارة المخاطر</div>
+  <div class="page-sub" data-en="Configure exposure limits, concentration rules, and automated risk controls.">ضبط حدود التعرض وقواعد التركيز والضوابط الآلية للمخاطر.</div>
+
+  <div class="risk-overview" id="riskOverview"></div>
+
+  <div class="section">
+    <div class="section-title" data-en="Exposure Limits">حدود التعرض</div>
+    <div id="exposureLimits"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title" data-en="Concentration Rules">قواعد التركيز</div>
+    <div id="concentrationRules"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title" data-en="Automated Controls">الضوابط الآلية</div>
+    <div id="autoControls"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title" data-en="Recent Limit Breaches">تجاوزات الحدود الأخيرة</div>
+    <div id="breachArea"></div>
+  </div>
+
+  <div class="save-bar">
+    <button class="btn-save" id="btnSave" data-en="Save Risk Settings">حفظ إعدادات المخاطر</button>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){return(document.cookie.match(/csrf=([^;]+)/)||[])[1]||'';}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>{t.style.display='none';},3000);}
+
+  const limitValues={};
+  const toggleValues={};
+
+  const defaultLimits=[
+    {key:'max_single_deal',name:'الحد الأقصى لصفقة واحدة',desc:'نسبة الحجم الإجمالي للمنصة في صفقة واحدة',value:15,unit:'٪',status:'ok'},
+    {key:'max_sector',name:'الحد الأقصى لقطاع واحد',desc:'نسبة الحجم الإجمالي في قطاع واحد',value:30,unit:'٪',status:'ok'},
+    {key:'max_single_borrower',name:'الحد الأقصى لمقترض واحد',desc:'إجمالي التعرض لكيان واحد',value:20,unit:'٪',status:'warn'},
+    {key:'max_investor_portfolio',name:'الحد الأقصى للمستثمر في صفقة',desc:'نسبة الصفقة التي يمتلكها مستثمر واحد',value:25,unit:'٪',status:'ok'},
+    {key:'min_deal_size',name:'الحد الأدنى لحجم الصفقة',desc:'أقل مبلغ لقبول الصفقة في المنصة',value:500000,unit:'ر.س',status:'ok'},
+    {key:'max_loan_to_value',name:'نسبة القرض للقيمة (LTV)',desc:'الحد الأقصى لنسبة التمويل إلى قيمة الضمان',value:70,unit:'٪',status:'alert'},
+  ];
+
+  const defaultConcentration=[
+    {key:'top5_max',name:'أعلى 5 صفقات',desc:'الحد الأقصى لنسبة أعلى 5 صفقات من الإجمالي',value:40,unit:'٪',status:'ok'},
+    {key:'real_estate_max',name:'العقارات',desc:'الحد الأقصى للتعرض لقطاع العقارات',value:35,unit:'٪',status:'warn'},
+    {key:'single_country_max',name:'دولة واحدة',desc:'الحد الأقصى للتعرض لمقترضين من دولة واحدة',value:80,unit:'٪',status:'ok'},
+  ];
+
+  const defaultToggles=[
+    {key:'auto_halt',name:'إيقاف تلقائي عند تجاوز الحدود',desc:'إيقاف قبول الاستثمارات عند تجاوز أي حد',enabled:true},
+    {key:'daily_report',name:'تقرير مخاطر يومي',desc:'إرسال تقرير مخاطر للفريق عبر البريد يومياً',enabled:true},
+    {key:'stress_test',name:'اختبار الإجهاد الأسبوعي',desc:'تشغيل اختبارات إجهاد آلية كل أسبوع',enabled:false},
+    {key:'breach_alerts',name:'تنبيهات فورية عند الاختراق',desc:'إرسال تنبيه لحظي عند اقتراب أي حد من نسبة التجاوز',enabled:true},
+  ];
+
+  function buildOverview(scores){
+    const el=document.getElementById('riskOverview'); el.textContent='';
+    const cards=[
+      {label:'مؤشر المخاطر الإجمالي',value:scores.overall||72,cls:'warn'},
+      {label:'مخاطر التركيز',value:scores.concentration||45,cls:'ok'},
+      {label:'مخاطر السيولة',value:scores.liquidity||81,cls:'alert'},
+    ];
+    cards.forEach(c=>{
+      const card=document.createElement('div'); card.className='risk-card '+(c.cls==='ok'?'ok':c.cls==='warn'?'warn':'alert');
+      const score=document.createElement('div'); score.className='risk-score '+(c.cls==='ok'?'green':c.cls==='warn'?'amber':'red'); score.textContent=c.value;
+      const lbl=document.createElement('div'); lbl.className='risk-lbl'; lbl.textContent=c.label;
+      card.appendChild(score); card.appendChild(lbl); el.appendChild(card);
+    });
+  }
+
+  function buildLimitRows(items, containerId){
+    const el=document.getElementById(containerId); el.textContent='';
+    items.forEach(item=>{
+      limitValues[item.key]=item.value;
+      const row=document.createElement('div'); row.className='limit-row';
+      const dot=document.createElement('div'); dot.className='limit-status status-'+(item.status||'ok');
+      const info=document.createElement('div'); info.className='limit-info';
+      const name=document.createElement('div'); name.className='limit-name'; name.textContent=item.name;
+      const desc=document.createElement('div'); desc.className='limit-desc'; desc.textContent=item.desc;
+      info.appendChild(name); info.appendChild(desc);
+      const ctrl=document.createElement('div'); ctrl.className='limit-control';
+      const inp=document.createElement('input'); inp.type='text'; inp.className='limit-input'; inp.value=item.value; inp.dataset.key=item.key;
+      inp.addEventListener('input',()=>{ limitValues[item.key]=parseFloat(inp.value)||0; });
+      const unit=document.createElement('span'); unit.className='limit-unit'; unit.textContent=item.unit;
+      ctrl.appendChild(inp); ctrl.appendChild(unit);
+      row.appendChild(dot); row.appendChild(info); row.appendChild(ctrl); el.appendChild(row);
+    });
+  }
+
+  function buildToggles(items){
+    const el=document.getElementById('autoControls'); el.textContent='';
+    items.forEach(item=>{
+      toggleValues[item.key]=item.enabled;
+      const row=document.createElement('div'); row.className='toggle-row';
+      const info=document.createElement('div'); info.className='toggle-info';
+      const name=document.createElement('div'); name.className='toggle-name'; name.textContent=item.name;
+      const desc=document.createElement('div'); desc.className='toggle-desc'; desc.textContent=item.desc;
+      info.appendChild(name); info.appendChild(desc);
+      const lbl=document.createElement('label'); lbl.className='toggle-switch';
+      const chk=document.createElement('input'); chk.type='checkbox'; chk.checked=item.enabled;
+      chk.addEventListener('change',()=>{ toggleValues[item.key]=chk.checked; });
+      const slider=document.createElement('span'); slider.className='toggle-slider';
+      lbl.appendChild(chk); lbl.appendChild(slider);
+      row.appendChild(info); row.appendChild(lbl); el.appendChild(row);
+    });
+  }
+
+  function buildBreaches(items){
+    const el=document.getElementById('breachArea'); el.textContent='';
+    if(!items||!items.length){
+      const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='لا توجد تجاوزات مسجّلة.'; el.appendChild(p); return;
+    }
+    const tbl=document.createElement('table'); tbl.className='tbl';
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    ['الحد المُتجاوَز','القيمة الحالية','الحد المسموح','النوع','التاريخ'].forEach(h=>{
+      const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    items.forEach(b=>{
+      const tr=document.createElement('tr');
+      const badge=document.createElement('span'); badge.className=b.severity==='breach'?'badge-breach':'badge-warning'; badge.textContent=b.severity==='breach'?'تجاوز':'تحذير';
+      const cells=[b.limitName||'—',b.current||'—',b.limit||'—',null,b.date||'—'];
+      cells.forEach((c,ci)=>{
+        const td=document.createElement('td');
+        if(ci===3){ td.appendChild(badge); } else { td.textContent=c; }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); el.appendChild(tbl);
+  }
+
+  async function load(){
+    try{
+      const r=await fetch('/app/admin/risk-settings');
+      if(r.ok){
+        const d=await r.json();
+        buildOverview(d.scores||{});
+        buildLimitRows(d.exposureLimits||defaultLimits,'exposureLimits');
+        buildLimitRows(d.concentrationRules||defaultConcentration,'concentrationRules');
+        buildToggles(d.autoControls||defaultToggles);
+        buildBreaches(d.breaches||[]);
+        return;
+      }
+    }catch{}
+    buildOverview({});
+    buildLimitRows(defaultLimits,'exposureLimits');
+    buildLimitRows(defaultConcentration,'concentrationRules');
+    buildToggles(defaultToggles);
+    buildBreaches([]);
+  }
+
+  document.getElementById('btnSave').addEventListener('click',async()=>{
+    const btn=document.getElementById('btnSave'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/admin/risk-settings',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({limitValues,toggleValues})});
+      btn.disabled=false;
+      if(!r.ok){alert('فشل الحفظ.');return;}
+      toast('تم حفظ إعدادات المخاطر!');
+    }catch{btn.disabled=false;}
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>

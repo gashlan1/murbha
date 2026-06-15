@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Fee Schedule — Murbha">جدول الرسوم — مُرابحة</title>
+<meta name="description" content="شفافية كاملة في رسوم الإدارة والنجاح والخروج المبكر مع حاسبة الرسوم التفاعلية." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .fee-table-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .fee-row{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line);gap:16px;}
+  .fee-row:last-child{border-bottom:none;}
+  .fee-info{flex:1;}
+  .fee-name{font:900 13px Cairo,sans-serif;color:var(--ink);}
+  .fee-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;line-height:1.6;}
+  .fee-amount{text-align:left;flex-shrink:0;}
+  .fee-pct{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .fee-note{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .tier-table{width:100%;border-collapse:collapse;margin-top:14px;}
+  .tier-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:8px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .tier-table td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);}
+  .tier-table tr:last-child td{border-bottom:none;}
+  .td-pct{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .tier-chip{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .chip-bronze{background:#ffccbc;color:#4e342e;}
+  .chip-silver{background:#e0e0e0;color:#424242;}
+  .chip-gold{background:#ffe082;color:#5d4037;}
+  .chip-diamond{background:#b9f2ff;color:#01579b;}
+  .calc-card{background:#fff;border:2px solid var(--gold);border-radius:18px;padding:24px;margin-bottom:18px;}
+  .calc-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .form-input,.form-select{border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-input:focus,.form-select:focus{outline:none;border-color:var(--green);}
+  .btn-calc{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:11px 24px;font:900 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-calc:hover{background:var(--green);}
+  .calc-result{background:var(--paper);border-radius:12px;padding:16px;margin-top:14px;display:none;}
+  .calc-result.visible{display:block;}
+  .result-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);}
+  .result-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px;}
+  .result-key{font:500 12px Tajawal,sans-serif;color:var(--muted);}
+  .result-val{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .result-total{font:900 15px Cairo,sans-serif;color:var(--ink);}
+  .info-card{background:#e8f5e9;border-radius:12px;padding:16px;margin-bottom:18px;}
+  .info-text{font:500 12px Tajawal,sans-serif;color:#2e7d32;line-height:1.7;}
+  @media(max-width:540px){.calc-grid{grid-template-columns:1fr;}}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Fee Schedule">جدول الرسوم</h1>
+    <p data-en="Full transparency on all fees — no hidden charges, no surprises. What you see is what you pay.">شفافية كاملة في جميع الرسوم — لا رسوم مخفية ولا مفاجآت. ما تراه هو ما تدفعه.</p>
+  </div>
+
+  <div class="info-card">
+    <div class="info-text">نلتزم بالشفافية الكاملة في الرسوم وفق متطلبات هيئة السوق المالية. جميع الرسوم المدرجة أدناه تُخصَم من العائد الإجمالي ولا تُحمَّل على رأس المال المستثمر.</div>
+  </div>
+
+  <div class="fee-table-card" id="feeTableCard">
+    <div class="card-title" data-en="Core Fees">الرسوم الأساسية</div>
+    <div id="feeRows"></div>
+  </div>
+
+  <div class="fee-table-card">
+    <div class="card-title" data-en="Fees by Investor Tier">الرسوم حسب مستوى المستثمر</div>
+    <table class="tier-table" id="tierTable">
+      <thead><tr><th>المستوى</th><th>رسوم الإدارة</th><th>رسوم النجاح</th><th>الحد الأدنى للاستثمار</th></tr></thead>
+      <tbody id="tierBody"></tbody>
+    </table>
+  </div>
+
+  <div class="calc-card">
+    <div class="calc-title" data-en="Fee Calculator">حاسبة الرسوم</div>
+    <div class="calc-grid">
+      <div class="form-group">
+        <label class="form-lbl" for="calcAmount">مبلغ الاستثمار (ر.س)</label>
+        <input class="form-input" id="calcAmount" type="number" min="1000" placeholder="50000" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="calcYield">العائد الإجمالي المتوقع (٪)</label>
+        <input class="form-input" id="calcYield" type="number" min="1" max="30" step="0.5" placeholder="14" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="calcDuration">مدة الصفقة (أشهر)</label>
+        <input class="form-input" id="calcDuration" type="number" min="1" max="60" placeholder="12" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="calcTier">مستواك</label>
+        <select class="form-select" id="calcTier">
+          <option value="bronze">برونزي</option>
+          <option value="silver">فضي</option>
+          <option value="gold">ذهبي</option>
+          <option value="diamond">ماسي</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" id="calcBtn" data-en="Calculate Fees">احسب الرسوم</button>
+    <div class="calc-result" id="calcResult"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  const TIER_FEES={
+    bronze:{mgmt:1.5,success:10},
+    silver:{mgmt:1.2,success:8},
+    gold:{mgmt:1.0,success:6},
+    diamond:{mgmt:0.75,success:5}
+  };
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/fee-schedule');
+      if(!r.ok) return renderDefault();
+      const d=await r.json();
+      renderFees(d.fees||[]);
+      renderTiers(d.tiers||[]);
+    }catch{ renderDefault(); }
+  }());
+
+  function renderDefault(){
+    renderFees([
+      {name:'رسوم الإدارة السنوية',desc:'تُحسب على رأس المال المستثمر وتُخصم من العائد الإجمالي قبل التوزيع.',pct:'0.75٪ – 1.5٪',note:'تتفاوت حسب مستوى المستثمر'},
+      {name:'رسوم النجاح',desc:'تُطبَّق فقط عند تحقيق عائد إيجابي — لا عائد للمنصة إلا إذا ربحت أنت.',pct:'5٪ – 10٪',note:'من صافي الربح فقط'},
+      {name:'رسوم الخروج المبكر',desc:'في حال البيع في السوق الثانوي قبل انتهاء مدة الصفقة.',pct:'0.5٪',note:'من قيمة الصفقة — لا تنطبق على الاستحقاق الطبيعي'},
+      {name:'رسوم التحويل البنكي',desc:'رسوم التحويل الواردة من البنوك الخارجية لشبكة سداد.',pct:'صفر',note:'مُرابحة تتحمل رسوم الإيداع عنك'},
+      {name:'رسوم الإحالة والمكافآت',desc:'لا يُطبَّق أي خصم على مكافآت الإحالة — تُضاف كاملة لمحفظتك.',pct:'صفر',note:''}
+    ]);
+    renderTiers([
+      {tier:'bronze',label:'برونزي',chipCls:'chip-bronze',mgmt:'1.5٪',success:'10٪',minInvest:'5,000'},
+      {tier:'silver',label:'فضي',chipCls:'chip-silver',mgmt:'1.2٪',success:'8٪',minInvest:'50,000'},
+      {tier:'gold',label:'ذهبي',chipCls:'chip-gold',mgmt:'1.0٪',success:'6٪',minInvest:'200,000'},
+      {tier:'diamond',label:'ماسي',chipCls:'chip-diamond',mgmt:'0.75٪',success:'5٪',minInvest:'1,000,000'}
+    ]);
+  }
+
+  function renderFees(fees){
+    const container=document.getElementById('feeRows'); container.textContent='';
+    fees.forEach(f=>{
+      const row=document.createElement('div'); row.className='fee-row';
+      const info=document.createElement('div'); info.className='fee-info';
+      const name=document.createElement('div'); name.className='fee-name'; name.textContent=f.name||'—';
+      const desc=document.createElement('div'); desc.className='fee-desc'; desc.textContent=f.desc||'—';
+      info.appendChild(name); info.appendChild(desc);
+      const amt=document.createElement('div'); amt.className='fee-amount';
+      const pct=document.createElement('div'); pct.className='fee-pct'; pct.textContent=f.pct||'—';
+      amt.appendChild(pct);
+      if(f.note){ const note=document.createElement('div'); note.className='fee-note'; note.textContent=f.note; amt.appendChild(note); }
+      row.appendChild(info); row.appendChild(amt); container.appendChild(row);
+    });
+  }
+
+  function renderTiers(tiers){
+    const body=document.getElementById('tierBody'); body.textContent='';
+    const tierLabels={bronze:'برونزي',silver:'فضي',gold:'ذهبي',diamond:'ماسي'};
+    const tierChips={bronze:'chip-bronze',silver:'chip-silver',gold:'chip-gold',diamond:'chip-diamond'};
+    tiers.forEach(t=>{
+      const tr=document.createElement('tr');
+      const tdLabel=document.createElement('td');
+      const chip=document.createElement('span'); chip.className='tier-chip '+(t.chipCls||tierChips[t.tier]||'chip-bronze');
+      chip.textContent=t.label||tierLabels[t.tier]||t.tier;
+      tdLabel.appendChild(chip);
+      const tdMgmt=document.createElement('td'); tdMgmt.className='td-pct'; tdMgmt.textContent=t.mgmt||'—';
+      const tdSuccess=document.createElement('td'); tdSuccess.className='td-pct'; tdSuccess.textContent=t.success||'—';
+      const tdMin=document.createElement('td'); tdMin.textContent=(t.minInvest||'—')+' ر.س';
+      tr.appendChild(tdLabel); tr.appendChild(tdMgmt); tr.appendChild(tdSuccess); tr.appendChild(tdMin);
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('calcBtn').addEventListener('click',()=>{
+    const amount=parseFloat(document.getElementById('calcAmount').value)||0;
+    const yieldPct=parseFloat(document.getElementById('calcYield').value)||0;
+    const duration=parseInt(document.getElementById('calcDuration').value)||0;
+    const tier=document.getElementById('calcTier').value;
+    if(!amount||!yieldPct||!duration){ alert('الرجاء إدخال جميع الحقول.'); return; }
+    const fees=TIER_FEES[tier]||TIER_FEES.bronze;
+    const grossProfit=amount*(yieldPct/100)*(duration/12);
+    const mgmtFee=amount*(fees.mgmt/100)*(duration/12);
+    const successFee=grossProfit*(fees.success/100);
+    const totalFees=mgmtFee+successFee;
+    const netProfit=grossProfit-totalFees;
+    const result=document.getElementById('calcResult'); result.classList.add('visible'); result.textContent='';
+    const rows=[
+      ['إجمالي العائد قبل الرسوم',fmt(grossProfit)+' ر.س'],
+      ['رسوم الإدارة ('+fees.mgmt+'٪ سنوياً)',fmt(mgmtFee)+' ر.س'],
+      ['رسوم النجاح ('+fees.success+'٪ من الربح)',fmt(successFee)+' ر.س'],
+      ['إجمالي الرسوم',fmt(totalFees)+' ر.س'],
+      ['صافي العائد لك',fmt(netProfit)+' ر.س']
+    ];
+    rows.forEach((r,i)=>{
+      const row=document.createElement('div'); row.className='result-row';
+      const key=document.createElement('div'); key.className='result-key'; key.textContent=r[0];
+      const val=document.createElement('div'); val.className=i===rows.length-1?'result-total':'result-val'; val.textContent=r[1];
+      row.appendChild(key); row.appendChild(val); result.appendChild(row);
+    });
+  });
+}());
+</script>
+</body>
+</html>

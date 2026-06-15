@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قائمة الامتثال - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.progress-banner{background:linear-gradient(135deg,#062b1e 0%,#0a4d36 100%);border-radius:14px;padding:1.5rem 2rem;color:#fff;display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.prog-left h3{font-size:1rem;font-weight:700;margin-bottom:0.25rem;}
+.prog-left p{font-size:0.82rem;color:rgba(255,255,255,0.7);}
+.prog-bar-wrap{margin-top:0.75rem;background:rgba(255,255,255,0.15);border-radius:20px;height:8px;width:300px;}
+.prog-bar-fill{height:8px;border-radius:20px;background:#6de0a8;transition:width 0.4s;}
+.prog-pct{font-size:2rem;font-weight:700;color:#6de0a8;}
+.filter-bar{background:#fff;border-radius:10px;border:1px solid var(--line);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.filter-btn{padding:0.35rem 0.85rem;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+.filter-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.checklist-section{padding:0 1.25rem 1rem;}
+.section-title{font-size:0.82rem;font-weight:700;color:var(--muted);padding:0.85rem 0 0.5rem;border-bottom:1px solid var(--line);margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;}
+.section-badge{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:10px;}
+.badge-green{background:#e8f5ed;color:#1e8449;}
+.badge-yellow{background:#fef3cd;color:#92400e;}
+.badge-red{background:#fde8e8;color:#c0392b;}
+.check-row{display:flex;align-items:flex-start;gap:0.85rem;padding:0.6rem 0;border-bottom:1px solid rgba(13,22,18,0.05);}
+.check-row:last-child{border-bottom:none;}
+.check-box{width:20px;height:20px;border-radius:4px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;margin-top:0.15rem;}
+.check-box.checked{background:var(--green);border-color:var(--green);color:#fff;}
+.check-box.partial{background:#fef3cd;border-color:#e67e22;color:#e67e22;}
+.check-info{flex:1;}
+.check-label{font-size:0.84rem;font-weight:600;}
+.check-meta{font-size:0.73rem;color:var(--muted);margin-top:0.2rem;}
+.check-due{font-size:0.71rem;color:#e67e22;margin-top:0.15rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:600px){.prog-bar-wrap{width:200px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — قائمة الامتثال</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>قائمة التحقق من الامتثال</h2>
+      <p>متطلبات الامتثال التنظيمي والشرعي والمؤسسي</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportChecklist()">تصدير التقرير</button>
+  </div>
+
+  <div class="progress-banner">
+    <div class="prog-left">
+      <h3>مستوى الامتثال الكلي</h3>
+      <p>آخر مراجعة: ١٥ يونيو ٢٠٢٦ · الفترة: الربع الثاني</p>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-fill" id="mainProgBar" style="width:78%;"></div>
+      </div>
+    </div>
+    <div class="prog-pct" id="mainPct">٧٨٪</div>
+  </div>
+
+  <div class="filter-bar">
+    <span style="font-size:0.82rem;font-weight:600;">عرض:</span>
+    <button class="filter-btn active" onclick="setFilter(this,'all')">الكل</button>
+    <button class="filter-btn" onclick="setFilter(this,'pending')">المعلّقة</button>
+    <button class="filter-btn" onclick="setFilter(this,'done')">المكتملة</button>
+    <button class="filter-btn" onclick="setFilter(this,'overdue')">المتأخرة</button>
+  </div>
+
+  <div class="card" id="checklistCard">
+    <div class="card-head">
+      <h3>بنود الامتثال التفصيلية</h3>
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.7);">٣٢ بنداً</span>
+    </div>
+    <div class="checklist-section" id="checklistBody"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="markAll()">تحديد الكل مكتملاً</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="addItem()">+ إضافة بند</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    title: 'الامتثال التنظيمي (هيئة السوق المالية)',
+    items: [
+      { label: 'ترخيص النشاط ساري المفعول', meta: 'رقم الترخيص: FIN-2024-0892', due: null, done: true },
+      { label: 'تقرير الإفصاح الفصلي', meta: 'الربع الثاني 2026', due: '٣٠ يونيو', done: false },
+      { label: 'تحديث السياسات الداخلية', meta: 'سياسة مكافحة غسل الأموال', due: null, done: true },
+      { label: 'اختبارات الإجهاد التنظيمية', meta: 'سيناريوهات Q2 2026', due: '٢٥ يونيو', done: false },
+      { label: 'تقرير ملكية الأوراق المالية', meta: 'التقرير الشهري', due: null, done: true }
+    ]
+  },
+  {
+    title: 'الامتثال الشرعي',
+    items: [
+      { label: 'اعتماد هيئة الرقابة الشرعية', meta: 'دوري كل ٦ أشهر', due: null, done: true },
+      { label: 'مراجعة عقود المرابحة النشطة', meta: '٤٢ عقداً قيد المراجعة', due: null, done: true },
+      { label: 'تقرير الزكاة السنوي', meta: 'العام المالي 2025', due: null, done: true },
+      { label: 'مراجعة هيكل الأرباح والعوائد', meta: 'التأكد من عدم وجود ربا', due: '٢٠ يونيو', done: false },
+      { label: 'شهادة الصكوك الجديدة', meta: 'الصك رقم SK-2026-07', due: '١٥ يوليو', done: false }
+    ]
+  },
+  {
+    title: 'إدارة المخاطر',
+    items: [
+      { label: 'مراجعة سياسة إدارة المخاطر', meta: 'تحديث ربعي', due: null, done: true },
+      { label: 'اختبار خطة استمرارية الأعمال', meta: 'BCP Test 2026-H1', due: null, done: true },
+      { label: 'تقييم المخاطر التشغيلية', meta: 'Q2 ORM Assessment', due: '٣٠ يونيو', done: false },
+      { label: 'تحديث سجل المخاطر', meta: '٨ مخاطر جديدة معلّقة', due: '٢٢ يونيو', done: false },
+      { label: 'مراجعة حدود التعرض الائتماني', meta: 'مراجعة شهرية', due: null, done: true }
+    ]
+  },
+  {
+    title: 'حماية البيانات والأمن السيبراني',
+    items: [
+      { label: 'مراجعة سياسة الخصوصية', meta: 'PDPL KSA 2024 متوافقة', due: null, done: true },
+      { label: 'اختبار الاختراق الأمني', meta: 'Penetration Test Q2', due: '٢٨ يونيو', done: false },
+      { label: 'تدريب الموظفين على الأمن', meta: '٤٥/٦٢ موظف أنهوا التدريب', due: '٣٠ يونيو', done: false },
+      { label: 'مراجعة صلاحيات الوصول', meta: 'Access Control Review', due: null, done: true },
+      { label: 'تحديث خطة الاستجابة للحوادث', meta: 'IRP v3.2', due: null, done: true }
+    ]
+  }
+];
+
+function buildChecklist() {
+  const body = document.getElementById('checklistBody');
+  body.textContent = '';
+  let total = 0, done = 0;
+  SECTIONS.forEach(section => {
+    const secDone = section.items.filter(i => i.done).length;
+    total += section.items.length;
+    done += secDone;
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'section-title';
+    const titleText = document.createTextNode(section.title);
+    titleDiv.appendChild(titleText);
+    const badge = document.createElement('span');
+    badge.className = 'section-badge ' + (secDone === section.items.length ? 'badge-green' : secDone > 0 ? 'badge-yellow' : 'badge-red');
+    badge.textContent = secDone + '/' + section.items.length;
+    titleDiv.appendChild(badge);
+    body.appendChild(titleDiv);
+    section.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'check-row';
+      const box = document.createElement('div');
+      box.className = 'check-box' + (item.done ? ' checked' : '');
+      box.textContent = item.done ? '✓' : '';
+      box.onclick = () => { item.done = !item.done; buildChecklist(); };
+      const info = document.createElement('div');
+      info.className = 'check-info';
+      const lbl = document.createElement('div');
+      lbl.className = 'check-label';
+      lbl.textContent = item.label;
+      const meta = document.createElement('div');
+      meta.className = 'check-meta';
+      meta.textContent = item.meta;
+      info.appendChild(lbl); info.appendChild(meta);
+      if (item.due && !item.done) {
+        const dueDiv = document.createElement('div');
+        dueDiv.className = 'check-due';
+        dueDiv.textContent = 'الموعد: ' + item.due;
+        info.appendChild(dueDiv);
+      }
+      row.appendChild(box); row.appendChild(info);
+      body.appendChild(row);
+    });
+  });
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('mainPct').textContent = pct + '٪';
+  document.getElementById('mainProgBar').style.width = pct + '%';
+}
+
+function setFilter(btn, type) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function markAll() {
+  SECTIONS.forEach(s => s.items.forEach(i => { i.done = true; }));
+  buildChecklist();
+}
+
+function addItem() {
+  alert('فتح نموذج إضافة بند امتثال جديد');
+}
+
+function exportChecklist() {
+  fetch('/app/admin/compliance/checklist/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير قائمة الامتثال...');
+}
+
+buildChecklist();
+</script>
+</body>
+</html>

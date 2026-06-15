@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تحديثات الصفقات — مُرابحة</title>
+<meta name="description" content="آخر الأخبار والتحديثات من الصفقات التي تستثمر فيها." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .filter-chip{border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;background:var(--paper);color:var(--muted);}
+  .filter-chip.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .updates-feed{display:grid;gap:14px;}
+  .update-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;}
+  .update-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px;}
+  .update-deal{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .update-date{font:500 10px Tajawal,sans-serif;color:var(--muted);flex-shrink:0;}
+  .update-type{border-radius:6px;padding:3px 9px;font:700 9px Cairo,sans-serif;display:inline-block;margin-bottom:8px;}
+  .type-milestone{background:#e8f5e9;color:#2e7d32;}
+  .type-financial{background:#e3f2fd;color:#1565c0;}
+  .type-alert{background:#fdecea;color:#c54a3a;}
+  .type-general{background:#f5f5f5;color:#616161;}
+  .type-profit{background:#fff8e1;color:#a07020;}
+  .update-title{font:900 13px Cairo,sans-serif;color:var(--ink);margin-bottom:6px;}
+  .update-body{font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  .update-meta{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  .meta-item{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .meta-item strong{font:700 10px Cairo,sans-serif;color:var(--ink);}
+  .load-more{width:100%;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;font:700 12px Cairo,sans-serif;cursor:pointer;color:var(--muted);margin-top:4px;}
+  .load-more:hover{background:#f0ebe0;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>تحديثات الصفقات</h1>
+    <p>تابع آخر الأخبار والمعالم والتقارير المالية من جميع الصفقات التي تستثمر فيها.</p>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <button class="filter-chip active" data-type="">الكل</button>
+    <button class="filter-chip" data-type="milestone">معالم</button>
+    <button class="filter-chip" data-type="financial">مالية</button>
+    <button class="filter-chip" data-type="profit">أرباح</button>
+    <button class="filter-chip" data-type="alert">تنبيهات</button>
+    <button class="filter-chip" data-type="general">عامة</button>
+  </div>
+
+  <div class="updates-feed" id="updatesFeed"></div>
+  <button class="load-more" id="loadMoreBtn" style="display:none">تحميل المزيد</button>
+</main>
+<script>
+(function(){
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  let currentType='';
+  let currentPage=1;
+  const PAGE_SIZE=10;
+
+  function typeLabel(t){ const m={milestone:'معلم',financial:'مالي',alert:'تنبيه',general:'عام',profit:'أرباح'}; return m[t]||t||'عام'; }
+  function typeCls(t){ return 'update-type type-'+(t||'general'); }
+
+  function renderUpdate(u, feed){
+    const card=document.createElement('div'); card.className='update-card';
+    const hdr=document.createElement('div'); hdr.className='update-header';
+    const deal=document.createElement('div'); deal.className='update-deal'; deal.textContent=u.dealName||'صفقة';
+    const date=document.createElement('div'); date.className='update-date'; date.textContent=u.date||'—';
+    hdr.appendChild(deal); hdr.appendChild(date);
+    const typeBadge=document.createElement('div'); typeBadge.className=typeCls(u.type); typeBadge.textContent=typeLabel(u.type);
+    const title=document.createElement('div'); title.className='update-title'; title.textContent=u.title||'—';
+    const body=document.createElement('div'); body.className='update-body'; body.textContent=u.body||'—';
+    card.appendChild(hdr); card.appendChild(typeBadge); card.appendChild(title); card.appendChild(body);
+    if(u.sector||u.progress!=null){
+      const meta=document.createElement('div'); meta.className='update-meta';
+      if(u.sector){ const m=document.createElement('div'); m.className='meta-item'; const s=document.createElement('strong'); s.textContent=u.sector; m.textContent='القطاع: '; m.appendChild(s); meta.appendChild(m); }
+      if(u.progress!=null){ const m=document.createElement('div'); m.className='meta-item'; const s=document.createElement('strong'); s.textContent=u.progress+'٪'; m.textContent='نسبة الإنجاز: '; m.appendChild(s); meta.appendChild(m); }
+      card.appendChild(meta);
+    }
+    feed.appendChild(card);
+  }
+
+  async function loadUpdates(type, page, append){
+    const feed=document.getElementById('updatesFeed');
+    if(!append){ feed.textContent=''; placeholder(feed,'جارٍ التحميل…'); }
+    let url='/app/me/deal-updates?page='+page+'&limit='+PAGE_SIZE;
+    if(type) url+='&type='+encodeURIComponent(type);
+    try{
+      const r=await fetch(url);
+      if(!r.ok){ placeholder(feed,r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const updates=d.updates||[];
+      if(!append) feed.textContent='';
+      if(!updates.length && !append){ placeholder(feed,'لا توجد تحديثات حتى الآن.'); document.getElementById('loadMoreBtn').style.display='none'; return; }
+      updates.forEach(u=>renderUpdate(u,feed));
+      document.getElementById('loadMoreBtn').style.display=d.hasMore?'block':'none';
+    }catch{ if(!append) placeholder(feed,'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('filterRow').addEventListener('click', e=>{
+    const btn=e.target.closest('.filter-chip'); if(!btn) return;
+    document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentType=btn.dataset.type; currentPage=1; loadUpdates(currentType,1,false);
+  });
+
+  document.getElementById('loadMoreBtn').addEventListener('click',()=>{ currentPage++; loadUpdates(currentType,currentPage,true); });
+
+  loadUpdates('',1,false);
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>وثيقة الشروط - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.deal-selector{display:flex;align-items:center;gap:1rem;margin-bottom:2rem;}
+.deal-selector label{font-size:0.88rem;font-weight:600;white-space:nowrap;}
+.deal-selector select{flex:1;padding:0.55rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;background:#fff;color:var(--green-dark);}
+.term-sheet{background:#fff;border-radius:14px;border:2px solid var(--line);overflow:hidden;}
+.ts-header{background:var(--green-dark);color:#fff;padding:1.75rem 2rem;display:flex;align-items:flex-start;justify-content:space-between;}
+.ts-title-block{}
+.ts-deal-name{font-size:1.3rem;font-weight:700;}
+.ts-sub{font-size:0.82rem;color:rgba(255,255,255,0.7);margin-top:0.3rem;}
+.ts-status{font-size:0.78rem;font-weight:700;padding:0.3rem 0.85rem;border-radius:20px;background:rgba(255,255,255,0.15);}
+.ts-body{padding:2rem;}
+.ts-section{margin-bottom:2rem;}
+.ts-section-title{font-size:0.9rem;font-weight:700;color:var(--green);border-bottom:2px solid var(--green);padding-bottom:0.4rem;margin-bottom:1rem;letter-spacing:0.03em;}
+.ts-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
+.ts-row{display:flex;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.ts-key{flex:1;font-size:0.84rem;color:var(--muted);}
+.ts-val{flex:1;font-size:0.84rem;font-weight:600;color:var(--green-dark);}
+.ts-full-row{display:flex;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.ts-full-row .ts-key{flex:0 0 40%;}
+.milestone-list{list-style:none;}
+.milestone-item{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.milestone-item:last-child{border-bottom:none;}
+.ms-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.ms-text{font-size:0.84rem;color:var(--green-dark);}
+.ms-date{font-size:0.78rem;color:var(--muted);margin-right:auto;}
+.ts-footer{background:#f5f0e8;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.ts-footer-note{font-size:0.76rem;color:var(--muted);max-width:60%;}
+.ts-footer-actions{display:flex;gap:0.75rem;}
+@media(max-width:768px){.ts-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — وثيقة الشروط</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>وثيقة شروط الصفقة</h2>
+  </div>
+
+  <div class="deal-selector">
+    <label>اختر الصفقة:</label>
+    <select id="dealSelect" onchange="loadTermSheet()">
+      <option value="0">مجمع الروضة السكني</option>
+      <option value="1">منصة FinTech B2B</option>
+      <option value="2">محطة طاقة شمسية</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="exportPDF()">تحميل PDF</button>
+  </div>
+
+  <div class="term-sheet" id="termSheet"></div>
+</div>
+
+<script>
+const deals = [
+  {
+    name:'مجمع الروضة السكني',
+    type:'مرابحة عقارية',
+    status:'نشطة',
+    financials:[
+      {k:'إجمالي قيمة المشروع',v:'٢٤,٠٠٠,٠٠٠ ر.س'},
+      {k:'حجم التمويل المطلوب',v:'١٦,٠٠٠,٠٠٠ ر.س'},
+      {k:'الحصة الخاصة بالمنصة',v:'٦٧٪'},
+      {k:'الحد الأدنى للمشاركة',v:'٥٠,٠٠٠ ر.س'},
+      {k:'العائد السنوي المستهدف',v:'١٠٪'},
+      {k:'مدة الصفقة',v:'٤ سنوات'},
+    ],
+    payment:[
+      {k:'جدول توزيع الأرباح',v:'ربع سنوي'},
+      {k:'تاريخ أول توزيع',v:'٠١ أبريل ٢٠٢٤'},
+      {k:'رسوم الإدارة',v:'١٪ سنوياً'},
+      {k:'رسوم الخروج المبكر',v:'٢٪ من رأس المال'},
+    ],
+    milestones:[
+      {text:'استلام دفعة أولى من المطور',date:'ديسمبر ٢٠٢٣'},
+      {text:'بدء الإنشاءات - المرحلة الأولى',date:'مارس ٢٠٢٤'},
+      {text:'اكتمال ٥٠٪ من المشروع',date:'سبتمبر ٢٠٢٤'},
+      {text:'التسليم النهائي',date:'ديسمبر ٢٠٢٧'},
+    ],
+    legal:[
+      {k:'الجهة المصدرة',v:'مُرابحة للاستثمار — ترخيص هيئة السوق المالية'},
+      {k:'القانون الحاكم',v:'نظام الشركات السعودي'},
+      {k:'النزاعات',v:'هيئة الفصل في منازعات الأوراق المالية'},
+      {k:'الامتثال الشريعي',v:'موافق من هيئة الرقابة الشرعية'},
+    ],
+  },
+  {
+    name:'منصة FinTech B2B',
+    type:'مرابحة تقنية',
+    status:'نشطة',
+    financials:[
+      {k:'إجمالي قيمة المشروع',v:'٨,٠٠٠,٠٠٠ ر.س'},
+      {k:'حجم التمويل المطلوب',v:'٥,٤٠٠,٠٠٠ ر.س'},
+      {k:'الحصة الخاصة بالمنصة',v:'٦٧٪'},
+      {k:'الحد الأدنى للمشاركة',v:'٣٠,٠٠٠ ر.س'},
+      {k:'العائد السنوي المستهدف',v:'١٢٪'},
+      {k:'مدة الصفقة',v:'٣ سنوات'},
+    ],
+    payment:[
+      {k:'جدول توزيع الأرباح',v:'شهري'},
+      {k:'تاريخ أول توزيع',v:'٠١ فبراير ٢٠٢٤'},
+      {k:'رسوم الإدارة',v:'١.٥٪ سنوياً'},
+      {k:'رسوم الخروج المبكر',v:'٣٪ من رأس المال'},
+    ],
+    milestones:[
+      {text:'إطلاق النسخة التجريبية',date:'يناير ٢٠٢٤'},
+      {text:'الوصول لـ ١٠٠ عميل تجاري',date:'يونيو ٢٠٢٤'},
+      {text:'التوسع في ٣ دول خليجية',date:'يناير ٢٠٢٥'},
+      {text:'نضج الصفقة',date:'ديسمبر ٢٠٢٦'},
+    ],
+    legal:[
+      {k:'الجهة المصدرة',v:'مُرابحة للاستثمار — ترخيص هيئة السوق المالية'},
+      {k:'القانون الحاكم',v:'نظام الشركات السعودي'},
+      {k:'النزاعات',v:'هيئة الفصل في منازعات الأوراق المالية'},
+      {k:'الامتثال الشريعي',v:'موافق من هيئة الرقابة الشرعية'},
+    ],
+  },
+  {
+    name:'محطة طاقة شمسية',
+    type:'مرابحة طاقة',
+    status:'نشطة',
+    financials:[
+      {k:'إجمالي قيمة المشروع',v:'١٨,٠٠٠,٠٠٠ ر.س'},
+      {k:'حجم التمويل المطلوب',v:'١٢,٠٠٠,٠٠٠ ر.س'},
+      {k:'الحصة الخاصة بالمنصة',v:'٦٧٪'},
+      {k:'الحد الأدنى للمشاركة',v:'١٠٠,٠٠٠ ر.س'},
+      {k:'العائد السنوي المستهدف',v:'١٤٪'},
+      {k:'مدة الصفقة',v:'٥ سنوات'},
+    ],
+    payment:[
+      {k:'جدول توزيع الأرباح',v:'ربع سنوي'},
+      {k:'تاريخ أول توزيع',v:'٠١ يوليو ٢٠٢٤'},
+      {k:'رسوم الإدارة',v:'١٪ سنوياً'},
+      {k:'رسوم الخروج المبكر',v:'٢٪ من رأس المال'},
+    ],
+    milestones:[
+      {text:'توقيع عقود الشبكة الكهربائية',date:'مارس ٢٠٢٤'},
+      {text:'اكتمال التركيب',date:'أكتوبر ٢٠٢٤'},
+      {text:'أول دفعة طاقة تجارية',date:'يناير ٢٠٢٥'},
+      {text:'نضج الصفقة',date:'ديسمبر ٢٠٢٨'},
+    ],
+    legal:[
+      {k:'الجهة المصدرة',v:'مُرابحة للاستثمار — ترخيص هيئة السوق المالية'},
+      {k:'القانون الحاكم',v:'نظام الشركات السعودي'},
+      {k:'النزاعات',v:'هيئة الفصل في منازعات الأوراق المالية'},
+      {k:'الامتثال الشريعي',v:'موافق من هيئة الرقابة الشرعية'},
+    ],
+  },
+];
+
+function buildSection(title, rows, fullWidth){
+  const sec = document.createElement('div');
+  sec.className = 'ts-section';
+  const st = document.createElement('div');
+  st.className = 'ts-section-title';
+  st.textContent = title;
+  sec.appendChild(st);
+  const grid = document.createElement('div');
+  grid.className = fullWidth ? '' : 'ts-grid';
+  rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = fullWidth ? 'ts-full-row' : 'ts-row';
+    const key = document.createElement('span');
+    key.className = 'ts-key';
+    key.textContent = r.k;
+    const val = document.createElement('span');
+    val.className = 'ts-val';
+    val.textContent = r.v;
+    row.appendChild(key);
+    row.appendChild(val);
+    grid.appendChild(row);
+  });
+  sec.appendChild(grid);
+  return sec;
+}
+
+function loadTermSheet(){
+  const idx = parseInt(document.getElementById('dealSelect').value) || 0;
+  const d = deals[idx];
+  const sheet = document.getElementById('termSheet');
+  sheet.textContent = '';
+
+  const head = document.createElement('div');
+  head.className = 'ts-header';
+  const titleBlock = document.createElement('div');
+  titleBlock.className = 'ts-title-block';
+  const dealName = document.createElement('div');
+  dealName.className = 'ts-deal-name';
+  dealName.textContent = d.name;
+  const sub = document.createElement('div');
+  sub.className = 'ts-sub';
+  sub.textContent = 'نوع الصفقة: ' + d.type + ' · وثيقة الشروط والأحكام';
+  titleBlock.appendChild(dealName);
+  titleBlock.appendChild(sub);
+  const statusEl = document.createElement('span');
+  statusEl.className = 'ts-status';
+  statusEl.textContent = d.status;
+  head.appendChild(titleBlock);
+  head.appendChild(statusEl);
+
+  const body = document.createElement('div');
+  body.className = 'ts-body';
+  body.appendChild(buildSection('١. الشروط المالية', d.financials, false));
+  body.appendChild(buildSection('٢. جدول المدفوعات والرسوم', d.payment, true));
+
+  const msSection = document.createElement('div');
+  msSection.className = 'ts-section';
+  const msSt = document.createElement('div');
+  msSt.className = 'ts-section-title';
+  msSt.textContent = '٣. المعالم الرئيسية';
+  const msList = document.createElement('ul');
+  msList.className = 'milestone-list';
+  d.milestones.forEach(m => {
+    const li = document.createElement('li');
+    li.className = 'milestone-item';
+    const dot = document.createElement('div');
+    dot.className = 'ms-dot';
+    const txt = document.createElement('span');
+    txt.className = 'ms-text';
+    txt.textContent = m.text;
+    const dt = document.createElement('span');
+    dt.className = 'ms-date';
+    dt.textContent = m.date;
+    li.appendChild(dot);
+    li.appendChild(txt);
+    li.appendChild(dt);
+    msList.appendChild(li);
+  });
+  msSection.appendChild(msSt);
+  msSection.appendChild(msList);
+  body.appendChild(msSection);
+  body.appendChild(buildSection('٤. الإطار القانوني والامتثال', d.legal, true));
+
+  const footer = document.createElement('div');
+  footer.className = 'ts-footer';
+  const note = document.createElement('p');
+  note.className = 'ts-footer-note';
+  note.textContent = 'هذه الوثيقة للأغراض المعلوماتية فقط. الالتزام القانوني يتم بعد التوقيع الرسمي على عقد الاستثمار.';
+  const actions = document.createElement('div');
+  actions.className = 'ts-footer-actions';
+  const dlBtn = document.createElement('button');
+  dlBtn.className = 'btn btn-secondary btn-sm';
+  dlBtn.textContent = 'تحميل PDF';
+  dlBtn.onclick = () => exportPDF();
+  const signBtn = document.createElement('button');
+  signBtn.className = 'btn btn-primary btn-sm';
+  signBtn.textContent = 'التوقيع الإلكتروني';
+  signBtn.onclick = () => signTermSheet(d.name);
+  actions.appendChild(dlBtn);
+  actions.appendChild(signBtn);
+  footer.appendChild(note);
+  footer.appendChild(actions);
+
+  sheet.appendChild(head);
+  sheet.appendChild(body);
+  sheet.appendChild(footer);
+}
+
+async function exportPDF(){
+  const idx = parseInt(document.getElementById('dealSelect').value) || 0;
+  try {
+    const res = await fetch('/app/deals/term-sheet/export?dealId=' + idx);
+    await res.json();
+  } catch(e){}
+}
+
+async function signTermSheet(name){
+  try {
+    await fetch('/app/deals/term-sheet/sign', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({deal: name})
+    });
+  } catch(e){}
+}
+
+loadTermSheet();
+</script>
+</body>
+</html>

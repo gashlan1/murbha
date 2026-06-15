@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>إعادة التوازن — مُرابحة</title>
+<meta name="description" content="قارن توزيع محفظتك الحالية بالأهداف المستهدفة واحصل على توصيات إعادة التوازن." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 80px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .score-card{background:#fff;border:2px solid var(--gold);border-radius:18px;padding:24px;margin-bottom:18px;text-align:center;}
+  .score-lbl{font:500 12px Tajawal,sans-serif;color:var(--muted);}
+  .score-val{font:900 48px Cairo,sans-serif;color:var(--green-dark);line-height:1;}
+  .score-desc{font:500 12px Tajawal,sans-serif;color:var(--muted);margin-top:6px;}
+  .section-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .alloc-row{margin-bottom:14px;}
+  .alloc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .alloc-label{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .alloc-pcts{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .bar-track{height:10px;background:var(--paper);border-radius:5px;overflow:hidden;position:relative;}
+  .bar-target{position:absolute;top:0;height:100%;background:var(--line);border-radius:5px;}
+  .bar-actual{position:absolute;top:0;height:100%;border-radius:5px;transition:width .4s;}
+  .bar-over{background:#c54a3a;}
+  .bar-under{background:var(--green);}
+  .bar-ok{background:var(--green);}
+  .alloc-delta{font:700 10px Cairo,sans-serif;margin-top:3px;}
+  .delta-over{color:#c54a3a;}
+  .delta-under{color:var(--gold);}
+  .delta-ok{color:#2e7d32;}
+  .rec-list{display:grid;gap:10px;}
+  .rec-item{border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;}
+  .rec-reduce{background:#fdecea;}
+  .rec-increase{background:#e8f5e9;}
+  .rec-icon{font-size:18px;flex-shrink:0;}
+  .rec-text{font:500 12px Tajawal,sans-serif;color:var(--ink);line-height:1.6;}
+  .rec-label{font:900 11px Cairo,sans-serif;color:var(--green-dark);margin-bottom:3px;}
+  .btn-execute{width:100%;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:11px;padding:14px;font:900 14px Cairo,sans-serif;cursor:pointer;margin-top:4px;}
+  .btn-execute:hover{background:var(--green);}
+  .btn-execute:disabled{opacity:.5;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>إعادة توازن المحفظة</h1>
+    <p>قارن توزيع محفظتك الحالي بالأوزان المستهدفة واحصل على توصيات تلقائية لإعادة التوازن.</p>
+  </div>
+
+  <div class="score-card" id="scoreCard">
+    <div class="score-lbl">درجة التوازن الحالية</div>
+    <div class="score-val" id="scoreVal">—</div>
+    <div class="score-desc" id="scoreDesc">جارٍ التحميل…</div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">توزيع القطاعات الحالي مقابل المستهدف</div>
+    <div id="allocArea"></div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">توصيات إعادة التوازن</div>
+    <div id="recsArea"></div>
+    <button class="btn-execute" id="executeBtn" style="display:none">تطبيق إعادة التوازن تلقائياً</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  (async function load(){
+    const allocArea=document.getElementById('allocArea');
+    const recsArea=document.getElementById('recsArea');
+    placeholder(allocArea,'جارٍ التحميل…'); placeholder(recsArea,'جارٍ التحميل…');
+
+    try{
+      const r=await fetch('/app/me/portfolio-rebalance');
+      if(!r.ok){ placeholder(allocArea,'تعذّر التحميل.'); placeholder(recsArea,'—'); return; }
+      const d=await r.json();
+
+      document.getElementById('scoreVal').textContent=String(d.balanceScore||0);
+      const desc=d.balanceScore>=85?'محفظتك في توازن ممتاز':'محفظتك تحتاج تعديلات بسيطة للوصول إلى الأوزان المستهدفة';
+      document.getElementById('scoreDesc').textContent=desc;
+
+      const allocs=d.allocations||[];
+      allocArea.textContent='';
+      if(!allocs.length){ placeholder(allocArea,'لا توجد بيانات تخصيص.'); }
+      else{
+        allocs.forEach(a=>{
+          const row=document.createElement('div'); row.className='alloc-row';
+          const hdr=document.createElement('div'); hdr.className='alloc-header';
+          const lbl=document.createElement('div'); lbl.className='alloc-label'; lbl.textContent=a.sector||'قطاع';
+          const pcts=document.createElement('div'); pcts.className='alloc-pcts';
+          pcts.textContent='حالي: '+(a.actual||0)+'٪ — مستهدف: '+(a.target||0)+'٪';
+          hdr.appendChild(lbl); hdr.appendChild(pcts); row.appendChild(hdr);
+          const track=document.createElement('div'); track.className='bar-track';
+          const tgt=document.createElement('div'); tgt.className='bar-target'; tgt.style.width=(a.target||0)+'%'; track.appendChild(tgt);
+          const diff=(a.actual||0)-(a.target||0);
+          const act=document.createElement('div');
+          act.className='bar-actual '+(diff>5?'bar-over':diff<-5?'bar-under':'bar-ok');
+          act.style.width=Math.min(100,a.actual||0)+'%'; track.appendChild(act);
+          row.appendChild(track);
+          const delta=document.createElement('div');
+          delta.className='alloc-delta '+(diff>5?'delta-over':diff<-5?'delta-under':'delta-ok');
+          delta.textContent=diff>5?'زيادة بـ '+diff+'٪':diff<-5?'نقص بـ '+Math.abs(diff)+'٪':'توازن جيد';
+          row.appendChild(delta); allocArea.appendChild(row);
+        });
+      }
+
+      const recs=d.recommendations||[];
+      recsArea.textContent='';
+      if(!recs.length){ placeholder(recsArea,'لا توجد توصيات — محفظتك في توازن جيد.'); }
+      else{
+        const list=document.createElement('div'); list.className='rec-list';
+        recs.forEach(rec=>{
+          const item=document.createElement('div'); item.className='rec-item '+(rec.action==='reduce'?'rec-reduce':'rec-increase');
+          const icon=document.createElement('div'); icon.className='rec-icon'; icon.textContent=rec.action==='reduce'?'📉':'📈';
+          const body=document.createElement('div');
+          const lbl=document.createElement('div'); lbl.className='rec-label'; lbl.textContent=rec.sector||'قطاع';
+          const txt=document.createElement('div'); txt.className='rec-text'; txt.textContent=rec.description||'—';
+          body.appendChild(lbl); body.appendChild(txt); item.appendChild(icon); item.appendChild(body); list.appendChild(item);
+        });
+        recsArea.appendChild(list);
+        if(d.autoRebalanceAvailable){
+          document.getElementById('executeBtn').style.display='block';
+        }
+      }
+    }catch{ placeholder(document.getElementById('allocArea'),'خطأ في الاتصال.'); }
+  }());
+
+  document.getElementById('executeBtn').addEventListener('click', async()=>{
+    const btn=document.getElementById('executeBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/portfolio-rebalance/execute',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({})});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر التنفيذ.'); return; }
+      showToast('تم تطبيق إعادة التوازن بنجاح.');
+      btn.style.display='none';
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تنبيهات الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.btn-danger{background:#e74c3c;color:#fff;}
+.config-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.alert-types{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;}
+.alert-type-card{border:1.5px solid var(--line);border-radius:10px;padding:1rem;cursor:pointer;transition:border-color 0.2s;}
+.alert-type-card.selected{border-color:var(--green);background:#f0faf4;}
+.at-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
+.at-title{font-size:0.88rem;font-weight:700;}
+.at-desc{font-size:0.76rem;color:var(--muted);}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;background:#d0cdc7;border-radius:11px;cursor:pointer;transition:background 0.2s;}
+.toggle input:checked+.toggle-track{background:var(--green);}
+.toggle-thumb{position:absolute;top:2px;right:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform 0.2s;}
+.toggle input:checked~.toggle-thumb{transform:translateX(-18px);}
+.threshold-row{display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem;}
+.threshold-row label{font-size:0.82rem;font-weight:600;flex-shrink:0;width:180px;}
+.threshold-row input{flex:1;padding:0.45rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.88rem;}
+.threshold-row select{flex:1;padding:0.45rem 0.75rem;border:1.5px solid var(--line);border-radius:7px;font-family:'Cairo',sans-serif;font-size:0.85rem;background:#fff;}
+.alerts-timeline{display:flex;flex-direction:column;gap:0;}
+.alert-item{display:flex;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--line);align-items:flex-start;}
+.alert-item:last-child{border-bottom:none;}
+.alert-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.ai-green{background:#e8f5ed;}
+.ai-gold{background:#fef3cd;}
+.ai-blue{background:#e8f0fe;}
+.ai-red{background:#fde8e8;}
+.alert-content{flex:1;}
+.alert-title{font-size:0.88rem;font-weight:700;}
+.alert-sub{font-size:0.76rem;color:var(--muted);margin-top:0.15rem;}
+.alert-time{font-size:0.74rem;color:var(--muted);flex-shrink:0;margin-top:0.2rem;}
+.channels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;}
+.channel-card{border:1.5px solid var(--line);border-radius:10px;padding:0.9rem;text-align:center;}
+.channel-icon{font-size:1.4rem;margin-bottom:0.4rem;}
+.channel-name{font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;}
+@media(max-width:640px){.alert-types{grid-template-columns:1fr;}.channels-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تنبيهات الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>تنبيهات الصفقات والمحفظة</h2>
+    <p>خصّص التنبيهات التي تريد تلقيها لمتابعة استثماراتك</p>
+  </div>
+
+  <div class="config-card">
+    <div class="card-head"><h3>نوع التنبيهات</h3></div>
+    <div class="card-body">
+      <div class="alert-types" id="alertTypes"></div>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="card-head"><h3>حدود التنبيه</h3></div>
+    <div class="card-body">
+      <div class="threshold-row">
+        <label>صفقة جديدة بحجم أكبر من</label>
+        <input type="number" id="minDealSize" value="500000" step="100000">
+        <span style="font-size:0.82rem;color:var(--muted);">ر.س</span>
+      </div>
+      <div class="threshold-row">
+        <label>عائد لا يقل عن</label>
+        <input type="number" id="minReturn" value="10" step="0.5" min="5" max="25">
+        <span style="font-size:0.82rem;color:var(--muted);">٪</span>
+      </div>
+      <div class="threshold-row">
+        <label>قطاع الصفقة</label>
+        <select id="sectorFilter">
+          <option value="">جميع القطاعات</option>
+          <option value="real-estate">عقارات</option>
+          <option value="trade">تجارة</option>
+          <option value="industry">صناعة</option>
+          <option value="services">خدمات</option>
+        </select>
+      </div>
+      <div class="threshold-row">
+        <label>تكرار التنبيه</label>
+        <select id="frequency">
+          <option value="instant">فوري</option>
+          <option value="daily" selected>يومي (ملخص)</option>
+          <option value="weekly">أسبوعي</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="margin-top:0.5rem;" onclick="saveThresholds()">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="card-head"><h3>قنوات الإشعار</h3></div>
+    <div class="card-body">
+      <div class="channels-grid" id="channelsGrid"></div>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="card-head"><h3>آخر التنبيهات</h3></div>
+    <div class="alerts-timeline" id="alertsTimeline"></div>
+  </div>
+</div>
+
+<script>
+const ALERT_TYPES = [
+  { id: 'new-deal', icon: '🚀', title: 'صفقة جديدة', desc: 'تنبيه عند إطلاق صفقة مرابحة جديدة', on: true },
+  { id: 'funding-complete', icon: '✅', title: 'اكتمال التمويل', desc: 'عند اكتمال تمويل الصفقات التي استثمرت فيها', on: true },
+  { id: 'profit-dist', icon: '💰', title: 'توزيع الأرباح', desc: 'عند صرف توزيع ربح جديد لمحفظتك', on: true },
+  { id: 'deal-maturity', icon: '🏁', title: 'نضج الصفقة', desc: 'عند انتهاء مدة الصفقة وإغلاقها', on: false },
+  { id: 'price-change', icon: '📈', title: 'تغيّر العائد', desc: 'عند تعديل نسبة العائد لصفقة جارية', on: false },
+  { id: 'kyc-expiry', icon: '🪪', title: 'انتهاء صلاحية KYC', desc: 'تذكير قبل انتهاء صلاحية وثائق التحقق', on: true }
+];
+
+const CHANNELS = [
+  { icon: '📧', name: 'البريد الإلكتروني', on: true },
+  { icon: '📱', name: 'إشعار Push', on: true },
+  { icon: '💬', name: 'رسالة SMS', on: false }
+];
+
+const RECENT = [
+  { icon: '🚀', cls: 'ai-green', title: 'صفقة جديدة: مرابحة عقارية الرياض', sub: 'حجم الصفقة ٣٬٠٠٠٬٠٠٠ ر.س · العائد ١٤٪ · مدة سنتان', time: 'منذ ٣٠ د' },
+  { icon: '💰', cls: 'ai-gold', title: 'توزيع الأرباح: صفقة #4801', sub: 'تم تحويل ١٬٢٥٠ ر.س إلى محفظتك', time: 'منذ ٣ س' },
+  { icon: '✅', cls: 'ai-blue', title: 'اكتمل التمويل: صفقة #4892', sub: 'وصلت الصفقة لنسبة ١٠٠٪ من التمويل المطلوب', time: 'أمس ١١:٢٠' },
+  { icon: '🪪', cls: 'ai-red', title: 'تذكير: انتهاء صلاحية الهوية', sub: 'ستنتهي صلاحية وثائق التحقق (KYC) خلال ٣٠ يوماً', time: 'أمس ٠٨:٠٠' }
+];
+
+function buildAlertTypes() {
+  const grid = document.getElementById('alertTypes');
+  ALERT_TYPES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'alert-type-card' + (t.on ? ' selected' : '');
+
+    const head = document.createElement('div');
+    head.className = 'at-header';
+
+    const info = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'at-title';
+    title.textContent = t.icon + ' ' + t.title;
+    info.appendChild(title);
+
+    const tog = document.createElement('label');
+    tog.className = 'toggle';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.checked = t.on;
+    inp.onchange = () => {
+      t.on = inp.checked;
+      card.classList.toggle('selected', t.on);
+    };
+    const track = document.createElement('span');
+    track.className = 'toggle-track';
+    const thumb = document.createElement('span');
+    thumb.className = 'toggle-thumb';
+    tog.appendChild(inp); tog.appendChild(track); tog.appendChild(thumb);
+
+    head.appendChild(info); head.appendChild(tog);
+
+    const desc = document.createElement('div');
+    desc.className = 'at-desc';
+    desc.textContent = t.desc;
+
+    card.appendChild(head); card.appendChild(desc);
+    grid.appendChild(card);
+  });
+}
+
+function buildChannels() {
+  const grid = document.getElementById('channelsGrid');
+  CHANNELS.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'channel-card';
+    const icon = document.createElement('div');
+    icon.className = 'channel-icon';
+    icon.textContent = c.icon;
+    const name = document.createElement('div');
+    name.className = 'channel-name';
+    name.textContent = c.name;
+    const tog = document.createElement('label');
+    tog.className = 'toggle';
+    tog.style.display = 'inline-flex';
+    const inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.checked = c.on;
+    const track = document.createElement('span');
+    track.className = 'toggle-track';
+    const thumb = document.createElement('span');
+    thumb.className = 'toggle-thumb';
+    tog.appendChild(inp); tog.appendChild(track); tog.appendChild(thumb);
+    card.appendChild(icon); card.appendChild(name); card.appendChild(tog);
+    grid.appendChild(card);
+  });
+}
+
+function buildTimeline() {
+  const tl = document.getElementById('alertsTimeline');
+  RECENT.forEach(a => {
+    const item = document.createElement('div');
+    item.className = 'alert-item';
+    const icon = document.createElement('div');
+    icon.className = 'alert-icon ' + a.cls;
+    icon.textContent = a.icon;
+    const content = document.createElement('div');
+    content.className = 'alert-content';
+    const title = document.createElement('div');
+    title.className = 'alert-title';
+    title.textContent = a.title;
+    const sub = document.createElement('div');
+    sub.className = 'alert-sub';
+    sub.textContent = a.sub;
+    content.appendChild(title); content.appendChild(sub);
+    const time = document.createElement('div');
+    time.className = 'alert-time';
+    time.textContent = a.time;
+    item.appendChild(icon); item.appendChild(content); item.appendChild(time);
+    tl.appendChild(item);
+  });
+}
+
+function saveThresholds() {
+  const prefs = {
+    minDealSize: parseFloat(document.getElementById('minDealSize').value),
+    minReturn: parseFloat(document.getElementById('minReturn').value),
+    sector: document.getElementById('sectorFilter').value,
+    frequency: document.getElementById('frequency').value,
+    types: ALERT_TYPES.filter(t => t.on).map(t => t.id)
+  };
+  fetch('/app/me/deal-alerts/preferences', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify(prefs)
+  }).catch(() => {});
+  alert('تم حفظ تفضيلات التنبيهات!');
+}
+
+buildAlertTypes();
+buildChannels();
+buildTimeline();
+</script>
+</body>
+</html>

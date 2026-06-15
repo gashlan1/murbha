@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>محلّل المحفظة — مُرابحة</title>
+<meta name="description" content="حلّل محفظتك الحالية: التنويع، التركيز، المخاطرة، والعائد المتوقّع. نصائح مخصّصة لتحسين أداءك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --gold-light:#d4ac6e; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Tajawal',system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  main { max-width:820px; margin:0 auto; padding:28px 18px 60px; }
+  .hero { background:linear-gradient(135deg,#062b1e,#0a4d36); color:#fbf6ea; border-radius:22px; padding:36px 22px; margin-bottom:18px; text-align:center; }
+  .hero h1 { font:900 28px Cairo,sans-serif; margin-bottom:8px; }
+  .hero p { font:500 14px Tajawal,sans-serif; opacity:0.92; max-width:580px; margin:0 auto; line-height:1.85; }
+  .grade { display:flex; justify-content:center; align-items:center; gap:18px; margin:20px 0 16px; padding:24px; background:#fff; border:2px solid var(--gold); border-radius:18px; }
+  .grade .letter { width:90px; height:90px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:900 44px Cairo,sans-serif; color:#fff; background:var(--green); flex-shrink:0; }
+  .grade.A .letter { background:#0f6e3a; }
+  .grade.B .letter { background:#0a4d36; }
+  .grade.C .letter { background:#b08840; }
+  .grade.D .letter { background:#d97706; }
+  .grade.F .letter { background:#c54a3a; }
+  .grade .txt h2 { font:900 18px Cairo,sans-serif; color:var(--green-dark); margin-bottom:4px; }
+  .grade .txt p { font:500 12px Tajawal,sans-serif; color:var(--muted); line-height:1.7; }
+  section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:14px; }
+  section h2 { font:900 17px Cairo,sans-serif; color:var(--green-dark); margin-bottom:14px; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+  .metric { background:var(--paper); border-radius:10px; padding:16px; text-align:center; }
+  .metric .v { font:900 22px Cairo,sans-serif; color:var(--green-dark); }
+  .metric .l { font:600 11px Tajawal,sans-serif; color:var(--muted); margin-top:2px; }
+  .pie-wrap { display:flex; flex-wrap:wrap; gap:18px; align-items:center; }
+  .pie { width:160px; height:160px; flex-shrink:0; }
+  .legend { flex:1; min-width:180px; display:flex; flex-direction:column; gap:6px; }
+  .legend .lg { display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--paper); border-radius:8px; }
+  .legend .dot { display:inline-block; width:10px; height:10px; border-radius:2px; margin-inline-end:6px; }
+  .legend .l { font:700 12px Tajawal,sans-serif; color:var(--ink); }
+  .legend .v { font:800 11px Cairo,sans-serif; color:var(--green-dark); }
+  .tips { display:flex; flex-direction:column; gap:10px; }
+  .tip { display:grid; grid-template-columns:36px 1fr; gap:12px; padding:12px; background:var(--paper); border-radius:10px; border-inline-start:4px solid; }
+  .tip.good { border-inline-start-color:#0f6e3a; }
+  .tip.warn { border-inline-start-color:#b08840; }
+  .tip.bad { border-inline-start-color:#c54a3a; }
+  .tip .ic { font-size:22px; }
+  .tip .t { font:800 13px Cairo,sans-serif; color:var(--green-dark); margin-bottom:2px; }
+  .tip .d { font:500 12px Tajawal,sans-serif; color:var(--ink); line-height:1.7; }
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); font:500 13px Tajawal,sans-serif; }
+  .empty a { display:inline-block; margin-top:12px; background:var(--gold); color:var(--green-dark); padding:10px 24px; border-radius:10px; font:900 12px Cairo,sans-serif; text-decoration:none; }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>🔬 محلّل المحفظة</h1>
+    <p>تحليل ذكي لمحفظتك الحالية مع توصيات قابلة للتنفيذ لتحسين التنويع، تقليل المخاطر، وزيادة العائد المتوقّع.</p>
+  </div>
+
+  <div id="analyzerOut"></div>
+</main>
+
+<script>
+  (async function () {
+    const out = document.getElementById('analyzerOut');
+    const mkEmpty = () => {
+      const e = document.createElement('div');
+      e.className = 'empty';
+      const p = document.createElement('p');
+      p.style.cssText = 'font:600 13px Tajawal,sans-serif;color:var(--ink);';
+      p.textContent = '⚠ يجب أن تكون مسجّلاً ولديك ٣ استثمارات أو أكثر لتحليل دقيق.';
+      const a = document.createElement('a'); a.href = '/search.html'; a.textContent = '🔍 ابدأ بأوّل استثمار';
+      e.append(p, a);
+      return e;
+    };
+    let port;
+    try { port = await App.api('GET', '/app/portfolio'); }
+    catch { out.appendChild(mkEmpty()); return; }
+    const invs = (port?.investments || []).filter(i => i.status !== 'canceled');
+    if (invs.length < 3) { out.appendChild(mkEmpty()); return; }
+
+    const total = invs.reduce((s, i) => s + Number(i.amount || 0), 0);
+    const byCat = new Map();
+    const byCity = new Map();
+    const ret = [];
+    for (const i of invs) {
+      const cat = i.category || 'غير محدّد';
+      const city = i.city || 'غير محدّد';
+      byCat.set(cat, (byCat.get(cat) || 0) + Number(i.amount || 0));
+      byCity.set(city, (byCity.get(city) || 0) + Number(i.amount || 0));
+      if (i.expectedReturn) ret.push(Number(i.expectedReturn));
+    }
+    const avgReturn = ret.length ? Math.round((ret.reduce((s, n) => s + n, 0) / ret.length) * 10) / 10 : 0;
+    const top1 = [...byCat.values()].sort((a, b) => b - a)[0] || 0;
+    const concentrationPct = total ? Math.round((top1 / total) * 100) : 0;
+    const catCount = byCat.size;
+    const cityCount = byCity.size;
+    const diversityScore = Math.min(100, catCount * 18 + cityCount * 8 + Math.max(0, 100 - concentrationPct));
+    let grade = 'F', gradeText = 'تحتاج إعادة هيكلة';
+    if (diversityScore >= 80) { grade = 'A'; gradeText = 'محفظة ممتازة'; }
+    else if (diversityScore >= 65) { grade = 'B'; gradeText = 'محفظة جيّدة جداً'; }
+    else if (diversityScore >= 50) { grade = 'C'; gradeText = 'محفظة جيّدة'; }
+    else if (diversityScore >= 35) { grade = 'D'; gradeText = 'محفظة تحتاج تحسين'; }
+
+    const gradeCard = document.createElement('div');
+    gradeCard.className = 'grade ' + grade;
+    const letter = document.createElement('div'); letter.className = 'letter'; letter.textContent = grade;
+    const txt = document.createElement('div'); txt.className = 'txt';
+    const h = document.createElement('h2'); h.textContent = gradeText;
+    const p = document.createElement('p'); p.textContent = 'درجة التنويع: ' + diversityScore + '/100 · بناءً على عدد الفئات، التوزيع الجغرافي، ومستوى التركيز.';
+    txt.append(h, p);
+    gradeCard.append(letter, txt);
+    out.appendChild(gradeCard);
+
+    const metricsCard = document.createElement('section');
+    const mh = document.createElement('h2'); mh.textContent = '📊 المقاييس الأساسية';
+    metricsCard.appendChild(mh);
+    const m = document.createElement('div'); m.className = 'metrics';
+    const mkM = (l, v) => {
+      const w = document.createElement('div'); w.className = 'metric';
+      const vv = document.createElement('div'); vv.className = 'v'; vv.textContent = v;
+      const ll = document.createElement('div'); ll.className = 'l'; ll.textContent = l;
+      w.append(vv, ll); return w;
+    };
+    m.append(
+      mkM('إجمالي مستثمر', Number(total).toLocaleString('ar-SA') + ' ر.س'),
+      mkM('عدد الصفقات', invs.length),
+      mkM('فئات', catCount),
+      mkM('مدن', cityCount),
+      mkM('متوسط العائد', avgReturn + '٪'),
+      mkM('أعلى تركيز', concentrationPct + '٪'),
+    );
+    metricsCard.appendChild(m);
+    out.appendChild(metricsCard);
+
+    const distCard = document.createElement('section');
+    const dh = document.createElement('h2'); dh.textContent = '🥧 توزيع الفئات';
+    distCard.appendChild(dh);
+    const pieWrap = document.createElement('div'); pieWrap.className = 'pie-wrap';
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100'); svg.classList.add('pie');
+    let cumAngle = 0;
+    const palette = ['#0a4d36', '#b08840', '#0f6e3a', '#062b1e', '#5c2418', '#1e3a8a', '#d4ac6e', '#6b7268'];
+    const entries = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+    entries.forEach(([, amt], idx) => {
+      const angle = (amt / total) * 360;
+      const start = cumAngle, end = cumAngle + angle; cumAngle = end;
+      const sr = (a) => (a - 90) * Math.PI / 180;
+      const x1 = 50 + 45 * Math.cos(sr(start)), y1 = 50 + 45 * Math.sin(sr(start));
+      const x2 = 50 + 45 * Math.cos(sr(end)), y2 = 50 + 45 * Math.sin(sr(end));
+      const large = angle > 180 ? 1 : 0;
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', 'M 50 50 L ' + x1 + ' ' + y1 + ' A 45 45 0 ' + large + ' 1 ' + x2 + ' ' + y2 + ' Z');
+      path.setAttribute('fill', palette[idx % palette.length]);
+      svg.appendChild(path);
+    });
+    pieWrap.appendChild(svg);
+    const legend = document.createElement('div'); legend.className = 'legend';
+    entries.forEach(([cat, amt], idx) => {
+      const r = document.createElement('div'); r.className = 'lg';
+      const left = document.createElement('div');
+      const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = palette[idx % palette.length];
+      const lbl = document.createElement('span'); lbl.className = 'l'; lbl.textContent = cat;
+      left.append(dot, lbl);
+      const right = document.createElement('span'); right.className = 'v'; right.textContent = Math.round((amt / total) * 100) + '٪';
+      r.append(left, right); legend.appendChild(r);
+    });
+    pieWrap.appendChild(legend);
+    distCard.appendChild(pieWrap);
+    out.appendChild(distCard);
+
+    const tipsCard = document.createElement('section');
+    const th = document.createElement('h2'); th.textContent = '💡 توصيات';
+    tipsCard.appendChild(th);
+    const tips = document.createElement('div'); tips.className = 'tips';
+    const mkTip = (kind, ic, t, d) => {
+      const w = document.createElement('div'); w.className = 'tip ' + kind;
+      const ii = document.createElement('div'); ii.className = 'ic'; ii.textContent = ic;
+      const ww = document.createElement('div');
+      const tt = document.createElement('div'); tt.className = 't'; tt.textContent = t;
+      const dd = document.createElement('div'); dd.className = 'd'; dd.textContent = d;
+      ww.append(tt, dd); w.append(ii, ww); return w;
+    };
+    if (concentrationPct > 50) tips.appendChild(mkTip('bad', '⚠', 'تركيز عالٍ جداً', 'أكثر من نصف محفظتك في فئة واحدة. وزّع استثمارك على ٣-٤ فئات على الأقل.'));
+    else if (concentrationPct > 35) tips.appendChild(mkTip('warn', '🟡', 'تركيز متوسط', 'فئتك الأكبر تشكّل ' + concentrationPct + '٪. حاول تقليلها إلى ٢٥-٣٠٪.'));
+    else tips.appendChild(mkTip('good', '✓', 'تنويع جيّد بين الفئات', 'لا توجد فئة مهيمنة على محفظتك.'));
+    if (catCount < 3) tips.appendChild(mkTip('warn', '🌐', 'فئات قليلة', 'محفظتك في ' + catCount + ' فئة فقط. هدفك ٣-٥ فئات مختلفة.'));
+    else if (catCount >= 4) tips.appendChild(mkTip('good', '🎯', 'تنوّع جيّد بين الفئات', catCount + ' فئة مختلفة — محفظة متوازنة.'));
+    if (cityCount < 2) tips.appendChild(mkTip('warn', '🗺', 'تركيز جغرافي', 'كل استثماراتك في مدينة واحدة. وزّع جغرافياً لتقليل المخاطر.'));
+    else tips.appendChild(mkTip('good', '🌍', 'تنوّع جغرافي', cityCount + ' مدينة مختلفة.'));
+    if (avgReturn < 7) tips.appendChild(mkTip('warn', '📉', 'عائد متوسّط منخفض', 'متوسط عائدك ' + avgReturn + '٪. أضف صفقات متوسّطة المخاطرة لزيادته.'));
+    else if (avgReturn >= 11) tips.appendChild(mkTip('warn', '🚨', 'عائد مرتفع جداً', 'متوسط عائدك ' + avgReturn + '٪ يعني مخاطرة عالية. تأكّد من توازن المحفظة.'));
+    else tips.appendChild(mkTip('good', '📈', 'عائد متوازن', 'متوسط عائدك ' + avgReturn + '٪ ضمن النطاق الصحّي.'));
+    tipsCard.appendChild(tips);
+    out.appendChild(tipsCard);
+  })();
+</script>
+<script src="/app.js" defer></script>
+</body>
+</html>

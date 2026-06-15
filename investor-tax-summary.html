@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ملخص الضريبة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.tax-summary{padding:1.25rem;}
+.ts-row{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.84rem;}
+.ts-row:last-child{border-bottom:none;}
+.ts-label{color:var(--muted);}
+.ts-value{font-weight:700;}
+.ts-total{background:var(--paper);margin:-1.25rem;margin-top:0;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;}
+.ts-total-label{font-size:0.9rem;font-weight:700;}
+.ts-total-value{font-size:1.2rem;font-weight:700;color:var(--green);}
+.tax-table{padding:1.25rem;overflow-x:auto;}
+.tt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.tt-row:last-child{border-bottom:none;}
+.tt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.notice{background:#e8f5ed;border:1px solid #b7dfc5;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.84rem;color:#1e5631;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}.tt-row{grid-template-columns:2fr 1fr 1fr;}.tt-row>:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — ملخص الضريبة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>ملخص الضريبة والزكاة</h2>
+      <p>ملخص الدخل الاستثماري والالتزامات الضريبية للعام الحالي</p>
+    </div>
+    <button class="btn btn-primary" onclick="requestTaxDoc()">طلب وثيقة ضريبية</button>
+  </div>
+
+  <div class="notice" id="taxNotice"></div>
+
+  <div class="stats" id="taxStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>ملخص الدخل الاستثماري ٢٠٢٦</h3></div>
+      <div class="tax-summary" id="taxSummary"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع الدخل حسب الصفقة</h3></div>
+      <div class="tax-table" id="taxTable"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الوثائق الضريبية</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportTax()">تصدير</button>
+    </div>
+    <div class="tax-table" id="docTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="requestTaxDoc()">طلب وثيقة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportTax()">تصدير الملخص</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١١٨,٤٠٠ ر.س', lbl: 'إجمالي الدخل الاستثماري' },
+  { val: '١٧,٧٦٠ ر.س', lbl: 'ضريبة القيمة المضافة (١٥٪)' },
+  { val: '٢,٩٦٠ ر.س', lbl: 'زكاة مقدّرة' },
+  { val: '٩٧,٦٨٠ ر.س', lbl: 'صافي الدخل بعد الضريبة' }
+];
+
+const SUMMARY_ITEMS = [
+  { label: 'أرباح الصفقات الممولة', value: '٨٤,٢٠٠ ر.س' },
+  { label: 'عائد الصناديق الاستثمارية', value: '٢٧,٦٠٠ ر.س' },
+  { label: 'مكاسب رأس المال', value: '٦,٦٠٠ ر.س' },
+  { label: 'إجمالي الدخل الاستثماري', value: '١١٨,٤٠٠ ر.س' },
+  { label: '(خصم) ضريبة القيمة المضافة', value: '(١٧,٧٦٠ ر.س)' },
+  { label: '(خصم) زكاة مقدّرة', value: '(٢,٩٦٠ ر.س)' }
+];
+
+const DEALS = [
+  { deal: 'صفقة #4920', income: '٢٨,٤٠٠ ر.س', vat: '٤,٢٦٠ ر.س', net: '٢٤,١٤٠ ر.س' },
+  { deal: 'صفقة #4918', income: '٢٢,٦٠٠ ر.س', vat: '٣,٣٩٠ ر.س', net: '١٩,٢١٠ ر.س' },
+  { deal: 'صفقة #4905', income: '١٨,٢٠٠ ر.س', vat: '٢,٧٣٠ ر.س', net: '١٥,٤٧٠ ر.س' },
+  { deal: 'صفقة #4890', income: '١٥,٠٠٠ ر.س', vat: '٢,٢٥٠ ر.س', net: '١٢,٧٥٠ ر.س' }
+];
+
+const DOCS = [
+  { title: 'إفادة الدخل الاستثماري ٢٠٢٦', date: 'يونيو ٢٠٢٦', type: 'PDF', status: 'متاح' },
+  { title: 'شهادة ضريبة القيمة المضافة Q1', date: 'مارس ٢٠٢٦', type: 'PDF', status: 'متاح' },
+  { title: 'إفادة الدخل الاستثماري ٢٠٢٥', date: 'ديسمبر ٢٠٢٥', type: 'PDF', status: 'متاح' }
+];
+
+function buildNotice() {
+  const el = document.getElementById('taxNotice');
+  el.textContent = 'تنبيه: يُعدّ هذا الملخص للأغراض الاستشارية فقط. يُرجى التواصل مع مستشار ضريبي معتمد لتقديم الإقرارات الضريبية الرسمية.';
+}
+
+function buildStats() {
+  const wrap = document.getElementById('taxStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildSummary() {
+  const wrap = document.getElementById('taxSummary');
+  SUMMARY_ITEMS.forEach((item, i) => {
+    const row = document.createElement('div'); row.className = 'ts-row';
+    const label = document.createElement('span'); label.className = 'ts-label'; label.textContent = item.label;
+    const value = document.createElement('span'); value.className = 'ts-value';
+    if (i >= 3) value.style.color = '#c0392b';
+    if (i === 3) { value.style.color = 'var(--green)'; }
+    value.textContent = item.value;
+    row.appendChild(label); row.appendChild(value);
+    wrap.appendChild(row);
+  });
+  const total = document.createElement('div'); total.className = 'ts-total';
+  const tLabel = document.createElement('span'); tLabel.className = 'ts-total-label'; tLabel.textContent = 'الصافي للمستثمر';
+  const tValue = document.createElement('span'); tValue.className = 'ts-total-value'; tValue.textContent = '٩٧,٦٨٠ ر.س';
+  total.appendChild(tLabel); total.appendChild(tValue);
+  wrap.appendChild(total);
+}
+
+function buildDeals() {
+  const wrap = document.getElementById('taxTable');
+  const header = document.createElement('div'); header.className = 'tt-row tt-header';
+  ['الصفقة', 'الدخل', 'VAT', 'الصافي'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  DEALS.forEach(d => {
+    const row = document.createElement('div'); row.className = 'tt-row';
+    const deal = document.createElement('div'); deal.style.fontWeight = '700'; deal.textContent = d.deal;
+    const income = document.createElement('div'); income.style.color = 'var(--green)'; income.style.fontWeight = '700'; income.textContent = d.income;
+    const vat = document.createElement('div'); vat.style.color = '#c0392b'; vat.textContent = d.vat;
+    const net = document.createElement('div'); net.style.fontWeight = '700'; net.textContent = d.net;
+    row.appendChild(deal); row.appendChild(income); row.appendChild(vat); row.appendChild(net);
+    wrap.appendChild(row);
+  });
+}
+
+function buildDocs() {
+  const wrap = document.getElementById('docTable');
+  const header = document.createElement('div'); header.className = 'tt-row tt-header';
+  ['الوثيقة', 'التاريخ', 'النوع', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  DOCS.forEach(d => {
+    const row = document.createElement('div'); row.className = 'tt-row';
+    const title = document.createElement('div'); title.style.fontWeight = '700'; title.textContent = d.title;
+    const date = document.createElement('div'); date.style.color = 'var(--muted)'; date.textContent = d.date;
+    const type = document.createElement('div'); type.textContent = d.type;
+    const status = document.createElement('div'); status.style.color = 'var(--green)'; status.style.fontWeight = '700'; status.textContent = d.status;
+    row.appendChild(title); row.appendChild(date); row.appendChild(type); row.appendChild(status);
+    wrap.appendChild(row);
+  });
+}
+
+function requestTaxDoc() {
+  fetch('/app/me/tax-summary/request', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ year: 2026 }) }).catch(() => {});
+  alert('جاري إرسال طلب الوثيقة الضريبية...');
+}
+
+function exportTax() {
+  fetch('/app/me/tax-summary/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير الملخص الضريبي...');
+}
+
+buildNotice(); buildStats(); buildSummary(); buildDeals(); buildDocs();
+</script>
+</body>
+</html>

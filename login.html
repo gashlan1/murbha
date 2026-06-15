@@ -104,6 +104,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 <link rel="stylesheet" href="/assets/site.css" />
 <meta name="description" content="سجّل الدخول إلى منصة مُرابحة لمتابعة استثماراتك المتوافقة مع الشريعة الإسلامية." />
 <link rel="canonical" href="https://murabaha.example.sa/login.html" />
+<script src="/assets/lang.js"></script>
 </head>
 <body>
 <main id="main">
@@ -155,6 +156,25 @@ button, a { font-family: inherit; touch-action: manipulation; }
 
     <div class="auth-form-error" id="loginError" style="display: none;"></div>
     <button type="submit" class="btn btn-primary" id="loginSubmitBtn">تسجيل الدخول</button>
+    <div style="text-align:center;margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <a href="forgot-password.html" style="color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;">نسيت كلمة المرور؟</a>
+      <button type="button" id="magicLinkBtn" style="background:none;border:0;color:var(--green);font:800 13px Cairo,sans-serif;cursor:pointer;">رابط دخول عبر البريد</button>
+    </div>
+  </form>
+
+  <form id="twofaForm" class="auth-form" style="display:none;">
+    <div class="auth-form-group" style="text-align:center;">
+      <h2 style="font:800 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;">رمز المصادقة الثنائية</h2>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;">افتح تطبيق المصادقة (Google Authenticator أو Authy) وأدخل الرمز المكوّن من 6 أرقام.</p>
+    </div>
+    <div class="auth-form-group">
+      <input type="text" id="twofaCode" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="6" required placeholder="••••••" style="direction:ltr;text-align:center;letter-spacing:8px;font-size:20px;font-weight:800;" />
+    </div>
+    <div class="auth-form-error" id="twofaError" style="display:none;"></div>
+    <button type="submit" class="btn btn-primary" id="twofaSubmitBtn">تأكيد الرمز</button>
+    <div style="text-align:center;margin-top:8px;">
+      <a href="#" id="twofaCancel" style="color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;">العودة لتسجيل الدخول</a>
+    </div>
   </form>
 
   <div class="auth-footer">
@@ -185,6 +205,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginSubmitBtn = document.getElementById('loginSubmitBtn');
   const nextUrl = new URLSearchParams(location.search).get('next') || 'portfolio.html';
 
+  // Magic link request
+  const mlBtn = document.getElementById('magicLinkBtn');
+  if (mlBtn) mlBtn.addEventListener('click', async () => {
+    const email = (document.getElementById('loginIdentifier').value || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      App.toast('أدخل بريداً إلكترونياً صحيحاً للحصول على رابط دخول.', 'error');
+      return;
+    }
+    mlBtn.disabled = true;
+    const orig = mlBtn.textContent; mlBtn.textContent = 'جاري الإرسال...';
+    try {
+      await App.api('POST', '/app/auth/magic-link', { email });
+      App.toast('إذا كان البريد مسجّلاً، فقد أرسلنا لك رابط دخول. تحقق من صندوق الوارد.', 'success');
+    } catch (e) {
+      App.toast('تعذّر الإرسال. حاول لاحقاً.', 'error');
+    } finally { mlBtn.disabled = false; mlBtn.textContent = orig; }
+  });
+
+  // If redirected here with a 2FA challenge (e.g. from magic-link), show the challenge step
+  const challenge = new URLSearchParams(location.search).get('2fa');
+  if (challenge) {
+    loginForm.style.display = 'none';
+    document.getElementById('twofaForm').style.display = 'block';
+    document.getElementById('twofaCode').focus();
+    document.getElementById('twofaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = document.getElementById('twofaCode').value.trim();
+      try {
+        const r2 = await App.api('POST', '/app/auth/login-2fa', { twofaToken: challenge, code });
+        App.toast('تم تسجيل الدخول بنجاح', 'success');
+        setTimeout(() => { location.href = (r2.user?.role === 'admin' ? 'admin.html' : 'portfolio.html'); }, 600);
+      } catch (e2) {
+        const err = document.getElementById('twofaError');
+        err.textContent = e2.message || 'الرمز غير صحيح';
+        err.style.display = 'block';
+      }
+    });
+  }
+
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     loginError.style.display = 'none';
@@ -195,27 +254,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const identifier = document.getElementById('loginIdentifier').value.trim();
     const password = document.getElementById('loginPassword').value;
 
+    const routeByUser = (user) => {
+      if (user.role === 'admin') return 'admin.html';
+      if (user.kycStatus === 'pending') return 'verify-email.html';
+      if (user.kycStatus === 'email_verified') return 'verify-mobile.html';
+      if (user.kycStatus === 'mobile_verified') return 'verify-id.html';
+      if (user.kycStatus === 'id_verified') return 'verify-address.html';
+      return nextUrl;
+    };
+
     try {
       const res = await App.api('POST', '/app/auth/login', { identifier, password });
-      App.toast('تم تسجيل الدخول بنجاح', 'success');
-      
-      // Determine redirection based on KYC status
-      const user = res.user;
-      setTimeout(() => {
-        if (user.role === 'admin') {
-          location.href = 'admin.html';
-        } else if (user.kycStatus === 'pending') {
-          location.href = 'verify-email.html';
-        } else if (user.kycStatus === 'email_verified') {
-          location.href = 'verify-mobile.html';
-        } else if (user.kycStatus === 'mobile_verified') {
-          location.href = 'verify-id.html';
-        } else if (user.kycStatus === 'id_verified') {
-          location.href = 'verify-address.html';
-        } else {
-          location.href = nextUrl;
+
+      if (res.requires2fa) {
+        loginForm.style.display = 'none';
+        document.getElementById('twofaForm').style.display = 'block';
+        document.getElementById('twofaCode').focus();
+        const twofaForm = document.getElementById('twofaForm');
+        const twofaError = document.getElementById('twofaError');
+        const twofaBtn = document.getElementById('twofaSubmitBtn');
+        const twofaToken = res.twofaToken;
+        // Surface SMS hint when method is sms
+        if (res.method === 'sms') {
+          const hintP = document.querySelector('#twofaForm p');
+          if (hintP) hintP.textContent = 'أرسلنا رمز التحقق إلى رقمك ' + (res.phoneHint || '••••') + '. أدخله أدناه.';
         }
-      }, 800);
+        twofaForm.onsubmit = async (ev) => {
+          ev.preventDefault();
+          twofaError.style.display = 'none';
+          twofaBtn.disabled = true;
+          twofaBtn.textContent = 'جاري التحقق…';
+          try {
+            const r2 = await App.api('POST', '/app/auth/login-2fa', {
+              twofaToken,
+              code: document.getElementById('twofaCode').value.trim(),
+            });
+            App.toast('تم تسجيل الدخول بنجاح', 'success');
+            setTimeout(() => { location.href = routeByUser(r2.user); }, 600);
+          } catch (e3) {
+            twofaError.textContent = (e3.code === 'invalid_token') ? 'انتهت صلاحية الجلسة. ابدأ من جديد.' : (e3.message || 'الرمز غير صحيح');
+            twofaError.style.display = 'block';
+            twofaBtn.disabled = false;
+            twofaBtn.textContent = 'تأكيد الرمز';
+          }
+        };
+        document.getElementById('twofaCancel').onclick = (ev) => {
+          ev.preventDefault();
+          document.getElementById('twofaForm').style.display = 'none';
+          loginForm.style.display = 'block';
+          loginSubmitBtn.disabled = false;
+          loginSubmitBtn.textContent = 'تسجيل الدخول';
+        };
+        return;
+      }
+
+      App.toast('تم تسجيل الدخول بنجاح', 'success');
+      setTimeout(() => { location.href = routeByUser(res.user); }, 800);
     } catch (err) {
       loginSubmitBtn.disabled = false;
       loginSubmitBtn.textContent = 'تسجيل الدخول';

@@ -108,6 +108,7 @@ button, a { font-family: inherit; touch-action: manipulation; }
 <link rel="stylesheet" href="/assets/site.css" />
 <meta name="description" content="أنشئ حسابك الجديد في منصة مُرابحة لبدء استثماراتك الموثقة والمتوافقة مع أحكام الشريعة." />
 <link rel="canonical" href="https://murabaha.example.sa/signup.html" />
+<script src="/assets/lang.js"></script>
 </head>
 <body>
 <main id="main">
@@ -205,6 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const registerForm = document.getElementById('registerForm');
   const registerError = document.getElementById('registerError');
   const registerSubmitBtn = document.getElementById('registerSubmitBtn');
+
+  // Referral tracking — ?ref=CODE captured on landing; persisted across the
+  // signup flow via localStorage so it survives toast/redirect.
+  try {
+    const refCode = new URLSearchParams(location.search).get('ref');
+    if (refCode) {
+      localStorage.setItem('mrb_ref', refCode);
+      fetch('/app/me/referral/track', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode }),
+      }).catch(() => {});
+    }
+  } catch (e) {}
 
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();

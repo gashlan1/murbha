@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجلات النظام - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.5rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.25rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-value.red{color:#c0392b;}
+.kpi-value.gold{color:var(--gold);}
+.kpi-sub{font-size:0.75rem;color:var(--muted);margin-top:0.15rem;}
+.toolbar{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.toolbar input,.toolbar select{padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--green);}
+.toolbar input[type=text]{flex:1;min-width:200px;}
+.level-filters{display:flex;gap:0.4rem;}
+.level-chip{padding:0.3rem 0.85rem;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.level-chip.error.active{background:#fde9e9;border-color:#c0392b;color:#c0392b;}
+.level-chip.warn.active{background:#f8f0e0;border-color:var(--gold);color:var(--gold);}
+.level-chip.info.active{background:#e6f4ef;border-color:var(--green);color:var(--green);}
+.level-chip.debug.active{background:#f0f0f0;border-color:var(--muted);color:var(--muted);}
+.log-viewer{background:#0d1612;border-radius:12px;overflow:hidden;font-family:'Courier New',monospace;}
+.log-viewer-head{background:#1a2e24;padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.log-viewer-title{color:rgba(255,255,255,0.7);font-size:0.82rem;font-family:'Cairo',sans-serif;}
+.log-viewer-actions{display:flex;gap:0.5rem;}
+.log-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.78rem;cursor:pointer;font-family:'Cairo',sans-serif;}
+.log-btn:hover{background:rgba(255,255,255,0.2);}
+.log-btn.active{background:var(--green);border-color:var(--green);color:#fff;}
+.log-scroll{max-height:480px;overflow-y:auto;padding:0.75rem 0;}
+.log-scroll::-webkit-scrollbar{width:4px;}
+.log-scroll::-webkit-scrollbar-track{background:#1a2e24;}
+.log-scroll::-webkit-scrollbar-thumb{background:#2d5a42;border-radius:2px;}
+.log-line{display:flex;align-items:flex-start;gap:0.75rem;padding:0.3rem 1.25rem;font-size:0.8rem;line-height:1.5;transition:background 0.1s;}
+.log-line:hover{background:rgba(255,255,255,0.04);}
+.log-ts{color:#4a7a5e;white-space:nowrap;flex-shrink:0;width:155px;}
+.log-level{width:50px;flex-shrink:0;font-weight:700;text-align:center;}
+.level-error{color:#e74c3c;}
+.level-warn{color:#f39c12;}
+.level-info{color:#2ecc71;}
+.level-debug{color:#7f8c8d;}
+.log-source{color:#5d9e75;flex-shrink:0;width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.log-msg{color:#c8d6cc;word-break:break-all;}
+.log-line.error-line{background:rgba(231,76,60,0.05);}
+.log-line.warn-line{background:rgba(243,156,18,0.04);}
+.pagination{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;}
+.page-info{font-size:0.85rem;color:var(--muted);}
+.page-btns{display:flex;gap:0.5rem;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;display:inline-block;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.log-ts{width:100px;}.log-source{display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — سجلات النظام</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>سجلات النظام <span class="live-dot" id="liveDot"></span></h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="toggleLive()">إيقاف البث المباشر</button>
+      <button class="btn btn-primary" onclick="exportLogs()">تصدير السجلات</button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">أخطاء (آخر ساعة)</div>
+      <div class="kpi-value red">٧</div>
+      <div class="kpi-sub">↓ تحسّن مقارنة بالأمس</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">تحذيرات (آخر ساعة)</div>
+      <div class="kpi-value gold">٢٣</div>
+      <div class="kpi-sub">ضمن الحدود الطبيعية</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">إجمالي الطلبات/دقيقة</div>
+      <div class="kpi-value" id="rpmVal">٤٨٢</div>
+      <div class="kpi-sub">متوسط ٥ دقائق</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">معدل نجاح الطلبات</div>
+      <div class="kpi-value">٩٩.١٪</div>
+      <div class="kpi-sub">٢xx / إجمالي الطلبات</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="logSearch" placeholder="بحث في السجلات..." oninput="filterLogs()">
+    <select id="sourceFilter" onchange="filterLogs()">
+      <option value="">كل المصادر</option>
+      <option value="api">api</option>
+      <option value="auth">auth</option>
+      <option value="db">db</option>
+      <option value="payments">payments</option>
+      <option value="kyc">kyc</option>
+      <option value="scheduler">scheduler</option>
+    </select>
+    <input type="datetime-local" id="startTime" onchange="filterLogs()">
+    <div class="level-filters" id="levelFilters"></div>
+  </div>
+
+  <div class="log-viewer">
+    <div class="log-viewer-head">
+      <div class="log-viewer-title">عرض السجلات — بث مباشر</div>
+      <div class="log-viewer-actions">
+        <button class="log-btn" onclick="clearView()">مسح العرض</button>
+        <button class="log-btn active" id="wrapBtn" onclick="toggleWrap()">التفاف النص</button>
+        <button class="log-btn" onclick="scrollBottom()">↓ آخر سجل</button>
+      </div>
+    </div>
+    <div class="log-scroll" id="logScroll"></div>
+  </div>
+
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">عرض ١-٥٠ من ١,٢٤٧ سجل</div>
+    <div class="page-btns">
+      <button class="btn btn-secondary btn-sm" onclick="prevPage()">السابق</button>
+      <button class="btn btn-secondary btn-sm" onclick="nextPage()">التالي</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const levels = ['error','warn','info','debug'];
+let activeLevels = new Set(['error','warn','info']);
+let liveMode = true;
+let wrapText = true;
+let logInterval = null;
+
+const levelLabels = {error:'خطأ',warn:'تحذير',info:'معلومة',debug:'تشخيص'};
+const sources = ['api','auth','db','payments','kyc','scheduler','cache','email'];
+
+const sampleMessages = {
+  error: ['فشل الاتصال بقاعدة البيانات','خطأ في عملية الدفع: timeout','رمز CSRF غير صالح','فشل التحقق من الهوية','استثناء غير معالج في معالج الطلب'],
+  warn: ['زمن استجابة مرتفع: 2300ms','محاولة دخول فاشلة: IP مشبوه','حجم ذاكرة التخزين المؤقت قرب الحد الأقصى','جلسة على وشك الانتهاء','معدل الطلبات يقترب من الحد المسموح'],
+  info: ['طلب GET /app/me/portfolio — 200 — 45ms','تسجيل دخول ناجح: user_1842','تحديث حالة الصفقة: deal_331 → funded','تمت معالجة دفعة ٨,٤٠٠ ر.س','إعادة تحميل إعدادات النظام'],
+  debug: ['cache HIT /app/admin/deals (ttl:120s)','SQL: SELECT * FROM deals WHERE status=active — 3ms','مسح جلسات منتهية: 14 جلسة','إعادة الاتصال بالذاكرة المؤقتة: attempt 1','حجم payload الطلب: 1.2KB'],
+};
+
+let logs = [];
+
+function generateLog(){
+  const lvl = Math.random()<0.05?'error':Math.random()<0.12?'warn':Math.random()<0.7?'info':'debug';
+  const src = sources[Math.floor(Math.random()*sources.length)];
+  const msgs = sampleMessages[lvl];
+  const msg = msgs[Math.floor(Math.random()*msgs.length)];
+  const now = new Date();
+  return {
+    ts: now.toLocaleString('ar-SA', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    level: lvl,
+    source: src,
+    msg: msg + (Math.random()<0.3?' [req:' + Math.random().toString(36).substr(2,8) + ']' : '')
+  };
+}
+
+for(let i=0;i<80;i++) logs.unshift(generateLog());
+
+function buildLevelFilters(){
+  const cont = document.getElementById('levelFilters');
+  cont.textContent = '';
+  levels.forEach(l => {
+    const chip = document.createElement('button');
+    chip.className = 'level-chip ' + l + (activeLevels.has(l) ? ' active' : '');
+    chip.textContent = levelLabels[l];
+    chip.onclick = () => {
+      if(activeLevels.has(l)) activeLevels.delete(l);
+      else activeLevels.add(l);
+      chip.className = 'level-chip ' + l + (activeLevels.has(l) ? ' active' : '');
+      filterLogs();
+    };
+    cont.appendChild(chip);
+  });
+}
+
+function filterLogs(){
+  const search = document.getElementById('logSearch').value.trim().toLowerCase();
+  const src = document.getElementById('sourceFilter').value;
+  renderLogs(logs.filter(l => {
+    if(!activeLevels.has(l.level)) return false;
+    if(src && l.source !== src) return false;
+    if(search && !l.msg.toLowerCase().includes(search) && !l.source.includes(search)) return false;
+    return true;
+  }));
+}
+
+function renderLogs(list){
+  const scroll = document.getElementById('logScroll');
+  scroll.textContent = '';
+  const show = list.slice(0, 100);
+  show.forEach(l => {
+    const line = document.createElement('div');
+    line.className = 'log-line' + (l.level==='error'?' error-line':l.level==='warn'?' warn-line':'');
+
+    const ts = document.createElement('span');
+    ts.className = 'log-ts';
+    ts.textContent = l.ts;
+
+    const lv = document.createElement('span');
+    lv.className = 'log-level level-' + l.level;
+    lv.textContent = l.level.toUpperCase();
+
+    const sr = document.createElement('span');
+    sr.className = 'log-source';
+    sr.textContent = '[' + l.source + ']';
+
+    const mg = document.createElement('span');
+    mg.className = 'log-msg';
+    mg.textContent = l.msg;
+    if(!wrapText) mg.style.whiteSpace = 'nowrap';
+
+    line.appendChild(ts);
+    line.appendChild(lv);
+    line.appendChild(sr);
+    line.appendChild(mg);
+    scroll.appendChild(line);
+  });
+  document.getElementById('pageInfo').textContent = 'عرض ١-' + show.length + ' من ' + list.length + ' سجل';
+}
+
+function startLive(){
+  logInterval = setInterval(() => {
+    const newLog = generateLog();
+    logs.unshift(newLog);
+    if(logs.length > 500) logs = logs.slice(0, 500);
+    filterLogs();
+    const rpm = document.getElementById('rpmVal');
+    rpm.textContent = String(450 + Math.floor(Math.random()*80));
+  }, 2000);
+}
+
+function toggleLive(){
+  liveMode = !liveMode;
+  const dot = document.getElementById('liveDot');
+  dot.style.display = liveMode ? 'inline-block' : 'none';
+  const btn = document.querySelector('.btn-secondary');
+  btn.textContent = liveMode ? 'إيقاف البث المباشر' : 'تشغيل البث المباشر';
+  if(liveMode) startLive();
+  else { clearInterval(logInterval); logInterval = null; }
+}
+
+function toggleWrap(){
+  wrapText = !wrapText;
+  document.getElementById('wrapBtn').classList.toggle('active', wrapText);
+  filterLogs();
+}
+
+function clearView(){ document.getElementById('logScroll').textContent = ''; }
+function scrollBottom(){ const s=document.getElementById('logScroll'); s.scrollTop=s.scrollHeight; }
+function prevPage(){}
+function nextPage(){}
+
+function exportLogs(){
+  fetch('/app/admin/system-logs/export', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+    body: JSON.stringify({format:'csv', levels:[...activeLevels]})
+  });
+}
+
+buildLevelFilters();
+filterLogs();
+startLive();
+</script>
+</body>
+</html>

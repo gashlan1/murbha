@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Investor Reports — Murbha Admin">تقارير المستثمرين — إدارة مُرابحة</title>
+<meta name="description" content="تقارير تفصيلية عن نشاط المستثمرين وأدائهم على المنصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-trend{font:700 10px Cairo,sans-serif;margin-top:2px;}
+  .trend-up{color:#2e7d32;}
+  .trend-down{color:#c54a3a;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  /* Chart bars */
+  .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:0 4px;}
+  .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bar{width:100%;border-radius:4px 4px 0 0;background:var(--green);min-height:4px;transition:height .4s;}
+  .bar-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);white-space:nowrap;}
+  .bar-val{font:900 9px Cairo,sans-serif;color:var(--green-dark);}
+  /* Table */
+  .inv-table{width:100%;border-collapse:collapse;min-width:660px;}
+  .inv-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .inv-table td{font:500 11px Tajawal,sans-serif;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .inv-table tr:last-child td{border-bottom:none;}
+  .inv-table tr:hover td{background:#fafaf7;}
+  .tier-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-bronze{background:#fdf3e7;color:#7d4a00;}
+  .badge-silver{background:#f5f5f5;color:#424242;}
+  .badge-gold{background:#fffde7;color:#7a5c00;}
+  .badge-diamond{background:#e8f5e9;color:#1b5e20;}
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .search-inp{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .search-inp:focus{outline:none;border-color:var(--green);}
+  .btn-export{float:left;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:8px 18px;font:900 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-export:hover{background:var(--green);}
+  .paging{display:flex;justify-content:center;gap:8px;margin-top:16px;}
+  .page-btn{border:1.5px solid var(--line);border-radius:7px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .page-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Investor Reports">تقارير المستثمرين</h1>
+    <p data-en="Detailed reports on investor activity and performance on the platform.">تقارير تفصيلية عن نشاط المستثمرين وأدائهم على المنصة.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="New Investors (Last 6 Months)">المستثمرون الجدد (6 أشهر)</div>
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Investor Details">
+      تفاصيل المستثمرين
+      <button class="btn-export" onclick="window.open('/app/admin/investor-reports/export?fmt=csv')">تصدير CSV</button>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-chip active" data-tier="">الكل</div>
+      <div class="filter-chip" data-tier="bronze">برونزي</div>
+      <div class="filter-chip" data-tier="silver">فضي</div>
+      <div class="filter-chip" data-tier="gold">ذهبي</div>
+      <div class="filter-chip" data-tier="diamond">ألماسي</div>
+      <input class="search-inp" id="searchInp" type="text" placeholder="بحث بالاسم أو البريد…" />
+    </div>
+    <table class="inv-table">
+      <thead><tr>
+        <th data-en="Name">الاسم</th>
+        <th data-en="Tier">المستوى</th>
+        <th data-en="Portfolio">قيمة المحفظة</th>
+        <th data-en="Active Deals">الصفقات</th>
+        <th data-en="Total Return">إجمالي العوائد</th>
+        <th data-en="Last Activity">آخر نشاط</th>
+      </tr></thead>
+      <tbody id="invBody"></tbody>
+    </table>
+    <div class="paging" id="paging"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  const tierLabel={bronze:'برونزي',silver:'فضي',gold:'ذهبي',diamond:'ألماسي'};
+  const tierBadge={bronze:'badge-bronze',silver:'badge-silver',gold:'badge-gold',diamond:'badge-diamond'};
+  const PAGE_SIZE=20;
+  let allInv=[], activeTier='', activeSearch='', currentPage=1;
+
+  function filtered(){
+    return allInv.filter(u=>{
+      if(activeTier && u.tier!==activeTier) return false;
+      if(activeSearch){
+        const q=activeSearch.toLowerCase();
+        if(!(u.name||'').toLowerCase().includes(q)&&!(u.email||'').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPage(page){
+    currentPage=page;
+    const body=document.getElementById('invBody'); body.textContent='';
+    const items=filtered(); const slice=items.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
+    if(!slice.length){ placeholder(body,'لا يوجد مستثمرون.'); renderPaging(0); return; }
+    slice.forEach(u=>{
+      const tr=document.createElement('tr');
+      const tdName=document.createElement('td');
+      const nameEl=document.createElement('div'); nameEl.style.cssText='font:900 11px Cairo,sans-serif;'; nameEl.textContent=u.name||'—';
+      const emailEl=document.createElement('div'); emailEl.style.cssText='font:500 9px Tajawal,sans-serif;color:var(--muted);'; emailEl.textContent=u.email||'—';
+      tdName.appendChild(nameEl); tdName.appendChild(emailEl);
+      const tdTier=document.createElement('td');
+      const tb=document.createElement('span'); tb.className='tier-badge '+(tierBadge[u.tier]||'badge-bronze'); tb.textContent=tierLabel[u.tier]||u.tier||'—';
+      tdTier.appendChild(tb);
+      const tdPort=document.createElement('td'); tdPort.style.fontWeight='900'; tdPort.textContent=fmt(u.portfolioValue||0)+' ر.س';
+      const tdDeals=document.createElement('td'); tdDeals.textContent=String(u.activeDeals||0);
+      const tdRet=document.createElement('td'); tdRet.style.color='#2e7d32'; tdRet.style.fontWeight='900'; tdRet.textContent=fmt(u.totalReturn||0)+' ر.س';
+      const tdAct=document.createElement('td'); tdAct.style.color='var(--muted)'; tdAct.textContent=(u.lastActivity||'—').slice(0,10);
+      tr.appendChild(tdName); tr.appendChild(tdTier); tr.appendChild(tdPort); tr.appendChild(tdDeals); tr.appendChild(tdRet); tr.appendChild(tdAct);
+      body.appendChild(tr);
+    });
+    renderPaging(Math.ceil(items.length/PAGE_SIZE));
+  }
+
+  function renderPaging(total){
+    const pg=document.getElementById('paging'); pg.textContent='';
+    const start=Math.max(1,currentPage-2); const end=Math.min(total,currentPage+2);
+    for(let i=start;i<=end;i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===currentPage?' active':''); btn.textContent=String(i);
+      const p=i; btn.addEventListener('click',()=>renderPage(p));
+      pg.appendChild(btn);
+    }
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeTier=chip.dataset.tier||''; renderPage(1);
+    });
+  });
+  document.getElementById('searchInp').addEventListener('input',e=>{ activeSearch=e.target.value.trim(); renderPage(1); });
+
+  (async function load(){
+    placeholder(document.getElementById('invBody'),'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/admin/investor-reports');
+      if(!r.ok){ placeholder(document.getElementById('invBody'),r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      // KPIs
+      const kpiRow=document.getElementById('kpiRow'); kpiRow.textContent='';
+      const kpis=d.kpis||{};
+      [{lbl:'إجمالي المستثمرين',val:String(kpis.total||0),trend:kpis.totalTrend},{lbl:'حجم المحافظ',val:fmt(kpis.totalPortfolio||0)+' ر.س',trend:kpis.portfolioTrend},{lbl:'متوسط العائد',val:(kpis.avgReturn||0).toFixed(1)+'٪',trend:kpis.returnTrend},{lbl:'المستثمرون النشطون',val:String(kpis.active||0),trend:kpis.activeTrend}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        if(k.trend!=null){ const tr=document.createElement('div'); tr.className='kpi-trend '+(k.trend>=0?'trend-up':'trend-down'); tr.textContent=(k.trend>=0?'↑':'↓')+Math.abs(k.trend)+'٪ مقارنة بالشهر الماضي'; v.appendChild(tr); }
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      // Bar chart
+      const bars=d.monthlyNew||[];
+      const chart=document.getElementById('barChart'); chart.textContent='';
+      if(bars.length){
+        const maxVal=Math.max(1,...bars.map(b=>b.count||0));
+        bars.forEach(b=>{
+          const wrap=document.createElement('div'); wrap.className='bar-wrap';
+          const val=document.createElement('div'); val.className='bar-val'; val.textContent=String(b.count||0);
+          const bar=document.createElement('div'); bar.className='bar'; bar.style.height=Math.round(((b.count||0)/maxVal)*100)+'px';
+          const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent=b.month||'—';
+          wrap.appendChild(val); wrap.appendChild(bar); wrap.appendChild(lbl);
+          chart.appendChild(wrap);
+        });
+      }
+      allInv=d.investors||[];
+      renderPage(1);
+    }catch{ placeholder(document.getElementById('invBody'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

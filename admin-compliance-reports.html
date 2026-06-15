@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقارير الامتثال - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.8rem;color:var(--muted);margin-top:0.2rem;}
+.kpi-sub.ok{color:#27ae60;}
+.kpi-sub.warn{color:var(--gold);}
+.kpi-sub.bad{color:#c0392b;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.report-list{display:flex;flex-direction:column;gap:0.75rem;}
+.report-item{display:flex;align-items:center;gap:1rem;padding:0.85rem 1rem;background:#f9f6f0;border-radius:10px;border:1px solid rgba(13,22,18,0.06);}
+.report-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.icon-green{background:#e6f4ef;}
+.icon-gold{background:#f8f0e0;}
+.icon-red{background:#fde9e9;}
+.report-info{flex:1;}
+.report-name{font-size:0.9rem;font-weight:600;color:var(--green-dark);}
+.report-meta{font-size:0.78rem;color:var(--muted);margin-top:0.15rem;}
+.report-actions{display:flex;gap:0.5rem;}
+.status-badge{display:inline-block;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.75rem;font-weight:600;}
+.status-ok{background:#e6f4ef;color:#27ae60;}
+.status-warn{background:#f8f0e0;color:var(--gold);}
+.status-pending{background:#f0f0f0;color:var(--muted);}
+.status-overdue{background:#fde9e9;color:#c0392b;}
+.checklist-section{margin-bottom:1.5rem;}
+.checklist-title{font-size:0.9rem;font-weight:700;color:var(--green-dark);margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid var(--line);}
+.check-row{display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0;}
+.check-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.check-text{font-size:0.88rem;color:var(--green-dark);}
+.check-date{font-size:0.75rem;color:var(--muted);margin-top:0.1rem;}
+.full-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.full-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.full-head h3{font-size:1rem;font-weight:700;}
+.full-body{padding:1.25rem;}
+.filter-row{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.filter-row select,.filter-row input{padding:0.5rem 0.75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+.filter-row select:focus,.filter-row input:focus{outline:none;border-color:var(--green);}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.75rem 1rem;border-bottom:1px solid var(--line);font-size:0.88rem;}
+tr:last-child td{border-bottom:none;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(6,43,30,0.5);z-index:100;justify-content:center;align-items:flex-start;padding-top:5rem;}
+.modal-backdrop.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:520px;max-width:92vw;box-shadow:0 8px 32px rgba(6,43,30,0.18);}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.5rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;}
+.modal-close:hover{color:#fff;}
+.modal-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تقارير الامتثال</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>لوحة الامتثال والرقابة</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="openModal()">+ إنشاء تقرير</button>
+      <button class="btn btn-primary" onclick="exportAll()">تصدير الكل PDF</button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">مستوى الامتثال الكلي</div>
+      <div class="kpi-value">٩٤٪</div>
+      <div class="kpi-sub ok">ضمن الحدود المطلوبة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">التقارير المستحقة هذا الشهر</div>
+      <div class="kpi-value">٨</div>
+      <div class="kpi-sub warn">٢ قيد الإنجاز</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">المخالفات النشطة</div>
+      <div class="kpi-value">٣</div>
+      <div class="kpi-sub bad">تستوجب المتابعة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">آخر تدقيق شرعي</div>
+      <div class="kpi-value">١٢</div>
+      <div class="kpi-sub">يوماً مضت</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head">
+        <h3>التقارير التنظيمية</h3>
+      </div>
+      <div class="card-body">
+        <div class="report-list" id="regulatoryList"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3>قائمة التحقق الشرعي</h3>
+      </div>
+      <div class="card-body" id="shariaChecklist"></div>
+    </div>
+  </div>
+
+  <div class="full-card">
+    <div class="full-head">
+      <h3>سجل الامتثال الكامل</h3>
+    </div>
+    <div class="full-body">
+      <div class="filter-row">
+        <select id="filterType">
+          <option value="">جميع الأنواع</option>
+          <option value="regulatory">تنظيمي</option>
+          <option value="sharia">شرعي</option>
+          <option value="aml">مكافحة غسيل الأموال</option>
+          <option value="internal">داخلي</option>
+        </select>
+        <select id="filterStatus">
+          <option value="">جميع الحالات</option>
+          <option value="ok">مكتمل</option>
+          <option value="pending">قيد التنفيذ</option>
+          <option value="overdue">متأخر</option>
+        </select>
+        <input type="month" id="filterMonth">
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>اسم التقرير</th>
+            <th>النوع</th>
+            <th>الجهة المستلمة</th>
+            <th>تاريخ الاستحقاق</th>
+            <th>تاريخ التقديم</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="complianceLog"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="reportModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إنشاء تقرير امتثال</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم التقرير</label>
+        <input type="text" id="rptName" placeholder="مثال: تقرير الربع الأول - هيئة السوق المالية">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>نوع التقرير</label>
+          <select id="rptType">
+            <option value="regulatory">تنظيمي</option>
+            <option value="sharia">شرعي</option>
+            <option value="aml">مكافحة غسيل الأموال</option>
+            <option value="internal">داخلي</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الجهة المستلمة</label>
+          <select id="rptEntity">
+            <option value="cma">هيئة السوق المالية</option>
+            <option value="sama">البنك المركزي (SAMA)</option>
+            <option value="internal">داخلية</option>
+            <option value="sharia-board">الهيئة الشرعية</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>تاريخ الاستحقاق</label>
+          <input type="date" id="rptDue">
+        </div>
+        <div class="form-group">
+          <label>الفترة المشمولة</label>
+          <input type="month" id="rptPeriod">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="rptNotes" rows="2" placeholder="أي متطلبات إضافية..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveReport()">إنشاء التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const regulatory = [
+  {name:'تقرير الإفصاح الفصلي',body:'هيئة السوق المالية',due:'٢٠٢٦/٦/٣٠',status:'ok'},
+  {name:'تقرير الاشتباه بغسيل الأموال',body:'وحدة التحريات',due:'٢٠٢٦/٦/١٥',status:'ok'},
+  {name:'تقرير الملاءة المالية',body:'SAMA',due:'٢٠٢٦/٧/١٠',status:'pending'},
+  {name:'تقرير المستثمرين الأجانب',body:'هيئة الاستثمار',due:'٢٠٢٦/٦/٢٠',status:'warn'},
+];
+const shariaItems = [
+  {section:'العقود والصكوك',items:[
+    {done:true,text:'مراجعة عقود المرابحة الجديدة',date:'٢٠٢٦/٦/١٠'},
+    {done:true,text:'الموافقة على هياكل الصكوك',date:'٢٠٢٦/٦/٠٨'},
+    {done:false,text:'مراجعة عقود إعادة الهيكلة',date:'مستحق ٢٠٢٦/٦/١٨'},
+  ]},
+  {section:'الأصول والاستثمارات',items:[
+    {done:true,text:'فحص الأصول المستثمر فيها',date:'٢٠٢٦/٦/٠٣'},
+    {done:false,text:'التحقق من قوائم الاستبعاد',date:'مستحق ٢٠٢٦/٦/٢٠'},
+  ]},
+];
+const logData = [
+  {name:'تقرير الإفصاح الفصلي Q1',type:'تنظيمي',entity:'هيئة السوق المالية',due:'٢٠٢٦/٣/٣١',submitted:'٢٠٢٦/٣/٢٨',status:'ok'},
+  {name:'تقرير AML يناير',type:'مكافحة غسيل الأموال',entity:'وحدة التحريات',due:'٢٠٢٦/٢/١٠',submitted:'٢٠٢٦/٢/٠٩',status:'ok'},
+  {name:'التقرير الشرعي السنوي',type:'شرعي',entity:'الهيئة الشرعية',due:'٢٠٢٦/١/٣١',submitted:'٢٠٢٦/١/٣٠',status:'ok'},
+  {name:'تقرير الملاءة Q1',type:'تنظيمي',entity:'SAMA',due:'٢٠٢٦/٤/١٥',submitted:'—',status:'overdue'},
+  {name:'تقرير المستثمرين الأجانب',type:'تنظيمي',entity:'هيئة الاستثمار',due:'٢٠٢٦/٦/٢٠',submitted:'—',status:'pending'},
+];
+
+function renderRegulatory(){
+  const list = document.getElementById('regulatoryList');
+  list.textContent = '';
+  regulatory.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'report-item';
+
+    const icon = document.createElement('div');
+    icon.className = 'report-icon ' + (r.status==='ok'?'icon-green':r.status==='pending'?'icon-gold':'icon-red');
+    icon.textContent = r.status==='ok'?'✓':r.status==='pending'?'⏳':'⚠';
+
+    const info = document.createElement('div');
+    info.className = 'report-info';
+    const name = document.createElement('div');
+    name.className = 'report-name';
+    name.textContent = r.name;
+    const meta = document.createElement('div');
+    meta.className = 'report-meta';
+    meta.textContent = r.body + ' · استحقاق: ' + r.due;
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'report-actions';
+    const badge = document.createElement('span');
+    badge.className = 'status-badge ' + (r.status==='ok'?'status-ok':r.status==='pending'?'status-pending':'status-warn');
+    badge.textContent = r.status==='ok'?'مكتمل':r.status==='pending'?'قيد التنفيذ':'تحذير';
+    actions.appendChild(badge);
+
+    item.appendChild(icon);
+    item.appendChild(info);
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+function renderSharia(){
+  const cont = document.getElementById('shariaChecklist');
+  cont.textContent = '';
+  shariaItems.forEach(section => {
+    const sec = document.createElement('div');
+    sec.className = 'checklist-section';
+    const title = document.createElement('div');
+    title.className = 'checklist-title';
+    title.textContent = section.section;
+    sec.appendChild(title);
+    section.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'check-row';
+      const icon = document.createElement('div');
+      icon.className = 'check-icon';
+      icon.textContent = item.done ? '✅' : '⬜';
+      const text = document.createElement('div');
+      const textMain = document.createElement('div');
+      textMain.className = 'check-text';
+      textMain.textContent = item.text;
+      const textDate = document.createElement('div');
+      textDate.className = 'check-date';
+      textDate.textContent = item.date;
+      text.appendChild(textMain);
+      text.appendChild(textDate);
+      row.appendChild(icon);
+      row.appendChild(text);
+      sec.appendChild(row);
+    });
+    cont.appendChild(sec);
+  });
+}
+
+function renderLog(){
+  const tb = document.getElementById('complianceLog');
+  tb.textContent = '';
+  logData.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.name, r.type, r.entity, r.due, r.submitted].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const stTd = document.createElement('td');
+    const badge = document.createElement('span');
+    const cls = r.status==='ok'?'status-ok':r.status==='pending'?'status-pending':'status-overdue';
+    const text = r.status==='ok'?'مكتمل':r.status==='pending'?'قيد التنفيذ':'متأخر';
+    badge.className = 'status-badge ' + cls;
+    badge.textContent = text;
+    stTd.appendChild(badge);
+    tr.appendChild(stTd);
+    const acTd = document.createElement('td');
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'btn btn-sm btn-secondary';
+    dlBtn.textContent = 'تحميل';
+    acTd.appendChild(dlBtn);
+    tr.appendChild(acTd);
+    tb.appendChild(tr);
+  });
+}
+
+function openModal(){ document.getElementById('reportModal').classList.add('open'); }
+function closeModal(){ document.getElementById('reportModal').classList.remove('open'); }
+
+async function saveReport(){
+  const name = document.getElementById('rptName').value.trim();
+  if(!name){ alert('يرجى إدخال اسم التقرير'); return; }
+  try {
+    await fetch('/app/admin/compliance-reports', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({
+        name,
+        type: document.getElementById('rptType').value,
+        entity: document.getElementById('rptEntity').value,
+        due: document.getElementById('rptDue').value,
+        period: document.getElementById('rptPeriod').value,
+        notes: document.getElementById('rptNotes').value.trim()
+      })
+    });
+    closeModal();
+  } catch(e){}
+}
+
+function exportAll(){
+  fetch('/app/admin/compliance-reports/export', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+    body: JSON.stringify({format:'pdf'})
+  });
+}
+
+renderRegulatory();
+renderSharia();
+renderLog();
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تحليلات المستخدمين — مُرابحة</title>
+<meta name="description" content="لوحة تحليل سلوك المستخدمين للمديرين: التسجيل، التحويل، الاحتفاظ، والتقطير." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1080px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:18px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.8;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:10px;}
+  .period-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .period-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:7px 16px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .period-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .kpi-val{font:900 26px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .kpi-delta{font:700 10px Cairo,sans-serif;margin-top:4px;}
+  .up{color:#2e7d32;} .dn{color:#c54a3a;} .flat{color:var(--muted);}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:640px){.grid-2{grid-template-columns:1fr;}}
+  section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  section h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px dashed var(--line);}
+  .funnel-step{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .funnel-label{font:700 12px Cairo,sans-serif;color:var(--green-dark);width:130px;flex-shrink:0;}
+  .funnel-track{flex:1;background:var(--paper);border-radius:99px;height:14px;overflow:hidden;}
+  .funnel-fill{height:100%;border-radius:99px;background:var(--green);transition:width .5s;}
+  .funnel-val{font:900 11px Cairo,sans-serif;color:var(--green-dark);width:90px;text-align:start;}
+  .funnel-pct{font:500 10px Tajawal,sans-serif;color:var(--muted);width:50px;text-align:start;}
+  .source-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;}
+  .source-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;}
+  .source-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .source-table tr:last-child td{border-bottom:none;}
+  .bar-mini-wrap{display:flex;align-items:center;gap:8px;}
+  .bar-mini{flex:1;background:var(--paper);border-radius:99px;height:6px;overflow:hidden;}
+  .bar-mini-fill{height:100%;border-radius:99px;background:var(--green);}
+  .cohort-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;}
+  .cohort-cell{border-radius:8px;padding:8px 4px;text-align:center;}
+  .cohort-month{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .cohort-val{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:28px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>📊 تحليلات المستخدمين</h1>
+    <p>معدّلات التسجيل والتحويل والاحتفاظ. تتبّع صحّة قاعدة المستثمرين بالأرقام.</p>
+  </div>
+
+  <div class="period-row">
+    <button class="period-btn active" data-period="7d">٧ أيام</button>
+    <button class="period-btn" data-period="30d">٣٠ يوماً</button>
+    <button class="period-btn" data-period="90d">٩٠ يوماً</button>
+    <button class="period-btn" data-period="1y">سنة</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+
+  <div class="grid-2">
+    <section>
+      <h2>🔽 مسار التحويل</h2>
+      <div id="funnelArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+    </section>
+    <section>
+      <h2>🌐 مصادر الاكتساب</h2>
+      <div id="sourceArea"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+    </section>
+  </div>
+
+  <section style="margin-bottom:14px">
+    <h2>📅 احتفاظ الشهر الأوّل (Cohort)</h2>
+    <div class="cohort-grid" id="cohortGrid"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </section>
+</main>
+<script>
+(function(){
+  let activePeriod = '30d';
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  function deltaEl(pct){
+    const el=document.createElement('div');
+    el.className='kpi-delta '+(pct>0?'up':pct<0?'dn':'flat');
+    el.textContent=(pct>0?'▲ ':'▼ ')+Math.abs(pct||0)+'٪ مقارنةً بالفترة السابقة';
+    return el;
+  }
+
+  function renderKPIs(d){
+    const grid=document.getElementById('kpiGrid');
+    grid.textContent='';
+    [
+      {val:fmt(d.newUsers||0),lbl:'مستخدمون جدد',delta:d.newUsersGrowth||0},
+      {val:fmt(d.verifiedUsers||0),lbl:'أكملوا KYC',delta:d.verifiedGrowth||0},
+      {val:fmt(d.firstInvestors||0),lbl:'أجروا أوّل استثمار',delta:d.firstInvGrowth||0},
+      {val:(d.conversionRate||0)+'٪',lbl:'معدّل التحويل',delta:d.convGrowth||0},
+      {val:(d.retentionRate||0)+'٪',lbl:'معدّل الاحتفاظ ٣٠ يوماً',delta:d.retGrowth||0},
+      {val:fmt(d.activeInvestors||0),lbl:'مستثمرون نشطون',delta:0},
+    ].forEach(it=>{
+      const card=document.createElement('div'); card.className='kpi';
+      const val=document.createElement('div'); val.className='kpi-val'; val.textContent=it.val;
+      const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=it.lbl;
+      card.appendChild(val); card.appendChild(lbl);
+      if(it.delta!==0) card.appendChild(deltaEl(it.delta));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderFunnel(d){
+    const area=document.getElementById('funnelArea');
+    area.textContent='';
+    const steps=d.funnel||[];
+    const maxVal=steps[0]?steps[0].count:1;
+    steps.forEach(step=>{
+      const row=document.createElement('div'); row.className='funnel-step';
+      const lbl=document.createElement('div'); lbl.className='funnel-label'; lbl.textContent=step.label;
+      const track=document.createElement('div'); track.className='funnel-track';
+      const fill=document.createElement('div'); fill.className='funnel-fill';
+      fill.style.width=Math.round((step.count/maxVal)*100)+'%';
+      track.appendChild(fill);
+      const val=document.createElement('div'); val.className='funnel-val'; val.textContent=fmt(step.count);
+      const pct=document.createElement('div'); pct.className='funnel-pct'; pct.textContent=(step.pct||0)+'٪';
+      row.appendChild(lbl); row.appendChild(track); row.appendChild(val); row.appendChild(pct);
+      area.appendChild(row);
+    });
+    if(!steps.length){const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';area.appendChild(m);}
+  }
+
+  function renderSources(d){
+    const area=document.getElementById('sourceArea');
+    area.textContent='';
+    const sources=d.sources||[];
+    if(!sources.length){const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';area.appendChild(m);return;}
+    const table=document.createElement('table'); table.className='source-table';
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    ['المصدر','المستخدمون','التحويل'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    const maxU=Math.max(...sources.map(s=>s.users||0),1);
+    sources.forEach(s=>{
+      const tr=document.createElement('tr');
+      const tdN=document.createElement('td'); tdN.textContent=s.name||'—';
+      const tdU=document.createElement('td');
+      const bw=document.createElement('div'); bw.className='bar-mini-wrap';
+      const bm=document.createElement('div'); bm.className='bar-mini';
+      const bf=document.createElement('div'); bf.className='bar-mini-fill';
+      bf.style.width=Math.round((s.users/maxU)*100)+'%';
+      bm.appendChild(bf);
+      const bv=document.createElement('span'); bv.style.fontSize='10px'; bv.textContent=fmt(s.users);
+      bw.appendChild(bm); bw.appendChild(bv); tdU.appendChild(bw);
+      const tdC=document.createElement('td'); tdC.textContent=(s.conv||0)+'٪';
+      tr.appendChild(tdN); tr.appendChild(tdU); tr.appendChild(tdC);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    area.appendChild(table);
+  }
+
+  function renderCohort(d){
+    const grid=document.getElementById('cohortGrid');
+    grid.textContent='';
+    const cohorts=d.cohorts||[];
+    if(!cohorts.length){const m=document.createElement('p');m.className='placeholder-msg';m.textContent='لا توجد بيانات.';grid.appendChild(m);return;}
+    const maxRet=Math.max(...cohorts.map(c=>c.retention||0),1);
+    cohorts.forEach(c=>{
+      const cell=document.createElement('div'); cell.className='cohort-cell';
+      const alpha=Math.max(0.1,c.retention/maxRet);
+      cell.style.background='rgba(10,77,54,'+alpha.toFixed(2)+')';
+      const mo=document.createElement('div'); mo.className='cohort-month';
+      mo.style.color=alpha>0.5?'#fbf6ea':'var(--muted)'; mo.textContent=c.month;
+      const val=document.createElement('div'); val.className='cohort-val';
+      val.style.color=alpha>0.5?'#fbf6ea':'var(--green-dark)'; val.textContent=(c.retention||0)+'٪';
+      cell.appendChild(mo); cell.appendChild(val);
+      grid.appendChild(cell);
+    });
+  }
+
+  async function load(){
+    try{
+      const r=await fetch('/app/admin/user-analytics?period='+encodeURIComponent(activePeriod));
+      if(!r.ok){
+        ['kpiGrid','funnelArea','sourceArea','cohortGrid'].forEach(id=>{
+          const el=document.getElementById(id); el.textContent='';
+          const m=document.createElement('p'); m.className='placeholder-msg';
+          m.textContent=r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.'; el.appendChild(m);
+        }); return;
+      }
+      const d=await r.json();
+      renderKPIs(d); renderFunnel(d); renderSources(d); renderCohort(d);
+    }catch{
+      ['kpiGrid','funnelArea','sourceArea','cohortGrid'].forEach(id=>{
+        const el=document.getElementById(id); el.textContent='';
+        const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل. حاول لاحقاً.'; el.appendChild(m);
+      });
+    }
+  }
+
+  document.querySelectorAll('.period-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); activePeriod=btn.dataset.period; load();
+    });
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إيرادات المنصة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.rev-hero{background:linear-gradient(135deg,#062b1e 0%,#0a4d36 100%);border-radius:14px;padding:1.75rem 2rem;color:#fff;display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:2rem;}
+.rh-val{font-size:1.5rem;font-weight:700;color:#6de0a8;}
+.rh-lbl{font-size:0.75rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.rh-trend{font-size:0.68rem;color:#6de0a8;margin-top:0.1rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.rev-streams{padding:1.25rem;}
+.stream-item{margin-bottom:1rem;}
+.stream-item:last-child{margin-bottom:0;}
+.si-head{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.3rem;}
+.si-name{font-weight:600;}
+.si-amount{font-weight:700;color:var(--green);}
+.si-track{background:#f0ebe0;border-radius:6px;height:9px;overflow:hidden;}
+.si-fill{height:100%;border-radius:6px;background:var(--green);}
+.monthly-rev{padding:1.25rem;}
+.mr-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;}
+.mr-row:last-child{margin-bottom:0;}
+.mr-month{width:55px;font-size:0.75rem;color:var(--muted);flex-shrink:0;}
+.mr-track{flex:1;background:#f0ebe0;border-radius:6px;height:9px;overflow:hidden;}
+.mr-fill{height:100%;background:var(--gold);border-radius:6px;}
+.mr-val{width:80px;font-size:0.75rem;font-weight:700;color:var(--gold);text-align:left;}
+.rev-table-wrap{padding:1.25rem;overflow-x:auto;}
+.rtable{width:100%;border-collapse:collapse;}
+.rtable th{background:#f5f0e8;font-size:0.75rem;padding:0.5rem 0.75rem;text-align:right;border-bottom:2px solid var(--line);}
+.rtable td{font-size:0.78rem;padding:0.5rem 0.75rem;border-bottom:1px solid var(--line);}
+.rtable tr:last-child td{border-bottom:none;}
+.rtable tr:hover td{background:#fdfaf4;}
+.rev-col{font-weight:700;color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:900px){.rev-hero{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إيرادات المنصة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>لوحة إيرادات المنصة</h2>
+      <p>تحليل شامل لمصادر الإيرادات والأداء المالي للمنصة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportRevenue()">تصدير التقرير</button>
+  </div>
+
+  <div class="rev-hero" id="revHero"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>مصادر الإيرادات</h3></div>
+      <div class="rev-streams" id="revStreams"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الإيرادات الشهرية ٢٠٢٦</h3></div>
+      <div class="monthly-rev" id="monthlyRev"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الإيرادات الفصلية التفصيلية</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportRevenue()">تصدير</button>
+    </div>
+    <div class="rev-table-wrap">
+      <table class="rtable" id="revTable"></table>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="exportRevenue()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const HERO = [
+  { val: '١.٢ مليون', lbl: 'إجمالي الإيرادات ٢٠٢٦', trend: '↑ ٢٨٪ عن ٢٠٢٥' },
+  { val: '٢٠٠,٠٠٠ ر.س', lbl: 'متوسط الإيراد الشهري', trend: '↑ ١٥٪ ربع سنوي' },
+  { val: '٦٨٪', lbl: 'هامش الربح الصافي', trend: '↑ ٣٪ تحسن' },
+  { val: '٣٥٠', lbl: 'صفقة نشطة مُدرّة', trend: '↑ ٤٢ صفقة جديدة' }
+];
+
+const STREAMS = [
+  { name: 'رسوم إدارة الصفقات', amount: '٦٠٠,٠٠٠ ر.س', pct: 100 },
+  { name: 'رسوم المعاملات', amount: '٢٤٠,٠٠٠ ر.س', pct: 40 },
+  { name: 'رسوم الاشتراكات المميزة', amount: '٢١٦,٠٠٠ ر.س', pct: 36 },
+  { name: 'عمولات السوق الثانوي', amount: '١٤٤,٠٠٠ ر.س', pct: 24 }
+];
+
+const MONTHLY = [
+  { month: 'يناير', pct: 75, val: '١٥٠,٠٠٠ ر.س' },
+  { month: 'فبراير', pct: 80, val: '١٦٠,٠٠٠ ر.س' },
+  { month: 'مارس', pct: 90, val: '١٨٠,٠٠٠ ر.س' },
+  { month: 'أبريل', pct: 85, val: '١٧٠,٠٠٠ ر.س' },
+  { month: 'مايو', pct: 95, val: '١٩٠,٠٠٠ ر.س' },
+  { month: 'يونيو', pct: 100, val: '٢٠٠,٠٠٠ ر.س' }
+];
+
+const TABLE_DATA = [
+  { period: 'Q1 2025', total: '٣٨٠,٠٠٠ ر.س', deals: '١٤٠,٠٠٠', tx: '٨٠,٠٠٠', subs: '١٦٠,٠٠٠' },
+  { period: 'Q2 2025', total: '٤٢٠,٠٠٠ ر.س', deals: '١٦٠,٠٠٠', tx: '٩٠,٠٠٠', subs: '١٧٠,٠٠٠' },
+  { period: 'Q3 2025', total: '٤٦٠,٠٠٠ ر.س', deals: '١٧٠,٠٠٠', tx: '١٠٠,٠٠٠', subs: '١٩٠,٠٠٠' },
+  { period: 'Q1 2026', total: '٤٩٠,٠٠٠ ر.س', deals: '٢٠٠,٠٠٠', tx: '٩٠,٠٠٠', subs: '٢٠٠,٠٠٠' },
+  { period: 'Q2 2026', total: '٥٣٠,٠٠٠ ر.س', deals: '٢٢٠,٠٠٠', tx: '١١٠,٠٠٠', subs: '٢٠٠,٠٠٠' }
+];
+
+function buildHero() {
+  const wrap = document.getElementById('revHero');
+  HERO.forEach(h => {
+    const item = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'rh-val'; val.textContent = h.val;
+    const lbl = document.createElement('div'); lbl.className = 'rh-lbl'; lbl.textContent = h.lbl;
+    const trend = document.createElement('div'); trend.className = 'rh-trend'; trend.textContent = h.trend;
+    item.appendChild(val); item.appendChild(lbl); item.appendChild(trend);
+    wrap.appendChild(item);
+  });
+}
+
+function buildStreams() {
+  const wrap = document.getElementById('revStreams');
+  STREAMS.forEach(s => {
+    const item = document.createElement('div'); item.className = 'stream-item';
+    const head = document.createElement('div'); head.className = 'si-head';
+    const name = document.createElement('span'); name.className = 'si-name'; name.textContent = s.name;
+    const amount = document.createElement('span'); amount.className = 'si-amount'; amount.textContent = s.amount;
+    head.appendChild(name); head.appendChild(amount);
+    const track = document.createElement('div'); track.className = 'si-track';
+    const fill = document.createElement('div'); fill.className = 'si-fill'; fill.style.width = s.pct + '%';
+    track.appendChild(fill);
+    item.appendChild(head); item.appendChild(track);
+    wrap.appendChild(item);
+  });
+}
+
+function buildMonthly() {
+  const wrap = document.getElementById('monthlyRev');
+  MONTHLY.forEach(m => {
+    const row = document.createElement('div'); row.className = 'mr-row';
+    const month = document.createElement('div'); month.className = 'mr-month'; month.textContent = m.month;
+    const track = document.createElement('div'); track.className = 'mr-track';
+    const fill = document.createElement('div'); fill.className = 'mr-fill'; fill.style.width = m.pct + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div'); val.className = 'mr-val'; val.textContent = m.val;
+    row.appendChild(month); row.appendChild(track); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function buildTable() {
+  const table = document.getElementById('revTable');
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  ['الفترة','الإجمالي','رسوم الصفقات','رسوم المعاملات','الاشتراكات'].forEach(h => {
+    const th = document.createElement('th'); th.textContent = h; hr.appendChild(th);
+  });
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  TABLE_DATA.forEach(d => {
+    const tr = document.createElement('tr');
+    const tdP = document.createElement('td'); tdP.textContent = d.period;
+    const tdT = document.createElement('td'); tdT.className = 'rev-col'; tdT.textContent = d.total;
+    const tdD = document.createElement('td'); tdD.textContent = d.deals + ' ر.س';
+    const tdX = document.createElement('td'); tdX.textContent = d.tx + ' ر.س';
+    const tdS = document.createElement('td'); tdS.textContent = d.subs + ' ر.س';
+    tr.appendChild(tdP); tr.appendChild(tdT); tr.appendChild(tdD); tr.appendChild(tdX); tr.appendChild(tdS);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function exportRevenue() {
+  fetch('/app/admin/platform-revenue/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير الإيرادات...');
+}
+
+buildHero(); buildStreams(); buildMonthly(); buildTable();
+</script>
+</body>
+</html>

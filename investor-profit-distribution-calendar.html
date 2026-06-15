@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقويم توزيع الأرباح - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem;}
+.cal-event{border:1px solid var(--line);border-radius:10px;padding:0.9rem;position:relative;}
+.ce-date{font-size:0.7rem;color:var(--muted);margin-bottom:0.3rem;}
+.ce-title{font-size:0.86rem;font-weight:700;margin-bottom:0.2rem;}
+.ce-amount{font-size:1rem;font-weight:700;color:var(--green);margin-bottom:0.4rem;}
+.ce-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-upcoming{background:#e8f0fe;color:#1a56c4;}
+.pill-paid{background:#e8f5ed;color:#1e8449;}
+.pill-processing{background:#fef3cd;color:#92400e;}
+.dist-table{padding:1.25rem;overflow-x:auto;}
+.dt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.dt-row:last-child{border-bottom:none;}
+.dt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.cal-grid{grid-template-columns:1fr 1fr;}.dt-row{grid-template-columns:2fr 1fr 1fr;}.dt-row>:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تقويم توزيع الأرباح</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تقويم توزيع الأرباح</h2>
+      <p>مواعيد توزيع الأرباح المتوقعة والسابقة لجميع صفقاتك</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportCalendar()">تصدير</button>
+  </div>
+
+  <div class="stats" id="calStats"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>توزيعات قادمة</h3></div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل التوزيعات السابقة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCalendar()">تصدير</button>
+    </div>
+    <div class="dist-table" id="distTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="exportCalendar()">تصدير الكامل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣٢,٠٠٠ ر.س', lbl: 'أرباح متوقعة (الربع القادم)' },
+  { val: '٦', lbl: 'توزيعة قادمة' },
+  { val: '١١٨,٤٠٠ ر.س', lbl: 'إجمالي الموزّع (هذا العام)' },
+  { val: '٨.٤٪', lbl: 'متوسط العائد السنوي' }
+];
+
+const UPCOMING = [
+  { date: '٣٠ يونيو ٢٠٢٦', title: 'صفقة #4920 — مرابحة سلع', amount: '٨,٤٠٠ ر.س', pill: 'pill-upcoming', label: 'قادم' },
+  { date: '١٥ يوليو ٢٠٢٦', title: 'صفقة #4918 — مرابحة عقار', amount: '١٢,٦٠٠ ر.س', pill: 'pill-upcoming', label: 'قادم' },
+  { date: '٣١ يوليو ٢٠٢٦', title: 'صفقة #4905 — مرابحة تجارة', amount: '٥,٢٠٠ ر.س', pill: 'pill-processing', label: 'قيد المعالجة' },
+  { date: '١٥ أغسطس ٢٠٢٦', title: 'صفقة #4890 — مرابحة صناعة', amount: '٣,٨٠٠ ر.س', pill: 'pill-upcoming', label: 'قادم' },
+  { date: '٣٠ أغسطس ٢٠٢٦', title: 'صفقة #4875 — مرابحة زراعة', amount: '١,٦٠٠ ر.س', pill: 'pill-upcoming', label: 'قادم' },
+  { date: '٣٠ سبتمبر ٢٠٢٦', title: 'صندوق المرابحة المتوازن', amount: '٤٠٠ ر.س', pill: 'pill-upcoming', label: 'قادم' }
+];
+
+const HISTORY = [
+  { deal: 'صفقة #4860 — مرابحة سلع', date: 'مارس ٢٠٢٦', amount: '٨,٢٠٠ ر.س', yield: '٨.٢٪', pill: 'pill-paid', label: 'مدفوع' },
+  { deal: 'صفقة #4840 — مرابحة عقار', date: 'فبراير ٢٠٢٦', amount: '١١,٤٠٠ ر.س', yield: '٩.١٪', pill: 'pill-paid', label: 'مدفوع' },
+  { deal: 'صفقة #4820 — مرابحة تجارة', date: 'يناير ٢٠٢٦', amount: '٤,٨٠٠ ر.س', yield: '٧.٦٪', pill: 'pill-paid', label: 'مدفوع' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('calStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildCalendar() {
+  const wrap = document.getElementById('calGrid');
+  UPCOMING.forEach(e => {
+    const card = document.createElement('div'); card.className = 'cal-event';
+    const date = document.createElement('div'); date.className = 'ce-date'; date.textContent = e.date;
+    const title = document.createElement('div'); title.className = 'ce-title'; title.textContent = e.title;
+    const amount = document.createElement('div'); amount.className = 'ce-amount'; amount.textContent = e.amount;
+    const pill = document.createElement('span'); pill.className = 'ce-pill ' + e.pill; pill.textContent = e.label;
+    card.appendChild(date); card.appendChild(title); card.appendChild(amount); card.appendChild(pill);
+    wrap.appendChild(card);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('distTable');
+  const header = document.createElement('div'); header.className = 'dt-row dt-header';
+  ['الصفقة', 'التاريخ', 'المبلغ', 'العائد'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  HISTORY.forEach(h => {
+    const row = document.createElement('div'); row.className = 'dt-row';
+    const deal = document.createElement('div'); deal.style.fontWeight = '700'; deal.textContent = h.deal;
+    const date = document.createElement('div'); date.style.color = 'var(--muted)'; date.textContent = h.date;
+    const amount = document.createElement('div'); amount.style.color = 'var(--green)'; amount.style.fontWeight = '700'; amount.textContent = h.amount;
+    const yld = document.createElement('div'); yld.style.color = 'var(--gold)'; yld.style.fontWeight = '700'; yld.textContent = h.yield;
+    row.appendChild(deal); row.appendChild(date); row.appendChild(amount); row.appendChild(yld);
+    wrap.appendChild(row);
+  });
+}
+
+function exportCalendar() {
+  fetch('/app/me/profit-distribution-calendar/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقويم توزيع الأرباح...');
+}
+
+buildStats(); buildCalendar(); buildHistory();
+</script>
+</body>
+</html>

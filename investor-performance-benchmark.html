@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مقياس الأداء - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.bench-list{padding:1.25rem;}
+.bench-item{margin-bottom:1.1rem;}
+.bench-head{display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.35rem;}
+.bench-name{font-weight:600;}
+.bench-delta{font-weight:700;}
+.bench-delta.pos{color:var(--green);}
+.bench-delta.neg{color:#c0392b;}
+.bench-bar{height:10px;border-radius:5px;background:#e8e2d6;position:relative;overflow:visible;}
+.bench-fill{height:100%;border-radius:5px;}
+.fill-you{background:var(--green);}
+.fill-bench{background:#d0cbc0;}
+.bench-compare{display:flex;gap:0.3rem;margin-top:0.25rem;}
+.bc-item{display:flex;align-items:center;gap:0.25rem;font-size:0.68rem;color:var(--muted);}
+.bc-dot{width:8px;height:8px;border-radius:50%;}
+.metric-table{padding:1.25rem;}
+.mt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.mt-row:last-child{border-bottom:none;}
+.mt-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.mt-you{font-weight:700;color:var(--green);}
+.mt-badge{display:inline-block;padding:0.1rem 0.4rem;border-radius:6px;font-size:0.65rem;font-weight:700;background:#e8f5ed;color:#1e8449;}
+.mt-badge.neg{background:#fde8e8;color:#c0392b;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}.mt-row{grid-template-columns:2fr 1fr 1fr;}.mt-row>:last-child{display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مقياس الأداء</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مقياس أداء المحفظة</h2>
+      <p>قارن أداء استثماراتك بمعايير السوق ومتوسطات المنصة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportBenchmark()">تصدير التقرير</button>
+  </div>
+
+  <div class="stats" id="pbStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>مقارنة العوائد السنوية</h3></div>
+      <div class="bench-list" id="benchList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>المقاييس الرئيسية</h3></div>
+      <div class="metric-table" id="metricTable"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>الأداء التاريخي السنوي</h3></div>
+    <div style="padding:1.25rem;" id="historyTable"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٩.٢٪', lbl: 'عائدك الفعلي ٢٠٢٥' },
+  { val: '٧.٨٪', lbl: 'متوسط المنصة' },
+  { val: '+١.٤٪', lbl: 'تفوقك على المتوسط' },
+  { val: 'أفضل ٢٢٪', lbl: 'ترتيبك بين المستثمرين' }
+];
+
+const BENCHMARKS = [
+  { name: 'محفظتك', pct: 9.2, fillCls: 'fill-you', delta: '+١.٤٪', pos: true },
+  { name: 'متوسط المنصة', pct: 7.8, fillCls: 'fill-bench', delta: 'المرجع', pos: null },
+  { name: 'ودائع بنكية', pct: 4.5, fillCls: 'fill-bench', delta: '-٤.٧٪', pos: false },
+  { name: 'صناديق سعودية', pct: 6.2, fillCls: 'fill-bench', delta: '-٣.٠٪', pos: false }
+];
+
+const METRICS = [
+  { label: 'نسبة شارب', you: '١.٤٢', avg: '١.١٨', bench: '٠.٩٠', badge: 'pos', badgeLabel: 'ممتاز' },
+  { label: 'أقصى تراجع', you: '-٢.١٪', avg: '-٣.٨٪', bench: '-٦.٢٪', badge: 'pos', badgeLabel: 'آمن' },
+  { label: 'الانحراف المعياري', you: '٢.٤٪', avg: '٣.١٪', bench: '٤.٨٪', badge: 'pos', badgeLabel: 'منخفض' },
+  { label: 'معدل الفوز', you: '٨٣٪', avg: '٧١٪', bench: '٦٠٪', badge: 'pos', badgeLabel: 'عالٍ' }
+];
+
+const HISTORY = [
+  { year: '٢٠٢٥', you: '٩.٢٪', avg: '٧.٨٪', bench: '٦.٢٪' },
+  { year: '٢٠٢٤', you: '٨.٧٪', avg: '٧.٢٪', bench: '٥.٩٪' },
+  { year: '٢٠٢٣', you: '١٠.١٪', avg: '٨.٤٪', bench: '٦.٨٪' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('pbStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildBenchmarks() {
+  const wrap = document.getElementById('benchList');
+  const maxPct = 12;
+  BENCHMARKS.forEach(b => {
+    const item = document.createElement('div'); item.className = 'bench-item';
+    const head = document.createElement('div'); head.className = 'bench-head';
+    const name = document.createElement('span'); name.className = 'bench-name'; name.textContent = b.name + ' — ' + b.pct + '٪';
+    const delta = document.createElement('span'); delta.className = 'bench-delta' + (b.pos === true ? ' pos' : b.pos === false ? ' neg' : ''); delta.textContent = b.delta;
+    head.appendChild(name); head.appendChild(delta);
+    const bar = document.createElement('div'); bar.className = 'bench-bar';
+    const fill = document.createElement('div'); fill.className = 'bench-fill ' + b.fillCls; fill.style.width = Math.round(b.pct / maxPct * 100) + '%';
+    bar.appendChild(fill);
+    item.appendChild(head); item.appendChild(bar);
+    wrap.appendChild(item);
+  });
+}
+
+function buildMetrics() {
+  const wrap = document.getElementById('metricTable');
+  const header = document.createElement('div'); header.className = 'mt-row mt-header';
+  ['المقياس', 'أنت', 'متوسط المنصة', 'التقييم'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  METRICS.forEach(m => {
+    const row = document.createElement('div'); row.className = 'mt-row';
+    const label = document.createElement('div'); label.textContent = m.label;
+    const you = document.createElement('div'); you.className = 'mt-you'; you.textContent = m.you;
+    const avg = document.createElement('div'); avg.style.color = 'var(--muted)'; avg.textContent = m.avg;
+    const badge = document.createElement('span'); badge.className = 'mt-badge' + (m.badge === 'neg' ? ' neg' : ''); badge.textContent = m.badgeLabel;
+    row.appendChild(label); row.appendChild(you); row.appendChild(avg); row.appendChild(badge);
+    wrap.appendChild(row);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyTable');
+  const header = document.createElement('div');
+  header.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;font-weight:700;font-size:0.75rem;color:var(--muted);padding-bottom:0.5rem;border-bottom:1px solid var(--line);';
+  ['السنة', 'عائدك', 'متوسط المنصة', 'صناديق سعودية'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  HISTORY.forEach(h => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.84rem;';
+    const year = document.createElement('div'); year.style.fontWeight = '700'; year.textContent = h.year;
+    const you = document.createElement('div'); you.style.cssText = 'font-weight:700;color:var(--green);'; you.textContent = h.you;
+    const avg = document.createElement('div'); avg.style.color = 'var(--muted)'; avg.textContent = h.avg;
+    const bench = document.createElement('div'); bench.style.color = 'var(--muted)'; bench.textContent = h.bench;
+    row.appendChild(year); row.appendChild(you); row.appendChild(avg); row.appendChild(bench);
+    wrap.appendChild(row);
+  });
+}
+
+function exportBenchmark() {
+  fetch('/app/me/performance-benchmark/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير مقياس الأداء...');
+}
+
+buildStats(); buildBenchmarks(); buildMetrics(); buildHistory();
+</script>
+</body>
+</html>

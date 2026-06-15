@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مخطط التدفق النقدي - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.cashflow-banner{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;text-align:center;}
+.cb-val{font-size:1.3rem;font-weight:700;color:#b8e6cf;}
+.cb-lbl{font-size:0.7rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.cf-chart{padding:1.25rem;}
+.chart-bars{display:flex;align-items:flex-end;gap:0.5rem;height:120px;border-bottom:2px solid var(--line);margin-bottom:0.5rem;}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.25rem;}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.3s;}
+.bar-in{background:var(--green);}
+.bar-out{background:var(--gold);}
+.bar-net-pos{background:#1e8449;}
+.bar-net-neg{background:#c0392b;}
+.chart-label{font-size:0.65rem;color:var(--muted);text-align:center;}
+.cf-legend{display:flex;gap:1rem;margin-top:0.5rem;font-size:0.72rem;}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-left:0.3rem;}
+.cf-table{padding:1.25rem;overflow-x:auto;}
+.cft-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.8rem;align-items:center;}
+.cft-row:last-child{border-bottom:none;}
+.cft-header{font-weight:700;font-size:0.72rem;color:var(--muted);}
+.val-in{color:var(--green);font-weight:700;}
+.val-out{color:#c0392b;font-weight:700;}
+.val-net{font-weight:700;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.cashflow-banner{grid-template-columns:1fr 1fr;}.cft-row{grid-template-columns:1fr 1fr 1fr;}.cft-row>:nth-child(4),.cft-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مخطط التدفق النقدي</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مخطط التدفق النقدي</h2>
+      <p>تتبّع تدفقاتك النقدية الداخلة والخارجة من محفظتك الاستثمارية</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportCashflow()">تصدير التقرير</button>
+  </div>
+
+  <div class="cashflow-banner" id="cfBanner"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>مخطط التدفق النقدي الشهري</h3></div>
+    <div class="cf-chart" id="cfChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>جدول التدفقات التفصيلي</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCashflow()">تصدير</button>
+    </div>
+    <div class="cf-table" id="cfTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="planCashflow()">تخطيط التدفق</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportCashflow()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BANNER = [
+  { val: '٤٢,٠٠٠ ر.س', lbl: 'إجمالي التدفقات الداخلة' },
+  { val: '٣,٦٠٠ ر.س', lbl: 'إجمالي التدفقات الخارجة' },
+  { val: '٣٨,٤٠٠ ر.س', lbl: 'صافي التدفق النقدي' },
+  { val: '١٠٨٪', lbl: 'تغطية التدفق' }
+];
+
+const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+const CF_DATA = [
+  { in: 6500, out: 500, net: 6000 },
+  { in: 7200, out: 600, net: 6600 },
+  { in: 8100, out: 700, net: 7400 },
+  { in: 5800, out: 500, net: 5300 },
+  { in: 8400, out: 650, net: 7750 },
+  { in: 7000, out: 650, net: 6350 }
+];
+
+const CF_TABLE = [
+  { month: 'يناير ٢٠٢٦', in: '٦,٥٠٠ ر.س', out: '٥٠٠ ر.س', net: '٦,٠٠٠ ر.س', status: 'إيجابي' },
+  { month: 'فبراير ٢٠٢٦', in: '٧,٢٠٠ ر.س', out: '٦٠٠ ر.س', net: '٦,٦٠٠ ر.س', status: 'إيجابي' },
+  { month: 'مارس ٢٠٢٦', in: '٨,١٠٠ ر.س', out: '٧٠٠ ر.س', net: '٧,٤٠٠ ر.س', status: 'إيجابي' },
+  { month: 'أبريل ٢٠٢٦', in: '٥,٨٠٠ ر.س', out: '٥٠٠ ر.س', net: '٥,٣٠٠ ر.س', status: 'إيجابي' },
+  { month: 'مايو ٢٠٢٦', in: '٨,٤٠٠ ر.س', out: '٦٥٠ ر.س', net: '٧,٧٥٠ ر.س', status: 'إيجابي' },
+  { month: 'يونيو ٢٠٢٦', in: '٧,٠٠٠ ر.س', out: '٦٥٠ ر.س', net: '٦,٣٥٠ ر.س', status: 'إيجابي' }
+];
+
+function buildBanner() {
+  const wrap = document.getElementById('cfBanner');
+  BANNER.forEach(b => {
+    const item = document.createElement('div');
+    const val = document.createElement('div'); val.className = 'cb-val'; val.textContent = b.val;
+    const lbl = document.createElement('div'); lbl.className = 'cb-lbl'; lbl.textContent = b.lbl;
+    item.appendChild(val); item.appendChild(lbl);
+    wrap.appendChild(item);
+  });
+}
+
+function buildChart() {
+  const wrap = document.getElementById('cfChart');
+  const maxVal = Math.max(...CF_DATA.map(d => d.in));
+  const bars = document.createElement('div'); bars.className = 'chart-bars';
+  CF_DATA.forEach((d, i) => {
+    const bw = document.createElement('div'); bw.className = 'chart-bar-wrap';
+    const inBar = document.createElement('div'); inBar.className = 'chart-bar bar-in';
+    inBar.style.height = Math.round((d.in / maxVal) * 100) + 'px';
+    inBar.title = MONTHS[i] + ': ' + d.in;
+    bw.appendChild(inBar);
+    bars.appendChild(bw);
+  });
+  const labels = document.createElement('div'); labels.style.cssText = 'display:flex;gap:0.5rem;';
+  MONTHS.forEach(m => {
+    const lbl = document.createElement('div'); lbl.className = 'chart-label'; lbl.style.flex = '1'; lbl.textContent = m.slice(0,3);
+    labels.appendChild(lbl);
+  });
+  const legend = document.createElement('div'); legend.className = 'cf-legend';
+  [['bar-in', 'تدفق داخل'], ['bar-out', 'تدفق خارج']].forEach(([cls, lbl]) => {
+    const item = document.createElement('div');
+    const dot = document.createElement('span'); dot.className = 'legend-dot ' + cls; dot.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:0.3rem;' + (cls === 'bar-in' ? 'background:var(--green);' : 'background:var(--gold);');
+    const text = document.createElement('span'); text.textContent = lbl;
+    item.appendChild(dot); item.appendChild(text);
+    legend.appendChild(item);
+  });
+  wrap.appendChild(bars); wrap.appendChild(labels); wrap.appendChild(legend);
+}
+
+function buildTable() {
+  const wrap = document.getElementById('cfTable');
+  const header = document.createElement('div'); header.className = 'cft-row cft-header';
+  ['الشهر', 'التدفق الداخل', 'التدفق الخارج', 'الصافي', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  CF_TABLE.forEach(r => {
+    const row = document.createElement('div'); row.className = 'cft-row';
+    const month = document.createElement('div'); month.style.fontWeight = '700'; month.textContent = r.month;
+    const inVal = document.createElement('div'); inVal.className = 'val-in'; inVal.textContent = r.in;
+    const outVal = document.createElement('div'); outVal.className = 'val-out'; outVal.textContent = r.out;
+    const netVal = document.createElement('div'); netVal.className = 'val-net'; netVal.style.color = 'var(--green)'; netVal.textContent = r.net;
+    const status = document.createElement('div'); status.style.color = 'var(--muted)'; status.textContent = r.status;
+    row.appendChild(month); row.appendChild(inVal); row.appendChild(outVal); row.appendChild(netVal); row.appendChild(status);
+    wrap.appendChild(row);
+  });
+}
+
+function planCashflow() {
+  fetch('/app/me/cashflow-planner', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'plan' }) }).catch(() => {});
+  alert('جاري تحديث خطة التدفق النقدي...');
+}
+
+function exportCashflow() {
+  fetch('/app/me/cashflow-planner/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير التدفق النقدي...');
+}
+
+buildBanner(); buildChart(); buildTable();
+</script>
+</body>
+</html>

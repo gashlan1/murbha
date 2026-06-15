@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مسار التأهيل - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-label{font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;}
+.kpi-value{font-size:1.5rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.funnel-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.funnel-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.funnel-head h3{font-size:1rem;font-weight:700;}
+.funnel-body{padding:1.5rem;}
+.funnel-steps{display:flex;flex-direction:column;gap:0.75rem;}
+.funnel-step{display:flex;align-items:center;gap:1rem;}
+.step-label{width:180px;font-size:0.85rem;font-weight:600;color:var(--green-dark);flex-shrink:0;}
+.step-bar-wrap{flex:1;display:flex;align-items:center;gap:0.75rem;}
+.step-bar-track{flex:1;background:#e8e3da;border-radius:4px;height:22px;overflow:hidden;position:relative;}
+.step-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-right:0.5rem;transition:width 0.4s;}
+.step-bar-count{font-size:0.76rem;font-weight:700;color:#fff;position:relative;z-index:1;}
+.step-pct{font-size:0.82rem;font-weight:700;color:var(--green-dark);width:42px;text-align:left;}
+.step-drop{font-size:0.74rem;color:#c0392b;width:60px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.stuck-item{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid var(--line);}
+.stuck-item:last-child{border-bottom:none;}
+.stuck-info{flex:1;}
+.stuck-name{font-size:0.86rem;font-weight:600;}
+.stuck-meta{font-size:0.74rem;color:var(--muted);margin-top:0.1rem;}
+.config-item{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0;border-bottom:1px solid var(--line);font-size:0.85rem;}
+.config-item:last-child{border-bottom:none;}
+.config-label{color:var(--muted);}
+.toggle{width:36px;height:20px;background:#ccc;border-radius:10px;position:relative;cursor:pointer;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:right 0.2s;}
+.toggle.on::after{right:calc(100% - 18px);}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مسار التأهيل</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>مسار تأهيل المستثمرين</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="exportFunnel()">تصدير</button>
+      <button class="btn btn-primary" onclick="sendReminders()">إرسال تذكيرات</button>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="funnel-card">
+    <div class="funnel-head"><h3>قمع التأهيل (آخر ٣٠ يوماً)</h3></div>
+    <div class="funnel-body">
+      <div class="funnel-steps" id="funnelSteps"></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head">
+        <h3>متوقفون عند خطوة</h3>
+        <button class="btn btn-sm btn-secondary" onclick="nudgeAll()">تذكير الكل</button>
+      </div>
+      <div class="card-body" id="stuckList"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>إعدادات مسار التأهيل</h3></div>
+      <div class="card-body" id="configList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'مستخدمون جدد',value:'٨٦',sub:'آخر ٣٠ يوماً'},
+  {label:'أكملوا التأهيل',value:'٥٨',sub:'٦٧٪ معدل إتمام'},
+  {label:'متوسط وقت التأهيل',value:'٢.٤ أيام',sub:'من التسجيل للاستثمار'},
+  {label:'متوقفون',value:'١٢',sub:'بحاجة لمتابعة'},
+];
+
+const funnelSteps = [
+  {label:'التسجيل',count:86,pct:100,drop:'—',color:'#0a4d36'},
+  {label:'التحقق من الهوية',count:79,pct:92,drop:'-٨٪',color:'#2d6b50'},
+  {label:'توثيق KYC',count:71,pct:83,drop:'-٩٪',color:'#4a7d66'},
+  {label:'اتفاقية المستثمر',count:64,pct:74,drop:'-٩٪',color:'#6b8f7a'},
+  {label:'اختبار الملاءمة',count:61,pct:71,drop:'-٤٪',color:'#b08840'},
+  {label:'أول إيداع',count:58,pct:67,drop:'-٤٪',color:'#c9a05a'},
+];
+
+const stuckUsers = [
+  {name:'محمد العنزي',meta:'متوقف عند: توثيق KYC · منذ ٥ أيام'},
+  {name:'ريم الحربي',meta:'متوقف عند: اختبار الملاءمة · منذ ٣ أيام'},
+  {name:'عبدالله القحطاني',meta:'متوقف عند: اتفاقية المستثمر · منذ ٧ أيام'},
+  {name:'منى الشهري',meta:'متوقف عند: التحقق من الهوية · منذ ٢ أيام'},
+];
+
+const configs = [
+  {label:'تذكيرات تلقائية',on:true},
+  {label:'مراجعة يدوية لـ KYC',on:true},
+  {label:'اختبار الملاءمة إلزامي',on:true},
+  {label:'إشعار عند التوقف (+٣ أيام)',on:true},
+  {label:'تقرير أسبوعي للفريق',on:false},
+];
+
+function renderKpis(){
+  const row = document.getElementById('kpiRow');
+  row.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value';
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    row.appendChild(card);
+  });
+}
+
+function renderFunnel(){
+  const cont = document.getElementById('funnelSteps');
+  cont.textContent = '';
+  funnelSteps.forEach(s => {
+    const step = document.createElement('div');
+    step.className = 'funnel-step';
+    const lbl = document.createElement('span');
+    lbl.className = 'step-label';
+    lbl.textContent = s.label;
+    const barWrap = document.createElement('div');
+    barWrap.className = 'step-bar-wrap';
+    const track = document.createElement('div');
+    track.className = 'step-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'step-bar-fill';
+    fill.style.width = s.pct + '%';
+    fill.style.background = s.color;
+    const cnt = document.createElement('span');
+    cnt.className = 'step-bar-count';
+    cnt.textContent = s.count;
+    fill.appendChild(cnt);
+    track.appendChild(fill);
+    const pct = document.createElement('span');
+    pct.className = 'step-pct';
+    pct.textContent = s.pct + '٪';
+    const drop = document.createElement('span');
+    drop.className = 'step-drop';
+    drop.textContent = s.drop;
+    barWrap.appendChild(track);
+    barWrap.appendChild(pct);
+    barWrap.appendChild(drop);
+    step.appendChild(lbl);
+    step.appendChild(barWrap);
+    cont.appendChild(step);
+  });
+}
+
+function renderStuck(){
+  const cont = document.getElementById('stuckList');
+  cont.textContent = '';
+  stuckUsers.forEach(u => {
+    const item = document.createElement('div');
+    item.className = 'stuck-item';
+    const info = document.createElement('div');
+    info.className = 'stuck-info';
+    const name = document.createElement('div');
+    name.className = 'stuck-name';
+    name.textContent = u.name;
+    const meta = document.createElement('div');
+    meta.className = 'stuck-meta';
+    meta.textContent = u.meta;
+    info.appendChild(name);
+    info.appendChild(meta);
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-sm btn-secondary';
+    btn.textContent = 'تذكير';
+    btn.onclick = () => nudgeUser(u.name);
+    item.appendChild(info);
+    item.appendChild(btn);
+    cont.appendChild(item);
+  });
+}
+
+function renderConfig(){
+  const cont = document.getElementById('configList');
+  cont.textContent = '';
+  configs.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'config-item';
+    const lbl = document.createElement('span');
+    lbl.className = 'config-label';
+    lbl.textContent = c.label;
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle' + (c.on ? ' on' : '');
+    toggle.onclick = () => {
+      c.on = !c.on;
+      toggle.className = 'toggle' + (c.on ? ' on' : '');
+      updateConfig(c.label, c.on);
+    };
+    item.appendChild(lbl);
+    item.appendChild(toggle);
+    cont.appendChild(item);
+  });
+}
+
+async function nudgeUser(name){
+  try {
+    await fetch('/app/admin/onboarding/nudge', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({name})
+    });
+  } catch(e){}
+}
+
+async function nudgeAll(){
+  try {
+    await fetch('/app/admin/onboarding/nudge-all', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function sendReminders(){
+  try {
+    await fetch('/app/admin/onboarding/reminders', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function exportFunnel(){
+  try {
+    const res = await fetch('/app/admin/onboarding/export');
+    await res.json();
+  } catch(e){}
+}
+
+async function updateConfig(label, enabled){
+  try {
+    await fetch('/app/admin/onboarding/config', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({label, enabled})
+    });
+  } catch(e){}
+}
+
+renderKpis();
+renderFunnel();
+renderStuck();
+renderConfig();
+</script>
+</body>
+</html>

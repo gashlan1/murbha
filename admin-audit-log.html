@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Audit Log — Murbha Admin">سجل المراجعة — إدارة مُرابحة</title>
+<meta name="description" content="سجل شامل لجميع إجراءات المديرين والعمليات الحساسة في المنصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .filter-bar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .search-inp{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .search-inp:focus{outline:none;border-color:var(--green);}
+  .date-inp{border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font:500 11px Tajawal,sans-serif;color:var(--ink);}
+  .date-inp:focus{outline:none;border-color:var(--green);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .audit-table{width:100%;border-collapse:collapse;min-width:700px;}
+  .audit-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .audit-table td{font:500 11px Tajawal,sans-serif;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .audit-table tr:last-child td{border-bottom:none;}
+  .audit-table tr:hover td{background:#fafaf7;}
+  .action-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;white-space:nowrap;}
+  .badge-create{background:#e8f5e9;color:#2e7d32;}
+  .badge-update{background:#e3f2fd;color:#1565c0;}
+  .badge-delete{background:#fdecea;color:#c54a3a;}
+  .badge-approve{background:#e8f5e9;color:#2e7d32;}
+  .badge-reject{background:#fdecea;color:#c54a3a;}
+  .badge-login{background:#f3e5f5;color:#7b1fa2;}
+  .badge-export{background:#fff8e1;color:#a07020;}
+  .td-admin{font:900 10px Cairo,sans-serif;color:var(--green-dark);}
+  .td-target{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .td-ip{font:500 10px Cairo,sans-serif;color:var(--muted);direction:ltr;text-align:left;}
+  .paging{display:flex;justify-content:center;gap:8px;margin-top:16px;}
+  .page-btn{border:1.5px solid var(--line);border-radius:7px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .page-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Audit Log">سجل المراجعة</h1>
+    <p data-en="A comprehensive log of all admin actions and sensitive operations on the platform.">سجل شامل لجميع إجراءات المديرين والعمليات الحساسة في المنصة.</p>
+    <div class="admin-badge">لوحة الإدارة — سري</div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-bar">
+    <div class="filter-chip active" data-action="">الكل</div>
+    <div class="filter-chip" data-action="create">إنشاء</div>
+    <div class="filter-chip" data-action="update">تعديل</div>
+    <div class="filter-chip" data-action="delete">حذف</div>
+    <div class="filter-chip" data-action="approve">اعتماد</div>
+    <div class="filter-chip" data-action="login">تسجيل دخول</div>
+    <input class="date-inp" type="date" id="fromDate" />
+    <input class="search-inp" id="searchInp" type="text" placeholder="بحث بالمدير أو الإجراء…" />
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Audit Events">سجل الأحداث</div>
+    <table class="audit-table">
+      <thead><tr>
+        <th data-en="Timestamp">الوقت</th>
+        <th data-en="Admin">المدير</th>
+        <th data-en="Action">الإجراء</th>
+        <th data-en="Target">الهدف</th>
+        <th data-en="Details">التفاصيل</th>
+        <th data-en="IP">IP</th>
+      </tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table>
+    <div class="paging" id="paging"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const actionLabels={create:'إنشاء',update:'تعديل',delete:'حذف',approve:'اعتماد',reject:'رفض',login:'دخول',export:'تصدير'};
+  const actionBadge={create:'badge-create',update:'badge-update',delete:'badge-delete',approve:'badge-approve',reject:'badge-reject',login:'badge-login',export:'badge-export'};
+
+  let allEvents=[], activeAction='', activeSearch='', activeFrom='';
+  const PAGE_SIZE=25; let currentPage=1;
+
+  function filtered(){
+    return allEvents.filter(e=>{
+      if(activeAction && e.action!==activeAction) return false;
+      if(activeFrom && (e.timestamp||'').slice(0,10)<activeFrom) return false;
+      if(activeSearch){
+        const q=activeSearch.toLowerCase();
+        if(!(e.adminName||'').toLowerCase().includes(q)&&!(e.details||'').toLowerCase().includes(q)&&!(e.target||'').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPage(page){
+    currentPage=page;
+    const body=document.getElementById('auditBody'); body.textContent='';
+    const items=filtered(); const slice=items.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+    if(!slice.length){ placeholder(body,'لا توجد أحداث تطابق الفلتر.'); renderPaging(0); return; }
+    slice.forEach(e=>{
+      const tr=document.createElement('tr');
+      const tdTs=document.createElement('td'); tdTs.textContent=(e.timestamp||'—').replace('T',' ').slice(0,16);
+      const tdAdmin=document.createElement('td'); tdAdmin.className='td-admin'; tdAdmin.textContent=e.adminName||'—';
+      const tdAct=document.createElement('td');
+      const badge=document.createElement('span'); badge.className='action-badge '+(actionBadge[e.action]||'badge-update'); badge.textContent=actionLabels[e.action]||e.action||'—';
+      tdAct.appendChild(badge);
+      const tdTarget=document.createElement('td'); tdTarget.className='td-target'; tdTarget.textContent=e.target||'—';
+      const tdDet=document.createElement('td'); tdDet.textContent=e.details||'—';
+      const tdIp=document.createElement('td'); tdIp.className='td-ip'; tdIp.textContent=e.ip||'—';
+      tr.appendChild(tdTs); tr.appendChild(tdAdmin); tr.appendChild(tdAct); tr.appendChild(tdTarget); tr.appendChild(tdDet); tr.appendChild(tdIp);
+      body.appendChild(tr);
+    });
+    renderPaging(Math.ceil(items.length/PAGE_SIZE));
+  }
+
+  function renderPaging(total){
+    const pg=document.getElementById('paging'); pg.textContent='';
+    const start=Math.max(1,currentPage-2); const end=Math.min(total,currentPage+2);
+    for(let i=start;i<=end;i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===currentPage?' active':''); btn.textContent=String(i);
+      const p=i; btn.addEventListener('click',()=>renderPage(p));
+      pg.appendChild(btn);
+    }
+  }
+
+  function rerender(){ renderPage(1); }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeAction=chip.dataset.action||''; rerender();
+    });
+  });
+  document.getElementById('searchInp').addEventListener('input',e=>{ activeSearch=e.target.value.trim(); rerender(); });
+  document.getElementById('fromDate').addEventListener('change',e=>{ activeFrom=e.target.value; rerender(); });
+
+  (async function load(){
+    placeholder(document.getElementById('auditBody'),'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/admin/audit-log');
+      if(!r.ok){ placeholder(document.getElementById('auditBody'),r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=d.kpis||{};
+      [{lbl:'إجمالي الأحداث',val:String(kpis.total||0)},{lbl:'أحداث اليوم',val:String(kpis.today||0)},{lbl:'مديرون نشطون',val:String(kpis.activeAdmins||0)},{lbl:'عمليات حساسة',val:String(kpis.sensitive||0)}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      allEvents=d.events||[];
+      rerender();
+    }catch{ placeholder(document.getElementById('auditBody'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

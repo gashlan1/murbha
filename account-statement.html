@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Account Statement — Murbha">كشف الحساب — مُرابحة</title>
+<meta name="description" content="كشف حساب مفصّل بجميع حركات استثمارك وعوائدك خلال أي فترة زمنية." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  /* Filter bar */
+  .filter-bar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .filter-lbl{font:700 10px Cairo,sans-serif;color:var(--muted);flex-shrink:0;}
+  .date-inp{border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .date-inp:focus{outline:none;border-color:var(--green);}
+  .type-sel{border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .type-sel:focus{outline:none;border-color:var(--green);}
+  .btn-filter{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:8px;padding:9px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-filter:hover{background:var(--green);}
+  .btn-export{background:#f0ece0;color:var(--green-dark);border:1.5px solid var(--line);border-radius:8px;padding:9px 18px;font:700 11px Cairo,sans-serif;cursor:pointer;margin-right:auto;}
+  .btn-export:hover{background:#e8e2d0;}
+  /* Statement table */
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .stmt-table{width:100%;border-collapse:collapse;min-width:600px;}
+  .stmt-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .stmt-table td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:12px 12px;border-bottom:1px solid var(--line);}
+  .stmt-table tr:last-child td{border-bottom:none;}
+  .td-credit{font:900 12px Cairo,sans-serif;color:#2e7d32;}
+  .td-debit{font:900 12px Cairo,sans-serif;color:#c54a3a;}
+  .td-balance{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .tx-type-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-invest{background:#e3f2fd;color:#1565c0;}
+  .badge-return{background:#e8f5e9;color:#2e7d32;}
+  .badge-deposit{background:#f3e5f5;color:#7b1fa2;}
+  .badge-withdraw{background:#fdecea;color:#c54a3a;}
+  .badge-fee{background:#fff8e1;color:#a07020;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .paging{display:flex;justify-content:center;gap:8px;margin-top:16px;}
+  .page-btn{border:1.5px solid var(--line);border-radius:7px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .page-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .page-btn:hover:not(.active){border-color:var(--green);}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Account Statement">كشف الحساب</h1>
+    <p data-en="A detailed statement of all your investment movements and returns for any period.">كشف مفصّل بجميع حركات استثمارك وعوائدك خلال أي فترة زمنية.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-bar">
+    <span class="filter-lbl" data-en="From:">من:</span>
+    <input class="date-inp" type="date" id="fromDate" />
+    <span class="filter-lbl" data-en="To:">إلى:</span>
+    <input class="date-inp" type="date" id="toDate" />
+    <select class="type-sel" id="txType">
+      <option value="">جميع العمليات</option>
+      <option value="invest">استثمار</option>
+      <option value="return">عائد</option>
+      <option value="deposit">إيداع</option>
+      <option value="withdraw">سحب</option>
+      <option value="fee">رسوم</option>
+    </select>
+    <button class="btn-filter" id="btnFilter" data-en="Apply">تطبيق</button>
+    <button class="btn-export" id="btnExport" data-en="Export PDF">تصدير PDF</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Transactions">حركات الحساب</div>
+    <table class="stmt-table">
+      <thead>
+        <tr>
+          <th data-en="Date">التاريخ</th>
+          <th data-en="Description">البيان</th>
+          <th data-en="Type">النوع</th>
+          <th data-en="Credit">دائن</th>
+          <th data-en="Debit">مدين</th>
+          <th data-en="Balance">الرصيد</th>
+        </tr>
+      </thead>
+      <tbody id="stmtBody"></tbody>
+    </table>
+    <div class="paging" id="paging"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const typeLabels={invest:'استثمار',return:'عائد',deposit:'إيداع',withdraw:'سحب',fee:'رسوم'};
+  const typeBadge={invest:'badge-invest',return:'badge-return',deposit:'badge-deposit',withdraw:'badge-withdraw',fee:'badge-fee'};
+
+  let currentPage=1; const PAGE_SIZE=20;
+  let allTx=[];
+
+  function setDefaults(){
+    const to=new Date(); const from=new Date(to); from.setMonth(from.getMonth()-3);
+    document.getElementById('toDate').value=to.toISOString().slice(0,10);
+    document.getElementById('fromDate').value=from.toISOString().slice(0,10);
+  }
+
+  function renderPage(page){
+    currentPage=page;
+    const body=document.getElementById('stmtBody'); body.textContent='';
+    const start=(page-1)*PAGE_SIZE; const slice=allTx.slice(start, start+PAGE_SIZE);
+    if(!slice.length){ placeholder(body,'لا توجد حركات في هذه الفترة.'); renderPaging(0); return; }
+    slice.forEach(tx=>{
+      const tr=document.createElement('tr');
+      const tdDate=document.createElement('td'); tdDate.textContent=(tx.date||'—').slice(0,10);
+      const tdDesc=document.createElement('td'); tdDesc.textContent=tx.description||'—';
+      const tdType=document.createElement('td');
+      const badge=document.createElement('span'); badge.className='tx-type-badge '+(typeBadge[tx.type]||''); badge.textContent=typeLabels[tx.type]||tx.type||'—';
+      tdType.appendChild(badge);
+      const tdCredit=document.createElement('td'); tdCredit.className='td-credit'; tdCredit.textContent=tx.credit?(fmt(tx.credit)+' ر.س'):'—';
+      const tdDebit=document.createElement('td'); tdDebit.className='td-debit'; tdDebit.textContent=tx.debit?(fmt(tx.debit)+' ر.س'):'—';
+      const tdBal=document.createElement('td'); tdBal.className='td-balance'; tdBal.textContent=fmt(tx.balance||0)+' ر.س';
+      tr.appendChild(tdDate); tr.appendChild(tdDesc); tr.appendChild(tdType);
+      tr.appendChild(tdCredit); tr.appendChild(tdDebit); tr.appendChild(tdBal);
+      body.appendChild(tr);
+    });
+    renderPaging(Math.ceil(allTx.length/PAGE_SIZE));
+  }
+
+  function renderPaging(total){
+    const pg=document.getElementById('paging'); pg.textContent='';
+    for(let i=1;i<=total;i++){
+      const btn=document.createElement('button'); btn.className='page-btn'+(i===currentPage?' active':''); btn.textContent=String(i);
+      const page=i;
+      btn.addEventListener('click',()=>renderPage(page));
+      pg.appendChild(btn);
+    }
+  }
+
+  async function load(){
+    const from=document.getElementById('fromDate').value;
+    const to=document.getElementById('toDate').value;
+    const type=document.getElementById('txType').value;
+    const params=new URLSearchParams();
+    if(from) params.set('from',from);
+    if(to) params.set('to',to);
+    if(type) params.set('type',type);
+    const body=document.getElementById('stmtBody');
+    placeholder(body,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/me/account-statement?'+params.toString());
+      if(!r.ok){ placeholder(body,'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      const kpiRow=document.getElementById('kpiRow');
+      kpiRow.textContent='';
+      const kpis=[
+        ['الرصيد الافتتاحي',fmt(d.openingBalance||0)+' ر.س'],
+        ['إجمالي الإيداعات',fmt(d.totalCredits||0)+' ر.س'],
+        ['إجمالي السحوبات',fmt(d.totalDebits||0)+' ر.س'],
+        ['الرصيد الختامي',fmt(d.closingBalance||0)+' ر.س']
+      ];
+      kpis.forEach(([lbl,val])=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+
+      allTx=d.transactions||[];
+      renderPage(1);
+    }catch{ placeholder(body,'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('btnFilter').addEventListener('click', load);
+  document.getElementById('btnExport').addEventListener('click',()=>{
+    const from=document.getElementById('fromDate').value;
+    const to=document.getElementById('toDate').value;
+    window.open('/app/me/account-statement/export?from='+from+'&to='+to,'_blank');
+  });
+
+  setDefaults();
+  load();
+}());
+</script>
+</body>
+</html>

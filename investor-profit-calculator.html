@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حاسبة الأرباح - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;}
+.input-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.field{margin-bottom:1.25rem;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.35rem;}
+.field input,.field select{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;background:#fff;color:var(--green-dark);}
+.slider-group{margin-bottom:1.25rem;}
+.slider-group label{display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.slider-group label span{color:var(--gold);font-size:0.9rem;}
+.slider-group input[type=range]{width:100%;accent-color:var(--green);}
+.result-card{background:linear-gradient(150deg,#062b1e 0%,#0a4d36 100%);border-radius:14px;padding:2rem;color:#fff;}
+.result-main{text-align:center;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,0.15);}
+.result-main-label{font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:0.4rem;}
+.result-main-value{font-size:2.6rem;font-weight:700;color:#6de0a8;}
+.result-main-sub{font-size:0.8rem;color:rgba(255,255,255,0.65);margin-top:0.3rem;}
+.result-rows{}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.result-row:last-child{border-bottom:none;margin-top:0.5rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.2);}
+.result-label{font-size:0.82rem;color:rgba(255,255,255,0.75);}
+.result-value{font-size:0.88rem;font-weight:700;}
+.comparison-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.comp-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.comp-head h3{font-size:1rem;font-weight:700;}
+.comp-body{padding:1.25rem;}
+.comp-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;}
+.comp-row:last-child{margin-bottom:0;}
+.comp-label{width:120px;font-size:0.82rem;color:var(--muted);flex-shrink:0;}
+.comp-bar-track{flex:1;background:#e8e3da;border-radius:4px;height:22px;overflow:hidden;}
+.comp-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-right:0.5rem;}
+.comp-bar-text{font-size:0.74rem;font-weight:700;color:#fff;}
+.comp-val{font-size:0.84rem;font-weight:700;color:var(--green-dark);width:80px;text-align:left;}
+.schedule-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.sched-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.sched-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1rem;background:#f5f0e8;font-size:0.8rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1rem;border-bottom:1px solid var(--line);font-size:0.84rem;}
+tr:last-child td{border-bottom:none;}
+.td-profit{color:#27ae60;font-weight:600;}
+@media(max-width:768px){.calc-layout{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — حاسبة الأرباح</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>حاسبة الأرباح الاستثمارية</h2>
+    <p>احسب العائد المتوقع من استثماراتك في صفقات المرابحة الإسلامية</p>
+  </div>
+
+  <div class="calc-layout">
+    <div class="input-card">
+      <div class="card-head"><h3>معطيات الاستثمار</h3></div>
+      <div class="card-body">
+        <div class="field">
+          <label>مبلغ الاستثمار (ر.س)</label>
+          <input type="number" id="investAmt" value="50000" min="1000" step="1000" oninput="recalc()">
+        </div>
+        <div class="slider-group">
+          <label>نسبة العائد السنوي (٪) <span id="rateLabel">١٢</span>٪</label>
+          <input type="range" id="rateSlider" min="5" max="20" value="12" step="0.5" oninput="syncRate();recalc();">
+        </div>
+        <div class="slider-group">
+          <label>مدة الاستثمار (سنوات) <span id="durLabel">٣</span></label>
+          <input type="range" id="durSlider" min="1" max="7" value="3" oninput="syncDur();recalc();">
+        </div>
+        <div class="field">
+          <label>دورة توزيع الأرباح</label>
+          <select id="distCycle" onchange="recalc()">
+            <option value="12">شهري</option>
+            <option value="4" selected>ربع سنوي</option>
+            <option value="2">نصف سنوي</option>
+            <option value="1">سنوي</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>نوع العائد</label>
+          <select id="returnType" onchange="recalc()">
+            <option value="simple">بسيط (مرابحة ثابتة)</option>
+            <option value="compound">مركّب (إعادة استثمار)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-main">
+        <div class="result-main-label">صافي الربح المتوقع</div>
+        <div class="result-main-value" id="netProfit">—</div>
+        <div class="result-main-sub" id="netProfitSub">خلال مدة الاستثمار</div>
+      </div>
+      <div class="result-rows" id="resultRows"></div>
+    </div>
+  </div>
+
+  <div class="comparison-card">
+    <div class="comp-head"><h3>مقارنة العوائد حسب مدة الاستثمار</h3></div>
+    <div class="comp-body" id="compBody"></div>
+  </div>
+
+  <div class="schedule-card">
+    <div class="sched-head"><h3>جدول التوزيعات المتوقعة</h3></div>
+    <table>
+      <thead><tr><th>الدورة</th><th>تاريخ التوزيع</th><th>الربح الدوري</th><th>الإجمالي المتراكم</th></tr></thead>
+      <tbody id="schedTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function syncRate(){ document.getElementById('rateLabel').textContent = document.getElementById('rateSlider').value; }
+function syncDur(){ document.getElementById('durLabel').textContent = document.getElementById('durSlider').value; }
+
+function arabicNum(n){ return n.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
+
+function fmt(n){ return Math.round(n).toLocaleString('en').replace(/,/g, ','); }
+
+function recalc(){
+  const invest = parseFloat(document.getElementById('investAmt').value) || 0;
+  const rate = parseFloat(document.getElementById('rateSlider').value) / 100;
+  const years = parseInt(document.getElementById('durSlider').value);
+  const cycle = parseInt(document.getElementById('distCycle').value);
+  const compound = document.getElementById('returnType').value === 'compound';
+
+  const periods = years * cycle;
+  const periodRate = rate / cycle;
+
+  let totalProfit, finalValue;
+  if(compound){
+    finalValue = invest * Math.pow(1 + periodRate, periods);
+    totalProfit = finalValue - invest;
+  } else {
+    totalProfit = invest * rate * years;
+    finalValue = invest + totalProfit;
+  }
+  const annualProfit = totalProfit / years;
+  const irr = (totalProfit / invest / years) * 100;
+
+  document.getElementById('netProfit').textContent = fmt(totalProfit) + ' ر.س';
+  document.getElementById('netProfitSub').textContent = 'خلال ' + years + (years === 1 ? ' سنة' : ' سنوات') + ' · IRR ' + irr.toFixed(1) + '٪';
+
+  const rows = document.getElementById('resultRows');
+  rows.textContent = '';
+  [
+    {l:'رأس المال الأصلي',v:fmt(invest) + ' ر.س'},
+    {l:'إجمالي القيمة عند النضج',v:fmt(finalValue) + ' ر.س'},
+    {l:'الربح السنوي المتوقع',v:fmt(annualProfit) + ' ر.س'},
+    {l:'العائد على الاستثمار (ROI)',v:(totalProfit/invest*100).toFixed(1) + '٪'},
+    {l:'الربح الإجمالي',v:fmt(totalProfit) + ' ر.س'},
+  ].forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'result-label';
+    lbl.textContent = r.l;
+    const val = document.createElement('span');
+    val.className = 'result-value';
+    val.textContent = r.v;
+    if(i === 4){ val.style.color = '#6de0a8'; val.style.fontSize = '1rem'; }
+    row.appendChild(lbl);
+    row.appendChild(val);
+    rows.appendChild(row);
+  });
+
+  renderComparison(invest, rate);
+  renderSchedule(invest, rate, years, cycle, compound);
+}
+
+function renderComparison(invest, rate){
+  const cont = document.getElementById('compBody');
+  cont.textContent = '';
+  [1,2,3,5,7].forEach(y => {
+    const profit = invest * rate * y;
+    const maxProfit = invest * rate * 7;
+    const row = document.createElement('div');
+    row.className = 'comp-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'comp-label';
+    lbl.textContent = y + (y === 1 ? ' سنة' : ' سنوات');
+    const track = document.createElement('div');
+    track.className = 'comp-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'comp-bar-fill';
+    fill.style.width = Math.round((profit / maxProfit) * 100) + '%';
+    fill.style.background = 'var(--green)';
+    const txt = document.createElement('span');
+    txt.className = 'comp-bar-text';
+    txt.textContent = fmt(profit);
+    fill.appendChild(txt);
+    track.appendChild(fill);
+    const val = document.createElement('span');
+    val.className = 'comp-val';
+    val.textContent = fmt(profit) + ' ر.س';
+    row.appendChild(lbl);
+    row.appendChild(track);
+    row.appendChild(val);
+    cont.appendChild(row);
+  });
+}
+
+function renderSchedule(invest, rate, years, cycle, compound){
+  const tbody = document.getElementById('schedTable');
+  tbody.textContent = '';
+  const periods = Math.min(years * cycle, 12);
+  const periodRate = rate / cycle;
+  let cumulative = 0;
+  const today = new Date();
+  for(let i = 1; i <= periods; i++){
+    const periodProfit = compound
+      ? invest * Math.pow(1 + periodRate, i) - invest * Math.pow(1 + periodRate, i-1)
+      : invest * periodRate;
+    cumulative += periodProfit;
+    const dueDate = new Date(today);
+    const monthsPerPeriod = 12 / cycle;
+    dueDate.setMonth(dueDate.getMonth() + i * monthsPerPeriod);
+    const tr = document.createElement('tr');
+    [
+      'الدورة ' + i,
+      dueDate.toLocaleDateString('ar-SA', {year:'numeric',month:'long'}),
+    ].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const profTd = document.createElement('td');
+    profTd.className = 'td-profit';
+    profTd.textContent = '+ ' + fmt(periodProfit) + ' ر.س';
+    tr.appendChild(profTd);
+    const cumTd = document.createElement('td');
+    cumTd.textContent = fmt(cumulative) + ' ر.س';
+    tr.appendChild(cumTd);
+    tbody.appendChild(tr);
+  }
+}
+
+syncRate();
+syncDur();
+recalc();
+</script>
+</body>
+</html>

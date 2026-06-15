@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقويم الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.cal-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.cs-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.cs-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.cs-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.calendar-wrap{padding:1.25rem;}
+.cal-nav{display:flex;gap:0.4rem;}
+.cal-nav button{background:rgba(255,255,255,0.15);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:0.8rem;color:#fff;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-day-name{text-align:center;font-size:0.68rem;color:var(--muted);padding:0.3rem 0;font-weight:600;}
+.cal-day{border-radius:6px;padding:0.4rem;min-height:54px;background:#fafaf8;border:1px solid var(--line);font-size:0.72rem;cursor:pointer;}
+.cal-day:hover{background:#f0ebe0;}
+.cal-day.has-event{background:#e8f5ed;}
+.cal-day.today{border-color:var(--green);background:#e8f5ed;}
+.cal-day-num{font-weight:700;font-size:0.78rem;margin-bottom:2px;}
+.cal-event-dot{font-size:0.62rem;color:var(--green);line-height:1.3;}
+.upcoming-list{padding:1.25rem;}
+.up-item{display:flex;gap:0.85rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.up-item:last-child{border-bottom:none;}
+.up-date{width:44px;height:44px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.up-date.type-close{background:#fde8e8;color:#c0392b;}
+.up-date.type-pay{background:#e8f5ed;color:#1e8449;}
+.up-date.type-review{background:#fef3cd;color:#92400e;}
+.up-date.type-launch{background:#e8f0fd;color:#1a56a0;}
+.up-month{font-size:0.6rem;font-weight:700;}
+.up-day{font-size:1.1rem;font-weight:700;line-height:1;}
+.up-title{font-size:0.84rem;font-weight:600;}
+.up-meta{font-size:0.72rem;color:var(--muted);margin-top:0.1rem;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.layout-2{grid-template-columns:1fr;}.cal-stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تقويم الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تقويم الصفقات والأحداث</h2>
+      <p>نظرة شاملة على مواعيد الصفقات والمدفوعات والمراجعات القادمة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportCalendar()">تصدير التقويم</button>
+  </div>
+
+  <div class="cal-stats" id="calStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head">
+        <h3>يونيو ٢٠٢٦</h3>
+        <div class="cal-nav">
+          <button onclick="prevMonth()">‹</button>
+          <button onclick="nextMonth()">›</button>
+        </div>
+      </div>
+      <div class="calendar-wrap">
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الأحداث القادمة</h3></div>
+      <div class="upcoming-list" id="upcomingList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>جميع أحداث الصفقات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCalendar()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="allEvents"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addEvent()">إضافة حدث</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportCalendar()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٨', lbl: 'أحداث هذا الشهر' },
+  { val: '٣', lbl: 'مدفوعات قادمة' },
+  { val: '٢', lbl: 'صفقات تُغلق' },
+  { val: '١٤', lbl: 'إجمالي الأحداث ٢٠٢٦' }
+];
+
+const DAY_NAMES = ['ح','ن','ث','ر','خ','ج','س'];
+
+const EVENTS_MAP = {
+  15: ['إغلاق صفقة #4920'],
+  20: ['دفعة أرباح #4921'],
+  25: ['مراجعة شرعية #4922'],
+  30: ['موعد نهائي التمويل']
+};
+
+const UPCOMING = [
+  { day: '١٥', month: 'يونيو', cls: 'type-close', title: 'إغلاق صفقة مرابحة عقارية', meta: 'صفقة #4920 · الرياض' },
+  { day: '٢٠', month: 'يونيو', cls: 'type-pay', title: 'توزيع أرباح ربعية', meta: 'صفقة #4921 · ٤٢٠ مستثمر' },
+  { day: '٢٥', month: 'يونيو', cls: 'type-review', title: 'مراجعة الهيئة الشرعية', meta: 'صفقة #4922 · جلسة مراجعة' },
+  { day: '٣٠', month: 'يونيو', cls: 'type-launch', title: 'إطلاق صفقة صناعية جديدة', meta: 'صفقة جديدة · المدينة الصناعية' }
+];
+
+const ALL_EVENTS = [
+  { date: '٢٠٢٦/٠٦/١٥', event: 'إغلاق صفقة عقارية #4920', type: 'إغلاق' },
+  { date: '٢٠٢٦/٠٦/٢٠', event: 'توزيع أرباح صفقة #4921', type: 'مدفوعات' },
+  { date: '٢٠٢٦/٠٦/٢٥', event: 'مراجعة شرعية صفقة #4922', type: 'مراجعة' },
+  { date: '٢٠٢٦/٠٧/٠١', event: 'إطلاق صفقة صناعية جديدة', type: 'إطلاق' }
+];
+
+function clearChildren(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+function buildStats() {
+  const wrap = document.getElementById('calStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'cs-card';
+    const val = document.createElement('div'); val.className = 'cs-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'cs-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildCalendar() {
+  const wrap = document.getElementById('calGrid');
+  clearChildren(wrap);
+  DAY_NAMES.forEach(d => {
+    const dn = document.createElement('div'); dn.className = 'cal-day-name'; dn.textContent = d; wrap.appendChild(dn);
+  });
+  for (let d = 1; d <= 30; d++) {
+    const day = document.createElement('div');
+    day.className = 'cal-day' + (EVENTS_MAP[d] ? ' has-event' : '') + (d === 15 ? ' today' : '');
+    const num = document.createElement('div'); num.className = 'cal-day-num'; num.textContent = d;
+    day.appendChild(num);
+    if (EVENTS_MAP[d]) {
+      EVENTS_MAP[d].forEach(ev => {
+        const dot = document.createElement('div'); dot.className = 'cal-event-dot'; dot.textContent = '● ' + ev;
+        day.appendChild(dot);
+      });
+    }
+    wrap.appendChild(day);
+  }
+}
+
+function buildUpcoming() {
+  const wrap = document.getElementById('upcomingList');
+  UPCOMING.forEach(u => {
+    const item = document.createElement('div'); item.className = 'up-item';
+    const date = document.createElement('div'); date.className = 'up-date ' + u.cls;
+    const month = document.createElement('div'); month.className = 'up-month'; month.textContent = u.month;
+    const day = document.createElement('div'); day.className = 'up-day'; day.textContent = u.day;
+    date.appendChild(month); date.appendChild(day);
+    const info = document.createElement('div');
+    const title = document.createElement('div'); title.className = 'up-title'; title.textContent = u.title;
+    const meta = document.createElement('div'); meta.className = 'up-meta'; meta.textContent = u.meta;
+    info.appendChild(title); info.appendChild(meta);
+    item.appendChild(date); item.appendChild(info);
+    wrap.appendChild(item);
+  });
+}
+
+function buildAllEvents() {
+  const wrap = document.getElementById('allEvents');
+  ALL_EVENTS.forEach(e => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const date = document.createElement('span'); date.style.color = 'var(--muted)'; date.textContent = e.date + ' · ';
+    const ev = document.createElement('span'); ev.style.fontWeight = '600'; ev.textContent = e.event;
+    left.appendChild(date); left.appendChild(ev);
+    const type = document.createElement('div'); type.style.cssText = 'font-size:0.72rem;color:var(--green);font-weight:600;'; type.textContent = e.type;
+    row.appendChild(left); row.appendChild(type);
+    wrap.appendChild(row);
+  });
+}
+
+function prevMonth() { alert('الانتقال للشهر السابق'); }
+function nextMonth() { alert('الانتقال للشهر التالي'); }
+
+function addEvent() {
+  fetch('/app/admin/deal-calendar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ event: 'حدث جديد' }) }).catch(() => {});
+  alert('فتح نموذج إضافة حدث');
+}
+
+function exportCalendar() {
+  fetch('/app/admin/deal-calendar/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير التقويم...');
+}
+
+buildStats(); buildCalendar(); buildUpcoming(); buildAllEvents();
+</script>
+</body>
+</html>

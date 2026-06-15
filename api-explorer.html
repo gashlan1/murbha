@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مستكشف API — مُرابحة</title>
+<meta name="description" content="وثائق API التفاعلية. استعرض نقاط النهاية وجرّبها مباشرةً من المتصفّح." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);--code:#1a2e1a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:600px;margin:0 auto;line-height:1.85;}
+  .layout{display:grid;grid-template-columns:220px 1fr;gap:14px;}
+  @media(max-width:640px){.layout{grid-template-columns:1fr;}}
+  .sidebar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;height:fit-content;position:sticky;top:16px;}
+  .sidebar-section{margin-bottom:14px;}
+  .sidebar-title{font:900 11px Cairo,sans-serif;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}
+  .ep-item{padding:7px 10px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .ep-item:hover{background:var(--paper);}
+  .ep-item.active{background:#e8f5e9;}
+  .method-badge{border-radius:4px;padding:2px 6px;font:900 9px Cairo,sans-serif;flex-shrink:0;}
+  .get{background:#e8f5e9;color:var(--green);}
+  .post{background:#fdf5e4;color:var(--gold);}
+  .put{background:#e3f2fd;color:#1565c0;}
+  .delete{background:#fdecea;color:#c54a3a;}
+  .ep-path{font:500 10px Tajawal,sans-serif;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .detail-panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .ep-header{margin-bottom:16px;}
+  .ep-title{font:900 18px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;}
+  .ep-desc{font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  .ep-method-path{display:flex;align-items:center;gap:10px;background:var(--code);border-radius:10px;padding:12px 16px;margin:12px 0;}
+  .ep-method-badge{border-radius:6px;padding:4px 10px;font:900 12px Cairo,sans-serif;}
+  .ep-path-text{font:500 13px monospace;color:#a8d5a2;word-break:break-all;}
+  .params-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;}
+  .param-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .param-row:last-child{border-bottom:none;}
+  .param-name{font:700 11px monospace;color:var(--green-dark);flex-shrink:0;width:120px;}
+  .param-type{background:var(--paper);border-radius:4px;padding:1px 6px;font:700 9px Cairo,sans-serif;color:var(--muted);flex-shrink:0;}
+  .param-req{color:#c54a3a;font:700 9px Cairo,sans-serif;flex-shrink:0;}
+  .param-desc{font:500 11px Tajawal,sans-serif;color:var(--muted);flex:1;}
+  .auth-badge{background:#fdf5e4;color:var(--gold);border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;display:inline-block;margin-bottom:12px;}
+  .try-section{background:var(--paper);border-radius:12px;padding:16px;margin-top:16px;}
+  .try-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:10px;}
+  .try-btn{background:var(--green);color:#fbf6ea;border:none;border-radius:8px;padding:9px 20px;font:700 12px Cairo,sans-serif;cursor:pointer;}
+  .response-area{background:var(--code);border-radius:10px;padding:14px;margin-top:10px;font:500 11px monospace;color:#a8d5a2;white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;display:none;}
+  .response-status{font:700 11px Cairo,sans-serif;margin-bottom:6px;}
+  .status-ok{color:#4caf50;} .status-err{color:#ef5350;}
+  .placeholder-panel{font:500 14px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:60px 20px;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔌 مستكشف API</h1>
+    <p>وثائق تفاعلية لنقاط نهاية مُرابحة. اختر نقطة نهاية واستعرض تفاصيلها أو جرّبها مباشرةً.</p>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">عام</div>
+        <div id="publicNav"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">مستثمر</div>
+        <div id="meNav"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">مشرف</div>
+        <div id="adminNav"></div>
+      </div>
+    </div>
+    <div id="detailPanel">
+      <div class="placeholder-panel">اختر نقطة نهاية من القائمة لعرض تفاصيلها.</div>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  const ENDPOINTS = [
+    {
+      id:'get-deals', group:'public', method:'GET', path:'/app/public/deals', auth:false,
+      title:'قائمة الصفقات المتاحة', desc:'يُرجع قائمة الصفقات النشطة مع تفاصيل كل منها.',
+      params:[
+        {name:'status',type:'string',req:false,desc:'فلترة بالحالة: active, closed, all'},
+        {name:'category',type:'string',req:false,desc:'فلترة بالقطاع: real_estate, logistics, tech, agri'},
+        {name:'limit',type:'number',req:false,desc:'عدد النتائج (الافتراضي ٢٠)'},
+      ],
+      sample:'{"deals":[{"id":"deal123","name":"مشروع الرياض","yield":9.5}]}'
+    },
+    {
+      id:'get-benchmarks', group:'public', method:'GET', path:'/app/public/platform-benchmarks', auth:false,
+      title:'مقاييس أداء المنصّة', desc:'بيانات الأداء التاريخية: معدّل السداد، متوسّط العائد، سرعة التمويل.',
+      params:[],
+      sample:'{"repaymentRate":97.4,"avgYield":9.2,"avgFundingDays":14}'
+    },
+    {
+      id:'get-sponsors', group:'public', method:'GET', path:'/app/public/sponsors', auth:false,
+      title:'دليل الرعاة', desc:'قائمة شركات الرعاة مع إحصائياتهم وسجلّهم.',
+      params:[{name:'category',type:'string',req:false,desc:'فلترة بالقطاع'}],
+      sample:'{"sponsors":[{"id":"sp1","name":"شركة الأمل","rating":4.5}]}'
+    },
+    {
+      id:'get-portfolio', group:'me', method:'GET', path:'/app/me/portfolio', auth:true,
+      title:'محفظة المستثمر', desc:'ملخّص محفظة المستخدم الحالي: الاستثمارات، العوائد، والتوزيع.',
+      params:[],
+      sample:'{"totalInvested":50000,"totalEarned":4200,"dealCount":7}'
+    },
+    {
+      id:'put-suitability', group:'me', method:'PUT', path:'/app/me/suitability', auth:true,
+      title:'حفظ ملف الملاءمة', desc:'يحفظ نتيجة تقييم الملاءمة للمستثمر.',
+      params:[
+        {name:'profile',type:'string',req:true,desc:'conservative | moderate | growth | aggressive'},
+        {name:'score',type:'number',req:true,desc:'النتيجة الإجمالية للتقييم'},
+        {name:'answers',type:'object',req:true,desc:'إجابات الأسئلة الفردية'},
+      ],
+      sample:'{"ok":true,"profile":"moderate"}'
+    },
+    {
+      id:'get-tax-cert', group:'me', method:'GET', path:'/app/me/tax-certificate', auth:true,
+      title:'الشهادة الضريبية', desc:'يُرجع بيانات الشهادة الضريبية لسنة ميلادية محددة.',
+      params:[{name:'year',type:'number',req:true,desc:'السنة الميلادية (مثال: 2024)'}],
+      sample:'{"rows":[{"projectName":"مشروع أ","invested":10000,"income":920,"vat":138}]}'
+    },
+    {
+      id:'get-revenue', group:'admin', method:'GET', path:'/app/admin/revenue-dashboard', auth:true,
+      title:'لوحة الإيرادات', desc:'إحصائيات الإيرادات للمديرين: رسوم الإدارة، عمولات الأداء.',
+      params:[{name:'period',type:'string',req:false,desc:'this_month | last_month | q1 | ytd'}],
+      sample:'{"totalRevenue":125000,"mgmtFees":95000,"perfFees":30000}'
+    },
+    {
+      id:'get-kyc-queue', group:'admin', method:'GET', path:'/app/admin/kyc-queue', auth:true,
+      title:'طابور مراجعة KYC', desc:'قائمة طلبات التحقّق من الهوية المعلّقة.',
+      params:[],
+      sample:'{"items":[{"id":"u1","name":"محمد","status":"pending"}],"total":12}'
+    },
+    {
+      id:'put-kyc-status', group:'admin', method:'PUT', path:'/app/admin/kyc/:id/status', auth:true,
+      title:'تحديث حالة KYC', desc:'يغيّر حالة طلب KYC لمستخدم معيّن.',
+      params:[
+        {name:'id',type:'string',req:true,desc:'معرّف المستخدم (في الرابط)'},
+        {name:'status',type:'string',req:true,desc:'approved | rejected | info_required | pending'},
+      ],
+      sample:'{"ok":true}'
+    },
+  ];
+
+  let selected = null;
+
+  function buildNav(){
+    const groups = { public:'publicNav', me:'meNav', admin:'adminNav' };
+    ENDPOINTS.forEach(ep => {
+      const container = document.getElementById(groups[ep.group]);
+      if(!container) return;
+      const item = document.createElement('div');
+      item.className = 'ep-item';
+      item.dataset.id = ep.id;
+      item.addEventListener('click', () => selectEp(ep.id));
+      const badge = document.createElement('span');
+      badge.className = 'method-badge ' + ep.method.toLowerCase();
+      badge.textContent = ep.method;
+      const path = document.createElement('span');
+      path.className = 'ep-path';
+      path.textContent = ep.path;
+      item.appendChild(badge);
+      item.appendChild(path);
+      container.appendChild(item);
+    });
+  }
+
+  function selectEp(id){
+    selected = id;
+    document.querySelectorAll('.ep-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === id);
+    });
+    const ep = ENDPOINTS.find(e => e.id === id);
+    if(!ep) return;
+    renderDetail(ep);
+  }
+
+  function renderDetail(ep){
+    const panel = document.getElementById('detailPanel');
+    panel.textContent = '';
+
+    const hdr = document.createElement('div'); hdr.className='ep-header';
+    const title = document.createElement('div'); title.className='ep-title'; title.textContent=ep.title;
+    const desc = document.createElement('div'); desc.className='ep-desc'; desc.textContent=ep.desc;
+    hdr.appendChild(title); hdr.appendChild(desc);
+
+    const methodPath = document.createElement('div'); methodPath.className='ep-method-path';
+    const mb = document.createElement('span');
+    mb.className='ep-method-badge method-badge '+ep.method.toLowerCase();
+    mb.textContent=ep.method;
+    const pathEl = document.createElement('span'); pathEl.className='ep-path-text'; pathEl.textContent=ep.path;
+    methodPath.appendChild(mb); methodPath.appendChild(pathEl);
+
+    const authBadge = document.createElement('div'); authBadge.className='auth-badge';
+    authBadge.textContent = ep.auth ? '🔐 يتطلّب تسجيل الدخول' : '🌐 عام (لا يتطلّب مصادقة)';
+
+    panel.appendChild(hdr);
+    panel.appendChild(methodPath);
+    panel.appendChild(authBadge);
+
+    if(ep.params.length){
+      const pt = document.createElement('div'); pt.className='params-title'; pt.textContent='المعاملات';
+      panel.appendChild(pt);
+      ep.params.forEach(p => {
+        const row = document.createElement('div'); row.className='param-row';
+        const nm = document.createElement('div'); nm.className='param-name'; nm.textContent=p.name;
+        const tp = document.createElement('div'); tp.className='param-type'; tp.textContent=p.type;
+        const rq = document.createElement('div'); rq.className='param-req'; rq.textContent=p.req?'مطلوب':'اختياري';
+        const dc = document.createElement('div'); dc.className='param-desc'; dc.textContent=p.desc;
+        row.appendChild(nm); row.appendChild(tp); row.appendChild(rq); row.appendChild(dc);
+        panel.appendChild(row);
+      });
+    }
+
+    const trySection = document.createElement('div'); trySection.className='try-section';
+    const tryTitle = document.createElement('div'); tryTitle.className='try-title'; tryTitle.textContent='🧪 تجربة النقطة';
+    const tryBtn = document.createElement('button'); tryBtn.className='try-btn'; tryBtn.textContent='إرسال طلب تجريبي';
+    const respArea = document.createElement('div'); respArea.className='response-area';
+    const respStatus = document.createElement('div'); respStatus.className='response-status';
+    const respBody = document.createElement('div');
+    respArea.appendChild(respStatus);
+    respArea.appendChild(respBody);
+
+    tryBtn.addEventListener('click', async () => {
+      tryBtn.textContent = '⏳ جارٍ الإرسال…';
+      tryBtn.disabled = true;
+      try{
+        const path = ep.path.replace(/:id/g, 'demo-id').replace(/:year/g, '2024');
+        const opts = ep.method === 'GET' ? {} : {
+          method: ep.method,
+          headers: {'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''},
+          body: JSON.stringify({profile:'moderate',score:18,answers:{}})
+        };
+        const r = await fetch(path, opts);
+        const text = await r.text();
+        let pretty = text;
+        try{ pretty = JSON.stringify(JSON.parse(text), null, 2); }catch{}
+        respStatus.className = 'response-status ' + (r.ok ? 'status-ok' : 'status-err');
+        respStatus.textContent = r.status + ' ' + (r.ok ? 'OK' : 'Error');
+        respBody.textContent = pretty;
+        respArea.style.display = 'block';
+      }catch(e){
+        respStatus.className = 'response-status status-err';
+        respStatus.textContent = 'خطأ في الاتصال';
+        respBody.textContent = e.message;
+        respArea.style.display = 'block';
+      }finally{
+        tryBtn.textContent = 'إرسال طلب تجريبي';
+        tryBtn.disabled = false;
+      }
+    });
+
+    trySection.appendChild(tryTitle);
+    trySection.appendChild(tryBtn);
+    trySection.appendChild(respArea);
+    panel.appendChild(trySection);
+
+    const sampleTitle = document.createElement('div');
+    sampleTitle.style.cssText = 'font:900 13px Cairo,sans-serif;color:var(--green-dark);margin:16px 0 8px';
+    sampleTitle.textContent = 'نموذج الاستجابة';
+    const sampleBlock = document.createElement('div');
+    sampleBlock.className = 'response-area';
+    sampleBlock.style.display = 'block';
+    const sampleStatus = document.createElement('div');
+    sampleStatus.className = 'response-status status-ok';
+    sampleStatus.textContent = '200 OK';
+    const sampleBody = document.createElement('div');
+    try{ sampleBody.textContent = JSON.stringify(JSON.parse(ep.sample), null, 2); }catch{ sampleBody.textContent = ep.sample; }
+    sampleBlock.appendChild(sampleStatus);
+    sampleBlock.appendChild(sampleBody);
+    panel.appendChild(sampleTitle);
+    panel.appendChild(sampleBlock);
+  }
+
+  buildNav();
+}());
+</script>
+</body>
+</html>

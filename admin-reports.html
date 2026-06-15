@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقارير المنصة — إدارة مُرابحة</title>
+<meta name="description" content="لوحة إدارة: مؤشرات المنصة الشاملة — حجم الاستثمارات، نمو المستخدمين، توزيع القطاعات." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .period-bar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .period-lbl{font:700 11px Cairo,sans-serif;color:var(--muted);margin-inline-end:4px;}
+  .period-btn{border:1px solid var(--line);border-radius:8px;padding:6px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;background:var(--paper);color:var(--muted);}
+  .period-btn.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 16px;}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-top:4px;}
+  .kpi-change{font:700 10px Cairo,sans-serif;margin-top:4px;}
+  .change-up{color:#2e7d32;}
+  .change-down{color:#c54a3a;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+  .section-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;}
+  .section-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .bar-chart{display:grid;gap:10px;}
+  .bar-row{display:grid;gap:4px;}
+  .bar-label{display:flex;justify-content:space-between;}
+  .bar-name{font:700 11px Cairo,sans-serif;color:var(--ink);}
+  .bar-val{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .bar-track{height:10px;background:var(--paper);border-radius:5px;overflow:hidden;}
+  .bar-fill-green{height:100%;background:var(--green);border-radius:5px;}
+  .bar-fill-gold{height:100%;background:var(--gold);border-radius:5px;}
+  .timeline-table{width:100%;}
+  .timeline-table th{font:700 9px Cairo,sans-serif;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);}
+  .timeline-table td{font:500 11px Tajawal,sans-serif;color:var(--ink);padding:9px 8px;border-bottom:1px solid var(--line);}
+  .timeline-table tr:last-child td{border-bottom:none;}
+  .td-amount{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .td-up{font:700 10px Cairo,sans-serif;color:#2e7d32;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:30px 0;}
+  @media(max-width:600px){.two-col{grid-template-columns:1fr;}}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>تقارير المنصة</h1>
+    <p>مؤشرات الأداء الشاملة: حجم الاستثمارات، نمو المستخدمين، توزيع القطاعات، والأرباح الموزعة.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="period-bar">
+    <div class="period-lbl">الفترة:</div>
+    <button class="period-btn active" data-p="30d">30 يوم</button>
+    <button class="period-btn" data-p="90d">90 يوم</button>
+    <button class="period-btn" data-p="1y">سنة</button>
+    <button class="period-btn" data-p="all">الكل</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="two-col">
+    <div class="section-card">
+      <div class="section-title">توزيع القطاعات</div>
+      <div class="bar-chart" id="sectorChart"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">توزيع مستويات المستخدمين</div>
+      <div class="bar-chart" id="tierChart"></div>
+    </div>
+  </div>
+
+  <div class="section-card" style="margin-bottom:18px">
+    <div class="section-title">الصفقات الأعلى استثماراً</div>
+    <div id="topDealsArea"></div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">النشاط الشهري</div>
+    <div id="monthlyArea"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  let currentPeriod='30d';
+
+  document.querySelectorAll('.period-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentPeriod=btn.dataset.p; loadReports(currentPeriod);
+    });
+  });
+
+  function renderBarChart(area, items, maxVal, colorClass){
+    area.textContent='';
+    items.forEach(item=>{
+      const row=document.createElement('div'); row.className='bar-row';
+      const lbl=document.createElement('div'); lbl.className='bar-label';
+      const name=document.createElement('div'); name.className='bar-name'; name.textContent=item.label||'—';
+      const val=document.createElement('div'); val.className='bar-val'; val.textContent=item.valueLabel||'—';
+      lbl.appendChild(name); lbl.appendChild(val);
+      const track=document.createElement('div'); track.className='bar-track';
+      const fill=document.createElement('div'); fill.className=colorClass; fill.style.width=Math.min(100,Math.round((item.value||0)/maxVal*100))+'%';
+      track.appendChild(fill); row.appendChild(lbl); row.appendChild(track); area.appendChild(row);
+    });
+  }
+
+  async function loadReports(period){
+    const kpiGrid=document.getElementById('kpiGrid');
+    kpiGrid.textContent=''; placeholder(document.getElementById('sectorChart'),'جارٍ التحميل…');
+
+    try{
+      const r=await fetch('/app/admin/reports?period='+encodeURIComponent(period));
+      if(!r.ok){ placeholder(kpiGrid,r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      const kpis=[
+        {lbl:'حجم الاستثمارات',val:fmt(d.totalInvested||0)+' ر.س',change:d.investedGrowth,up:true},
+        {lbl:'المستخدمون الجدد',val:fmt(d.newUsers||0),change:d.userGrowth,up:true},
+        {lbl:'الصفقات النشطة',val:String(d.activeDeals||0),change:null},
+        {lbl:'الأرباح الموزعة',val:fmt(d.totalProfits||0)+' ر.س',change:d.profitGrowth,up:true},
+        {lbl:'متوسط الاستثمار',val:fmt(d.avgInvestment||0)+' ر.س',change:null},
+        {lbl:'نسبة الإنجاز',val:(d.completionRate||0)+'٪',change:null}
+      ];
+      kpis.forEach(k=>{
+        const div=document.createElement('div'); div.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.lbl;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        div.appendChild(lbl); div.appendChild(val);
+        if(k.change!=null){
+          const ch=document.createElement('div'); ch.className='kpi-change '+(k.change>=0?'change-up':'change-down');
+          ch.textContent=(k.change>=0?'▲ ':'▼ ')+Math.abs(k.change)+'٪ عن الفترة السابقة'; div.appendChild(ch);
+        }
+        kpiGrid.appendChild(div);
+      });
+
+      const sectors=d.sectorBreakdown||[];
+      const maxS=Math.max(...sectors.map(s=>s.amount||0),1);
+      renderBarChart(document.getElementById('sectorChart'), sectors.map(s=>({label:s.sector,value:s.amount,valueLabel:fmt(s.amount)+' ر.س'})), maxS, 'bar-fill-green');
+
+      const tiers=d.tierBreakdown||[];
+      const maxT=Math.max(...tiers.map(t=>t.count||0),1);
+      renderBarChart(document.getElementById('tierChart'), tiers.map(t=>({label:t.tier,value:t.count,valueLabel:String(t.count)+' مستثمر'})), maxT, 'bar-fill-gold');
+
+      const topDeals=d.topDeals||[];
+      const tdArea=document.getElementById('topDealsArea'); tdArea.textContent='';
+      if(!topDeals.length){ placeholder(tdArea,'لا توجد بيانات.'); }
+      else{
+        const tbl=document.createElement('table'); tbl.className='timeline-table';
+        const hdr=document.createElement('tr');
+        ['الصفقة','القطاع','الحجم (ر.س)','المستثمرون','العائد'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hdr.appendChild(th); });
+        tbl.appendChild(hdr);
+        topDeals.forEach(deal=>{
+          const tr=document.createElement('tr');
+          [[deal.name||'—',false],[deal.sector||'—',false],[fmt(deal.raised||0),true],[String(deal.investors||0),false],[(deal.yield||0)+'٪',false]].forEach(([v,amt])=>{
+            const td=document.createElement('td'); if(amt) td.className='td-amount'; td.textContent=v; tr.appendChild(td);
+          });
+          tbl.appendChild(tr);
+        });
+        tdArea.appendChild(tbl);
+      }
+
+      const monthly=d.monthlyActivity||[];
+      const mArea=document.getElementById('monthlyArea'); mArea.textContent='';
+      if(!monthly.length){ placeholder(mArea,'لا توجد بيانات شهرية.'); }
+      else{
+        const tbl2=document.createElement('table'); tbl2.className='timeline-table';
+        const hdr2=document.createElement('tr');
+        ['الشهر','الاستثمارات (ر.س)','المستخدمون الجدد','الأرباح (ر.س)'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hdr2.appendChild(th); });
+        tbl2.appendChild(hdr2);
+        monthly.forEach(m=>{
+          const tr=document.createElement('tr');
+          [[m.month||'—',false],[fmt(m.invested||0),true],[String(m.newUsers||0),false],[fmt(m.profits||0),true]].forEach(([v,amt])=>{
+            const td=document.createElement('td'); if(amt) td.className='td-amount'; td.textContent=v; tr.appendChild(td);
+          });
+          tbl2.appendChild(tr);
+        });
+        mArea.appendChild(tbl2);
+      }
+    }catch{ placeholder(document.getElementById('kpiGrid'),'خطأ في الاتصال.'); }
+  }
+
+  loadReports('30d');
+}());
+</script>
+</body>
+</html>

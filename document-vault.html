@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>خزانة الوثائق — مُرابحة</title>
+<meta name="description" content="جميع وثائق صفقاتك في مكان واحد: عقود، تقارير، شهادات الشريعة، وكشوف الحساب." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:920px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:620px;margin:0 auto;line-height:1.85;}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .search-box{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .search-box:focus{outline:none;border-color:var(--green);}
+  .cat-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .cat-btn.active{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .doc-list{display:grid;gap:10px;}
+  .doc-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;transition:box-shadow .15s;}
+  .doc-card:hover{box-shadow:0 4px 14px rgba(10,77,54,.09);}
+  .doc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .doc-icon.pdf{background:#fdecea;}
+  .doc-icon.contract{background:#e8f5e9;}
+  .doc-icon.sharia{background:#fdf5e4;}
+  .doc-icon.statement{background:#e3f2fd;}
+  .doc-meta{flex:1;}
+  .doc-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:3px;}
+  .doc-deal{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .doc-date{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .doc-size{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .doc-actions{display:flex;gap:8px;flex-shrink:0;}
+  .btn-dl{background:var(--green);color:#fbf6ea;border:none;border-radius:8px;padding:7px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-preview{background:var(--paper);color:var(--green);border:1px solid var(--green);border-radius:8px;padding:7px 12px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .type-tag{display:inline-block;border-radius:6px;padding:2px 8px;font:700 10px Cairo,sans-serif;margin-top:4px;}
+  .type-tag.contract{background:#e8f5e9;color:var(--green);}
+  .type-tag.sharia{background:#fdf5e4;color:var(--gold);}
+  .type-tag.statement{background:#e3f2fd;color:#1565c0;}
+  .type-tag.report{background:var(--paper);color:var(--muted);}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .summary-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .summary-chip{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 16px;}
+  .summary-chip-num{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .summary-chip-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🗄️ خزانة الوثائق</h1>
+    <p>جميع وثائق صفقاتك في مكان واحد. يمكنك تحميل أي وثيقة أو معاينتها في أي وقت.</p>
+  </div>
+
+  <div class="summary-row" id="summaryRow"></div>
+
+  <div class="filter-row">
+    <input type="text" class="search-box" id="searchBox" placeholder="ابحث باسم الوثيقة أو الصفقة…" autocomplete="off" />
+    <button class="cat-btn active" data-type="">الكلّ</button>
+    <button class="cat-btn" data-type="contract">عقود</button>
+    <button class="cat-btn" data-type="sharia">شهادات شرعية</button>
+    <button class="cat-btn" data-type="statement">كشوف حساب</button>
+    <button class="cat-btn" data-type="report">تقارير</button>
+  </div>
+
+  <div class="doc-list" id="docList">
+    <p class="empty-msg">جارٍ تحميل الوثائق…</p>
+  </div>
+</main>
+<script>
+(function(){
+  let allDocs = [];
+  let activeType = '';
+  let searchQ = '';
+
+  const TYPE_ICON = {contract:'📄',sharia:'🕌',statement:'📊',report:'📋'};
+  const TYPE_LABEL = {contract:'عقد',sharia:'شهادة شرعية',statement:'كشف حساب',report:'تقرير'};
+  const TYPE_BG = {contract:'contract',sharia:'sharia',statement:'statement',report:'report'};
+
+  function render(){
+    const list = document.getElementById('docList');
+    list.textContent = '';
+    const q = searchQ.toLowerCase();
+    const filtered = allDocs.filter(d=>{
+      if(activeType && d.type !== activeType) return false;
+      if(q && !(d.name||'').toLowerCase().includes(q) && !(d.dealName||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    if(!filtered.length){
+      const m = document.createElement('p');
+      m.className = 'empty-msg';
+      m.textContent = 'لا توجد وثائق مطابقة.';
+      list.appendChild(m);
+      return;
+    }
+    filtered.forEach(doc=>{
+      const card = document.createElement('div');
+      card.className = 'doc-card';
+
+      const ico = document.createElement('div');
+      ico.className = 'doc-icon ' + (TYPE_BG[doc.type]||'');
+      ico.textContent = TYPE_ICON[doc.type] || '📎';
+
+      const meta = document.createElement('div');
+      meta.className = 'doc-meta';
+      const nm = document.createElement('div');
+      nm.className = 'doc-name';
+      nm.textContent = doc.name;
+      const deal = document.createElement('div');
+      deal.className = 'doc-deal';
+      deal.textContent = doc.dealName || '—';
+      const dateEl = document.createElement('div');
+      dateEl.className = 'doc-date';
+      dateEl.textContent = doc.date ? new Date(doc.date).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'}) : '';
+      const tag = document.createElement('span');
+      tag.className = 'type-tag ' + (TYPE_BG[doc.type]||'');
+      tag.textContent = TYPE_LABEL[doc.type] || doc.type;
+      meta.appendChild(nm);
+      meta.appendChild(deal);
+      meta.appendChild(dateEl);
+      meta.appendChild(tag);
+
+      const actions = document.createElement('div');
+      actions.className = 'doc-actions';
+
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn-dl';
+      dlBtn.textContent = '⬇️ تحميل';
+      dlBtn.addEventListener('click', ()=>{
+        window.open('/app/me/documents/'+encodeURIComponent(doc.id)+'/download', '_blank');
+      });
+
+      const preBtn = document.createElement('button');
+      preBtn.className = 'btn-preview';
+      preBtn.textContent = '👁 معاينة';
+      preBtn.addEventListener('click', ()=>{
+        window.open('/app/me/documents/'+encodeURIComponent(doc.id)+'/preview', '_blank');
+      });
+
+      actions.appendChild(preBtn);
+      actions.appendChild(dlBtn);
+      card.appendChild(ico);
+      card.appendChild(meta);
+      card.appendChild(actions);
+      list.appendChild(card);
+    });
+  }
+
+  function renderSummary(docs){
+    const row = document.getElementById('summaryRow');
+    row.textContent = '';
+    const counts = {total:docs.length,contract:0,sharia:0,statement:0,report:0};
+    docs.forEach(d=>{ if(counts[d.type]!==undefined) counts[d.type]++; });
+    [
+      {num:counts.total,lbl:'وثائق المجموع'},
+      {num:counts.contract,lbl:'عقود'},
+      {num:counts.sharia,lbl:'شهادات شرعية'},
+      {num:counts.statement,lbl:'كشوف حساب'},
+    ].forEach(it=>{
+      const chip = document.createElement('div');
+      chip.className = 'summary-chip';
+      const num = document.createElement('div');
+      num.className = 'summary-chip-num';
+      num.textContent = it.num;
+      const lbl = document.createElement('div');
+      lbl.className = 'summary-chip-lbl';
+      lbl.textContent = it.lbl;
+      chip.appendChild(num);
+      chip.appendChild(lbl);
+      row.appendChild(chip);
+    });
+  }
+
+  document.getElementById('searchBox').addEventListener('input', e=>{
+    searchQ = e.target.value.trim();
+    render();
+  });
+
+  document.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeType = btn.dataset.type;
+      render();
+    });
+  });
+
+  (async function load(){
+    try{
+      const r = await fetch('/app/me/documents');
+      if(!r.ok){
+        const list = document.getElementById('docList');
+        list.textContent = '';
+        const m = document.createElement('p');
+        m.className = 'empty-msg';
+        m.textContent = r.status === 401 ? 'يجب تسجيل الدخول.' : 'تعذّر تحميل الوثائق.';
+        list.appendChild(m);
+        return;
+      }
+      const d = await r.json();
+      allDocs = d.documents || [];
+      renderSummary(allDocs);
+      render();
+    }catch{
+      const list = document.getElementById('docList');
+      list.textContent = '';
+      const m = document.createElement('p');
+      m.className = 'empty-msg';
+      m.textContent = 'تعذّر التحميل. حاول لاحقاً.';
+      list.appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

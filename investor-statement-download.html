@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحميل الكشوفات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.quick-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.5rem;text-align:center;cursor:pointer;transition:box-shadow 0.2s;}
+.quick-card:hover{box-shadow:0 4px 16px rgba(6,43,30,0.10);}
+.qc-icon{font-size:2rem;margin-bottom:0.5rem;}
+.qc-title{font-size:0.9rem;font-weight:700;}
+.qc-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.stmt-list{padding:1.25rem;}
+.stmt-item{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid var(--line);}
+.stmt-item:last-child{border-bottom:none;}
+.stmt-info{}
+.stmt-title{font-size:0.86rem;font-weight:700;}
+.stmt-meta{font-size:0.72rem;color:var(--muted);margin-top:0.1rem;}
+.stmt-actions{display:flex;gap:0.5rem;}
+.dl-btn{padding:0.3rem 0.7rem;border-radius:6px;border:1px solid var(--line);background:#f5f0e8;color:var(--green-dark);font-family:'Cairo',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;}
+.dl-btn:hover{background:var(--green);color:#fff;border-color:var(--green);}
+.filter-bar{padding:0.75rem 1.25rem;border-bottom:1px solid var(--line);display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
+.filter-bar label{font-size:0.78rem;font-weight:600;color:var(--muted);}
+.filter-bar select{padding:0.3rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-family:'Cairo',sans-serif;font-size:0.8rem;background:#fff;}
+@media(max-width:800px){.quick-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تحميل الكشوفات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تحميل الكشوفات والتقارير</h2>
+      <p>احصل على كشوف حساباتك وتقارير الاستثمار ووثائقك المالية</p>
+    </div>
+  </div>
+
+  <div class="quick-grid" id="quickGrid"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>الكشوفات المتاحة</h3></div>
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="stmt-list" id="stmtList"></div>
+  </div>
+</div>
+
+<script>
+const QUICK = [
+  { icon: '📄', title: 'كشف حساب شامل', sub: 'لكامل نشاطك الاستثماري' },
+  { icon: '💰', title: 'تقرير العوائد', sub: 'ملخص أرباح جميع الصفقات' },
+  { icon: '📊', title: 'تقرير المحفظة', sub: 'تحليل مفصّل للأصول' }
+];
+
+const STATEMENTS = [
+  { title: 'كشف حساب — الربع الثاني ٢٠٢٦', meta: 'أبريل – يونيو ٢٠٢٦ · ٣ صفقات نشطة', formats: ['PDF', 'Excel'] },
+  { title: 'كشف حساب — الربع الأول ٢٠٢٦', meta: 'يناير – مارس ٢٠٢٦ · صفقتان مُغلقتان', formats: ['PDF', 'Excel'] },
+  { title: 'تقرير الضريبة السنوي ٢٠٢٥', meta: 'للسنة المالية ٢٠٢٥ كاملة', formats: ['PDF'] },
+  { title: 'كشف حساب — الربع الرابع ٢٠٢٥', meta: 'أكتوبر – ديسمبر ٢٠٢٥', formats: ['PDF', 'Excel'] },
+  { title: 'تقرير الأرباح الموزعة ٢٠٢٥', meta: 'جميع التوزيعات لعام ٢٠٢٥', formats: ['PDF', 'Excel', 'CSV'] },
+  { title: 'شهادة الاستثمار النهائية #4890', meta: 'مرابحة عقارية — مُغلقة ٢٠٢٥/١٢/٣١', formats: ['PDF'] }
+];
+
+function buildQuick() {
+  const wrap = document.getElementById('quickGrid');
+  QUICK.forEach((q, i) => {
+    const card = document.createElement('div'); card.className = 'quick-card';
+    card.onclick = () => downloadQuick(i);
+    const icon = document.createElement('div'); icon.className = 'qc-icon'; icon.textContent = q.icon;
+    const title = document.createElement('div'); title.className = 'qc-title'; title.textContent = q.title;
+    const sub = document.createElement('div'); sub.className = 'qc-sub'; sub.textContent = q.sub;
+    card.appendChild(icon); card.appendChild(title); card.appendChild(sub);
+    wrap.appendChild(card);
+  });
+}
+
+function buildFilterBar() {
+  const wrap = document.getElementById('filterBar');
+  const lbl = document.createElement('label'); lbl.textContent = 'تصفية حسب:';
+  const sel = document.createElement('select');
+  ['الكل', '٢٠٢٦', '٢٠٢٥', 'كشوف حساب', 'تقارير ضريبية', 'شهادات'].forEach(o => {
+    const opt = document.createElement('option'); opt.textContent = o; sel.appendChild(opt);
+  });
+  wrap.appendChild(lbl); wrap.appendChild(sel);
+}
+
+function buildStatements() {
+  const wrap = document.getElementById('stmtList');
+  STATEMENTS.forEach((s, idx) => {
+    const item = document.createElement('div'); item.className = 'stmt-item';
+    const info = document.createElement('div'); info.className = 'stmt-info';
+    const title = document.createElement('div'); title.className = 'stmt-title'; title.textContent = s.title;
+    const meta = document.createElement('div'); meta.className = 'stmt-meta'; meta.textContent = s.meta;
+    info.appendChild(title); info.appendChild(meta);
+    const actions = document.createElement('div'); actions.className = 'stmt-actions';
+    s.formats.forEach(fmt => {
+      const btn = document.createElement('button'); btn.className = 'dl-btn'; btn.textContent = fmt;
+      btn.onclick = () => downloadStatement(idx, fmt);
+      actions.appendChild(btn);
+    });
+    item.appendChild(info); item.appendChild(actions);
+    wrap.appendChild(item);
+  });
+}
+
+function downloadQuick(idx) {
+  fetch('/app/me/statement-download?type=quick&idx=' + idx).then(r => r.json()).catch(() => {});
+  alert('جاري تحميل ' + QUICK[idx].title + '...');
+}
+
+function downloadStatement(idx, fmt) {
+  fetch('/app/me/statement-download?idx=' + idx + '&format=' + fmt).then(r => r.json()).catch(() => {});
+  alert('جاري تحميل الملف بصيغة ' + fmt + '...');
+}
+
+buildQuick(); buildFilterBar(); buildStatements();
+</script>
+</body>
+</html>

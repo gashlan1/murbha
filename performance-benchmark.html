@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>مقارنة الأداء — مُرابحة</title>
+<meta name="description" content="قارن أداء محفظتك بمؤشرات السوق: تاسي، مؤشر الصكوك، ومتوسط المنصة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .period-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .tab{border:1px solid var(--line);border-radius:8px;padding:7px 16px;font:700 11px Cairo,sans-serif;cursor:pointer;background:var(--paper);color:var(--muted);}
+  .tab.active{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;flex:1;min-width:130px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;}
+  .kpi-val.up{color:#2e7d32;} .kpi-val.down{color:#c54a3a;} .kpi-val.neutral{color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .kpi-delta{font:700 10px Cairo,sans-serif;margin-top:4px;}
+  .kpi-delta.up{color:#2e7d32;} .kpi-delta.down{color:#c54a3a;}
+  .chart-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .chart-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .bar-chart{display:grid;gap:10px;}
+  .bar-row{display:grid;grid-template-columns:110px 1fr 50px;align-items:center;gap:10px;}
+  .bar-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);text-align:end;}
+  .bar-track{background:var(--paper);border-radius:99px;height:12px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:99px;transition:width .5s;}
+  .bar-val{font:900 12px Cairo,sans-serif;text-align:start;}
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:auto;margin-bottom:18px;}
+  .bench-table{width:100%;border-collapse:collapse;font:500 12px Tajawal,sans-serif;min-width:500px;}
+  .bench-table th{background:var(--paper);font:900 11px Cairo,sans-serif;color:var(--green-dark);padding:11px 14px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap;}
+  .bench-table td{padding:11px 14px;border-bottom:1px solid var(--line);}
+  .bench-table tr:last-child td{border-bottom:none;}
+  .badge-beat{background:#e8f5e9;color:#2e7d32;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .badge-lag{background:#fdecea;color:#c54a3a;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📊 مقارنة الأداء</h1>
+    <p>كيف يقاس أداء محفظتك أمام مؤشر تاسي ومؤشر الصكوك السعودي ومتوسط المنصة؟</p>
+  </div>
+
+  <div class="period-tabs" id="periodTabs">
+    <button class="tab active" data-period="3m">3 أشهر</button>
+    <button class="tab" data-period="6m">6 أشهر</button>
+    <button class="tab" data-period="1y">سنة</button>
+    <button class="tab" data-period="all">منذ البداية</button>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-val neutral">—</div><div class="kpi-lbl">عائد محفظتي</div></div>
+    <div class="kpi"><div class="kpi-val neutral">—</div><div class="kpi-lbl">مؤشر تاسي</div></div>
+    <div class="kpi"><div class="kpi-val neutral">—</div><div class="kpi-lbl">مؤشر الصكوك</div></div>
+    <div class="kpi"><div class="kpi-val neutral">—</div><div class="kpi-lbl">متوسط المنصة</div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">📈 مقارنة العوائد</div>
+    <div class="chart-legend" id="chartLegend"></div>
+    <div class="bar-chart" id="barChart"><p class="placeholder-msg">جارٍ التحميل…</p></div>
+  </div>
+
+  <div class="table-card">
+    <table class="bench-table">
+      <thead><tr id="benchHead"></tr></thead>
+      <tbody id="benchBody"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+(function(){
+  const COLORS={portfolio:'#0a4d36',tasi:'#b08840',sukuk:'#1565c0',platform:'#6b7268'};
+  const LABELS={portfolio:'محفظتي',tasi:'تاسي',sukuk:'مؤشر الصكوك',platform:'متوسط المنصة'};
+  let currentPeriod='3m';
+
+  function fmt(n,decimals=2){ return Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:decimals,maximumFractionDigits:decimals}); }
+
+  function renderKPIs(d){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    const keys=['portfolio','tasi','sukuk','platform'];
+    const lbls=['عائد محفظتي','مؤشر تاسي','مؤشر الصكوك','متوسط المنصة'];
+    keys.forEach((k,i)=>{
+      const val=d[k]||0;
+      const kpi=document.createElement('div'); kpi.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val '+(val>0?'up':val<0?'down':'neutral'); v.textContent=(val>0?'+':'')+fmt(val)+'٪';
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=lbls[i];
+      kpi.appendChild(v); kpi.appendChild(l);
+      if(k==='portfolio' && d.vsAvg!==undefined){
+        const delta=document.createElement('div'); delta.className='kpi-delta '+(d.vsAvg>=0?'up':'down'); delta.textContent=(d.vsAvg>=0?'↑ تفوّق بـ':'↓ أقل بـ')+Math.abs(fmt(d.vsAvg,1))+'٪ عن المنصة';
+        kpi.appendChild(delta);
+      }
+      row.appendChild(kpi);
+    });
+  }
+
+  function renderChart(d){
+    const legend=document.getElementById('chartLegend'); legend.textContent='';
+    Object.keys(COLORS).forEach(k=>{
+      const item=document.createElement('div'); item.className='legend-item';
+      const dot=document.createElement('div'); dot.className='legend-dot'; dot.style.background=COLORS[k];
+      const lbl=document.createElement('span'); lbl.textContent=LABELS[k];
+      item.appendChild(dot); item.appendChild(lbl); legend.appendChild(item);
+    });
+
+    const chart=document.getElementById('barChart'); chart.textContent='';
+    const entries=d.periods||[];
+    const maxVal=Math.max(...Object.keys(COLORS).map(k=>Math.abs(d[k]||0)),1);
+    Object.keys(COLORS).forEach(k=>{
+      const val=d[k]||0;
+      const row=document.createElement('div'); row.className='bar-row';
+      const lbl=document.createElement('div'); lbl.className='bar-lbl'; lbl.textContent=LABELS[k];
+      const track=document.createElement('div'); track.className='bar-track';
+      const fill=document.createElement('div'); fill.className='bar-fill'; fill.style.background=COLORS[k]; fill.style.width=Math.abs(val)/maxVal*100+'%';
+      track.appendChild(fill);
+      const valDiv=document.createElement('div'); valDiv.className='bar-val'; valDiv.style.color=COLORS[k]; valDiv.textContent=(val>0?'+':'')+fmt(val,1)+'٪';
+      row.appendChild(lbl); row.appendChild(track); row.appendChild(valDiv); chart.appendChild(row);
+    });
+
+    const thead=document.getElementById('benchHead'); thead.textContent='';
+    const tbody=document.getElementById('benchBody'); tbody.textContent='';
+    if(entries.length){
+      ['الفترة','محفظتي','تاسي','مؤشر الصكوك','المنصة','التقييم'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; thead.appendChild(th); });
+      entries.forEach(e=>{
+        const tr=document.createElement('tr');
+        [e.label||'—',(e.portfolio>=0?'+':'')+fmt(e.portfolio)+'٪',(e.tasi>=0?'+':'')+fmt(e.tasi)+'٪',(e.sukuk>=0?'+':'')+fmt(e.sukuk)+'٪',(e.platform>=0?'+':'')+fmt(e.platform)+'٪'].forEach(v=>{ const td=document.createElement('td'); td.textContent=v; tr.appendChild(td); });
+        const tdS=document.createElement('td');
+        const b=document.createElement('span'); b.className=(e.portfolio||0)>=(e.platform||0)?'badge-beat':'badge-lag'; b.textContent=(e.portfolio||0)>=(e.platform||0)?'تفوّق':'دون المتوسط';
+        tdS.appendChild(b); tr.appendChild(tdS); tbody.appendChild(tr);
+      });
+    }
+  }
+
+  async function load(period){
+    try{
+      const r=await fetch('/app/me/performance-benchmark?period='+period);
+      if(!r.ok){ document.getElementById('barChart').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; document.getElementById('barChart').appendChild(m); return; }
+      const d=await r.json(); renderKPIs(d); renderChart(d);
+    }catch{ document.getElementById('barChart').textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.textContent='تعذّر التحميل.'; document.getElementById('barChart').appendChild(m); }
+  }
+
+  document.getElementById('periodTabs').addEventListener('click',e=>{
+    const btn=e.target.closest('.tab'); if(!btn) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active');
+    currentPeriod=btn.dataset.period; load(currentPeriod);
+  });
+
+  load(currentPeriod);
+}());
+</script>
+</body>
+</html>

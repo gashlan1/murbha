@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شهادة الضريبة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.cert-wrap{padding:1.25rem;}
+.cert-item{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0;border-bottom:1px solid var(--line);}
+.cert-item:last-child{border-bottom:none;}
+.cert-info{}
+.cert-title{font-size:0.86rem;font-weight:700;}
+.cert-meta{font-size:0.72rem;color:var(--muted);margin-top:0.1rem;}
+.cert-status{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;}
+.s-ready{background:#e8f5ed;color:#1e8449;}
+.s-pending{background:#fef3cd;color:#92400e;}
+.tax-summary{padding:1.25rem;}
+.ts-row{display:flex;justify-content:space-between;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.84rem;}
+.ts-row:last-child{border-bottom:none;}
+.ts-label{color:var(--muted);}
+.ts-val{font-weight:700;}
+.ts-val.green{color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — شهادة الضريبة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>شهادات الضريبة والإقرارات المالية</h2>
+      <p>تحميل شهادات الاستقطاع الضريبي وملخصات الدخل الاستثماري للإقرار الضريبي</p>
+    </div>
+    <button class="btn btn-primary" onclick="requestCertificate()">طلب شهادة جديدة</button>
+  </div>
+
+  <div class="stats" id="tcStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head">
+        <h3>الشهادات المتاحة</h3>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="downloadAll()">تحميل الكل</button>
+      </div>
+      <div class="cert-wrap" id="certWrap"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>ملخص الدخل الضريبي ٢٠٢٥</h3></div>
+      <div class="tax-summary" id="taxSummary"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>إرشادات الإقرار الضريبي</h3></div>
+    <div style="padding:1.25rem;" id="guidanceWrap"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="requestCertificate()">طلب شهادة مخصصة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="downloadAll()">تحميل جميع الشهادات</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'شهادات جاهزة' },
+  { val: '١٨,٦٠٠ ر.س', lbl: 'إجمالي الدخل الخاضع' },
+  { val: '٢,٧٩٠ ر.س', lbl: 'ضريبة مستقطعة' },
+  { val: '١٥٪', lbl: 'نسبة الاستقطاع' }
+];
+
+const CERTS = [
+  { title: 'شهادة ضريبة السنة المالية ٢٠٢٥', meta: 'صادرة ٢٠٢٦/٠١/١٥ · تشمل ٣ صفقات', status: 's-ready', label: 'جاهزة' },
+  { title: 'شهادة ضريبة الربع الثاني ٢٠٢٦', meta: 'تاريخ الإصدار المتوقع: ٢٠٢٦/٠٧/٣١', status: 's-pending', label: 'قيد الإعداد' },
+  { title: 'شهادة الأرباح الموزعة ٢٠٢٥', meta: 'صادرة ٢٠٢٥/١٢/٣١ · مرابحة عقارية #4890', status: 's-ready', label: 'جاهزة' }
+];
+
+const TAX_ROWS = [
+  { label: 'إجمالي الأرباح الموزعة', val: '٢٠,٠٠٠ ر.س', green: false },
+  { label: 'الأرباح المعفاة', val: '(١,٤٠٠ ر.س)', green: false },
+  { label: 'صافي الدخل الخاضع', val: '١٨,٦٠٠ ر.س', green: true },
+  { label: 'ضريبة مستقطعة (١٥٪)', val: '٢,٧٩٠ ر.س', green: false },
+  { label: 'صافي المقبوض', val: '١٥,٨١٠ ر.س', green: true }
+];
+
+const GUIDANCE = [
+  'تُعدّ عوائد المرابحة من الدخل الخاضع لضريبة الدخل وفق اللوائح السعودية.',
+  'يُستقطع ١٥٪ تلقائياً من عوائد غير المقيمين قبل التحويل.',
+  'يمكنك إدراج الشهادة الصادرة مباشرةً في إقرارك الضريبي السنوي.',
+  'للاستفسارات الضريبية يُرجى التواصل مع فريق الدعم أو مستشارك الضريبي.'
+];
+
+function buildStats() {
+  const wrap = document.getElementById('tcStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildCerts() {
+  const wrap = document.getElementById('certWrap');
+  CERTS.forEach((c, idx) => {
+    const item = document.createElement('div'); item.className = 'cert-item';
+    const info = document.createElement('div'); info.className = 'cert-info';
+    const title = document.createElement('div'); title.className = 'cert-title'; title.textContent = c.title;
+    const meta = document.createElement('div'); meta.className = 'cert-meta'; meta.textContent = c.meta;
+    info.appendChild(title); info.appendChild(meta);
+    const right = document.createElement('div'); right.style.display = 'flex'; right.style.alignItems = 'center'; right.style.gap = '0.5rem';
+    const status = document.createElement('span'); status.className = 'cert-status ' + c.status; status.textContent = c.label;
+    right.appendChild(status);
+    if (c.status === 's-ready') {
+      const btn = document.createElement('button'); btn.className = 'btn btn-sm'; btn.style.cssText = 'background:var(--green);color:#fff;'; btn.textContent = 'تحميل';
+      btn.onclick = () => downloadCert(idx);
+      right.appendChild(btn);
+    }
+    item.appendChild(info); item.appendChild(right);
+    wrap.appendChild(item);
+  });
+}
+
+function buildTaxSummary() {
+  const wrap = document.getElementById('taxSummary');
+  TAX_ROWS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'ts-row';
+    const lbl = document.createElement('div'); lbl.className = 'ts-label'; lbl.textContent = r.label;
+    const val = document.createElement('div'); val.className = 'ts-val' + (r.green ? ' green' : ''); val.textContent = r.val;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+}
+
+function buildGuidance() {
+  const wrap = document.getElementById('guidanceWrap');
+  GUIDANCE.forEach(g => {
+    const p = document.createElement('p'); p.style.cssText = 'font-size:0.84rem;margin-bottom:0.6rem;color:var(--green-dark);';
+    p.textContent = '• ' + g;
+    wrap.appendChild(p);
+  });
+}
+
+function downloadCert(idx) {
+  fetch('/app/me/tax-certificate?idx=' + idx).then(r => r.json()).catch(() => {});
+  alert('جاري تحميل ' + CERTS[idx].title + '...');
+}
+
+function downloadAll() {
+  fetch('/app/me/tax-certificate/export').then(r => r.json()).catch(() => {});
+  alert('جاري تحميل جميع الشهادات الجاهزة...');
+}
+
+function requestCertificate() {
+  fetch('/app/me/tax-certificate/request', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ type: 'custom' }) }).catch(() => {});
+  alert('تم إرسال طلب شهادة ضريبية مخصصة. سيتم الإشعار خلال ٢٤ ساعة.');
+}
+
+buildStats(); buildCerts(); buildTaxSummary(); buildGuidance();
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Content Management — Murbha Admin">إدارة المحتوى — إدارة مُرابحة</title>
+<meta name="description" content="إدارة محتوى المنصة من مقالات ورؤى وإعلانات." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:940px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .tabs{display:flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab{flex:1;min-width:80px;border:none;border-radius:8px;padding:9px 14px;font:700 11px Cairo,sans-serif;cursor:pointer;background:transparent;color:var(--muted);}
+  .tab.active{background:var(--green-dark);color:#fbf6ea;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+  .btn-new{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:8px;padding:7px 16px;font:900 11px Cairo,sans-serif;cursor:pointer;}
+  .btn-new:hover{background:var(--green);}
+  /* Content table */
+  .content-table{width:100%;border-collapse:collapse;}
+  .content-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .content-table td{font:500 11px Tajawal,sans-serif;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .content-table tr:last-child td{border-bottom:none;}
+  .content-table tr:hover td{background:#fafaf7;}
+  .status-published{background:#e8f5e9;color:#2e7d32;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .status-draft{background:#fff8e1;color:#a07020;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .status-archived{background:#f5f5f5;color:#757575;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .cat-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .cat-article{background:#e3f2fd;color:#1565c0;}
+  .cat-insight{background:#e8f5e9;color:#2e7d32;}
+  .cat-announcement{background:#fff8e1;color:#a07020;}
+  .cat-education{background:#f3e5f5;color:#7b1fa2;}
+  .td-actions{display:flex;gap:6px;}
+  .btn-edit{border:1.5px solid var(--line);border-radius:6px;padding:4px 10px;font:700 9px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);}
+  .btn-edit:hover{background:#f9f7f2;}
+  .btn-del{border:1px solid #f8d7da;border-radius:6px;padding:4px 10px;font:700 9px Cairo,sans-serif;cursor:pointer;background:#fdecea;color:#c54a3a;}
+  .btn-del:hover{background:#ffcdd2;}
+  /* Edit form */
+  .form-panel{display:none;}
+  .form-panel.visible{display:block;}
+  .form-group{margin-bottom:14px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:6px;}
+  .form-inp{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);}
+  .form-inp:focus{outline:none;border-color:var(--green);}
+  .form-sel{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-sel:focus{outline:none;border-color:var(--green);}
+  .form-ta{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);resize:vertical;min-height:120px;}
+  .form-ta:focus{outline:none;border-color:var(--green);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:11px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-cancel{background:#f0ece0;color:var(--ink);border:none;border-radius:9px;padding:11px 20px;font:700 12px Cairo,sans-serif;cursor:pointer;margin-right:8px;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Content Management">إدارة المحتوى</h1>
+    <p data-en="Manage platform articles, insights, and announcements.">أدر مقالات المنصة ورؤاها وإعلاناتها.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-type="all">الكل</button>
+    <button class="tab" data-type="article">مقالات</button>
+    <button class="tab" data-type="insight">رؤى</button>
+    <button class="tab" data-type="announcement">إعلانات</button>
+    <button class="tab" data-type="education">تعليم</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <span data-en="Content Items">عناصر المحتوى</span>
+      <button class="btn-new" id="btnNew" data-en="+ New Item">+ إضافة جديد</button>
+    </div>
+    <table class="content-table">
+      <thead><tr>
+        <th data-en="Title">العنوان</th>
+        <th data-en="Category">التصنيف</th>
+        <th data-en="Status">الحالة</th>
+        <th data-en="Date">التاريخ</th>
+        <th data-en="Views">المشاهدات</th>
+        <th data-en="Actions">إجراءات</th>
+      </tr></thead>
+      <tbody id="contentBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card form-panel" id="formPanel">
+    <div class="card-title" id="formTitle">إضافة محتوى جديد</div>
+    <input type="hidden" id="editId" />
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl" data-en="Title (AR)">العنوان (عربي)</label>
+        <input class="form-inp" id="fTitle" type="text" placeholder="عنوان المقال…" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" data-en="Title (EN)">العنوان (إنجليزي)</label>
+        <input class="form-inp" id="fTitleEn" type="text" placeholder="Article title…" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl" data-en="Category">التصنيف</label>
+        <select class="form-sel" id="fCat">
+          <option value="article">مقال</option>
+          <option value="insight">رؤية</option>
+          <option value="announcement">إعلان</option>
+          <option value="education">تعليم</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" data-en="Status">الحالة</label>
+        <select class="form-sel" id="fStatus">
+          <option value="draft">مسودة</option>
+          <option value="published">منشور</option>
+          <option value="archived">مؤرشف</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Excerpt">مقتطف</label>
+      <input class="form-inp" id="fExcerpt" type="text" placeholder="وصف مختصر…" />
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Body">المحتوى</label>
+      <textarea class="form-ta" id="fBody" placeholder="محتوى المقال…"></textarea>
+    </div>
+    <button class="btn-cancel" id="btnCancel">إلغاء</button>
+    <button class="btn-save" id="btnSave">حفظ</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const catLabel={article:'مقال',insight:'رؤية',announcement:'إعلان',education:'تعليم'};
+  const catCls={article:'cat-article',insight:'cat-insight',announcement:'cat-announcement',education:'cat-education'};
+  let activeType='all', allItems=[], editingId=null;
+
+  function filtered(){ return allItems.filter(i=> activeType==='all'||i.category===activeType); }
+
+  function render(){
+    const body=document.getElementById('contentBody'); body.textContent='';
+    const items=filtered();
+    if(!items.length){ placeholder(body,'لا توجد عناصر.'); return; }
+    items.forEach(item=>{
+      const tr=document.createElement('tr');
+      const tdTitle=document.createElement('td'); tdTitle.style.fontWeight='700'; tdTitle.textContent=item.title||'—';
+      const tdCat=document.createElement('td');
+      const cb=document.createElement('span'); cb.className='cat-badge '+(catCls[item.category]||'cat-article'); cb.textContent=catLabel[item.category]||item.category||'—';
+      tdCat.appendChild(cb);
+      const tdSt=document.createElement('td');
+      const sb=document.createElement('span'); sb.className='status-'+(item.status||'draft'); sb.textContent=item.status==='published'?'منشور':item.status==='archived'?'مؤرشف':'مسودة';
+      tdSt.appendChild(sb);
+      const tdDate=document.createElement('td'); tdDate.style.color='var(--muted)'; tdDate.textContent=(item.publishedAt||item.createdAt||'—').slice(0,10);
+      const tdViews=document.createElement('td'); tdViews.textContent=String(item.views||0);
+      const tdAct=document.createElement('td');
+      const acts=document.createElement('div'); acts.className='td-actions';
+      const btnE=document.createElement('button'); btnE.className='btn-edit'; btnE.textContent='تعديل';
+      btnE.addEventListener('click',()=>openEdit(item));
+      const btnD=document.createElement('button'); btnD.className='btn-del'; btnD.textContent='حذف';
+      const iId=item.id;
+      btnD.addEventListener('click',async()=>{
+        if(!confirm('حذف هذا المحتوى؟')) return; btnD.disabled=true;
+        try{ const r=await fetch('/app/admin/content/'+encodeURIComponent(iId),{method:'DELETE',headers:{'X-CSRF-Token':csrf()}}); if(r.ok){ showToast('تم الحذف.'); load(); } else { btnD.disabled=false; showToast('تعذّر الحذف.'); } }catch{ btnD.disabled=false; }
+      });
+      acts.appendChild(btnE); acts.appendChild(btnD); tdAct.appendChild(acts);
+      tr.appendChild(tdTitle); tr.appendChild(tdCat); tr.appendChild(tdSt); tr.appendChild(tdDate); tr.appendChild(tdViews); tr.appendChild(tdAct);
+      body.appendChild(tr);
+    });
+  }
+
+  function openEdit(item){
+    editingId=item?item.id:null;
+    document.getElementById('formTitle').textContent=item?'تعديل المحتوى':'إضافة محتوى جديد';
+    document.getElementById('editId').value=item?item.id:'';
+    document.getElementById('fTitle').value=item?item.title||'':'';
+    document.getElementById('fTitleEn').value=item?item.titleEn||'':'';
+    document.getElementById('fCat').value=item?item.category||'article':'article';
+    document.getElementById('fStatus').value=item?item.status||'draft':'draft';
+    document.getElementById('fExcerpt').value=item?item.excerpt||'':'';
+    document.getElementById('fBody').value=item?item.body||'':'';
+    document.getElementById('formPanel').classList.add('visible');
+    document.getElementById('formPanel').scrollIntoView({behavior:'smooth'});
+  }
+
+  document.getElementById('btnNew').addEventListener('click',()=>openEdit(null));
+  document.getElementById('btnCancel').addEventListener('click',()=>{ editingId=null; document.getElementById('formPanel').classList.remove('visible'); });
+
+  document.getElementById('btnSave').addEventListener('click',async()=>{
+    const payload={title:document.getElementById('fTitle').value.trim(),titleEn:document.getElementById('fTitleEn').value.trim(),category:document.getElementById('fCat').value,status:document.getElementById('fStatus').value,excerpt:document.getElementById('fExcerpt').value.trim(),body:document.getElementById('fBody').value.trim()};
+    if(!payload.title){ showToast('العنوان مطلوب.'); return; }
+    document.getElementById('btnSave').disabled=true;
+    try{
+      const url=editingId?'/app/admin/content/'+encodeURIComponent(editingId):'/app/admin/content';
+      const method=editingId?'PUT':'POST';
+      const r=await fetch(url,{method,headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      document.getElementById('btnSave').disabled=false;
+      if(!r.ok){ showToast('تعذّر الحفظ.'); return; }
+      showToast(editingId?'تم التحديث.':'تمت الإضافة.'); document.getElementById('formPanel').classList.remove('visible'); editingId=null; load();
+    }catch{ document.getElementById('btnSave').disabled=false; showToast('خطأ.'); }
+  });
+
+  document.getElementById('tabs').querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active'); activeType=tab.dataset.type; render();
+    });
+  });
+
+  async function load(){
+    try{
+      const r=await fetch('/app/admin/content');
+      if(!r.ok){ placeholder(document.getElementById('contentBody'),r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json(); allItems=d.items||[]; render();
+    }catch{ placeholder(document.getElementById('contentBody'),'خطأ في الاتصال.'); }
+  }
+
+  load();
+}());
+</script>
+</body>
+</html>

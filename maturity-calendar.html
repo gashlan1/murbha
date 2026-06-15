@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Maturity Calendar — Murbha">تقويم الاستحقاق — مُرابحة</title>
+<meta name="description" content="عرض تقويمي لمواعيد استحقاق استثماراتك ومدفوعاتك المتوقعة خلال العام." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  /* Calendar nav */
+  .cal-nav{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 20px;margin-bottom:16px;}
+  .nav-btn{background:none;border:1.5px solid var(--line);border-radius:8px;padding:6px 14px;font:700 12px Cairo,sans-serif;cursor:pointer;color:var(--green-dark);}
+  .nav-btn:hover{border-color:var(--green);background:var(--paper);}
+  .cal-month{font:900 16px Cairo,sans-serif;color:var(--green-dark);}
+  /* Month view */
+  .cal-grid{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:18px;}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:#f9f7f2;}
+  .weekday{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:center;padding:10px 0;}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-day{border:1px solid var(--line);min-height:72px;padding:6px;cursor:default;}
+  .cal-day.other-month{background:#faf8f3;opacity:.5;}
+  .cal-day.today{background:#e8f5e9;}
+  .day-num{font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .cal-day.today .day-num{color:var(--green);font:900 11px Cairo,sans-serif;}
+  .event-dot{border-radius:4px;padding:2px 5px;font:700 8px Cairo,sans-serif;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .ev-maturity{background:#e8f5e9;color:#2e7d32;}
+  .ev-distribution{background:#fff8e1;color:#a07020;}
+  .ev-start{background:#e3f2fd;color:#1565c0;}
+  /* List view */
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .event-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);gap:10px;}
+  .event-item:last-child{border-bottom:none;}
+  .ev-info{flex:1;}
+  .ev-deal{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .ev-type-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .ev-right{text-align:left;flex-shrink:0;}
+  .ev-date{font:900 11px Cairo,sans-serif;color:var(--ink);}
+  .ev-amt{font:500 10px Tajawal,sans-serif;color:var(--green);margin-top:2px;}
+  .ev-badge{border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  /* Legend */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .legend-box{width:12px;height:12px;border-radius:3px;}
+  .lb-mat{background:#e8f5e9;}
+  .lb-dist{background:#fff8e1;}
+  .lb-start{background:#e3f2fd;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Maturity Calendar">تقويم الاستحقاق</h1>
+    <p>عرض تقويمي بمواعيد استحقاق استثماراتك وتوزيعات الأرباح المتوقعة خلال العام.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="cal-nav">
+    <button class="nav-btn" id="prevBtn">السابق</button>
+    <div class="cal-month" id="calMonth"></div>
+    <button class="nav-btn" id="nextBtn">التالي</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box lb-mat"></div>استحقاق</div>
+    <div class="legend-item"><div class="legend-box lb-dist"></div>توزيع أرباح</div>
+    <div class="legend-item"><div class="legend-box lb-start"></div>بداية صفقة</div>
+  </div>
+
+  <div class="cal-grid" id="calGrid"></div>
+
+  <div class="card">
+    <div class="card-title" id="upcomingTitle">الأحداث القادمة (30 يوماً)</div>
+    <div id="eventList"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(el, msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  let events=[], currentYear, currentMonth;
+
+  const monthNames=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const dayNames=['أح','اث','ث','أر','خ','ج','س'];
+  const typeLabels={maturity:'استحقاق',distribution:'توزيع أرباح',start:'بداية صفقة'};
+  const typeCls={maturity:'ev-maturity',distribution:'ev-distribution',start:'ev-start'};
+
+  function buildCalendar(year, month){
+    document.getElementById('calMonth').textContent=monthNames[month]+' '+year;
+    const grid=document.getElementById('calGrid'); grid.textContent='';
+
+    const wdays=document.createElement('div'); wdays.className='cal-weekdays';
+    dayNames.forEach(d=>{ const wd=document.createElement('div'); wd.className='weekday'; wd.textContent=d; wdays.appendChild(wd); });
+    grid.appendChild(wdays);
+
+    const days=document.createElement('div'); days.className='cal-days';
+    const first=new Date(year, month, 1).getDay();
+    const daysInMonth=new Date(year, month+1, 0).getDate();
+    const daysInPrev=new Date(year, month, 0).getDate();
+    const today=new Date(); today.setHours(0,0,0,0);
+
+    const evByDate={};
+    events.forEach(ev=>{
+      const [ey,em,ed]=ev.date.split('-').map(Number);
+      if(ey===year&&(em-1)===month){
+        const key=ed;
+        if(!evByDate[key]) evByDate[key]=[];
+        evByDate[key].push(ev);
+      }
+    });
+
+    const totalCells=Math.ceil((first+daysInMonth)/7)*7;
+    for(let i=0;i<totalCells;i++){
+      const cell=document.createElement('div'); cell.className='cal-day';
+      let dayNum, isCurrentMonth=true;
+      if(i<first){ dayNum=daysInPrev-first+i+1; isCurrentMonth=false; }
+      else if(i>=first+daysInMonth){ dayNum=i-first-daysInMonth+1; isCurrentMonth=false; }
+      else{ dayNum=i-first+1; }
+
+      if(!isCurrentMonth) cell.classList.add('other-month');
+      const cellDate=new Date(year, isCurrentMonth?month:(i<first?month-1:month+1), dayNum);
+      if(cellDate.getTime()===today.getTime()) cell.classList.add('today');
+
+      const dn=document.createElement('div'); dn.className='day-num'; dn.textContent=dayNum;
+      cell.appendChild(dn);
+
+      if(isCurrentMonth && evByDate[dayNum]){
+        evByDate[dayNum].slice(0,2).forEach(ev=>{
+          const dot=document.createElement('div');
+          dot.className='event-dot '+(typeCls[ev.type]||'ev-start');
+          dot.textContent=ev.dealName||typeLabels[ev.type]||'—';
+          cell.appendChild(dot);
+        });
+        if((evByDate[dayNum]||[]).length>2){
+          const more=document.createElement('div'); more.className='event-dot ev-start'; more.textContent='+'+(evByDate[dayNum].length-2)+' أكثر';
+          cell.appendChild(more);
+        }
+      }
+      days.appendChild(cell);
+    }
+    grid.appendChild(days);
+  }
+
+  function renderUpcoming(){
+    const list=document.getElementById('eventList');
+    list.textContent='';
+    const now=new Date(); now.setHours(0,0,0,0);
+    const cutoff=new Date(now); cutoff.setDate(cutoff.getDate()+30);
+    const upcoming=events.filter(ev=>{
+      const d=new Date(ev.date);
+      return d>=now && d<=cutoff;
+    }).sort((a,b)=>a.date>b.date?1:-1);
+    if(!upcoming.length){ placeholder(list,'لا توجد أحداث قادمة خلال 30 يوماً.'); return; }
+    upcoming.forEach(ev=>{
+      const item=document.createElement('div'); item.className='event-item';
+      const info=document.createElement('div'); info.className='ev-info';
+      const deal=document.createElement('div'); deal.className='ev-deal'; deal.textContent=ev.dealName||'—';
+      const typeLbl=document.createElement('div'); typeLbl.className='ev-type-lbl'; typeLbl.textContent=typeLabels[ev.type]||ev.type||'—';
+      info.appendChild(deal); info.appendChild(typeLbl);
+      const right=document.createElement('div'); right.className='ev-right';
+      const date=document.createElement('div'); date.className='ev-date'; date.textContent=ev.date||'—';
+      right.appendChild(date);
+      if(ev.amount){ const amt=document.createElement('div'); amt.className='ev-amt'; amt.textContent=fmt(ev.amount)+' ر.س'; right.appendChild(amt); }
+      const badge=document.createElement('div'); badge.className='ev-badge '+(typeCls[ev.type]||'ev-start'); badge.textContent=typeLabels[ev.type]||'—';
+      right.appendChild(badge);
+      item.appendChild(info); item.appendChild(right);
+      list.appendChild(item);
+    });
+  }
+
+  document.getElementById('prevBtn').addEventListener('click',()=>{
+    currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; }
+    buildCalendar(currentYear, currentMonth);
+  });
+  document.getElementById('nextBtn').addEventListener('click',()=>{
+    currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; }
+    buildCalendar(currentYear, currentMonth);
+  });
+
+  (async function load(){
+    placeholder(document.getElementById('eventList'),'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/me/maturity-calendar');
+      if(!r.ok){ placeholder(document.getElementById('eventList'),'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      events=d.events||[];
+
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=[
+        ['استحقاقات هذا الشهر',String(d.maturingThisMonth||0)],
+        ['توزيعات متوقعة',fmt(d.expectedDistributions||0)+' ر.س'],
+        ['أقرب استحقاق',d.nextMaturityDate||'—'],
+        ['صفقات نشطة',String(d.activeCount||0)]
+      ];
+      kpis.forEach(([lbl,val])=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+
+      const now=new Date();
+      currentYear=now.getFullYear(); currentMonth=now.getMonth();
+      buildCalendar(currentYear, currentMonth);
+      renderUpcoming();
+    }catch{ placeholder(document.getElementById('eventList'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

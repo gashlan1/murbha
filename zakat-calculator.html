@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>حاسبة الزكاة — مُرابحة</title>
+<meta name="description" content="احسب زكاة استثماراتك العقارية بدقّة وفق الفتاوى المعتمدة. يأخذ في الاعتبار النصاب، النقد، الذمم، والاستثمارات الجارية." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --green-dark: #062b1e; --green: #0a4d36;
+    --gold: #b08840; --gold-light: #d4ac6e; --muted: #6b7268; --line: rgba(13,22,18,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+  .hero { background: linear-gradient(135deg,#062b1e,#0a4d36); color: #fbf6ea; border-radius: 22px; padding: 38px 26px; margin-bottom: 22px; text-align: center; }
+  .hero h1 { font: 900 30px Cairo,sans-serif; margin-bottom: 8px; }
+  .hero p { font: 500 14px Tajawal,sans-serif; opacity: 0.92; max-width: 540px; margin: 0 auto; line-height: 1.85; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 16px; }
+  section h2 { font: 900 18px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+  section p, section li { font: 500 13px Tajawal,sans-serif; color: var(--ink); line-height: 1.95; }
+  .calc { background: #fff; border: 2px solid var(--gold); border-radius: 18px; padding: 24px; margin-bottom: 16px; }
+  .calc h2 { font: 900 20px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 14px; text-align: center; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; align-items: center; }
+  .row label { font: 700 13px Tajawal,sans-serif; color: var(--ink); }
+  .row input { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; font: 600 14px Tajawal,sans-serif; text-align: end; background: var(--paper); }
+  .row input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+  .row .h { font: 500 11px Tajawal,sans-serif; color: var(--muted); margin-top: 4px; }
+  .result { margin-top: 18px; padding: 22px; background: linear-gradient(135deg,#0a4d36,#062b1e); color: #d4ac6e; border-radius: 14px; text-align: center; }
+  .result .l { font: 800 12px Cairo,sans-serif; opacity: 0.85; margin-bottom: 4px; color: #fbf6ea; }
+  .result .v { font: 900 36px Cairo,sans-serif; color: #fbf6ea; margin-bottom: 4px; }
+  .result .s { font: 500 12px Tajawal,sans-serif; opacity: 0.85; line-height: 1.7; color: #fbf6ea; }
+  .nisab-card { padding: 14px; background: var(--paper); border-radius: 12px; margin-bottom: 16px; text-align: center; font: 600 12px Tajawal,sans-serif; color: var(--ink); }
+  .nisab-card b { color: var(--gold); }
+  .breakdown { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .breakdown .br { display: flex; justify-content: space-between; align-items: center; }
+  .breakdown .br span:first-child { font: 600 12px Tajawal,sans-serif; color: var(--ink); }
+  .breakdown .br span:last-child { font: 800 13px Cairo,sans-serif; color: var(--green-dark); }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn-row button { flex: 1; min-width: 130px; padding: 12px; border-radius: 10px; font: 800 13px Cairo,sans-serif; cursor: pointer; border: none; }
+  .btn-primary { background: var(--gold); color: var(--green-dark); }
+  .btn-secondary { background: #fff; color: var(--green-dark); border: 1px solid var(--green-dark) !important; }
+  .step { display: flex; gap: 14px; padding: 14px; background: var(--paper); border-radius: 12px; margin-bottom: 10px; }
+  .step .n { width: 32px; height: 32px; background: var(--gold); color: var(--green-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 900 14px Cairo,sans-serif; flex-shrink: 0; }
+  .step .t { font: 800 13px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 4px; }
+  .step .d { font: 500 12px Tajawal,sans-serif; color: var(--ink); line-height: 1.8; }
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>🌙 حاسبة الزكاة</h1>
+    <p>احسب زكاة استثماراتك العقارية بدقّة. مبنيّة على الفتاوى المعتمدة من هيئة كبار العلماء وآراء أعضاء هيئتنا الشرعية.</p>
+  </div>
+
+  <div class="nisab-card">
+    📌 النصاب الحالي: <b id="nisabValue">22,500 ر.س</b> — يعادل ٨٥ غرام من الذهب · سعر مرجعي ٢٦٥ ر.س/غرام
+  </div>
+
+  <div class="calc">
+    <h2>💰 احسب زكاتك الآن</h2>
+
+    <div class="row">
+      <label>💵 رصيد محفظتك على مُرابحة</label>
+      <div>
+        <input type="number" id="cashBalance" min="0" placeholder="0" />
+        <div class="h">النقد المتاح + الأرباح المحقّقة</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>🏢 الاستثمارات الجارية</label>
+      <div>
+        <input type="number" id="activeInvestments" min="0" placeholder="0" />
+        <div class="h">رأس مالك المستثمر في صفقات نشطة</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>💳 نقد آخر (بنوك، خزنة)</label>
+      <div>
+        <input type="number" id="otherCash" min="0" placeholder="0" />
+        <div class="h">حسابات بنكية + نقد + ذهب وفضّة</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>📈 أسهم ومحافظ أخرى</label>
+      <div>
+        <input type="number" id="otherInvestments" min="0" placeholder="0" />
+        <div class="h">قيمة استثماراتك خارج المنصّة</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>📤 ديون لك على الآخرين</label>
+      <div>
+        <input type="number" id="receivables" min="0" placeholder="0" />
+        <div class="h">الديون التي ستستردّها قريباً</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>📥 ديون عليك للآخرين</label>
+      <div>
+        <input type="number" id="liabilities" min="0" placeholder="0" />
+        <div class="h">قروض + التزامات قصيرة (سنة)</div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="l">إجمالي الوعاء الزكوي</div>
+      <div class="v" id="zakatBase">٠ ر.س</div>
+      <div class="s" id="zakatStatus">أدخل الأرقام لاحتساب الزكاة</div>
+      <div class="l" style="margin-top:18px;">💎 زكاتك المستحقّة (٢.٥٪)</div>
+      <div class="v" id="zakatAmount" style="color:var(--gold-light);">٠ ر.س</div>
+      <div class="s">على ربع الحول السنوي · ٢.٥٪ من الوعاء</div>
+    </div>
+
+    <div class="breakdown" id="breakdown" style="display:none;">
+      <div class="br"><span>✓ إجمالي الأصول الزكوية</span><span id="brAssets">٠</span></div>
+      <div class="br"><span>− الديون الواجبة</span><span id="brLiab">٠</span></div>
+      <div class="br"><span>= صافي الوعاء</span><span id="brNet">٠</span></div>
+      <div class="br"><span>× نسبة الزكاة</span><span>٢٫٥٪</span></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="resetBtn">↺ مسح</button>
+      <button class="btn-primary" id="payBtn">💳 ادفع الزكاة الآن</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>📚 كيف تُحسب الزكاة على استثماراتك؟</h2>
+    <div class="step">
+      <div class="n">١</div>
+      <div>
+        <div class="t">حدّد الحول</div>
+        <div class="d">الحول هو مرور سنة هجرية كاملة (٣٥٤ يوماً) على بلوغ مالك النصاب. اختر تاريخاً ثابتاً (مثلاً ١ رمضان) واحسب زكاتك كل سنة في نفس التاريخ.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">٢</div>
+      <div>
+        <div class="t">احسب النقد والأصول الزكوية</div>
+        <div class="d">يشمل: النقد، الذهب، الفضّة، الأسهم، الاستثمارات السائلة، الديون المستردّة، ورصيدك على مُرابحة (بما فيها الأرباح والاستثمارات الجارية لأنها تُعتبر عروض تجارة).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">٣</div>
+      <div>
+        <div class="t">اخصم الديون</div>
+        <div class="d">اخصم الديون قصيرة الأجل التي تستحقّ خلال السنة فقط (قروض شخصية، أقساط، التزامات). لا تخصم الديون طويلة الأجل كاملةً.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">٤</div>
+      <div>
+        <div class="t">قارن بالنصاب</div>
+        <div class="d">إذا كان صافي الوعاء أكبر من النصاب (يعادل ٨٥ غرام ذهب) فأنت مطالب بالزكاة. النصاب اليوم تقريباً ٢٢٬٥٠٠ ر.س.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">٥</div>
+      <div>
+        <div class="t">احسب ٢٫٥٪</div>
+        <div class="d">الزكاة المستحقّة = صافي الوعاء × ٢٫٥٪ (ربع العشر). ادفعها للأصناف الثمانية المذكورة في القرآن أو لمنصّة معتمدة.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>🏛 موارد رسمية</h2>
+    <ul style="padding-inline-start:22px;">
+      <li><a href="https://zatca.gov.sa" target="_blank" rel="noopener" style="color:var(--gold);font-weight:800;">هيئة الزكاة والضريبة والجمارك ←</a></li>
+      <li><a href="https://www.ensan.gov.sa" target="_blank" rel="noopener" style="color:var(--gold);font-weight:800;">جمعية إحسان للأعمال الخيرية ←</a></li>
+      <li><a href="/sharia.html" style="color:var(--gold);font-weight:800;">فتوى مُرابحة عن الزكاة على استثمارات المرابحة ←</a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>⚠️ تحذير مهم</h2>
+    <p>هذه الحاسبة استرشادية. لكل حالة خصوصية. للحالات المعقّدة (شركات، عقارات تجارية، إرث، ديون طويلة) راجع عالماً مؤهّلاً أو هيئة الزكاة.</p>
+  </section>
+</main>
+
+<script>
+  (function () {
+    const fmt = n => Number(n || 0).toLocaleString('ar-SA', { maximumFractionDigits: 0 }) + ' ر.س';
+    const NISAB = 22500;
+    const inputs = ['cashBalance', 'activeInvestments', 'otherCash', 'otherInvestments', 'receivables', 'liabilities'];
+
+    function recalc() {
+      const v = (id) => Number(document.getElementById(id).value || 0);
+      const assets = v('cashBalance') + v('activeInvestments') + v('otherCash') + v('otherInvestments') + v('receivables');
+      const liab = v('liabilities');
+      const net = Math.max(0, assets - liab);
+      const zakat = net >= NISAB ? net * 0.025 : 0;
+
+      document.getElementById('zakatBase').textContent = fmt(net);
+      document.getElementById('zakatAmount').textContent = fmt(Math.round(zakat));
+      const st = document.getElementById('zakatStatus');
+      if (assets === 0) st.textContent = 'أدخل الأرقام لاحتساب الزكاة';
+      else if (net < NISAB) st.textContent = '🟢 وعاؤك تحت النصاب — لا زكاة واجبة عليك هذا الحول';
+      else st.textContent = '🟡 وعاؤك فوق النصاب — الزكاة واجبة بنسبة ٢٫٥٪';
+
+      const bd = document.getElementById('breakdown');
+      if (assets > 0) {
+        bd.style.display = 'flex';
+        document.getElementById('brAssets').textContent = fmt(assets);
+        document.getElementById('brLiab').textContent = '−' + fmt(liab);
+        document.getElementById('brNet').textContent = fmt(net);
+      } else bd.style.display = 'none';
+    }
+
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', recalc));
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      inputs.forEach(id => { document.getElementById(id).value = ''; });
+      recalc();
+    });
+    document.getElementById('payBtn').addEventListener('click', () => {
+      const amt = document.getElementById('zakatAmount').textContent.replace(/[^0-9]/g, '');
+      if (!amt || amt === '0') { alert('احسب زكاتك أوّلاً'); return; }
+      location.href = '/charity.html?intent=zakat&amount=' + encodeURIComponent(amt);
+    });
+  })();
+</script>
+<script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الضمانات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.col-table{padding:1.25rem;overflow-x:auto;}
+.ct-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.ct-row:last-child{border-bottom:none;}
+.ct-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.col-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-active{background:#e8f5ed;color:#1e8449;}
+.pill-partial{background:#fef3cd;color:#92400e;}
+.pill-expired{background:#fde8e8;color:#c0392b;}
+.coverage-bar{height:6px;border-radius:3px;background:#e8e2d6;margin-top:0.3rem;}
+.coverage-fill{height:100%;border-radius:3px;background:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.ct-row{grid-template-columns:2fr 1fr 1fr;}.ct-row>:nth-child(4),.ct-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة الضمانات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة ضمانات الصفقات</h2>
+      <p>تتبع الضمانات المرتبطة بكل صفقة ونسب التغطية</p>
+    </div>
+    <button class="btn btn-primary" onclick="addCollateral()">إضافة ضمان</button>
+  </div>
+
+  <div class="stats" id="colStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل الضمانات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCollateral()">تصدير</button>
+    </div>
+    <div class="col-table" id="colTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="addCollateral()">إضافة ضمان جديد</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportCollateral()">تصدير السجل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣٦', lbl: 'ضمان مسجّل' },
+  { val: '١.٤٢×', lbl: 'متوسط نسبة التغطية' },
+  { val: '٢', lbl: 'ضمانات منتهية الصلاحية' },
+  { val: '٩٤٪', lbl: 'نسبة التغطية الكلية' }
+];
+
+const COLLATERALS = [
+  { deal: 'صفقة #4920', type: 'ضمان بنكي', value: '٦٠٠,٠٠٠ ر.س', dealValue: '٥٠٠,٠٠٠ ر.س', coverage: 120, pill: 'pill-active', label: 'نشط' },
+  { deal: 'صفقة #4918', type: 'رهن منقولات', value: '٣٦٠,٠٠٠ ر.س', dealValue: '٣٠٠,٠٠٠ ر.س', coverage: 120, pill: 'pill-active', label: 'نشط' },
+  { deal: 'صفقة #4921', type: 'خطاب ضمان', value: '٣٢٠,٠٠٠ ر.س', dealValue: '٤٠٠,٠٠٠ ر.س', coverage: 80, pill: 'pill-partial', label: 'جزئي' },
+  { deal: 'صفقة #4905', type: 'ضمان عقاري', value: '٢٤٠,٠٠٠ ر.س', dealValue: '٢٠٠,٠٠٠ ر.س', coverage: 120, pill: 'pill-active', label: 'نشط' },
+  { deal: 'صفقة #4875', type: 'ضمان شخصي', value: '٨٠,٠٠٠ ر.س', dealValue: '٨٠,٠٠٠ ر.س', coverage: 100, pill: 'pill-expired', label: 'منتهٍ' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('colStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const wrap = document.getElementById('colTable');
+  const header = document.createElement('div'); header.className = 'ct-row ct-header';
+  ['الصفقة', 'نوع الضمان', 'قيمة الضمان', 'التغطية', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  COLLATERALS.forEach(c => {
+    const row = document.createElement('div'); row.className = 'ct-row';
+    const deal = document.createElement('div'); deal.style.fontWeight = '700'; deal.textContent = c.deal;
+    const type = document.createElement('div'); type.textContent = c.type;
+    const value = document.createElement('div'); value.style.color = 'var(--green)'; value.style.fontWeight = '700'; value.textContent = c.value;
+    const covWrap = document.createElement('div');
+    const covText = document.createElement('div'); covText.style.fontSize = '0.72rem'; covText.style.fontWeight = '700'; covText.textContent = c.coverage + '٪';
+    const bar = document.createElement('div'); bar.className = 'coverage-bar';
+    const fill = document.createElement('div'); fill.className = 'coverage-fill'; fill.style.width = Math.min(c.coverage, 100) + '%';
+    if (c.coverage < 100) fill.style.background = '#e67e22';
+    bar.appendChild(fill); covWrap.appendChild(covText); covWrap.appendChild(bar);
+    const pill = document.createElement('span'); pill.className = 'col-pill ' + c.pill; pill.textContent = c.label;
+    row.appendChild(deal); row.appendChild(type); row.appendChild(value); row.appendChild(covWrap); row.appendChild(pill);
+    wrap.appendChild(row);
+  });
+}
+
+function addCollateral() {
+  fetch('/app/admin/deal-collateral-manager', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'add' }) }).catch(() => {});
+  alert('جاري فتح نموذج إضافة ضمان جديد...');
+}
+
+function exportCollateral() {
+  fetch('/app/admin/deal-collateral-manager/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل الضمانات...');
+}
+
+buildStats(); buildTable();
+</script>
+</body>
+</html>

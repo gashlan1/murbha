@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تنبيهات الصفقات — مُرابحة</title>
+<meta name="description" content="أنشئ تنبيهات مخصّصة للصفقات الجديدة. احصل على إشعار فور توفّر صفقة تناسب معاييرك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .create-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .create-card h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:560px){.fields-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font:700 11px Cairo,sans-serif;color:var(--muted);}
+  .field select,.field input{border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:500 12px Tajawal,sans-serif;background:var(--paper);}
+  .field select:focus,.field input:focus{outline:none;border-color:var(--green);}
+  .field .hint{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .channels-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+  .channel-btn{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;}
+  .channel-btn.selected{background:var(--green);color:#fbf6ea;border-color:var(--green);}
+  .btn-create{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:11px 28px;font:700 13px Cairo,sans-serif;cursor:pointer;margin-top:14px;}
+  .alerts-list{display:grid;gap:10px;}
+  .alert-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .alert-card.paused{opacity:.6;}
+  .alert-info{flex:1;}
+  .alert-name{font:700 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;}
+  .alert-criteria{font:500 11px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  .alert-channels{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+  .ch-tag{background:var(--paper);border-radius:5px;padding:2px 7px;font:700 9px Cairo,sans-serif;color:var(--muted);}
+  .alert-actions{display:flex;gap:6px;flex-shrink:0;}
+  .btn-toggle{background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;color:var(--green);}
+  .btn-delete{background:#fdecea;border:1px solid #f5c6c0;border-radius:7px;padding:6px 10px;font:700 10px Cairo,sans-serif;cursor:pointer;color:#c54a3a;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>🔔 تنبيهات الصفقات</h1>
+    <p>حدّد معاييرك واحصل على إشعار فور توفّر صفقة تناسب أهدافك الاستثمارية.</p>
+  </div>
+
+  <div class="create-card">
+    <h2>➕ إنشاء تنبيه جديد</h2>
+    <div class="fields-grid">
+      <div class="field">
+        <label>اسم التنبيه</label>
+        <input type="text" id="alertName" placeholder="مثلاً: صفقات عقارية بعائد ١٠٪+" maxlength="60" />
+      </div>
+      <div class="field">
+        <label>القطاع</label>
+        <select id="alertCategory">
+          <option value="">كل القطاعات</option>
+          <option value="real_estate">عقارات</option>
+          <option value="logistics">لوجستيات</option>
+          <option value="agri">زراعة</option>
+          <option value="tech">تقنية</option>
+          <option value="energy">طاقة</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>الحدّ الأدنى للعائد السنوي (٪)</label>
+        <input type="number" id="alertMinYield" placeholder="مثلاً: 8" min="0" max="30" step="0.5" />
+        <span class="hint">اتركه فارغاً لعدم التصفية</span>
+      </div>
+      <div class="field">
+        <label>الحدّ الأقصى للمبلغ المطلوب (ر.س)</label>
+        <input type="number" id="alertMaxAmount" placeholder="مثلاً: 500000" min="0" step="10000" />
+        <span class="hint">اتركه فارغاً لعدم التصفية</span>
+      </div>
+      <div class="field">
+        <label>الحدّ الأدنى للمدة (أشهر)</label>
+        <input type="number" id="alertMinTenor" placeholder="مثلاً: 3" min="1" max="60" />
+      </div>
+      <div class="field">
+        <label>الحدّ الأقصى للمدة (أشهر)</label>
+        <input type="number" id="alertMaxTenor" placeholder="مثلاً: 18" min="1" max="60" />
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>قنوات الإشعار</label>
+      <div class="channels-row" id="channelBtns">
+        <button class="channel-btn selected" data-ch="app">📱 التطبيق</button>
+        <button class="channel-btn" data-ch="email">📧 البريد</button>
+        <button class="channel-btn" data-ch="sms">💬 SMS</button>
+      </div>
+    </div>
+    <button class="btn-create" id="createBtn">حفظ التنبيه</button>
+  </div>
+
+  <div id="alertsList">
+    <p class="empty-msg">جارٍ تحميل التنبيهات…</p>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  let alerts = [];
+  let selectedChannels = new Set(['app']);
+
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+
+  function showToast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg;
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  const CAT_LABELS = {real_estate:'عقارات',logistics:'لوجستيات',agri:'زراعة',tech:'تقنية',energy:'طاقة'};
+  const CH_LABELS = {app:'📱 التطبيق',email:'📧 البريد',sms:'💬 SMS'};
+
+  document.querySelectorAll('.channel-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const ch=btn.dataset.ch;
+      if(selectedChannels.has(ch)){ selectedChannels.delete(ch); btn.classList.remove('selected'); }
+      else { selectedChannels.add(ch); btn.classList.add('selected'); }
+    });
+  });
+
+  function render(){
+    const list=document.getElementById('alertsList');
+    list.textContent='';
+    if(!alerts.length){
+      const m=document.createElement('p'); m.className='empty-msg';
+      m.textContent='لا توجد تنبيهات بعد. أنشئ أوّل تنبيه من الأعلى.';
+      list.appendChild(m); return;
+    }
+    alerts.forEach(al=>{
+      const card=document.createElement('div');
+      card.className='alert-card'+(al.paused?' paused':'');
+
+      const info=document.createElement('div'); info.className='alert-info';
+      const nm=document.createElement('div'); nm.className='alert-name'; nm.textContent=al.name||'تنبيه';
+      const crit=document.createElement('div'); crit.className='alert-criteria';
+      const parts=[];
+      if(al.category) parts.push('القطاع: '+CAT_LABELS[al.category]);
+      if(al.minYield) parts.push('عائد ≥ '+al.minYield+'٪');
+      if(al.maxAmount) parts.push('مبلغ ≤ '+Number(al.maxAmount).toLocaleString('ar-SA'));
+      if(al.minTenor||al.maxTenor) parts.push('مدة: '+(al.minTenor||'—')+' – '+(al.maxTenor||'—')+' شهر');
+      crit.textContent=parts.length?parts.join(' · '):'جميع الصفقات الجديدة';
+      const channels=document.createElement('div'); channels.className='alert-channels';
+      (al.channels||[]).forEach(ch=>{
+        const tag=document.createElement('span'); tag.className='ch-tag'; tag.textContent=CH_LABELS[ch]||ch;
+        channels.appendChild(tag);
+      });
+      info.appendChild(nm); info.appendChild(crit); info.appendChild(channels);
+
+      const actions=document.createElement('div'); actions.className='alert-actions';
+      const toggleBtn=document.createElement('button'); toggleBtn.className='btn-toggle';
+      toggleBtn.textContent=al.paused?'▶ تفعيل':'⏸ إيقاف';
+      toggleBtn.addEventListener('click',()=>toggleAlert(al.id));
+      const delBtn=document.createElement('button'); delBtn.className='btn-delete';
+      delBtn.textContent='حذف';
+      delBtn.addEventListener('click',()=>deleteAlert(al.id));
+      actions.appendChild(toggleBtn); actions.appendChild(delBtn);
+
+      card.appendChild(info); card.appendChild(actions);
+      list.appendChild(card);
+    });
+  }
+
+  async function createAlert(){
+    const name=document.getElementById('alertName').value.trim();
+    if(!name){ showToast('يرجى إدخال اسم للتنبيه.'); return; }
+    if(!selectedChannels.size){ showToast('اختر قناة إشعار واحدة على الأقل.'); return; }
+    const body={
+      name,
+      category:document.getElementById('alertCategory').value||null,
+      minYield:parseFloat(document.getElementById('alertMinYield').value)||null,
+      maxAmount:parseFloat(document.getElementById('alertMaxAmount').value)||null,
+      minTenor:parseInt(document.getElementById('alertMinTenor').value)||null,
+      maxTenor:parseInt(document.getElementById('alertMaxTenor').value)||null,
+      channels:[...selectedChannels],
+    };
+    try{
+      const r=await fetch('/app/me/deal-alerts',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRF-Token':csrf()},
+        body:JSON.stringify(body)
+      });
+      if(!r.ok){ showToast(r.status===401?'يجب تسجيل الدخول.':'تعذّر إنشاء التنبيه.'); return; }
+      const d=await r.json();
+      alerts.unshift(d.alert||{...body,id:'new-'+Date.now(),paused:false});
+      document.getElementById('alertName').value='';
+      showToast('تم إنشاء التنبيه بنجاح! ✅');
+      render();
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  async function toggleAlert(id){
+    try{
+      const r=await fetch('/app/me/deal-alerts/'+encodeURIComponent(id)+'/toggle',{
+        method:'PUT', headers:{'X-CSRF-Token':csrf()}
+      });
+      if(!r.ok){ showToast('تعذّر التحديث.'); return; }
+      const al=alerts.find(a=>a.id===id);
+      if(al){ al.paused=!al.paused; render(); showToast(al.paused?'تم إيقاف التنبيه':'تم تفعيل التنبيه'); }
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  async function deleteAlert(id){
+    try{
+      const r=await fetch('/app/me/deal-alerts/'+encodeURIComponent(id),{
+        method:'DELETE', headers:{'X-CSRF-Token':csrf()}
+      });
+      if(!r.ok){ showToast('تعذّر الحذف.'); return; }
+      alerts=alerts.filter(a=>a.id!==id);
+      showToast('تم حذف التنبيه.'); render();
+    }catch{ showToast('خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('createBtn').addEventListener('click',createAlert);
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/deal-alerts');
+      if(!r.ok){
+        const list=document.getElementById('alertsList'); list.textContent='';
+        const m=document.createElement('p'); m.className='empty-msg';
+        m.textContent=r.status===401?'يجب تسجيل الدخول.':'تعذّر التحميل.'; list.appendChild(m); return;
+      }
+      const d=await r.json(); alerts=d.alerts||[]; render();
+    }catch{
+      const list=document.getElementById('alertsList'); list.textContent='';
+      const m=document.createElement('p'); m.className='empty-msg'; m.textContent='تعذّر التحميل. حاول لاحقاً.'; list.appendChild(m);
+    }
+  }());
+}());
+</script>
+</body>
+</html>

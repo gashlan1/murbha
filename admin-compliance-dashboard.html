@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة الامتثال - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.score-row{display:grid;grid-template-columns:1fr 3fr;gap:1.5rem;margin-bottom:2rem;}
+.score-card{background:linear-gradient(135deg,#062b1e,#0a4d36);border-radius:14px;padding:2rem;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;}
+.score-circle{width:100px;height:100px;border-radius:50%;border:5px solid rgba(255,255,255,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-num{font-size:2.2rem;font-weight:700;}
+.score-max{font-size:0.72rem;color:rgba(255,255,255,0.6);}
+.score-label{font-size:0.85rem;font-weight:700;}
+.score-sub{font-size:0.74rem;color:rgba(255,255,255,0.7);text-align:center;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem;}
+.kpi-label{font-size:0.74rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.3rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.7rem;color:var(--muted);margin-top:0.15rem;}
+.kpi-ok{color:#27ae60;}
+.kpi-warn{color:var(--gold);}
+.kpi-bad{color:#c0392b;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.check-item{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--line);}
+.check-item:last-child{border-bottom:none;}
+.check-icon{font-size:1rem;flex-shrink:0;}
+.check-info{flex:1;}
+.check-title{font-size:0.86rem;font-weight:600;}
+.check-meta{font-size:0.74rem;color:var(--muted);margin-top:0.1rem;}
+.check-badge{font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:8px;flex-shrink:0;}
+.badge-pass{background:#e6f4ef;color:var(--green);}
+.badge-warn{background:#fff8e8;color:var(--gold);}
+.badge-fail{background:#fde9e9;color:#c0392b;}
+.reg-item{padding:0.75rem 0;border-bottom:1px solid var(--line);font-size:0.85rem;}
+.reg-item:last-child{border-bottom:none;}
+.reg-name{font-weight:600;color:var(--green-dark);}
+.reg-due{font-size:0.74rem;color:var(--muted);margin-top:0.15rem;}
+.reg-status{font-size:0.72rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:8px;margin-top:0.3rem;display:inline-block;}
+@media(max-width:900px){.three-col{grid-template-columns:1fr 1fr;}.score-row{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — لوحة الامتثال</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>لوحة الامتثال التنظيمي</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="runAudit()">تشغيل تدقيق</button>
+      <button class="btn btn-primary" onclick="exportReport()">تصدير تقرير</button>
+    </div>
+  </div>
+
+  <div class="score-row" style="margin-bottom:2rem;">
+    <div class="score-card">
+      <div class="score-circle">
+        <span class="score-num">٩٢</span>
+        <span class="score-max">/ ١٠٠</span>
+      </div>
+      <div class="score-label">درجة الامتثال الكلية</div>
+      <div class="score-sub">ممتاز · آخر مراجعة: اليوم</div>
+    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </div>
+
+  <div class="three-col" id="checkLists"></div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head"><h3>متطلبات تنظيمية قادمة</h3></div>
+      <div class="card-body" id="regList"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3>ملف الرقابة الشرعية</h3>
+        <button class="btn btn-sm btn-secondary" onclick="viewSharia()">التقرير الكامل</button>
+      </div>
+      <div class="card-body" id="shariaPanel"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const kpis = [
+  {label:'KYC مكتمل',value:'٩٦٪',sub:'٣٠٠ من ٣١٢',cls:'kpi-ok'},
+  {label:'عقود موقّعة',value:'١٠٠٪',sub:'جميع الصفقات',cls:'kpi-ok'},
+  {label:'تقارير معلقة',value:'٢',sub:'مستحقة هذا الشهر',cls:'kpi-warn'},
+  {label:'مخالفات مفتوحة',value:'١',sub:'قيد المعالجة',cls:'kpi-bad'},
+];
+
+const checkSections = [
+  {
+    title:'KYC والتحقق',
+    items:[
+      {icon:'✅',title:'التحقق من الهوية الوطنية',meta:'٣٠٠ / ٣١٢ مكتمل',badge:'pass'},
+      {icon:'✅',title:'التحقق من عنوان السكن',meta:'٢٩٨ / ٣١٢ مكتمل',badge:'pass'},
+      {icon:'⚠️',title:'تحديث بيانات KYC دورية',meta:'١٢ مستثمر بحاجة لتحديث',badge:'warn'},
+      {icon:'✅',title:'اختبار الملاءمة المالية',meta:'٣١٢ / ٣١٢',badge:'pass'},
+    ]
+  },
+  {
+    title:'الامتثال المالي',
+    items:[
+      {icon:'✅',title:'ترخيص هيئة السوق المالية',meta:'ساري حتى ديسمبر ٢٠٢٦',badge:'pass'},
+      {icon:'✅',title:'الإفصاح المالي الربعي',meta:'Q1 2025 مقدَّم',badge:'pass'},
+      {icon:'⚠️',title:'تقرير مكافحة غسيل الأموال',meta:'مستحق ٣٠ يونيو ٢٠٢٥',badge:'warn'},
+      {icon:'❌',title:'تحديث سياسة الخصوصية',meta:'انتهت الصلاحية — بحاجة لمراجعة',badge:'fail'},
+    ]
+  },
+  {
+    title:'الرقابة الشرعية',
+    items:[
+      {icon:'✅',title:'موافقة هيئة الرقابة الشرعية',meta:'جميع الصفقات النشطة',badge:'pass'},
+      {icon:'✅',title:'مراجعة العقود الشرعية',meta:'تمت مراجعة ٤٢ عقداً',badge:'pass'},
+      {icon:'✅',title:'غياب الفائدة الربوية',meta:'٠ مخالفة',badge:'pass'},
+      {icon:'✅',title:'شرط الغرر والميسر',meta:'ملتزم بالمعايير',badge:'pass'},
+    ]
+  },
+];
+
+const regulations = [
+  {name:'تقرير مكافحة غسيل الأموال',due:'٣٠ يونيو ٢٠٢٥',status:'warn'},
+  {name:'تجديد تصريح الإفصاح',due:'٣١ يوليو ٢٠٢٥',status:'ok'},
+  {name:'التقرير الربعي Q2',due:'٣١ يوليو ٢٠٢٥',status:'ok'},
+  {name:'تحديث سياسة الخصوصية',due:'متأخر',status:'fail'},
+  {name:'مراجعة الحوكمة السنوية',due:'ديسمبر ٢٠٢٥',status:'ok'},
+];
+
+const shariaItems = [
+  {icon:'✅',title:'٤٢ صفقة معتمدة شرعياً',meta:'بواسطة هيئة الرقابة الشرعية'},
+  {icon:'✅',title:'عائد المرابحة موثّق',meta:'نسبة ربح صريحة في كل عقد'},
+  {icon:'✅',title:'لا يوجد اشتراط فائدة',meta:'تدقيق آخر: مايو ٢٠٢٥'},
+  {icon:'✅',title:'عقود مرابحة استاندارد AAOIFI',meta:'متوافق مع معيار ٢ و١٧'},
+];
+
+const badgeCls = {pass:'badge-pass',warn:'badge-warn',fail:'badge-fail'};
+const badgeLbl = {pass:'✓ مطابق',warn:'⚠ تحذير',fail:'✗ مخالفة'};
+const regStatusCls = {ok:'badge-pass',warn:'badge-warn',fail:'badge-fail'};
+
+function renderKpis(){
+  const grid = document.getElementById('kpiGrid');
+  grid.textContent = '';
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const lbl = document.createElement('div');
+    lbl.className = 'kpi-label';
+    lbl.textContent = k.label;
+    const val = document.createElement('div');
+    val.className = 'kpi-value ' + k.cls;
+    val.textContent = k.value;
+    const sub = document.createElement('div');
+    sub.className = 'kpi-sub';
+    sub.textContent = k.sub;
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(sub);
+    grid.appendChild(card);
+  });
+}
+
+function renderChecklists(){
+  const cont = document.getElementById('checkLists');
+  cont.textContent = '';
+  checkSections.forEach(sec => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const head = document.createElement('div');
+    head.className = 'card-head';
+    const h3 = document.createElement('h3');
+    h3.textContent = sec.title;
+    head.appendChild(h3);
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    sec.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'check-item';
+      const icon = document.createElement('span');
+      icon.className = 'check-icon';
+      icon.textContent = item.icon;
+      const info = document.createElement('div');
+      info.className = 'check-info';
+      const title = document.createElement('div');
+      title.className = 'check-title';
+      title.textContent = item.title;
+      const meta = document.createElement('div');
+      meta.className = 'check-meta';
+      meta.textContent = item.meta;
+      info.appendChild(title);
+      info.appendChild(meta);
+      const badge = document.createElement('span');
+      badge.className = 'check-badge ' + (badgeCls[item.badge] || '');
+      badge.textContent = badgeLbl[item.badge] || item.badge;
+      row.appendChild(icon);
+      row.appendChild(info);
+      row.appendChild(badge);
+      body.appendChild(row);
+    });
+    card.appendChild(head);
+    card.appendChild(body);
+    cont.appendChild(card);
+  });
+}
+
+function renderRegulations(){
+  const cont = document.getElementById('regList');
+  cont.textContent = '';
+  regulations.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'reg-item';
+    const name = document.createElement('div');
+    name.className = 'reg-name';
+    name.textContent = r.name;
+    const due = document.createElement('div');
+    due.className = 'reg-due';
+    due.textContent = 'الاستحقاق: ' + r.due;
+    const status = document.createElement('span');
+    status.className = 'reg-status ' + (regStatusCls[r.status] || '');
+    status.textContent = r.status === 'ok' ? 'في الموعد' : r.status === 'warn' ? 'قريب الاستحقاق' : 'متأخر';
+    item.appendChild(name);
+    item.appendChild(due);
+    item.appendChild(status);
+    cont.appendChild(item);
+  });
+}
+
+function renderSharia(){
+  const cont = document.getElementById('shariaPanel');
+  cont.textContent = '';
+  shariaItems.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'check-item';
+    const icon = document.createElement('span');
+    icon.className = 'check-icon';
+    icon.textContent = s.icon;
+    const info = document.createElement('div');
+    info.className = 'check-info';
+    const title = document.createElement('div');
+    title.className = 'check-title';
+    title.textContent = s.title;
+    const meta = document.createElement('div');
+    meta.className = 'check-meta';
+    meta.textContent = s.meta;
+    info.appendChild(title);
+    info.appendChild(meta);
+    row.appendChild(icon);
+    row.appendChild(info);
+    cont.appendChild(row);
+  });
+}
+
+async function runAudit(){
+  try {
+    await fetch('/app/admin/compliance/audit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function exportReport(){
+  try {
+    const res = await fetch('/app/admin/compliance/export');
+    await res.json();
+  } catch(e){}
+}
+
+async function viewSharia(){
+  try {
+    const res = await fetch('/app/admin/compliance/sharia-report');
+    await res.json();
+  } catch(e){}
+}
+
+renderKpis();
+renderChecklists();
+renderRegulations();
+renderSharia();
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حملات الكوبونات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-value.gold{color:var(--gold);}
+.kpi-sub{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.campaign-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.campaign-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;transition:box-shadow 0.2s;}
+.campaign-card:hover{box-shadow:0 4px 18px rgba(6,43,30,0.1);}
+.campaign-card.active-camp{border-color:var(--green);}
+.campaign-banner{padding:1.25rem 1.5rem;color:#fff;position:relative;overflow:hidden;}
+.campaign-banner::before{content:'🎟️';position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:4rem;opacity:0.1;}
+.campaign-name{font-size:1.05rem;font-weight:700;margin-bottom:0.25rem;}
+.campaign-type{font-size:0.78rem;opacity:0.8;}
+.campaign-body{padding:1.25rem 1.5rem;}
+.campaign-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;}
+.camp-stat{text-align:center;}
+.camp-stat-val{font-size:1rem;font-weight:700;color:var(--green-dark);}
+.camp-stat-label{font-size:0.7rem;color:var(--muted);}
+.usage-bar-track{background:#e8e3da;border-radius:4px;height:8px;overflow:hidden;margin-bottom:0.3rem;}
+.usage-bar-fill{height:100%;border-radius:4px;transition:width 0.4s;}
+.usage-meta{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);}
+.camp-footer{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--line);}
+.camp-dates{font-size:0.75rem;color:var(--muted);}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.74rem;font-weight:600;}
+.badge-active{background:#e6f4ef;color:#27ae60;}
+.badge-ended{background:#f0f0f0;color:var(--muted);}
+.badge-scheduled{background:#f0f4ff;color:#6c7cd4;}
+.full-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.full-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.full-head h3{font-size:1rem;font-weight:700;}
+.full-body{padding:1.25rem;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.75rem 1rem;border-bottom:1px solid var(--line);font-size:0.88rem;}
+tr:last-child td{border-bottom:none;}
+.code-cell{font-family:'Courier New',monospace;font-weight:700;color:var(--green);}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(6,43,30,0.5);z-index:100;justify-content:center;align-items:flex-start;padding-top:5rem;}
+.modal-backdrop.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:520px;max-width:92vw;box-shadow:0 8px 32px rgba(6,43,30,0.18);}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.5rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;}
+.modal-close:hover{color:#fff;}
+.modal-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--green);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.campaign-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — حملات الكوبونات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة حملات الكوبونات</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ حملة جديدة</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">حملات نشطة</div>
+      <div class="kpi-value">٣</div>
+      <div class="kpi-sub">من أصل ٨ حملات</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">إجمالي الاستخدامات</div>
+      <div class="kpi-value">٦٤٢</div>
+      <div class="kpi-sub">منذ بداية البرنامج</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">قيمة الخصومات الممنوحة</div>
+      <div class="kpi-value gold">٨٤,٦٠٠</div>
+      <div class="kpi-sub">ريال سعودي</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">متوسط قيمة الكوبون</div>
+      <div class="kpi-value">١٣١</div>
+      <div class="kpi-sub">ريال سعودي</div>
+    </div>
+  </div>
+
+  <div class="campaign-grid" id="campaignGrid"></div>
+
+  <div class="full-card">
+    <div class="full-head">
+      <h3>سجل استخدامات الكوبونات</h3>
+    </div>
+    <div class="full-body">
+      <table>
+        <thead>
+          <tr>
+            <th>الكوبون</th>
+            <th>المستخدم</th>
+            <th>تاريخ الاستخدام</th>
+            <th>قيمة الخصم</th>
+            <th>قيمة الاستثمار</th>
+            <th>الحملة</th>
+          </tr>
+        </thead>
+        <tbody id="usageTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="campModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إنشاء حملة كوبونات</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم الحملة</label>
+        <input type="text" id="campName" placeholder="مثال: عرض رمضان ٢٠٢٦">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>نوع الخصم</label>
+          <select id="campDiscType">
+            <option value="percent">نسبة مئوية ٪</option>
+            <option value="fixed">مبلغ ثابت ر.س</option>
+            <option value="fee_waiver">إعفاء من الرسوم</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>قيمة الخصم</label>
+          <input type="number" id="campDiscValue" placeholder="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>الحد الأقصى للاستخدامات</label>
+          <input type="number" id="campMaxUse" placeholder="0 = غير محدود">
+        </div>
+        <div class="form-group">
+          <label>الحد الأدنى للاستثمار</label>
+          <input type="number" id="campMinInvest" placeholder="ر.س">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>تاريخ البداية</label>
+          <input type="date" id="campStart">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الانتهاء</label>
+          <input type="date" id="campEnd">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الجمهور المستهدف</label>
+        <select id="campAudience">
+          <option value="all">جميع المستثمرين</option>
+          <option value="new">المستثمرون الجدد</option>
+          <option value="qualified">المستثمر المؤهل</option>
+          <option value="vip">VIP فقط</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCampaign()">إنشاء الحملة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const campaigns = [
+  {id:1,name:'عرض الاستثمار الأول',type:'percent',disc:'٢٠٪',color:'#0a4d36',status:'active',used:148,max:500,start:'٢٠٢٦/٥/٠١',end:'٢٠٢٦/٧/٣١',codes:['FIRST20','NEWUSER']},
+  {id:2,name:'حملة رمضان ٢٠٢٦',type:'fixed',disc:'٢٠٠ ر.س',color:'#b08840',status:'ended',used:230,max:250,start:'٢٠٢٦/٣/١٠',end:'٢٠٢٦/٤/١٠',codes:['RAMADAN26']},
+  {id:3,name:'خصم VIP القائمة الذهبية',type:'fee_waiver',disc:'إعفاء كامل',color:'#6b7268',status:'active',used:24,max:50,start:'٢٠٢٦/٦/٠١',end:'٢٠٢٦/٨/٣١',codes:['VIP2026']},
+  {id:4,name:'إطلاق الصفقة الجديدة',type:'percent',disc:'١٥٪',color:'#2d6b50',status:'scheduled',used:0,max:200,start:'٢٠٢٦/٧/٠١',end:'٢٠٢٦/٧/١٥',codes:['LAUNCH15']},
+];
+
+const usages = [
+  {code:'FIRST20',user:'أحمد الغامدي',date:'٢٠٢٦/٦/١٤',disc:'٣٢٠ ر.س',invest:'١٦,٠٠٠ ر.س',camp:'عرض الاستثمار الأول'},
+  {code:'FIRST20',user:'سارة العتيبي',date:'٢٠٢٦/٦/١٣',disc:'٢٠٠ ر.س',invest:'١٠,٠٠٠ ر.س',camp:'عرض الاستثمار الأول'},
+  {code:'VIP2026',user:'خالد الشهري',date:'٢٠٢٦/٦/١٢',disc:'٨٥٠ ر.س',invest:'٢٨,٠٠٠ ر.س',camp:'خصم VIP القائمة الذهبية'},
+  {code:'RAMADAN26',user:'فاطمة الدوسري',date:'٢٠٢٦/٤/٠٨',disc:'٢٠٠ ر.س',invest:'١٢,٠٠٠ ر.س',camp:'حملة رمضان ٢٠٢٦'},
+];
+
+const statusMap = {active:['نشط','badge-active'],ended:['منتهي','badge-ended'],scheduled:['مجدول','badge-scheduled']};
+
+function renderCampaigns(){
+  const grid = document.getElementById('campaignGrid');
+  grid.textContent = '';
+  campaigns.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'campaign-card' + (c.status==='active'?' active-camp':'');
+
+    const banner = document.createElement('div');
+    banner.className = 'campaign-banner';
+    banner.style.background = 'linear-gradient(135deg,' + c.color + ',' + c.color + 'cc)';
+    const name = document.createElement('div');
+    name.className = 'campaign-name';
+    name.textContent = c.name;
+    const typeEl = document.createElement('div');
+    typeEl.className = 'campaign-type';
+    typeEl.textContent = 'خصم ' + c.disc + ' · ' + c.codes.join(' / ');
+    banner.appendChild(name);
+    banner.appendChild(typeEl);
+
+    const body = document.createElement('div');
+    body.className = 'campaign-body';
+    const stats = document.createElement('div');
+    stats.className = 'campaign-stats';
+    [{v:c.used,l:'استخدامات'},{v:c.max||'∞',l:'الحد الأقصى'},{v:c.max?Math.round((c.used/c.max)*100)+'٪':'—',l:'نسبة الاستخدام'}].forEach(s=>{
+      const st = document.createElement('div');
+      st.className = 'camp-stat';
+      const val = document.createElement('div');
+      val.className = 'camp-stat-val';
+      val.textContent = s.v;
+      const lbl = document.createElement('div');
+      lbl.className = 'camp-stat-label';
+      lbl.textContent = s.l;
+      st.appendChild(val);
+      st.appendChild(lbl);
+      stats.appendChild(st);
+    });
+
+    if(c.max){
+      const track = document.createElement('div');
+      track.className = 'usage-bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'usage-bar-fill';
+      fill.style.cssText = 'width:' + Math.round((c.used/c.max)*100) + '%;background:' + c.color;
+      track.appendChild(fill);
+      const meta = document.createElement('div');
+      meta.className = 'usage-meta';
+      const l = document.createElement('span');
+      l.textContent = c.used + ' مستخدم';
+      const r = document.createElement('span');
+      r.textContent = 'من ' + c.max;
+      meta.appendChild(l);
+      meta.appendChild(r);
+      body.appendChild(stats);
+      body.appendChild(track);
+      body.appendChild(meta);
+    } else {
+      body.appendChild(stats);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'camp-footer';
+    const dates = document.createElement('div');
+    dates.className = 'camp-dates';
+    dates.textContent = c.start + ' — ' + c.end;
+    const [stText, stCls] = statusMap[c.status] || ['—','badge-ended'];
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + stCls;
+    badge.textContent = stText;
+    const acts = document.createElement('div');
+    acts.style.display = 'flex';
+    acts.style.gap = '0.4rem';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    acts.appendChild(badge);
+    acts.appendChild(editBtn);
+    footer.appendChild(dates);
+    footer.appendChild(acts);
+    body.appendChild(footer);
+
+    card.appendChild(banner);
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
+
+function renderUsage(){
+  const tb = document.getElementById('usageTable');
+  tb.textContent = '';
+  usages.forEach(u => {
+    const tr = document.createElement('tr');
+    const codeTd = document.createElement('td');
+    codeTd.className = 'code-cell';
+    codeTd.textContent = u.code;
+    tr.appendChild(codeTd);
+    [u.user, u.date, u.disc, u.invest, u.camp].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+function openModal(){ document.getElementById('campModal').classList.add('open'); }
+function closeModal(){ document.getElementById('campModal').classList.remove('open'); }
+
+async function saveCampaign(){
+  const name = document.getElementById('campName').value.trim();
+  if(!name){ alert('يرجى إدخال اسم الحملة'); return; }
+  try {
+    await fetch('/app/admin/coupon-campaigns', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({
+        name,
+        discountType: document.getElementById('campDiscType').value,
+        discountValue: parseFloat(document.getElementById('campDiscValue').value)||0,
+        maxUses: parseInt(document.getElementById('campMaxUse').value)||0,
+        minInvestment: parseFloat(document.getElementById('campMinInvest').value)||0,
+        startDate: document.getElementById('campStart').value,
+        endDate: document.getElementById('campEnd').value,
+        audience: document.getElementById('campAudience').value
+      })
+    });
+    closeModal();
+  } catch(e){}
+}
+
+renderCampaigns();
+renderUsage();
+</script>
+</body>
+</html>

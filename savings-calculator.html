@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Savings Calculator — Murbha">حاسبة المدخرات — مُرابحة</title>
+<meta name="description" content="احسب العوائد المتوقعة من استثمارك مع مُرابحة بناءً على المبلغ والمدة والعائد." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:720px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:18px;}
+  /* Slider inputs */
+  .slider-group{margin-bottom:20px;}
+  .slider-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .slider-lbl{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .slider-val{font:900 16px Cairo,sans-serif;color:var(--green-dark);}
+  .slider-unit{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-right:3px;}
+  input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--green) var(--pct,50%),#f0ece0 var(--pct,50%));outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--green-dark);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);}
+  .slider-range{display:flex;justify-content:space-between;font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  /* Result display */
+  .result-hero{background:linear-gradient(135deg,#062b1e,#0a4d36);border-radius:16px;padding:28px;color:#fbf6ea;text-align:center;margin-bottom:18px;}
+  .result-lbl{font:500 12px Tajawal,sans-serif;opacity:.85;margin-bottom:6px;}
+  .result-val{font:900 44px Cairo,sans-serif;color:var(--gold-light);}
+  .result-sub{font:500 11px Tajawal,sans-serif;opacity:.8;margin-top:4px;}
+  .result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px;}
+  .result-box{background:rgba(255,255,255,0.12);border-radius:10px;padding:14px;}
+  .rb-val{font:900 18px Cairo,sans-serif;}
+  .rb-lbl{font:500 9px Tajawal,sans-serif;opacity:.8;margin-top:3px;}
+  /* Projection table */
+  .proj-table{width:100%;border-collapse:collapse;}
+  .proj-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .proj-table td{font:500 11px Tajawal,sans-serif;padding:8px 10px;border-bottom:1px solid var(--line);}
+  .proj-table tr:last-child td{border-bottom:none;font-weight:700;background:#f0faf4;}
+  .profit-cell{color:#2e7d32;font:900 11px Cairo,sans-serif;}
+  .btn-invest{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:12px;padding:14px 28px;font:900 14px Cairo,sans-serif;cursor:pointer;width:100%;margin-top:4px;}
+  .btn-invest:hover{background:var(--green);}
+  .disclaimer{font:500 10px Tajawal,sans-serif;color:var(--muted);text-align:center;margin-top:12px;line-height:1.7;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Savings Calculator">حاسبة المدخرات</h1>
+    <p data-en="Calculate your expected returns based on amount, duration, and yield rate.">احسب عوائدك المتوقعة بناءً على المبلغ والمدة ونسبة العائد.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Investment Parameters">معاملات الاستثمار</div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-lbl" data-en="Principal Amount">المبلغ الأساسي</span>
+        <span><span class="slider-val" id="amtVal">10,000</span><span class="slider-unit">ر.س</span></span>
+      </div>
+      <input type="range" id="amtSlider" min="1000" max="500000" step="1000" value="10000" />
+      <div class="slider-range"><span>1,000</span><span>500,000</span></div>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-lbl" data-en="Duration">مدة الاستثمار</span>
+        <span><span class="slider-val" id="durVal">12</span><span class="slider-unit">شهر</span></span>
+      </div>
+      <input type="range" id="durSlider" min="3" max="60" step="3" value="12" />
+      <div class="slider-range"><span>3 أشهر</span><span>60 شهراً</span></div>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-lbl" data-en="Expected Annual Yield">العائد السنوي المتوقع</span>
+        <span><span class="slider-val" id="yldVal">12.0</span><span class="slider-unit">٪</span></span>
+      </div>
+      <input type="range" id="yldSlider" min="5" max="25" step="0.5" value="12" />
+      <div class="slider-range"><span>5٪</span><span>25٪</span></div>
+    </div>
+  </div>
+
+  <div class="result-hero">
+    <div class="result-lbl" data-en="Expected Total Value at Maturity">القيمة الإجمالية المتوقعة عند الاستحقاق</div>
+    <div class="result-val" id="totalVal">—</div>
+    <div class="result-sub">ريال سعودي</div>
+    <div class="result-grid">
+      <div class="result-box"><div class="rb-val" id="principalBox">—</div><div class="rb-lbl">رأس المال</div></div>
+      <div class="result-box"><div class="rb-val" id="profitBox">—</div><div class="rb-lbl">صافي الربح</div></div>
+      <div class="result-box"><div class="rb-val" id="roiBox">—</div><div class="rb-lbl">العائد الكلي</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Annual Projection">التوقعات السنوية</div>
+    <table class="proj-table">
+      <thead><tr>
+        <th data-en="Period">الفترة</th>
+        <th data-en="Principal">رأس المال</th>
+        <th data-en="Profit">الربح</th>
+        <th data-en="Total">الإجمالي</th>
+      </tr></thead>
+      <tbody id="projBody"></tbody>
+    </table>
+  </div>
+
+  <button class="btn-invest" onclick="window.location.href='/deals.html'" data-en="Explore Deals">استعرض الصفقات واستثمر الآن</button>
+  <div class="disclaimer">هذه الحاسبة للأغراض التوضيحية فقط. العوائد الفعلية تعتمد على أداء الصفقة وقد تختلف. الاستثمار مبني على مبادئ الشريعة الإسلامية وليس فائدة ربوية.</div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Math.round(n).toLocaleString('ar-SA'); }
+  function setSliderPct(el){ const min=Number(el.min),max=Number(el.max),val=Number(el.value); const pct=((val-min)/(max-min))*100; el.style.setProperty('--pct',pct+'%'); }
+
+  function calc(){
+    const principal=Number(document.getElementById('amtSlider').value);
+    const months=Number(document.getElementById('durSlider').value);
+    const annualRate=Number(document.getElementById('yldSlider').value)/100;
+    const monthlyRate=annualRate/12;
+    const total=principal*Math.pow(1+monthlyRate,months);
+    const profit=total-principal;
+    const roi=(profit/principal)*100;
+    document.getElementById('totalVal').textContent=fmt(total);
+    document.getElementById('principalBox').textContent=fmt(principal)+' ر.س';
+    document.getElementById('profitBox').textContent='+'+fmt(profit)+' ر.س';
+    document.getElementById('roiBox').textContent='+'+roi.toFixed(1)+'٪';
+    // Projection table (by year or by quarter if < 12m)
+    const body=document.getElementById('projBody'); body.textContent='';
+    const step=months<=12?3:12;
+    let periods=[];
+    for(let m=step;m<=months;m+=step) periods.push(m);
+    if(!periods.length||periods[periods.length-1]<months) periods.push(months);
+    periods.forEach(m=>{
+      const t=principal*Math.pow(1+monthlyRate,m);
+      const p=t-principal;
+      const tr=document.createElement('tr');
+      const label=m<12?m+' أشهر':m===12?'سنة':m===24?'سنتان':(m/12).toFixed(0)+' سنوات';
+      [label,fmt(principal)+' ر.س',fmt(p)+' ر.س',fmt(t)+' ر.س'].forEach((txt,i)=>{
+        const td=document.createElement('td');
+        if(i===2){ td.className='profit-cell'; td.textContent='+'+txt; }
+        else td.textContent=txt;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  ['amtSlider','durSlider','yldSlider'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.addEventListener('input',()=>{
+      setSliderPct(el);
+      if(id==='amtSlider') document.getElementById('amtVal').textContent=Number(el.value).toLocaleString('ar-SA');
+      if(id==='durSlider') document.getElementById('durVal').textContent=el.value;
+      if(id==='yldSlider') document.getElementById('yldVal').textContent=Number(el.value).toFixed(1);
+      calc();
+    });
+    setSliderPct(el);
+  });
+
+  calc();
+}());
+</script>
+</body>
+</html>

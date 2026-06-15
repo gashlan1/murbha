@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أداء الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-value.gold{color:var(--gold);}
+.kpi-value.green{color:var(--green);}
+.kpi-sub{font-size:0.8rem;color:var(--muted);margin-top:0.2rem;}
+.section-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.section-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.section-head h3{font-size:1rem;font-weight:700;}
+.section-body{padding:1.25rem;}
+.chart-wrap{height:200px;display:flex;align-items:flex-end;gap:6px;padding:0 0.5rem;}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;}
+.bar-stack{display:flex;flex-direction:column;align-items:center;width:100%;border-radius:4px 4px 0 0;overflow:hidden;}
+.bar-profit{background:var(--green);transition:height 0.3s;}
+.bar-principal{background:var(--gold);transition:height 0.3s;}
+.bar-label{font-size:0.65rem;color:var(--muted);margin-top:0.3rem;text-align:center;}
+.chart-legend{display:flex;gap:1.5rem;justify-content:center;margin-top:1rem;}
+.legend-item{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.perf-table{width:100%;border-collapse:collapse;}
+.perf-table th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+.perf-table td{padding:0.75rem 1rem;border-bottom:1px solid var(--line);font-size:0.88rem;vertical-align:middle;}
+.perf-table tr:last-child td{border-bottom:none;}
+.perf-table tr:hover td{background:#faf7f2;}
+.deal-name-cell{font-weight:600;color:var(--green-dark);}
+.deal-sector-cell{font-size:0.78rem;color:var(--muted);}
+.return-cell{font-weight:700;}
+.return-positive{color:#27ae60;}
+.return-neutral{color:var(--green);}
+.return-low{color:var(--gold);}
+.badge{display:inline-block;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.75rem;font-weight:600;}
+.badge-active{background:#e6f4ef;color:var(--green);}
+.badge-closed{background:#f0f0f0;color:var(--muted);}
+.badge-delayed{background:#fde9e9;color:#c0392b;}
+.badge-early{background:#f8f0e0;color:var(--gold);}
+.sparkline-cell{width:80px;}
+.spark{display:flex;align-items:flex-end;gap:2px;height:28px;}
+.spark-bar{width:6px;background:var(--green);border-radius:2px 2px 0 0;min-height:3px;}
+.period-tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;}
+.period-tab{padding:0.4rem 1rem;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.15s;}
+.period-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.sector-bars{display:flex;flex-direction:column;gap:0.75rem;}
+.sector-row{display:flex;align-items:center;gap:1rem;}
+.sector-label{width:80px;font-size:0.82rem;color:var(--muted);flex-shrink:0;}
+.sector-bar-track{flex:1;background:#e8e3da;border-radius:4px;height:10px;overflow:hidden;}
+.sector-bar-fill{height:100%;border-radius:4px;transition:width 0.4s;}
+.sector-val{width:60px;text-align:left;font-size:0.82rem;font-weight:600;color:var(--green);}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — أداء الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>تحليل أداء الصفقات</h2>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-secondary" onclick="exportReport()">تصدير التقرير</button>
+      <button class="btn btn-primary" onclick="loadData('all')">تحديث</button>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">متوسط العائد الفعلي</div>
+      <div class="kpi-value gold">١٢.٣٪</div>
+      <div class="kpi-sub">مقارنة بـ ١٠.٨٪ مستهدف</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">صفقات نشطة</div>
+      <div class="kpi-value green">١٨</div>
+      <div class="kpi-sub">إجمالي ٤٧.٢م ر.س</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">صفقات منتهية بنجاح</div>
+      <div class="kpi-value">٣٤</div>
+      <div class="kpi-sub">منذ إطلاق المنصة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">معدل التسليم في الموعد</div>
+      <div class="kpi-value">٩١٪</div>
+      <div class="kpi-sub">الأداء التاريخي</div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>إجمالي العوائد الشهرية</h3>
+      <div class="period-tabs">
+        <button class="period-tab active" onclick="setPeriod(this,'6m')">٦ أشهر</button>
+        <button class="period-tab" onclick="setPeriod(this,'1y')">سنة</button>
+        <button class="period-tab" onclick="setPeriod(this,'3y')">٣ سنوات</button>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="chart-wrap" id="mainChart"></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>أرباح</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>أصل</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+    <div class="section-card">
+      <div class="section-head"><h3>الأداء حسب القطاع</h3></div>
+      <div class="section-body">
+        <div class="sector-bars" id="sectorBars"></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-head"><h3>توزيع حالات الصفقات</h3></div>
+      <div class="section-body" id="statusDist"></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>تفاصيل أداء الصفقات</h3>
+    </div>
+    <div class="section-body">
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>الصفقة</th>
+            <th>القطاع</th>
+            <th>الحجم (ر.س)</th>
+            <th>العائد المستهدف</th>
+            <th>العائد الفعلي</th>
+            <th>الأداء الشهري</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="dealTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const months6 = ['يناير','فبراير','مارس','أبريل','مايو','يونيو'];
+const chartData = {
+  '6m': [{p:420,r:85},{p:380,r:92},{p:510,r:78},{p:480,r:105},{p:540,r:118},{p:495,r:130}],
+  '1y': [{p:310,r:60},{p:340,r:65},{p:370,r:70},{p:390,r:72},{p:400,r:78},{p:420,r:85},{p:380,r:92},{p:510,r:78},{p:480,r:105},{p:540,r:118},{p:495,r:130},{p:520,r:140}],
+  '3y': Array.from({length:36},(_,i)=>({p:200+i*9+Math.round(Math.sin(i)*20),r:40+i*2}))
+};
+
+function renderChart(key){
+  const data = chartData[key];
+  const cont = document.getElementById('mainChart');
+  cont.textContent = '';
+  const maxVal = Math.max(...data.map(d=>d.p+d.r));
+  data.forEach((d,i) => {
+    const group = document.createElement('div');
+    group.className = 'bar-group';
+    const stack = document.createElement('div');
+    stack.className = 'bar-stack';
+    stack.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:stretch;height:160px;justify-content:flex-end;';
+    const profit = document.createElement('div');
+    profit.className = 'bar-profit';
+    profit.style.height = Math.round((d.r/maxVal)*140) + 'px';
+    const principal = document.createElement('div');
+    principal.className = 'bar-principal';
+    principal.style.height = Math.round((d.p/maxVal)*140) + 'px';
+    stack.appendChild(profit);
+    stack.appendChild(principal);
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = key === '6m' ? months6[i] : (i+1);
+    group.appendChild(stack);
+    group.appendChild(lbl);
+    cont.appendChild(group);
+  });
+}
+
+function setPeriod(btn, key){
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChart(key);
+}
+
+const sectors = [
+  {name:'عقارات',ret:13.2,color:'#0a4d36'},
+  {name:'تقنية',ret:17.8,color:'#1a7a56'},
+  {name:'صحة',ret:10.5,color:'#b08840'},
+  {name:'طاقة',ret:9.1,color:'#6b7268'},
+  {name:'تجزئة',ret:11.3,color:'#2d6b50'},
+];
+
+function renderSectors(){
+  const cont = document.getElementById('sectorBars');
+  cont.textContent = '';
+  const max = Math.max(...sectors.map(s=>s.ret));
+  sectors.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sector-row';
+    const label = document.createElement('div');
+    label.className = 'sector-label';
+    label.textContent = s.name;
+    const track = document.createElement('div');
+    track.className = 'sector-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'sector-bar-fill';
+    fill.style.width = Math.round((s.ret/max)*100) + '%';
+    fill.style.background = s.color;
+    track.appendChild(fill);
+    const val = document.createElement('div');
+    val.className = 'sector-val';
+    val.textContent = s.ret + '٪';
+    row.appendChild(label);
+    row.appendChild(track);
+    row.appendChild(val);
+    cont.appendChild(row);
+  });
+}
+
+const statusData = [
+  {label:'نشط',count:18,color:'var(--green)'},
+  {label:'منتهي بنجاح',count:34,color:'#27ae60'},
+  {label:'متأخر',count:2,color:'var(--gold)'},
+  {label:'توقف مبكر',count:1,color:'#c0392b'},
+];
+
+function renderStatusDist(){
+  const cont = document.getElementById('statusDist');
+  cont.textContent = '';
+  const total = statusData.reduce((s,d)=>s+d.count,0);
+  statusData.forEach(d => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:1rem;margin-bottom:1rem;';
+    const label = document.createElement('div');
+    label.style.cssText = 'width:100px;font-size:0.82rem;color:var(--muted);flex-shrink:0;';
+    label.textContent = d.label;
+    const track = document.createElement('div');
+    track.style.cssText = 'flex:1;background:#e8e3da;border-radius:4px;height:12px;overflow:hidden;';
+    const fill = document.createElement('div');
+    fill.style.cssText = 'height:100%;border-radius:4px;transition:width 0.4s;background:' + d.color + ';width:' + Math.round((d.count/total)*100) + '%';
+    track.appendChild(fill);
+    const val = document.createElement('div');
+    val.style.cssText = 'width:30px;font-size:0.82rem;font-weight:700;color:var(--green-dark);text-align:left;';
+    val.textContent = d.count;
+    row.appendChild(label);
+    row.appendChild(track);
+    row.appendChild(val);
+    cont.appendChild(row);
+  });
+}
+
+const deals = [
+  {name:'مجمع الروضة السكني',sector:'عقارات',size:'٨,٥٠٠,٠٠٠',target:11.0,actual:13.2,spark:[60,70,65,80,78,92],status:'active'},
+  {name:'منصة FinTech B2B',sector:'تقنية',size:'٢,٢٠٠,٠٠٠',target:15.0,actual:18.4,spark:[50,60,72,80,85,90],status:'active'},
+  {name:'عيادات الصحة الشاملة',sector:'صحة',size:'٥,٠٠٠,٠٠٠',target:10.0,actual:10.5,spark:[42,45,48,50,52,55],status:'active'},
+  {name:'محطة طاقة شمسية الجوف',sector:'طاقة',size:'١٢,٠٠٠,٠٠٠',target:9.5,actual:9.1,spark:[40,42,41,43,44,42],status:'delayed'},
+  {name:'سلسلة مقاهي النخبة',sector:'تجزئة',size:'١,٨٠٠,٠٠٠',target:12.0,actual:11.3,spark:[55,58,60,62,60,63],status:'active'},
+  {name:'برج النور التجاري',sector:'عقارات',size:'١٥,٠٠٠,٠٠٠',target:10.5,actual:10.5,spark:[50,52,51,53,52,53],status:'closed'},
+];
+
+function renderDeals(){
+  const tb = document.getElementById('dealTable');
+  tb.textContent = '';
+  deals.forEach(d => {
+    const tr = document.createElement('tr');
+
+    const nameTd = document.createElement('td');
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'deal-name-cell';
+    nameDiv.textContent = d.name;
+    const sectorDiv = document.createElement('div');
+    sectorDiv.className = 'deal-sector-cell';
+    sectorDiv.textContent = d.sector;
+    nameTd.appendChild(nameDiv);
+    nameTd.appendChild(sectorDiv);
+    tr.appendChild(nameTd);
+
+    const secTd = document.createElement('td');
+    secTd.textContent = d.sector;
+    secTd.style.cssText = 'display:none';
+    tr.appendChild(secTd);
+
+    const sizeTd = document.createElement('td');
+    sizeTd.textContent = d.size;
+    tr.appendChild(sizeTd);
+
+    const targetTd = document.createElement('td');
+    targetTd.textContent = d.target + '٪';
+    tr.appendChild(targetTd);
+
+    const actualTd = document.createElement('td');
+    actualTd.className = 'return-cell ' + (d.actual >= d.target + 1 ? 'return-positive' : d.actual >= d.target ? 'return-neutral' : 'return-low');
+    actualTd.textContent = d.actual + '٪';
+    tr.appendChild(actualTd);
+
+    const sparkTd = document.createElement('td');
+    sparkTd.className = 'sparkline-cell';
+    const spark = document.createElement('div');
+    spark.className = 'spark';
+    const maxS = Math.max(...d.spark);
+    d.spark.forEach(v => {
+      const bar = document.createElement('div');
+      bar.className = 'spark-bar';
+      bar.style.height = Math.round((v/maxS)*100) + '%';
+      spark.appendChild(bar);
+    });
+    sparkTd.appendChild(spark);
+    tr.appendChild(sparkTd);
+
+    const statusTd = document.createElement('td');
+    const badge = document.createElement('span');
+    const statusMap = {active:['نشط','badge-active'],closed:['منتهي','badge-closed'],delayed:['متأخر','badge-delayed'],early:['توقف مبكر','badge-early']};
+    const [st, sc] = statusMap[d.status] || ['نشط','badge-active'];
+    badge.className = 'badge ' + sc;
+    badge.textContent = st;
+    statusTd.appendChild(badge);
+    tr.appendChild(statusTd);
+
+    const actTd = document.createElement('td');
+    const detBtn = document.createElement('button');
+    detBtn.className = 'btn btn-sm btn-secondary';
+    detBtn.textContent = 'تفاصيل';
+    actTd.appendChild(detBtn);
+    tr.appendChild(actTd);
+
+    tb.appendChild(tr);
+  });
+}
+
+function exportReport(){
+  fetch('/app/admin/deals/performance/export', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+    body: JSON.stringify({format:'xlsx',period:'6m'})
+  });
+}
+
+function loadData(period){
+  fetch('/app/admin/deals/performance?period=' + period)
+    .then(r=>r.json()).catch(()=>{});
+}
+
+renderChart('6m');
+renderSectors();
+renderStatusDist();
+renderDeals();
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محاكي الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.sim-form{padding:1.25rem;}
+.form-group{margin-bottom:0.9rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.3rem;color:var(--muted);}
+.form-group input,.form-group select{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;}
+.range-wrap{display:flex;align-items:center;gap:0.75rem;}
+.range-wrap input[type=range]{flex:1;}
+.range-val{font-weight:700;color:var(--green);font-size:0.86rem;min-width:50px;text-align:left;}
+.result-panel{padding:1.25rem;}
+.result-highlight{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border-radius:12px;padding:1.25rem;text-align:center;margin-bottom:1rem;}
+.rh-val{font-size:2rem;font-weight:700;color:#b8e6cf;}
+.rh-lbl{font-size:0.8rem;color:rgba(255,255,255,0.75);margin-top:0.2rem;}
+.result-rows{}
+.result-row{display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.result-row:last-child{border-bottom:none;}
+.rr-lbl{color:var(--muted);}
+.rr-val{font-weight:700;}
+.scenario-tabs{display:flex;gap:0.5rem;padding:1rem 1.25rem;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.stab{padding:0.3rem 0.8rem;border-radius:20px;border:1px solid var(--line);background:#fff;font-family:'Cairo',sans-serif;font-size:0.78rem;cursor:pointer;}
+.stab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.comparison-table{padding:1.25rem;overflow-x:auto;}
+.ct-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--line);font-size:0.8rem;}
+.ct-row:last-child{border-bottom:none;}
+.ct-header{font-weight:700;font-size:0.72rem;color:var(--muted);}
+@media(max-width:800px){.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — محاكي الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>محاكي صفقات المرابحة</h2>
+      <p>احسب عوائدك المتوقعة قبل الاستثمار في أي صفقة</p>
+    </div>
+    <button class="btn btn-gold" onclick="saveSim()">حفظ المحاكاة</button>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>معطيات الصفقة</h3></div>
+      <div class="sim-form" id="simForm"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>نتائج المحاكاة</h3></div>
+      <div class="result-panel" id="resultPanel"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>مقارنة السيناريوهات</h3></div>
+    <div class="scenario-tabs" id="scenarioTabs"></div>
+    <div class="comparison-table" id="comparisonTable"></div>
+  </div>
+</div>
+
+<script>
+const FORM_FIELDS = [
+  { label: 'مبلغ الاستثمار (ر.س)', type: 'input', value: '50000' },
+  { label: 'مدة الصفقة', type: 'select', opts: ['٣ أشهر', '٦ أشهر', '٩ أشهر', '١٢ شهراً', '١٨ شهراً', '٢٤ شهراً'] },
+  { label: 'نوع الصفقة', type: 'select', opts: ['تجارية', 'لوجستية', 'تقنية', 'عقارية'] },
+  { label: 'هامش الربح (%)', type: 'range', value: 8, min: 4, max: 15 },
+  { label: 'حصة المستثمر (%)', type: 'range', value: 80, min: 50, max: 95 }
+];
+
+const RESULTS = [
+  { lbl: 'إجمالي الربح قبل حصتك', val: '٤,٠٠٠ ر.س' },
+  { lbl: 'حصتك من الربح', val: '٣,٢٠٠ ر.س' },
+  { lbl: 'عائد صافٍ بعد الرسوم', val: '٢,٩٦٠ ر.س' },
+  { lbl: 'رسوم الإدارة (٣٪)', val: '٢٤٠ ر.س' },
+  { lbl: 'الإجمالي عند الاستحقاق', val: '٥٢,٩٦٠ ر.س' }
+];
+
+const SCENARIOS = ['متحفظ ٦٪', 'متوسط ٨٪', 'متفائل ١٢٪'];
+
+const COMPARISON = [
+  { label: 'العائد السنوي', s1: '٦٪', s2: '٨٪', s3: '١٢٪' },
+  { label: 'ربح ٥٠,٠٠٠ ر.س / سنة', s1: '٣,٠٠٠ ر.س', s2: '٤,٠٠٠ ر.س', s3: '٦,٠٠٠ ر.س' },
+  { label: 'بعد ٣ سنوات', s1: '٥٩,٢٦٠ ر.س', s2: '٦٢,٩٦٤ ر.س', s3: '٧٠,٢٤٨ ر.س' },
+  { label: 'مستوى المخاطرة', s1: 'منخفض', s2: 'متوسط', s3: 'متوسط-عالٍ' }
+];
+
+let activeScenario = 0;
+
+function buildForm() {
+  const wrap = document.getElementById('simForm');
+  FORM_FIELDS.forEach(f => {
+    const group = document.createElement('div'); group.className = 'form-group';
+    const label = document.createElement('label'); label.textContent = f.label;
+    group.appendChild(label);
+    if (f.type === 'range') {
+      const rw = document.createElement('div'); rw.className = 'range-wrap';
+      const input = document.createElement('input'); input.type = 'range'; input.min = f.min; input.max = f.max; input.value = f.value;
+      const valSpan = document.createElement('span'); valSpan.className = 'range-val'; valSpan.textContent = f.value + '%';
+      input.oninput = () => { valSpan.textContent = input.value + '%'; };
+      rw.appendChild(input); rw.appendChild(valSpan);
+      group.appendChild(rw);
+    } else if (f.type === 'select') {
+      const sel = document.createElement('select');
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; sel.appendChild(opt); });
+      group.appendChild(sel);
+    } else {
+      const input = document.createElement('input'); input.type = 'text'; input.value = f.value || '';
+      group.appendChild(input);
+    }
+    wrap.appendChild(group);
+  });
+  const btn = document.createElement('button'); btn.className = 'btn btn-primary'; btn.style.width = '100%';
+  btn.textContent = 'احسب العائد';
+  btn.onclick = calcResult;
+  wrap.appendChild(btn);
+}
+
+function buildResults() {
+  const wrap = document.getElementById('resultPanel');
+  const highlight = document.createElement('div'); highlight.className = 'result-highlight';
+  const val = document.createElement('div'); val.className = 'rh-val'; val.textContent = '٢,٩٦٠ ر.س';
+  const lbl = document.createElement('div'); lbl.className = 'rh-lbl'; lbl.textContent = 'صافي الربح المتوقع خلال ٦ أشهر';
+  highlight.appendChild(val); highlight.appendChild(lbl); wrap.appendChild(highlight);
+  const rows = document.createElement('div'); rows.className = 'result-rows';
+  RESULTS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'result-row';
+    const rl = document.createElement('span'); rl.className = 'rr-lbl'; rl.textContent = r.lbl;
+    const rv = document.createElement('span'); rv.className = 'rr-val'; rv.textContent = r.val;
+    row.appendChild(rl); row.appendChild(rv); rows.appendChild(row);
+  });
+  wrap.appendChild(rows);
+}
+
+function buildScenarioTabs() {
+  const wrap = document.getElementById('scenarioTabs');
+  while (wrap.firstChild) wrap.removeChild(wrap.firstChild);
+  SCENARIOS.forEach((s, i) => {
+    const tab = document.createElement('button'); tab.className = 'stab' + (i === activeScenario ? ' active' : '');
+    tab.textContent = s;
+    tab.onclick = () => { activeScenario = i; buildScenarioTabs(); };
+    wrap.appendChild(tab);
+  });
+}
+
+function buildComparison() {
+  const wrap = document.getElementById('comparisonTable');
+  const header = document.createElement('div'); header.className = 'ct-row ct-header';
+  ['المقياس', 'متحفظ', 'متوسط', 'متفائل'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  COMPARISON.forEach(r => {
+    const row = document.createElement('div'); row.className = 'ct-row';
+    const lbl = document.createElement('div'); lbl.style.fontWeight = '700'; lbl.textContent = r.label;
+    const s1 = document.createElement('div'); s1.textContent = r.s1;
+    const s2 = document.createElement('div'); s2.style.color = 'var(--green)'; s2.style.fontWeight = '700'; s2.textContent = r.s2;
+    const s3 = document.createElement('div'); s3.style.color = 'var(--gold)'; s3.textContent = r.s3;
+    row.appendChild(lbl); row.appendChild(s1); row.appendChild(s2); row.appendChild(s3);
+    wrap.appendChild(row);
+  });
+}
+
+function calcResult() {
+  fetch('/app/me/deal-simulator', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'calculate' }) }).catch(() => {});
+  alert('تم احتساب العائد المتوقع.');
+}
+
+function saveSim() {
+  fetch('/app/me/deal-simulator/save', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'save' }) }).catch(() => {});
+  alert('تم حفظ نتائج المحاكاة بنجاح.');
+}
+
+buildForm(); buildResults(); buildScenarioTabs(); buildComparison();
+</script>
+</body>
+</html>

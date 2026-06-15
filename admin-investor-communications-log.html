@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل التواصل مع المستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.filters{padding:0.75rem 1.25rem;display:flex;gap:0.75rem;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.filter-select{padding:0.35rem 0.65rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.82rem;}
+.log-list{padding:1.25rem;}
+.log-item{border-bottom:1px solid var(--line);padding:0.85rem 0;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:flex-start;}
+.log-item:last-child{border-bottom:none;}
+.log-type-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.icon-email{background:#e8f0fe;}
+.icon-sms{background:#e8f5ed;}
+.icon-push{background:#fef3cd;}
+.icon-call{background:#fde8e8;}
+.log-content{}
+.log-title{font-size:0.84rem;font-weight:700;margin-bottom:0.15rem;}
+.log-meta{font-size:0.7rem;color:var(--muted);}
+.log-status{text-align:left;}
+.status-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-sent{background:#e8f5ed;color:#1e8449;}
+.pill-failed{background:#fde8e8;color:#c0392b;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.log-item{grid-template-columns:auto 1fr;}.log-status{display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — سجل التواصل مع المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>سجل التواصل مع المستثمرين</h2>
+      <p>مراجعة جميع الرسائل والإشعارات المرسلة للمستثمرين</p>
+    </div>
+    <button class="btn btn-primary" onclick="newCommunication()">رسالة جديدة</button>
+  </div>
+
+  <div class="stats" id="commStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل التواصل</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportLog()">تصدير</button>
+    </div>
+    <div class="filters" id="commFilters"></div>
+    <div class="log-list" id="logList"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="newCommunication()">إرسال رسالة جماعية</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportLog()">تصدير السجل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣,٢٤٠', lbl: 'رسائل هذا الشهر' },
+  { val: '٩٨.٢٪', lbl: 'نسبة التسليم' },
+  { val: '٤٢٪', lbl: 'معدل الفتح' },
+  { val: '١٢', lbl: 'حملات نشطة' }
+];
+
+const FILTERS = ['الكل', 'بريد إلكتروني', 'رسائل SMS', 'إشعارات', 'مكالمات'];
+
+const LOGS = [
+  { icon: 'icon-email', emoji: '✉️', title: 'تأكيد توزيع العوائد — دفعة مارس ٢٠٢٦', meta: '١,٢٤٠ مستثمر · ١٠ مارس ٢٠٢٦ ١٠:٠٠', pill: 'pill-sent', label: 'تم الإرسال' },
+  { icon: 'icon-sms', emoji: '📱', title: 'تذكير باستحقاق صفقة #4910 غداً', meta: '٣٢ مستثمر · ٩ مارس ٢٠٢٦ ١٢:٠٠', pill: 'pill-sent', label: 'تم الإرسال' },
+  { icon: 'icon-push', emoji: '🔔', title: 'صفقة جديدة متاحة — تجهيزات طبية', meta: '٨٤٠ مستثمر · ٨ مارس ٢٠٢٦ ٩:٣٠', pill: 'pill-sent', label: 'تم الإرسال' },
+  { icon: 'icon-email', emoji: '✉️', title: 'تقرير الأداء الشهري — فبراير ٢٠٢٦', meta: '١,١٨٤ مستثمر · ١ مارس ٢٠٢٦ ٨:٠٠', pill: 'pill-sent', label: 'تم الإرسال' },
+  { icon: 'icon-sms', emoji: '📱', title: 'تحديث حالة KYC — طلبات معلّقة', meta: '٤٨ مستثمر · ٥ مارس ٢٠٢٦', pill: 'pill-pending', label: 'جاري الإرسال' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('commStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildFilters() {
+  const wrap = document.getElementById('commFilters');
+  const sel = document.createElement('select'); sel.className = 'filter-select';
+  FILTERS.forEach(f => { const opt = document.createElement('option'); opt.textContent = f; sel.appendChild(opt); });
+  const dateSel = document.createElement('select'); dateSel.className = 'filter-select';
+  ['هذا الشهر', 'الشهر الماضي', 'آخر ٣ أشهر'].forEach(o => { const opt = document.createElement('option'); opt.textContent = o; dateSel.appendChild(opt); });
+  wrap.appendChild(sel); wrap.appendChild(dateSel);
+}
+
+function buildLog() {
+  const wrap = document.getElementById('logList');
+  LOGS.forEach(l => {
+    const item = document.createElement('div'); item.className = 'log-item';
+    const icon = document.createElement('div'); icon.className = 'log-type-icon ' + l.icon; icon.textContent = l.emoji;
+    const content = document.createElement('div'); content.className = 'log-content';
+    const title = document.createElement('div'); title.className = 'log-title'; title.textContent = l.title;
+    const meta = document.createElement('div'); meta.className = 'log-meta'; meta.textContent = l.meta;
+    content.appendChild(title); content.appendChild(meta);
+    const status = document.createElement('div'); status.className = 'log-status';
+    const pill = document.createElement('span'); pill.className = 'status-pill ' + l.pill; pill.textContent = l.label;
+    status.appendChild(pill);
+    item.appendChild(icon); item.appendChild(content); item.appendChild(status);
+    wrap.appendChild(item);
+  });
+}
+
+function newCommunication() {
+  fetch('/app/admin/investor-communications-log', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'new' }) }).catch(() => {});
+  alert('جاري فتح نموذج الرسالة الجديدة...');
+}
+
+function exportLog() {
+  fetch('/app/admin/investor-communications-log/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل التواصل...');
+}
+
+buildStats(); buildFilters(); buildLog();
+</script>
+</body>
+</html>

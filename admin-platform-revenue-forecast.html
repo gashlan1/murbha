@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>توقعات إيرادات المنصة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.kpi-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.kpi-lbl{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+.kpi-change{font-size:0.72rem;margin-top:0.3rem;font-weight:700;}
+.change-up{color:#1e8449;}
+.change-down{color:#c0392b;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.forecast-table{padding:1.25rem;overflow-x:auto;}
+.ft-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.ft-row:last-child{border-bottom:none;}
+.ft-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.val-actual{color:var(--green);font-weight:700;}
+.val-forecast{color:var(--gold);font-weight:700;}
+.growth-pos{color:#1e8449;font-weight:700;}
+.chart-section{padding:1.25rem;}
+.chart-bars{display:flex;align-items:flex-end;gap:0.6rem;height:100px;border-bottom:2px solid var(--line);margin-bottom:0.5rem;}
+.bar-group{flex:1;display:flex;gap:2px;align-items:flex-end;}
+.bar{border-radius:3px 3px 0 0;}
+.bar-actual{background:var(--green);}
+.bar-forecast{background:var(--gold);opacity:0.8;}
+.bar-labels{display:flex;gap:0.6rem;}
+.bar-lbl{flex:1;font-size:0.65rem;color:var(--muted);text-align:center;}
+.source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem;}
+.source-item{border:1px solid var(--line);border-radius:10px;padding:1rem;}
+.si-name{font-size:0.8rem;font-weight:700;margin-bottom:0.4rem;}
+.si-val{font-size:1.1rem;font-weight:700;color:var(--green);}
+.si-pct{font-size:0.7rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.kpi-grid{grid-template-columns:1fr 1fr;}.source-grid{grid-template-columns:1fr 1fr;}.ft-row{grid-template-columns:1fr 1fr 1fr;}.ft-row>:nth-child(4),.ft-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — توقعات الإيرادات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>توقعات إيرادات المنصة</h2>
+      <p>تحليل الإيرادات الفعلية والمتوقعة لمنصة مُرابحة</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportForecast()">تصدير التقرير</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>مقارنة الإيرادات الفعلية بالمتوقعة</h3></div>
+    <div class="chart-section" id="chartSection"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>جدول التوقعات الشهري</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportForecast()">تصدير</button>
+    </div>
+    <div class="forecast-table" id="forecastTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="updateForecast()">تحديث التوقعات</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportForecast()">تصدير</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>الإيرادات حسب المصدر</h3></div>
+    <div class="source-grid" id="sourceGrid"></div>
+  </div>
+</div>
+
+<script>
+const KPIS = [
+  { val: '٢.٨ م ر.س', lbl: 'الإيرادات السنوية المتوقعة', change: '+١٨٪', cls: 'change-up' },
+  { val: '٢٣٤,٠٠٠ ر.س', lbl: 'إيرادات الشهر الحالي', change: '+١٢٪', cls: 'change-up' },
+  { val: '٩٢٪', lbl: 'نسبة تحقق التوقعات', change: '+٣٪', cls: 'change-up' },
+  { val: '١.٤٪', lbl: 'هامش الإيراد الصافي', change: '-٠.١٪', cls: 'change-down' }
+];
+
+const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+const CHART_DATA = [
+  { actual: 70, forecast: 75 },
+  { actual: 80, forecast: 80 },
+  { actual: 90, forecast: 85 },
+  { actual: 85, forecast: 90 },
+  { actual: 95, forecast: 92 },
+  { actual: 0, forecast: 100 }
+];
+
+const FORECAST_TABLE = [
+  { month: 'يناير ٢٠٢٦', actual: '١٩٦,٠٠٠ ر.س', forecast: '٢١٠,٠٠٠ ر.س', variance: '-١٤,٠٠٠ ر.س', growth: '+١٥٪' },
+  { month: 'فبراير ٢٠٢٦', actual: '٢١٢,٠٠٠ ر.س', forecast: '٢١٥,٠٠٠ ر.س', variance: '-٣,٠٠٠ ر.س', growth: '+٨٪' },
+  { month: 'مارس ٢٠٢٦', actual: '٢٣٤,٠٠٠ ر.س', forecast: '٢٢٠,٠٠٠ ر.س', variance: '+١٤,٠٠٠ ر.س', growth: '+١٠٪' },
+  { month: 'أبريل ٢٠٢٦ (متوقع)', actual: '—', forecast: '٢٤٠,٠٠٠ ر.س', variance: '—', growth: '+٨٪' },
+  { month: 'مايو ٢٠٢٦ (متوقع)', actual: '—', forecast: '٢٥٨,٠٠٠ ر.س', variance: '—', growth: '+٨٪' }
+];
+
+const SOURCES = [
+  { name: 'رسوم الإدارة', val: '١.٤ م ر.س', pct: '٥٠٪ من الإجمالي' },
+  { name: 'رسوم المعالجة', val: '٨٤٠,٠٠٠ ر.س', pct: '٣٠٪ من الإجمالي' },
+  { name: 'رسوم الإغلاق', val: '٥٦٠,٠٠٠ ر.س', pct: '٢٠٪ من الإجمالي' }
+];
+
+function buildKpis() {
+  const wrap = document.getElementById('kpiGrid');
+  KPIS.forEach(k => {
+    const card = document.createElement('div'); card.className = 'kpi-card';
+    const val = document.createElement('div'); val.className = 'kpi-val'; val.textContent = k.val;
+    const lbl = document.createElement('div'); lbl.className = 'kpi-lbl'; lbl.textContent = k.lbl;
+    const change = document.createElement('div'); change.className = 'kpi-change ' + k.cls; change.textContent = k.change + ' مقارنة بالعام الماضي';
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(change);
+    wrap.appendChild(card);
+  });
+}
+
+function buildChart() {
+  const wrap = document.getElementById('chartSection');
+  const bars = document.createElement('div'); bars.className = 'chart-bars';
+  CHART_DATA.forEach(d => {
+    const bg = document.createElement('div'); bg.className = 'bar-group';
+    const actual = document.createElement('div'); actual.className = 'bar bar-actual'; actual.style.height = d.actual + 'px'; actual.style.flex = '1';
+    const forecast = document.createElement('div'); forecast.className = 'bar bar-forecast'; forecast.style.height = d.forecast + 'px'; forecast.style.flex = '1';
+    bg.appendChild(actual); bg.appendChild(forecast);
+    bars.appendChild(bg);
+  });
+  const lblRow = document.createElement('div'); lblRow.className = 'bar-labels';
+  MONTHS.forEach(m => { const l = document.createElement('div'); l.className = 'bar-lbl'; l.textContent = m.slice(0,3); lblRow.appendChild(l); });
+  const legend = document.createElement('div'); legend.style.cssText = 'display:flex;gap:1rem;margin-top:0.75rem;font-size:0.72rem;';
+  [['bar-actual','فعلي'],['bar-forecast','متوقع']].forEach(([cls, lbl]) => {
+    const item = document.createElement('div'); item.style.display = 'flex'; item.style.alignItems = 'center'; item.style.gap = '0.3rem';
+    const dot = document.createElement('div'); dot.className = 'bar ' + cls; dot.style.cssText = 'width:12px;height:12px;border-radius:2px;';
+    const text = document.createElement('span'); text.textContent = lbl;
+    item.appendChild(dot); item.appendChild(text); legend.appendChild(item);
+  });
+  wrap.appendChild(bars); wrap.appendChild(lblRow); wrap.appendChild(legend);
+}
+
+function buildTable() {
+  const wrap = document.getElementById('forecastTable');
+  const header = document.createElement('div'); header.className = 'ft-row ft-header';
+  ['الشهر', 'الفعلي', 'المتوقع', 'الفارق', 'النمو'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  FORECAST_TABLE.forEach(r => {
+    const row = document.createElement('div'); row.className = 'ft-row';
+    const month = document.createElement('div'); month.style.fontWeight = '700'; month.textContent = r.month;
+    const actual = document.createElement('div'); actual.className = r.actual === '—' ? '' : 'val-actual'; actual.textContent = r.actual;
+    const forecast = document.createElement('div'); forecast.className = 'val-forecast'; forecast.textContent = r.forecast;
+    const variance = document.createElement('div'); variance.textContent = r.variance;
+    const growth = document.createElement('div'); growth.className = 'growth-pos'; growth.textContent = r.growth;
+    row.appendChild(month); row.appendChild(actual); row.appendChild(forecast); row.appendChild(variance); row.appendChild(growth);
+    wrap.appendChild(row);
+  });
+}
+
+function buildSources() {
+  const wrap = document.getElementById('sourceGrid');
+  SOURCES.forEach(s => {
+    const item = document.createElement('div'); item.className = 'source-item';
+    const name = document.createElement('div'); name.className = 'si-name'; name.textContent = s.name;
+    const val = document.createElement('div'); val.className = 'si-val'; val.textContent = s.val;
+    const pct = document.createElement('div'); pct.className = 'si-pct'; pct.textContent = s.pct;
+    item.appendChild(name); item.appendChild(val); item.appendChild(pct);
+    wrap.appendChild(item);
+  });
+}
+
+function updateForecast() {
+  fetch('/app/admin/platform-revenue-forecast', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'update' }) }).catch(() => {});
+  alert('تم تحديث توقعات الإيرادات بنجاح.');
+}
+
+function exportForecast() {
+  fetch('/app/admin/platform-revenue-forecast/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير توقعات الإيرادات...');
+}
+
+buildKpis(); buildChart(); buildTable(); buildSources();
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شرائح المستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.tier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.tier-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.tier-banner{padding:1.25rem;color:#fff;text-align:center;}
+.tier-banner .tier-name{font-size:1rem;font-weight:700;}
+.tier-banner .tier-badge{display:inline-block;background:rgba(255,255,255,0.2);border-radius:20px;padding:0.2rem 0.7rem;font-size:0.75rem;margin-top:0.4rem;}
+.tier-body{padding:1rem;}
+.tier-stat{display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.tier-stat:last-child{border-bottom:none;}
+.tier-stat .tl{color:var(--muted);}
+.tier-stat .tv{font-weight:600;color:var(--green-dark);}
+.tier-actions{padding:0.75rem 1rem;border-top:1px solid var(--line);display:flex;gap:0.5rem;}
+.table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.table-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.table-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.7rem 1rem;border-bottom:1px solid var(--line);font-size:0.86rem;}
+tr:last-child td{border-bottom:none;}
+.tier-pill{display:inline-block;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:700;}
+.pill-bronze{background:#f8ede0;color:#a05c28;}
+.pill-silver{background:#e8e8e8;color:#555;}
+.pill-gold{background:#fff8e8;color:var(--gold);}
+.pill-platinum{background:#e6f4ef;color:var(--green);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;width:480px;max-width:95vw;overflow:hidden;}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;}
+.modal-body{padding:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.3rem;}
+.field input,.field select{width:100%;padding:0.55rem 0.85rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;background:#fff;color:var(--green-dark);}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:900px){.tier-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.tier-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — شرائح المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إدارة شرائح المستثمرين</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ إضافة شريحة</button>
+  </div>
+
+  <div class="tier-grid" id="tierGrid"></div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <h3>توزيع المستثمرين على الشرائح</h3>
+      <button class="btn btn-sm btn-secondary" onclick="exportTiers()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>المستثمر</th>
+          <th>الشريحة</th>
+          <th>إجمالي الاستثمار</th>
+          <th>عدد الصفقات</th>
+          <th>تاريخ الترقية</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody id="investorTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إضافة / تعديل شريحة</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>اسم الشريحة</label>
+        <input type="text" id="tierName" placeholder="مثال: ذهبي">
+      </div>
+      <div class="field">
+        <label>الحد الأدنى للاستثمار (ر.س)</label>
+        <input type="number" id="tierMin" placeholder="100,000">
+      </div>
+      <div class="field">
+        <label>نسبة العائد التفضيلية</label>
+        <input type="number" id="tierReturn" placeholder="12.5" step="0.1">
+      </div>
+      <div class="field">
+        <label>الحد الأقصى للصفقات</label>
+        <input type="number" id="tierDeals" placeholder="10">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTier()">حفظ الشريحة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const tiers = [
+  {name:'برونزي',color:'#a05c28',bg:'linear-gradient(135deg,#c8895a,#a05c28)',badge:'المبتدئون',members:142,minInvest:'٥٠,٠٠٠',maxDeals:'٣',returnRate:'٨٪'},
+  {name:'فضي',color:'#666',bg:'linear-gradient(135deg,#aaa,#666)',badge:'المتوسطون',members:98,minInvest:'٢٠٠,٠٠٠',maxDeals:'٦',returnRate:'١٠٪'},
+  {name:'ذهبي',color:getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()||'#b08840',bg:'linear-gradient(135deg,#d4a740,#b08840)',badge:'المتقدمون',members:54,minInvest:'٥٠٠,٠٠٠',maxDeals:'١٢',returnRate:'١٢٪'},
+  {name:'بلاتيني',color:'#0a4d36',bg:'linear-gradient(135deg,#2d6b50,#062b1e)',badge:'النخبة',members:18,minInvest:'١,٠٠٠,٠٠٠',maxDeals:'غير محدود',returnRate:'١٤٪'},
+];
+
+const pillClasses = ['pill-bronze','pill-silver','pill-gold','pill-platinum'];
+
+const investors = [
+  {name:'أحمد المنصور',tier:3,total:'١,٢٠٠,٠٠٠',deals:'١٥',date:'٢٠٢٤/٠٩'},
+  {name:'سارة الزهراني',tier:2,total:'٦٨٠,٠٠٠',deals:'٩',date:'٢٠٢٤/١١'},
+  {name:'خالد العتيبي',tier:2,total:'٥٢٠,٠٠٠',deals:'٧',date:'٢٠٢٥/٠١'},
+  {name:'نورة السالم',tier:1,total:'٣١٠,٠٠٠',deals:'٤',date:'٢٠٢٥/٠٣'},
+  {name:'فهد الدوسري',tier:0,total:'٩٠,٠٠٠',deals:'٢',date:'٢٠٢٥/٠٥'},
+];
+
+function renderTiers(){
+  const grid = document.getElementById('tierGrid');
+  grid.textContent = '';
+  tiers.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'tier-card';
+    const banner = document.createElement('div');
+    banner.className = 'tier-banner';
+    banner.style.background = t.bg;
+    const nameEl = document.createElement('div');
+    nameEl.className = 'tier-name';
+    nameEl.textContent = t.name;
+    const badgeEl = document.createElement('div');
+    badgeEl.className = 'tier-badge';
+    badgeEl.textContent = t.badge;
+    banner.appendChild(nameEl);
+    banner.appendChild(badgeEl);
+    const body = document.createElement('div');
+    body.className = 'tier-body';
+    const stats = [
+      {l:'الأعضاء',v: t.members + ' مستثمر'},
+      {l:'الحد الأدنى',v: t.minInvest + ' ر.س'},
+      {l:'أقصى صفقات',v: t.maxDeals},
+      {l:'نسبة العائد',v: t.returnRate},
+    ];
+    stats.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'tier-stat';
+      const lbl = document.createElement('span');
+      lbl.className = 'tl';
+      lbl.textContent = s.l;
+      const val = document.createElement('span');
+      val.className = 'tv';
+      val.textContent = s.v;
+      row.appendChild(lbl);
+      row.appendChild(val);
+      body.appendChild(row);
+    });
+    const actions = document.createElement('div');
+    actions.className = 'tier-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => openModal(i);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-sm';
+    deleteBtn.style.cssText = 'padding:0.35rem 0.8rem;font-size:0.82rem;background:#fde9e9;color:#c0392b;border:none;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:600;';
+    deleteBtn.textContent = 'حذف';
+    deleteBtn.onclick = () => deleteTier(i);
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+    card.appendChild(banner);
+    card.appendChild(body);
+    card.appendChild(actions);
+    grid.appendChild(card);
+  });
+}
+
+function renderTable(){
+  const tbody = document.getElementById('investorTable');
+  tbody.textContent = '';
+  investors.forEach(inv => {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.textContent = inv.name;
+    tr.appendChild(nameTd);
+    const tierTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'tier-pill ' + pillClasses[inv.tier];
+    pill.textContent = tiers[inv.tier].name;
+    tierTd.appendChild(pill);
+    tr.appendChild(tierTd);
+    [inv.total + ' ر.س', inv.deals, inv.date].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const actTd = document.createElement('td');
+    const upgradeBtn = document.createElement('button');
+    upgradeBtn.className = 'btn btn-sm btn-secondary';
+    upgradeBtn.textContent = 'ترقية';
+    upgradeBtn.onclick = () => upgradeTier(inv);
+    actTd.appendChild(upgradeBtn);
+    tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function openModal(idx){
+  if(typeof idx === 'number'){
+    const t = tiers[idx];
+    document.getElementById('tierName').value = t.name;
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function saveTier(){
+  const name = document.getElementById('tierName').value;
+  const minInvest = document.getElementById('tierMin').value;
+  const returnRate = document.getElementById('tierReturn').value;
+  const maxDeals = document.getElementById('tierDeals').value;
+  try {
+    await fetch('/app/admin/investor-tiers', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({name, minInvest, returnRate, maxDeals})
+    });
+  } catch(e){}
+  closeModal();
+}
+
+async function deleteTier(idx){
+  try {
+    await fetch('/app/admin/investor-tiers/' + idx, {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({})
+    });
+  } catch(e){}
+}
+
+async function upgradeTier(inv){
+  try {
+    await fetch('/app/admin/investor-tiers/assign', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({investorName: inv.name, tier: Math.min(inv.tier + 1, 3)})
+    });
+  } catch(e){}
+}
+
+async function exportTiers(){
+  try {
+    const res = await fetch('/app/admin/investor-tiers/export');
+    await res.json();
+  } catch(e){}
+}
+
+renderTiers();
+renderTable();
+</script>
+</body>
+</html>

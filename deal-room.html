@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>غرفة الصفقة — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+/* Deal hero */
+.deal-hero{background:var(--green-dark);color:#fff;padding:1.5rem 2rem}
+.hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center}
+.deal-type-badge{display:inline-block;padding:.2rem .8rem;border-radius:20px;font-size:.8rem;font-weight:700;background:rgba(176,136,64,.25);color:var(--gold);margin-bottom:.5rem;border:1px solid rgba(176,136,64,.3)}
+.hero-title{font-size:1.4rem;font-weight:700;margin-bottom:.4rem}
+.hero-meta{display:flex;gap:1.25rem;font-size:.83rem;color:rgba(255,255,255,.7);flex-wrap:wrap}
+.hero-meta span{display:flex;align-items:center;gap:.3rem}
+.invest-box{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:1.25rem 1.5rem;min-width:260px}
+.invest-box .target{font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.25rem}
+.invest-box .raised-val{font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+.funding-bar{height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-bottom:.5rem}
+.funding-fill{height:100%;border-radius:4px;background:var(--gold);transition:.5s}
+.funding-meta{display:flex;justify-content:space-between;font-size:.76rem;color:rgba(255,255,255,.6)}
+.invest-btn{display:block;width:100%;margin-top:.85rem;padding:.65rem;border-radius:10px;background:var(--gold);color:#fff;border:none;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;text-align:center;transition:.15s}
+.invest-btn:hover{opacity:.9}
+/* Body layout */
+.body-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 300px;gap:1.5rem;align-items:start}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+/* Tab navigation */
+.tabs{display:flex;border-bottom:2px solid var(--line)}
+.tab-btn{padding:.65rem 1.1rem;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+.tab-content{display:none;padding:1.25rem}
+.tab-content.active{display:block}
+/* KPIs */
+.kpi-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:1.25rem}
+.mini-kpi{background:var(--paper);border-radius:10px;padding:.85rem 1rem;border:1px solid var(--line)}
+.mini-kpi .val{font-size:1.1rem;font-weight:700;color:var(--green)}
+.mini-kpi .lbl{font-size:.74rem;color:var(--muted)}
+/* Investors list */
+.investor-row{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--line)}
+.investor-row:last-child{border-bottom:none}
+.inv-avatar{width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.inv-name{font-size:.85rem;font-weight:600;flex:1}
+.inv-amount{font-size:.83rem;font-weight:700;color:var(--green)}
+.inv-date{font-size:.74rem;color:var(--muted)}
+/* Documents */
+.doc-row{display:flex;align-items:center;gap:.75rem;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.doc-row:last-child{border-bottom:none}
+.doc-icon{font-size:1.3rem;flex-shrink:0}
+.doc-info{flex:1}
+.doc-name{font-size:.88rem;font-weight:600}
+.doc-size{font-size:.74rem;color:var(--muted)}
+.doc-dl{padding:.3rem .75rem;border-radius:6px;background:var(--green);color:#fff;font-size:.78rem;cursor:pointer;border:none;font-family:'Cairo',sans-serif;font-weight:600}
+/* Updates */
+.update-item{padding:.75rem 0;border-bottom:1px solid var(--line)}
+.update-item:last-child{border-bottom:none}
+.upd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.upd-title{font-size:.88rem;font-weight:700}
+.upd-date{font-size:.74rem;color:var(--muted)}
+.upd-body{font-size:.83rem;color:var(--muted);line-height:1.55}
+/* Sidebar */
+.sidebar-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem;margin-bottom:1rem}
+.sidebar-card h4{font-size:.88rem;font-weight:700;margin-bottom:.75rem;border-bottom:1px solid var(--line);padding-bottom:.5rem}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;font-size:.83rem;border-bottom:1px solid var(--line)}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:var(--muted)}
+.detail-val{font-weight:600;text-align:left}
+/* Q&A */
+.qa-form{display:flex;flex-direction:column;gap:.6rem;padding:1.25rem}
+.qa-form textarea{width:100%;padding:.55rem .75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.88rem;resize:vertical;outline:none}
+.qa-form textarea:focus{border-color:var(--green)}
+.qa-form button{padding:.5rem 1.1rem;border-radius:8px;background:var(--green);color:#fff;border:none;font-family:'Cairo',sans-serif;font-weight:600;cursor:pointer;align-self:flex-start}
+.qa-item{padding:.8rem 1.25rem;border-bottom:1px solid var(--line)}
+.qa-item:last-child{border-bottom:none}
+.qa-q{font-size:.86rem;font-weight:700;margin-bottom:.3rem}
+.qa-a{font-size:.83rem;color:var(--muted);line-height:1.5}
+.qa-meta{font-size:.73rem;color:var(--muted);margin-top:.25rem}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:420px}
+.modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+.modal-body{padding:1.25rem}
+.form-group{margin-bottom:.9rem}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+.form-group input{width:100%;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.9rem;outline:none}
+.form-group input:focus{border-color:var(--green)}
+.modal-footer{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:.75rem;justify-content:flex-end}
+.btn-primary{padding:.5rem 1.2rem;border-radius:8px;background:var(--green);color:#fff;border:none;font-family:'Cairo',sans-serif;font-weight:700;cursor:pointer}
+.btn-ghost{padding:.5rem 1.2rem;border-radius:8px;background:transparent;border:1.5px solid var(--line);font-family:'Cairo',sans-serif;font-weight:600;cursor:pointer;color:var(--muted)}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="investor-dashboard.html">→ لوحة المستثمر</a>
+  <h1>غرفة الصفقة</h1>
+</header>
+
+<!-- Deal hero -->
+<div class="deal-hero">
+  <div class="hero-inner">
+    <div>
+      <div class="deal-type-badge">مرابحة عقارية</div>
+      <div class="hero-title">برج الخليج التجاري — المرحلة الثانية</div>
+      <div class="hero-meta">
+        <span>📍 الرياض، حي العليا</span>
+        <span>⏱️ 18 شهر</span>
+        <span>📈 معدل العائد: 14% سنوياً</span>
+        <span>🕌 معتمد شرعياً</span>
+      </div>
+    </div>
+    <div class="invest-box">
+      <div class="target">تم جمع</div>
+      <div class="raised-val" id="heroRaised">4,250,000 ر.س</div>
+      <div class="funding-bar"><div class="funding-fill" id="heroFill" style="width:85%"></div></div>
+      <div class="funding-meta">
+        <span id="heroInvestors">42 مستثمر</span>
+        <span id="heroPct">85% من الهدف</span>
+      </div>
+      <button class="invest-btn" onclick="openInvestModal()">استثمر الآن</button>
+    </div>
+  </div>
+</div>
+
+<div class="body-wrap">
+  <div>
+    <!-- Tabs -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab(this,'overview')">نظرة عامة</button>
+        <button class="tab-btn" onclick="showTab(this,'investors')">المستثمرون</button>
+        <button class="tab-btn" onclick="showTab(this,'documents')">الوثائق</button>
+        <button class="tab-btn" onclick="showTab(this,'updates')">التحديثات</button>
+        <button class="tab-btn" onclick="showTab(this,'qa')">الأسئلة والأجوبة</button>
+      </div>
+
+      <!-- Overview -->
+      <div class="tab-content active" id="tab-overview">
+        <div class="kpi-row-3">
+          <div class="mini-kpi"><div class="val">14%</div><div class="lbl">العائد السنوي</div></div>
+          <div class="mini-kpi"><div class="val">5M ر.س</div><div class="lbl">الهدف التمويلي</div></div>
+          <div class="mini-kpi"><div class="val">50K</div><div class="lbl">الحد الأدنى للاستثمار</div></div>
+        </div>
+        <div style="font-size:.9rem;line-height:1.75;color:var(--muted)">
+          <p style="margin-bottom:.75rem">برج الخليج التجاري هو مشروع عقاري متكامل يقع في قلب حي العليا بالرياض، ويضم مساحات تجارية وإدارية موزعة على 22 طابقاً. تُجمع أموال المرابحة لتمويل المرحلة الثانية من التطوير الداخلي والتشطيبات.</p>
+          <p>يتمتع المشروع بعقود إيجار مبرمة مسبقاً مع شركات كبرى تغطي 70% من المساحات القابلة للتأجير، مما يوفر تدفقاً نقدياً مستقراً منذ اليوم الأول من التشغيل.</p>
+        </div>
+      </div>
+
+      <!-- Investors tab -->
+      <div class="tab-content" id="tab-investors">
+        <div style="margin-bottom:.75rem;font-size:.83rem;color:var(--muted)">42 مستثمراً حتى الآن</div>
+        <div id="investorsList"></div>
+      </div>
+
+      <!-- Documents -->
+      <div class="tab-content" id="tab-documents">
+        <div id="docsList"></div>
+      </div>
+
+      <!-- Updates -->
+      <div class="tab-content" id="tab-updates">
+        <div id="updatesList"></div>
+      </div>
+
+      <!-- Q&A -->
+      <div class="tab-content" id="tab-qa" style="padding:0">
+        <div class="qa-form">
+          <textarea id="qaInput" rows="3" placeholder="اطرح سؤالاً على فريق المشروع..."></textarea>
+          <button onclick="submitQuestion()">إرسال السؤال</button>
+        </div>
+        <div id="qaList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <div class="sidebar-card">
+      <h4>تفاصيل الصفقة</h4>
+      <div class="detail-row"><span class="detail-key">نوع الصفقة</span><span class="detail-val">مرابحة عقارية</span></div>
+      <div class="detail-row"><span class="detail-key">المطوّر</span><span class="detail-val">شركة الخليج للتطوير</span></div>
+      <div class="detail-row"><span class="detail-key">تاريخ الإغلاق</span><span class="detail-val">2026-08-01</span></div>
+      <div class="detail-row"><span class="detail-key">مدة الصفقة</span><span class="detail-val">18 شهراً</span></div>
+      <div class="detail-row"><span class="detail-key">توزيع الأرباح</span><span class="detail-val">ربع سنوي</span></div>
+      <div class="detail-row"><span class="detail-key">الحد الأدنى</span><span class="detail-val">50,000 ر.س</span></div>
+      <div class="detail-row"><span class="detail-key">الحد الأقصى للمستثمر</span><span class="detail-val">500,000 ر.س</span></div>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>الاعتمادات</h4>
+      <div class="detail-row"><span class="detail-key">شهادة شرعية</span><span class="detail-val">✅ معتمدة</span></div>
+      <div class="detail-row"><span class="detail-key">CMA</span><span class="detail-val">✅ مرخص</span></div>
+      <div class="detail-row"><span class="detail-key">تقييم عقاري</span><span class="detail-val">✅ مكتمل</span></div>
+      <div class="detail-row"><span class="detail-key">عناية واجبة</span><span class="detail-val">✅ 100%</span></div>
+    </div>
+
+    <div class="sidebar-card">
+      <h4>المخاطر الرئيسية</h4>
+      <ul style="font-size:.82rem;color:var(--muted);padding-right:1rem;line-height:1.7">
+        <li>مخاطر السوق العقاري</li>
+        <li>مخاطر تأخر التسليم</li>
+        <li>مخاطر معدلات الإشغال</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Invest Modal -->
+<div class="modal-overlay" id="investModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>تأكيد الاستثمار</h3>
+      <button class="modal-close" onclick="closeInvestModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>مبلغ الاستثمار (ر.س)</label>
+        <input type="number" id="investAmount" placeholder="50000" min="50000" step="1000"/>
+      </div>
+      <div style="background:var(--paper);border-radius:8px;padding:.75rem;font-size:.83rem;color:var(--muted);line-height:1.6;margin-top:.5rem">
+        <div>العائد المتوقع سنوياً: <strong id="expectedReturn">—</strong></div>
+        <div>إجمالي العائد (18 شهر): <strong id="totalReturn">—</strong></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeInvestModal()">إلغاء</button>
+      <button class="btn-primary" onclick="confirmInvest()">تأكيد الاستثمار</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+const DEAL_ID = new URLSearchParams(location.search).get('id') || 'd1';
+
+const INVESTORS = [
+  {name:'أحمد المطيري',amount:200000,date:'2026-06-10'},
+  {name:'سارة العتيبي',amount:150000,date:'2026-06-09'},
+  {name:'خالد الدوسري',amount:500000,date:'2026-06-08'},
+  {name:'نورا الحربي',amount:75000,date:'2026-06-07'},
+  {name:'يوسف الشمري',amount:100000,date:'2026-06-06'},
+];
+
+const DOCS = [
+  {name:'نشرة الإصدار',icon:'📄',size:'2.4 MB'},
+  {name:'شهادة الامتثال الشرعي',icon:'🕌',size:'0.8 MB'},
+  {name:'تقرير التقييم العقاري',icon:'🏢',size:'3.1 MB'},
+  {name:'عقود الإيجار المبرمة',icon:'📑',size:'1.6 MB'},
+  {name:'خطة العمل التفصيلية',icon:'📊',size:'4.2 MB'},
+];
+
+const UPDATES = [
+  {title:'اكتمال الهيكل الإنشائي',date:'2026-06-01',body:'تم الانتهاء من أعمال الهيكل الإنشائي للطوابق 1-15 وفق الجدول الزمني المحدد.'},
+  {title:'الحصول على تراخيص التشطيب',date:'2026-05-15',body:'حصلنا على جميع التراخيص اللازمة من أمانة الرياض للمباشرة بأعمال التشطيب.'},
+  {title:'توقيع عقد إيجار جديد',date:'2026-04-28',body:'تم توقيع عقد إيجار مع شركة رائدة في قطاع التقنية لاستئجار الطوابق 8-12.'},
+];
+
+const QA = [
+  {q:'هل يمكن الخروج المبكر من الصفقة؟',a:'يمكن التقدم بطلب خروج مبكر عبر السوق الثانوي، وذلك وفق شروط المنصة والسيولة المتاحة.',asker:'مستثمر',date:'2026-06-12'},
+  {q:'ما ضمانات سداد أصل المبلغ؟',a:'الصفقة مضمونة برهن عقاري من الدرجة الأولى على الأصل التجاري.',asker:'مستثمر',date:'2026-06-10'},
+];
+
+function showTab(el, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+function renderInvestors() {
+  const list = document.getElementById('investorsList');
+  INVESTORS.forEach(inv => {
+    const row = document.createElement('div'); row.className = 'investor-row';
+    const av = document.createElement('div'); av.className = 'inv-avatar';
+    av.textContent = inv.name.charAt(0);
+    const nm = document.createElement('div'); nm.className = 'inv-name'; nm.textContent = inv.name;
+    const amt = document.createElement('div'); amt.className = 'inv-amount';
+    amt.textContent = inv.amount.toLocaleString('ar-SA') + ' ر.س';
+    const dt = document.createElement('div'); dt.className = 'inv-date'; dt.textContent = inv.date;
+    row.appendChild(av); row.appendChild(nm); row.appendChild(amt); row.appendChild(dt);
+    list.appendChild(row);
+  });
+}
+
+function renderDocs() {
+  const list = document.getElementById('docsList');
+  DOCS.forEach(d => {
+    const row = document.createElement('div'); row.className = 'doc-row';
+    const icon = document.createElement('div'); icon.className = 'doc-icon'; icon.textContent = d.icon;
+    const info = document.createElement('div'); info.className = 'doc-info';
+    const nm = document.createElement('div'); nm.className = 'doc-name'; nm.textContent = d.name;
+    const sz = document.createElement('div'); sz.className = 'doc-size'; sz.textContent = d.size;
+    info.appendChild(nm); info.appendChild(sz);
+    const dl = document.createElement('button'); dl.className = 'doc-dl'; dl.textContent = 'تحميل';
+    dl.onclick = () => toast('بدأ تحميل: ' + d.name);
+    row.appendChild(icon); row.appendChild(info); row.appendChild(dl);
+    list.appendChild(row);
+  });
+}
+
+function renderUpdates() {
+  const list = document.getElementById('updatesList');
+  UPDATES.forEach(u => {
+    const item = document.createElement('div'); item.className = 'update-item';
+    const hdr = document.createElement('div'); hdr.className = 'upd-header';
+    const title = document.createElement('div'); title.className = 'upd-title'; title.textContent = u.title;
+    const date = document.createElement('div'); date.className = 'upd-date'; date.textContent = u.date;
+    hdr.appendChild(title); hdr.appendChild(date);
+    const body = document.createElement('div'); body.className = 'upd-body'; body.textContent = u.body;
+    item.appendChild(hdr); item.appendChild(body);
+    list.appendChild(item);
+  });
+}
+
+function renderQA() {
+  const list = document.getElementById('qaList');
+  QA.forEach(q => {
+    const item = document.createElement('div'); item.className = 'qa-item';
+    const qEl = document.createElement('div'); qEl.className = 'qa-q'; qEl.textContent = '❓ ' + q.q;
+    const aEl = document.createElement('div'); aEl.className = 'qa-a'; aEl.textContent = '✅ ' + q.a;
+    const meta = document.createElement('div'); meta.className = 'qa-meta'; meta.textContent = q.asker + ' • ' + q.date;
+    item.appendChild(qEl); item.appendChild(aEl); item.appendChild(meta);
+    list.appendChild(item);
+  });
+}
+
+function openInvestModal() {
+  document.getElementById('investModal').classList.add('open');
+  document.getElementById('investAmount').addEventListener('input', updateReturnCalc);
+}
+
+function closeInvestModal() {
+  document.getElementById('investModal').classList.remove('open');
+}
+
+function updateReturnCalc() {
+  const amt = parseFloat(document.getElementById('investAmount').value) || 0;
+  const annual = amt * 0.14;
+  const total = annual * 1.5;
+  document.getElementById('expectedReturn').textContent = annual.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س';
+  document.getElementById('totalReturn').textContent = total.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س';
+}
+
+async function confirmInvest() {
+  const amount = parseFloat(document.getElementById('investAmount').value);
+  if (!amount || amount < 50000) { toast('الحد الأدنى للاستثمار 50,000 ر.س'); return; }
+  try {
+    const r = await fetch('/app/me/deals/' + DEAL_ID + '/invest', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':CSRF},
+      body:JSON.stringify({amount}),
+    });
+    if (!r.ok) throw new Error();
+  } catch {}
+  closeInvestModal();
+  toast('تم تسجيل طلب الاستثمار بنجاح');
+}
+
+async function submitQuestion() {
+  const text = document.getElementById('qaInput').value.trim();
+  if (!text) return;
+  try {
+    const r = await fetch('/app/me/deals/' + DEAL_ID + '/questions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':CSRF},
+      body:JSON.stringify({question:text}),
+    });
+    if (!r.ok) throw new Error();
+  } catch {}
+  document.getElementById('qaInput').value = '';
+  toast('تم إرسال سؤالك — سيرد الفريق قريباً');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+renderInvestors();
+renderDocs();
+renderUpdates();
+renderQA();
+</script>
+</body>
+</html>

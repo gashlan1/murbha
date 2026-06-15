@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحليلات المستثمرين - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.kpi-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.kpi-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.kpi-trend{font-size:0.7rem;margin-top:0.2rem;}
+.kpi-trend.up{color:#27ae60;}
+.kpi-trend.down{color:#e74c3c;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.segment-bars{padding:1.25rem;}
+.seg-row{margin-bottom:1rem;}
+.seg-row:last-child{margin-bottom:0;}
+.seg-header{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.3rem;}
+.seg-name{font-weight:600;}
+.seg-pct{color:var(--muted);}
+.seg-bar-track{background:#f0ebe0;border-radius:6px;height:8px;overflow:hidden;}
+.seg-bar-fill{height:100%;border-radius:6px;background:var(--green);}
+.cohort-table{padding:1.25rem;overflow-x:auto;}
+.ctable{width:100%;border-collapse:collapse;}
+.ctable th{background:#f5f0e8;font-size:0.75rem;padding:0.5rem 0.75rem;text-align:right;border-bottom:2px solid var(--line);}
+.ctable td{font-size:0.78rem;padding:0.5rem 0.75rem;border-bottom:1px solid var(--line);}
+.ctable tr:last-child td{border-bottom:none;}
+.ctable tr:hover td{background:#fdfaf4;}
+.geo-list{padding:1.25rem;}
+.geo-row{display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.geo-row:last-child{border-bottom:none;}
+.geo-name{font-size:0.82rem;font-weight:600;}
+.geo-count{font-size:0.78rem;color:var(--muted);}
+.geo-pct{font-size:0.82rem;font-weight:700;color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.kpi-grid{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تحليلات المستثمرين</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>لوحة تحليلات المستثمرين</h2>
+      <p>رؤى عميقة حول سلوك المستثمرين وأنماط الاستثمار</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportAnalytics()">تصدير التقرير</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع المستثمرين حسب الشريحة</h3></div>
+      <div class="segment-bars" id="segmentBars"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>التوزيع الجغرافي</h3></div>
+      <div class="geo-list" id="geoList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>تحليل مجموعات المستثمرين (Cohort)</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportAnalytics()">تصدير</button>
+    </div>
+    <div class="cohort-table" id="cohortTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="exportAnalytics()">تصدير التحليل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KPIS = [
+  { val: '٤٢٠', lbl: 'إجمالي المستثمرين', trend: '↑ ١٨ هذا الشهر', cls: 'up' },
+  { val: '٦٨٪', lbl: 'معدل الاحتفاظ', trend: '↑ ٣٪ عن الشهر الماضي', cls: 'up' },
+  { val: '٨٥,٠٠٠ ر.س', lbl: 'متوسط حجم المحفظة', trend: '↑ ٥٪ ربع سنوي', cls: 'up' },
+  { val: '٢٢ يوم', lbl: 'متوسط وقت اتخاذ القرار', trend: '↓ ٣ أيام تحسن', cls: 'up' }
+];
+
+const SEGMENTS = [
+  { name: 'المستثمرون المعتمدون', pct: 45, count: '١٨٩ مستثمر' },
+  { name: 'المستثمرون النشطون', pct: 30, count: '١٢٦ مستثمر' },
+  { name: 'المستثمرون الجدد', pct: 15, count: '٦٣ مستثمر' },
+  { name: 'المستثمرون غير النشطين', pct: 10, count: '٤٢ مستثمر' }
+];
+
+const GEO = [
+  { name: 'الرياض', count: '١٨٠ مستثمر', pct: '٤٣٪' },
+  { name: 'جدة', count: '١٠٥ مستثمر', pct: '٢٥٪' },
+  { name: 'الدمام', count: '٦٣ مستثمر', pct: '١٥٪' },
+  { name: 'مكة المكرمة', count: '٤٢ مستثمر', pct: '١٠٪' },
+  { name: 'مناطق أخرى', count: '٣٠ مستثمر', pct: '٧٪' }
+];
+
+const COHORTS = [
+  { cohort: 'يناير ٢٠٢٦', size: '٤٥', m1: '٩٢٪', m2: '٨٥٪', m3: '٧٨٪', avg: '٩٢,٠٠٠ ر.س' },
+  { cohort: 'فبراير ٢٠٢٦', size: '٣٨', m1: '٨٩٪', m2: '٨١٪', m3: '—', avg: '٧٨,٠٠٠ ر.س' },
+  { cohort: 'مارس ٢٠٢٦', size: '٥٢', m1: '٩٤٪', m2: '—', m3: '—', avg: '٨٨,٠٠٠ ر.س' },
+  { cohort: 'أبريل ٢٠٢٦', size: '٤١', m1: '٩١٪', m2: '—', m3: '—', avg: '٨١,٠٠٠ ر.س' }
+];
+
+function buildKPIs() {
+  const wrap = document.getElementById('kpiGrid');
+  KPIS.forEach(k => {
+    const card = document.createElement('div'); card.className = 'kpi-card';
+    const val = document.createElement('div'); val.className = 'kpi-val'; val.textContent = k.val;
+    const lbl = document.createElement('div'); lbl.className = 'kpi-lbl'; lbl.textContent = k.lbl;
+    const trend = document.createElement('div'); trend.className = 'kpi-trend ' + k.cls; trend.textContent = k.trend;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(trend);
+    wrap.appendChild(card);
+  });
+}
+
+function buildSegments() {
+  const wrap = document.getElementById('segmentBars');
+  SEGMENTS.forEach(s => {
+    const row = document.createElement('div'); row.className = 'seg-row';
+    const header = document.createElement('div'); header.className = 'seg-header';
+    const name = document.createElement('span'); name.className = 'seg-name'; name.textContent = s.name;
+    const pct = document.createElement('span'); pct.className = 'seg-pct'; pct.textContent = s.count + ' · ' + s.pct + '٪';
+    header.appendChild(name); header.appendChild(pct);
+    const track = document.createElement('div'); track.className = 'seg-bar-track';
+    const fill = document.createElement('div'); fill.className = 'seg-bar-fill'; fill.style.width = s.pct + '%';
+    track.appendChild(fill);
+    row.appendChild(header); row.appendChild(track);
+    wrap.appendChild(row);
+  });
+}
+
+function buildGeo() {
+  const wrap = document.getElementById('geoList');
+  GEO.forEach(g => {
+    const row = document.createElement('div'); row.className = 'geo-row';
+    const info = document.createElement('div');
+    const name = document.createElement('div'); name.className = 'geo-name'; name.textContent = g.name;
+    const count = document.createElement('div'); count.className = 'geo-count'; count.textContent = g.count;
+    info.appendChild(name); info.appendChild(count);
+    const pct = document.createElement('div'); pct.className = 'geo-pct'; pct.textContent = g.pct;
+    row.appendChild(info); row.appendChild(pct);
+    wrap.appendChild(row);
+  });
+}
+
+function buildCohort() {
+  const wrap = document.getElementById('cohortTable');
+  const table = document.createElement('table'); table.className = 'ctable';
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  ['المجموعة','الحجم','الشهر ١','الشهر ٢','الشهر ٣','متوسط المحفظة'].forEach(h => {
+    const th = document.createElement('th'); th.textContent = h; hr.appendChild(th);
+  });
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  COHORTS.forEach(c => {
+    const tr = document.createElement('tr');
+    [c.cohort, c.size, c.m1, c.m2, c.m3, c.avg].forEach(v => {
+      const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody); wrap.appendChild(table);
+}
+
+function exportAnalytics() {
+  fetch('/app/admin/investor-analytics/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تحليلات المستثمرين...');
+}
+
+buildKPIs(); buildSegments(); buildGeo(); buildCohort();
+</script>
+</body>
+</html>

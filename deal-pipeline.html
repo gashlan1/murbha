@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>خط أنابيب الصفقات — مُرابحة</title>
+<meta name="description" content="لوحة إدارية لمتابعة الصفقات في مراحل المراجعة والاعتماد والإطلاق." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1100px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:36px 22px;margin-bottom:18px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:6px;}
+  .hero p{font:500 13px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.8;}
+  .admin-badge{background:rgba(176,136,64,.25);color:var(--gold-light);border-radius:99px;padding:4px 14px;font:700 11px Cairo,sans-serif;display:inline-block;margin-bottom:10px;}
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;flex:1;min-width:120px;}
+  .kpi-val{font:900 22px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .pipeline-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px;}
+  .stage-col{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .stage-hdr{padding:12px 14px;font:900 12px Cairo,sans-serif;display:flex;justify-content:space-between;align-items:center;}
+  .stage-hdr .count{background:rgba(0,0,0,.08);border-radius:99px;padding:2px 8px;font:700 10px Cairo,sans-serif;}
+  .stage-draft .stage-hdr{background:#f5f5f5;color:#555;}
+  .stage-review .stage-hdr{background:#fff8e1;color:#a07020;}
+  .stage-sharia .stage-hdr{background:#e8f5e9;color:#2e7d32;}
+  .stage-legal .stage-hdr{background:#e3f2fd;color:#1565c0;}
+  .stage-launch .stage-hdr{background:#fce4ec;color:#ad1457;}
+  .deal-card{margin:0 10px 10px;background:var(--paper);border-radius:10px;padding:12px;}
+  .deal-name{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .deal-meta{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;line-height:1.5;}
+  .deal-target{font:900 12px Cairo,sans-serif;color:var(--gold);margin-top:5px;}
+  .deal-actions{display:flex;gap:5px;margin-top:8px;}
+  .btn-sm{border-radius:5px;padding:3px 8px;font:700 9px Cairo,sans-serif;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--green-dark);}
+  .btn-sm.advance{background:var(--green-dark);color:#fbf6ea;border-color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="admin-badge">🔒 مشرفون فقط</div>
+    <h1>🚀 خط أنابيب الصفقات</h1>
+    <p>تتبّع الصفقات عبر مراحل التحضير والمراجعة الشرعية والقانونية حتى الإطلاق.</p>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">إجمالي في الخط</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">في المراجعة الشرعية</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">جاهزة للإطلاق</div></div>
+    <div class="kpi"><div class="kpi-val">—</div><div class="kpi-lbl">حجم الخط (ر.س)</div></div>
+  </div>
+
+  <div class="pipeline-grid" id="pipelineGrid"><p class="placeholder-msg" style="grid-column:1/-1">جارٍ التحميل…</p></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  const STAGES=[
+    {key:'draft',label:'مسودة',cls:'stage-draft',next:'review'},
+    {key:'review',label:'قيد المراجعة',cls:'stage-review',next:'sharia'},
+    {key:'sharia',label:'المراجعة الشرعية',cls:'stage-sharia',next:'legal'},
+    {key:'legal',label:'المراجعة القانونية',cls:'stage-legal',next:'launch'},
+    {key:'launch',label:'جاهز للإطلاق',cls:'stage-launch',next:null},
+  ];
+
+  function renderKPIs(deals){
+    const row=document.getElementById('kpiRow'); row.textContent='';
+    const shariaCount=deals.filter(d=>d.stage==='sharia').length;
+    const launchCount=deals.filter(d=>d.stage==='launch').length;
+    const totalVol=deals.reduce((s,d)=>s+(d.target||0),0);
+    [{val:deals.length,lbl:'إجمالي في الخط'},{val:shariaCount,lbl:'في المراجعة الشرعية'},{val:launchCount,lbl:'جاهزة للإطلاق'},{val:fmt(totalVol)+' ر.س',lbl:'حجم الخط'}].forEach(it=>{
+      const k=document.createElement('div'); k.className='kpi';
+      const v=document.createElement('div'); v.className='kpi-val'; v.textContent=it.val;
+      const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=it.lbl;
+      k.appendChild(v); k.appendChild(l); row.appendChild(k);
+    });
+  }
+
+  function renderPipeline(deals){
+    const grid=document.getElementById('pipelineGrid'); grid.textContent='';
+    STAGES.forEach(stage=>{
+      const col=document.createElement('div'); col.className='stage-col '+stage.cls;
+      const hdr=document.createElement('div'); hdr.className='stage-hdr';
+      const lbl=document.createElement('span'); lbl.textContent=stage.label;
+      const cnt=document.createElement('span'); cnt.className='count';
+      const stageDeals=deals.filter(d=>d.stage===stage.key);
+      cnt.textContent=stageDeals.length;
+      hdr.appendChild(lbl); hdr.appendChild(cnt); col.appendChild(hdr);
+      if(!stageDeals.length){
+        const em=document.createElement('p'); em.className='placeholder-msg'; em.style.fontSize='11px'; em.textContent='لا توجد صفقات';
+        col.appendChild(em);
+      }
+      stageDeals.forEach(deal=>{
+        const card=document.createElement('div'); card.className='deal-card';
+        const nm=document.createElement('div'); nm.className='deal-name'; nm.textContent=deal.title||'—';
+        const meta=document.createElement('div'); meta.className='deal-meta'; meta.textContent=(deal.sector||'—')+' · '+(deal.manager||'—');
+        const tgt=document.createElement('div'); tgt.className='deal-target'; tgt.textContent=fmt(deal.target||0)+' ر.س';
+        card.appendChild(nm); card.appendChild(meta); card.appendChild(tgt);
+        const acts=document.createElement('div'); acts.className='deal-actions';
+        const viewBtn=document.createElement('button'); viewBtn.className='btn-sm'; viewBtn.textContent='عرض';
+        viewBtn.addEventListener('click',()=>showToast('عرض: '+deal.title));
+        acts.appendChild(viewBtn);
+        if(stage.next){
+          const adv=document.createElement('button'); adv.className='btn-sm advance'; adv.textContent='تقدّم ▶';
+          adv.addEventListener('click',()=>advanceDeal(deal.id, stage.next, adv));
+          acts.appendChild(adv);
+        }
+        card.appendChild(acts); col.appendChild(card);
+      });
+      grid.appendChild(col);
+    });
+  }
+
+  async function advanceDeal(id, toStage, btn){
+    btn.disabled=true;
+    try{
+      const r=await fetch('/app/admin/deal-pipeline/'+encodeURIComponent(id)+'/advance',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({stage:toStage})});
+      if(!r.ok){ showToast('تعذّر التقديم.'); btn.disabled=false; return; }
+      showToast('تم تقديم الصفقة إلى المرحلة التالية ✅'); await loadData();
+    }catch{ showToast('خطأ في الاتصال.'); btn.disabled=false; }
+  }
+
+  async function loadData(){
+    try{
+      const r=await fetch('/app/admin/deal-pipeline');
+      const grid=document.getElementById('pipelineGrid');
+      if(!r.ok){ grid.textContent=''; const m=document.createElement('p'); m.className='placeholder-msg'; m.style.gridColumn='1/-1'; m.textContent=r.status===401?'يجب تسجيل الدخول كمشرف.':'تعذّر التحميل.'; grid.appendChild(m); return; }
+      const d=await r.json();
+      renderKPIs(d.deals||[]);
+      renderPipeline(d.deals||[]);
+    }catch{
+      const grid=document.getElementById('pipelineGrid'); grid.textContent='';
+      const m=document.createElement('p'); m.className='placeholder-msg'; m.style.gridColumn='1/-1'; m.textContent='تعذّر التحميل.'; grid.appendChild(m);
+    }
+  }
+
+  loadData();
+}());
+</script>
+</body>
+</html>

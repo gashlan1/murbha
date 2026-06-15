@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>تقييم الملاءمة — مُرابحة</title>
+<meta name="description" content="تقييم شامل لملاءمة الاستثمار يساعدك على معرفة نوع الصفقات المناسبة لوضعك المالي وأهدافك." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:740px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:580px;margin:0 auto;line-height:1.85;}
+  .progress-wrap{margin-bottom:18px;}
+  .progress-label{display:flex;justify-content:space-between;font:700 11px Cairo,sans-serif;color:var(--muted);margin-bottom:6px;}
+  .progress-bar{background:var(--line);border-radius:99px;height:6px;overflow:hidden;}
+  .progress-fill{background:var(--green);height:100%;border-radius:99px;transition:width .4s;}
+  .q-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 24px;margin-bottom:14px;}
+  .q-num{font:900 11px Cairo,sans-serif;color:var(--gold);margin-bottom:8px;}
+  .q-text{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:18px;line-height:1.6;}
+  .options-grid{display:grid;gap:10px;}
+  .opt-btn{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:start;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;}
+  .opt-btn:hover{border-color:var(--green);background:#f0f9f4;}
+  .opt-btn.selected{border-color:var(--green);background:#e8f5e9;}
+  .opt-icon{width:36px;height:36px;border-radius:8px;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .opt-btn.selected .opt-icon{background:var(--green);color:#fbf6ea;}
+  .opt-label{font:700 13px Cairo,sans-serif;color:var(--ink);}
+  .opt-sub{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;}
+  .btn-prev{background:var(--paper);color:var(--green);border:1px solid var(--green);border-radius:10px;padding:10px 20px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-next{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:10px 24px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-next:disabled{opacity:.4;cursor:default;}
+  .result-card{background:#fff;border:2px solid var(--gold);border-radius:20px;padding:32px 24px;text-align:center;}
+  .result-icon{font-size:52px;margin-bottom:16px;}
+  .result-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:8px;}
+  .result-desc{font:500 14px Tajawal,sans-serif;color:var(--muted);line-height:1.9;max-width:500px;margin:0 auto 18px;}
+  .result-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;}
+  .result-tag{background:#e8f5e9;color:var(--green);border-radius:8px;padding:4px 12px;font:700 11px Cairo,sans-serif;}
+  .result-tag.gold{background:#fdf5e4;color:var(--gold);}
+  .result-tag.red{background:#fdecea;color:#c54a3a;}
+  .result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .btn-primary{background:var(--green);color:#fbf6ea;border:none;border-radius:10px;padding:12px 28px;font:700 14px Cairo,sans-serif;cursor:pointer;}
+  .btn-secondary{background:var(--paper);color:var(--green);border:1px solid var(--green);border-radius:10px;padding:12px 22px;font:700 14px Cairo,sans-serif;cursor:pointer;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>📋 تقييم الملاءمة</h1>
+    <p>٨ أسئلة تساعدنا على اقتراح الصفقات الأنسب لوضعك المالي وأهدافك. يستغرق حوالي ٣ دقائق.</p>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap" style="display:none">
+    <div class="progress-label">
+      <span id="progressLabel">السؤال ١ من ٨</span>
+      <span id="progressPct">١٢٪</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div id="questionArea"></div>
+</main>
+<script>
+(function(){
+  const QUESTIONS = [
+    {
+      id:'age', text:'ما هي فئتك العمرية؟',
+      options:[
+        {icon:'🌱',label:'١٨ – ٢٩ سنة',sub:'بداية المسيرة المهنية',value:'18-29',score:4},
+        {icon:'🌳',label:'٣٠ – ٤٤ سنة',sub:'مرحلة البناء',value:'30-44',score:3},
+        {icon:'🌟',label:'٤٥ – ٥٩ سنة',sub:'مرحلة التراكم',value:'45-59',score:2},
+        {icon:'🕊️',label:'٦٠ سنة فأكثر',sub:'مرحلة الاستقرار',value:'60+',score:1},
+      ]
+    },
+    {
+      id:'income', text:'ما هو مصدر دخلك الرئيسي؟',
+      options:[
+        {icon:'💼',label:'وظيفة ثابتة',sub:'راتب شهري منتظم',value:'salary',score:3},
+        {icon:'🏪',label:'عمل حرّ أو تجاري',sub:'دخل متغيّر',value:'self_employed',score:2},
+        {icon:'🏠',label:'إيرادات استثمارية',sub:'إيجارات أو أرباح',value:'investment',score:3},
+        {icon:'🎓',label:'متقاعد أو مدخرات',sub:'دخل ثابت محدود',value:'retired',score:1},
+      ]
+    },
+    {
+      id:'horizon', text:'ما هو أفق استثمارك؟',
+      options:[
+        {icon:'⚡',label:'أقل من سنة',sub:'أحتاج السيولة قريباً',value:'short',score:1},
+        {icon:'📅',label:'١ – ٣ سنوات',sub:'أفق قصير إلى متوسط',value:'medium',score:2},
+        {icon:'📈',label:'٣ – ٧ سنوات',sub:'أفق متوسط',value:'long',score:3},
+        {icon:'🔭',label:'أكثر من ٧ سنوات',sub:'استثمار طويل الأمد',value:'very_long',score:4},
+      ]
+    },
+    {
+      id:'risk_reaction', text:'إذا انخفضت قيمة استثمارك ١٠٪ مؤقتاً، ماذا ستفعل؟',
+      options:[
+        {icon:'😰',label:'أسحب فوراً',sub:'لا أتحمّل الخسارة',value:'sell',score:1},
+        {icon:'😟',label:'أقلق ولكن أنتظر',sub:'أتحمّل الانتظار بصعوبة',value:'wait_worried',score:2},
+        {icon:'😌',label:'أنتظر بهدوء',sub:'أفهم أن السوق يتذبذب',value:'wait_calm',score:3},
+        {icon:'😊',label:'أستثمر أكثر',sub:'الانخفاض فرصة',value:'buy_more',score:4},
+      ]
+    },
+    {
+      id:'liquidity', text:'ما نسبة هذا الاستثمار من إجمالي مدخراتك؟',
+      options:[
+        {icon:'💧',label:'أقل من ١٠٪',sub:'جزء صغير من المدخرات',value:'under10',score:4},
+        {icon:'🌊',label:'١٠٪ – ٢٥٪',sub:'جزء معقول',value:'10-25',score:3},
+        {icon:'🌀',label:'٢٥٪ – ٥٠٪',sub:'جزء كبير نسبياً',value:'25-50',score:2},
+        {icon:'⚠️',label:'أكثر من ٥٠٪',sub:'معظم مدخراتي',value:'over50',score:1},
+      ]
+    },
+    {
+      id:'experience', text:'ما مستوى خبرتك في الاستثمار؟',
+      options:[
+        {icon:'🌱',label:'مبتدئ',sub:'هذه أوّل تجربة لي',value:'beginner',score:1},
+        {icon:'📚',label:'متعلّم',sub:'قرأت عن الاستثمار ولدي تجارب بسيطة',value:'learning',score:2},
+        {icon:'🎯',label:'متوسط',sub:'لديّ تجارب استثمارية عدّة',value:'intermediate',score:3},
+        {icon:'🏆',label:'خبير',sub:'استثمار منذ سنوات في فئات متعددة',value:'expert',score:4},
+      ]
+    },
+    {
+      id:'objective', text:'ما هدفك الأساسي من الاستثمار؟',
+      options:[
+        {icon:'🛡️',label:'حفظ رأس المال',sub:'الأمان أهمّ من العائد',value:'preserve',score:1},
+        {icon:'💸',label:'دخل دوري منتظم',sub:'أريد تدفقات نقدية',value:'income',score:2},
+        {icon:'⚖️',label:'توازن بين الدخل والنمو',sub:'عائد مناسب مع بعض الأمان',value:'balanced',score:3},
+        {icon:'🚀',label:'نمو رأس المال',sub:'أركّز على التراكم طويل الأمد',value:'growth',score:4},
+      ]
+    },
+    {
+      id:'loss_tolerance', text:'ما أقصى خسارة مؤقتة تقبلها في محفظتك؟',
+      options:[
+        {icon:'1️⃣',label:'صفر خسارة',sub:'لا أقبل أي خسارة',value:'0',score:1},
+        {icon:'2️⃣',label:'حتى ٥٪',sub:'خسارة صغيرة مقبولة',value:'5',score:2},
+        {icon:'3️⃣',label:'حتى ١٥٪',sub:'متحمّل لتذبذب متوسط',value:'15',score:3},
+        {icon:'4️⃣',label:'٢٥٪ فأكثر',sub:'متحمّل لتذبذب عالٍ',value:'25',score:4},
+      ]
+    },
+  ];
+
+  const PROFILES = [
+    { min:0, max:12, key:'conservative', icon:'🛡️', title:'المستثمر المحافظ', desc:'تفضّل الأمان على العائد. ننصحك بصفقات المرابحة قصيرة الأجل في قطاعات ذات سجلّ ممتاز كالعقارات والخدمات.', tags:['منخفض المخاطر','قصير الأمد','دخل ثابت'] },
+    { min:13, max:19, key:'moderate', icon:'⚖️', title:'المستثمر المعتدل', desc:'توازن جيد بين الأمان والنمو. محفظة متنوّعة تشمل قطاعات متعددة مع عوائد سنوية بين ٧٪ و ١٠٪.', tags:['متوسط المخاطر','متنوّع','عائد معقول'] },
+    { min:20, max:26, key:'growth', icon:'📈', title:'المستثمر الساعي للنمو', desc:'تقبّل مخاطر أعلى لعوائد أعلى. مناسب للصفقات المتوسطة إلى طويلة الأجل في قطاعات التقنية واللوجستيات.', tags:['متوسط-مرتفع','نمو','أفق متوسط'] },
+    { min:27, max:32, key:'aggressive', icon:'🚀', title:'المستثمر المتقدّم', desc:'خبرة عالية وتحمّل قوي للمخاطر. يمكنك الاستثمار في صفقات قطاعات ناشئة ذات عوائد مرتفعة.', tags:['مرتفع المخاطر','أفق طويل','نمو عالٍ'] },
+  ];
+
+  let current = 0;
+  let answers = {};
+
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+
+  function totalScore(){
+    return Object.values(answers).reduce((s,v)=>s+v,0);
+  }
+
+  function getProfile(){
+    const score = totalScore();
+    return PROFILES.find(p => score >= p.min && score <= p.max) || PROFILES[1];
+  }
+
+  function updateProgress(){
+    const pct = Math.round(((current) / QUESTIONS.length) * 100);
+    document.getElementById('progressFill').style.width = pct+'%';
+    document.getElementById('progressLabel').textContent = 'السؤال '+(current+1)+' من '+QUESTIONS.length;
+    document.getElementById('progressPct').textContent = pct+'٪';
+  }
+
+  function renderQuestion(){
+    document.getElementById('progressWrap').style.display = '';
+    updateProgress();
+    const q = QUESTIONS[current];
+    const area = document.getElementById('questionArea');
+    area.textContent = '';
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+
+    const num = document.createElement('div');
+    num.className = 'q-num';
+    num.textContent = 'السؤال '+(current+1)+' من '+QUESTIONS.length;
+
+    const text = document.createElement('div');
+    text.className = 'q-text';
+    text.textContent = q.text;
+
+    const grid = document.createElement('div');
+    grid.className = 'options-grid';
+
+    q.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn' + (answers[q.id] === opt.score ? ' selected' : '');
+      btn.addEventListener('click', () => {
+        answers[q.id] = opt.score;
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+      });
+      const ico = document.createElement('div');
+      ico.className = 'opt-icon';
+      ico.textContent = opt.icon;
+      const info = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'opt-label';
+      lbl.textContent = opt.label;
+      const sub = document.createElement('div');
+      sub.className = 'opt-sub';
+      sub.textContent = opt.sub;
+      info.appendChild(lbl);
+      info.appendChild(sub);
+      btn.appendChild(ico);
+      btn.appendChild(info);
+      grid.appendChild(btn);
+    });
+
+    const navRow = document.createElement('div');
+    navRow.className = 'nav-row';
+
+    if(current > 0){
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'btn-prev';
+      prevBtn.textContent = '← السابق';
+      prevBtn.addEventListener('click', () => { current--; renderQuestion(); });
+      navRow.appendChild(prevBtn);
+    } else {
+      navRow.appendChild(document.createElement('span'));
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.id = 'nextBtn';
+    nextBtn.textContent = current === QUESTIONS.length - 1 ? 'عرض النتيجة' : 'التالي →';
+    nextBtn.disabled = answers[q.id] === undefined;
+    nextBtn.addEventListener('click', () => {
+      if(current < QUESTIONS.length - 1){ current++; renderQuestion(); }
+      else renderResult();
+    });
+    navRow.appendChild(nextBtn);
+
+    card.appendChild(num);
+    card.appendChild(text);
+    card.appendChild(grid);
+    card.appendChild(navRow);
+    area.appendChild(card);
+  }
+
+  async function renderResult(){
+    document.getElementById('progressWrap').style.display = 'none';
+    const profile = getProfile();
+    const area = document.getElementById('questionArea');
+    area.textContent = '';
+
+    try{
+      await fetch('/app/me/suitability', {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-CSRF-Token':csrf()},
+        body:JSON.stringify({ profile:profile.key, score:totalScore(), answers })
+      });
+    }catch{}
+
+    const card = document.createElement('div');
+    card.className = 'result-card';
+
+    const ico = document.createElement('div');
+    ico.className = 'result-icon';
+    ico.textContent = profile.icon;
+
+    const title = document.createElement('div');
+    title.className = 'result-title';
+    title.textContent = profile.title;
+
+    const desc = document.createElement('div');
+    desc.className = 'result-desc';
+    desc.textContent = profile.desc;
+
+    const tags = document.createElement('div');
+    tags.className = 'result-tags';
+    profile.tags.forEach((t,i) => {
+      const tag = document.createElement('span');
+      tag.className = 'result-tag' + (i===1?' gold':'');
+      tag.textContent = t;
+      tags.appendChild(tag);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'result-actions';
+
+    const browseBtn = document.createElement('button');
+    browseBtn.className = 'btn-primary';
+    browseBtn.textContent = '🗂️ تصفّح الصفقات المناسبة';
+    browseBtn.addEventListener('click', () => { window.location.href = '/projects.html?profile='+profile.key; });
+
+    const retakeBtn = document.createElement('button');
+    retakeBtn.className = 'btn-secondary';
+    retakeBtn.textContent = 'إعادة التقييم';
+    retakeBtn.addEventListener('click', () => { current=0; answers={}; renderQuestion(); document.getElementById('progressWrap').style.display=''; });
+
+    actions.appendChild(browseBtn);
+    actions.appendChild(retakeBtn);
+
+    card.appendChild(ico);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(tags);
+    card.appendChild(actions);
+    area.appendChild(card);
+  }
+
+  renderQuestion();
+}());
+</script>
+</body>
+</html>

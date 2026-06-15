@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>أسئلة الصفقة — مُرابحة</title>
+<meta name="description" content="اطرح أسئلتك حول أي صفقة واحصل على إجابات من فريق مُرابحة والمجتمع." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:600px;margin:0 auto;line-height:1.85;}
+  .deal-selector{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .deal-selector label{font:700 12px Cairo,sans-serif;color:var(--green-dark);}
+  .deal-select{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:500 12px Tajawal,sans-serif;background:#fff;}
+  .deal-select:focus{outline:none;border-color:var(--green);}
+  .ask-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px;}
+  .ask-box h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;}
+  .ask-textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font:500 13px Tajawal,sans-serif;resize:vertical;min-height:90px;}
+  .ask-textarea:focus{outline:none;border-color:var(--green);}
+  .ask-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;}
+  .char-count{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .btn-ask{background:var(--green);color:#fbf6ea;border:none;border-radius:8px;padding:10px 22px;font:700 13px Cairo,sans-serif;cursor:pointer;}
+  .btn-ask:disabled{opacity:.5;cursor:default;}
+  .q-list{display:grid;gap:12px;}
+  .q-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .q-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .q-author{font:700 11px Cairo,sans-serif;color:var(--green-dark);}
+  .q-date{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .q-body{font:500 13px Tajawal,sans-serif;line-height:1.85;margin-bottom:10px;}
+  .q-actions{display:flex;gap:8px;align-items:center;}
+  .btn-upvote{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:700 11px Cairo,sans-serif;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;}
+  .btn-upvote.voted{background:#e8f5e9;color:var(--green);border-color:var(--green);}
+  .tag-official{background:#fdf5e4;color:var(--gold);border-radius:6px;padding:2px 8px;font:700 10px Cairo,sans-serif;}
+  .tag-open{background:var(--paper);color:var(--muted);border-radius:6px;padding:2px 8px;font:700 10px Cairo,sans-serif;}
+  .answer-box{background:var(--paper);border-radius:10px;padding:14px;margin-top:10px;border-right:3px solid var(--gold);}
+  .answer-label{font:900 10px Cairo,sans-serif;color:var(--gold);margin-bottom:6px;}
+  .answer-body{font:500 12px Tajawal,sans-serif;line-height:1.8;}
+  .empty-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>💬 أسئلة الصفقة</h1>
+    <p>اطرح سؤالك حول أي صفقة واحصل على إجابة من فريق مُرابحة أو المستثمرين الآخرين.</p>
+  </div>
+
+  <div class="deal-selector">
+    <label>اختر الصفقة:</label>
+    <select class="deal-select" id="dealSelect">
+      <option value="">— جارٍ التحميل —</option>
+    </select>
+  </div>
+
+  <div class="ask-box">
+    <h2>🙋 اطرح سؤالاً</h2>
+    <textarea class="ask-textarea" id="questionInput" maxlength="500" placeholder="اكتب سؤالك هنا…"></textarea>
+    <div class="ask-row">
+      <span class="char-count" id="charCount">0 / 500</span>
+      <button class="btn-ask" id="askBtn" disabled>إرسال السؤال</button>
+    </div>
+  </div>
+
+  <div id="qList">
+    <p class="empty-msg">اختر صفقة لعرض الأسئلة.</p>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  let currentDeal = '';
+  let questions = [];
+  let myVotes = new Set();
+
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function fmtDate(s){ return s ? new Date(s).toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric'}) : '—'; }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  async function loadDeals(){
+    try{
+      const r = await fetch('/app/public/deals-list');
+      if(!r.ok) return;
+      const d = await r.json();
+      const sel = document.getElementById('dealSelect');
+      sel.textContent = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '— اختر صفقة —';
+      sel.appendChild(placeholder);
+      (d.deals || []).forEach(deal => {
+        const opt = document.createElement('option');
+        opt.value = deal.id;
+        opt.textContent = deal.name || deal.title || deal.id;
+        sel.appendChild(opt);
+      });
+    }catch{}
+  }
+
+  async function loadQuestions(dealId){
+    const listEl = document.getElementById('qList');
+    listEl.textContent = '';
+    const msg = document.createElement('p');
+    msg.className = 'empty-msg';
+    msg.textContent = 'جارٍ التحميل…';
+    listEl.appendChild(msg);
+    try{
+      const r = await fetch('/app/deals/'+encodeURIComponent(dealId)+'/qa');
+      if(!r.ok){ msg.textContent = 'تعذّر التحميل.'; return; }
+      const d = await r.json();
+      questions = d.questions || [];
+      myVotes = new Set(d.myVotes || []);
+      renderQuestions();
+    }catch{ msg.textContent = 'تعذّر التحميل. حاول لاحقاً.'; }
+  }
+
+  function renderQuestions(){
+    const listEl = document.getElementById('qList');
+    listEl.textContent = '';
+    if(!questions.length){
+      const m = document.createElement('p');
+      m.className = 'empty-msg';
+      m.textContent = 'لا توجد أسئلة بعد. كن أوّل من يسأل!';
+      listEl.appendChild(m);
+      return;
+    }
+    const sorted = [...questions].sort((a,b) => (b.upvotes||0) - (a.upvotes||0));
+    sorted.forEach(q => {
+      const card = document.createElement('div');
+      card.className = 'q-card';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'q-header';
+      const left = document.createElement('div');
+      const auth = document.createElement('div');
+      auth.className = 'q-author';
+      auth.textContent = q.authorName || 'مستثمر';
+      const date = document.createElement('div');
+      date.className = 'q-date';
+      date.textContent = fmtDate(q.createdAt);
+      left.appendChild(auth);
+      left.appendChild(date);
+      const statusTag = document.createElement('span');
+      statusTag.className = q.answered ? 'tag-official' : 'tag-open';
+      statusTag.textContent = q.answered ? '✅ مُجاب' : '⏳ قيد المراجعة';
+      hdr.appendChild(left);
+      hdr.appendChild(statusTag);
+
+      const body = document.createElement('div');
+      body.className = 'q-body';
+      body.textContent = q.text;
+
+      const actions = document.createElement('div');
+      actions.className = 'q-actions';
+      const upBtn = document.createElement('button');
+      upBtn.className = 'btn-upvote' + (myVotes.has(q.id) ? ' voted' : '');
+      const upIcon = document.createElement('span');
+      upIcon.textContent = '▲';
+      const upCount = document.createElement('span');
+      upCount.textContent = String(q.upvotes || 0);
+      upBtn.appendChild(upIcon);
+      upBtn.appendChild(upCount);
+      upBtn.addEventListener('click', () => vote(q.id, upBtn, upCount));
+      actions.appendChild(upBtn);
+
+      card.appendChild(hdr);
+      card.appendChild(body);
+      card.appendChild(actions);
+
+      if(q.answered && q.answer){
+        const ans = document.createElement('div');
+        ans.className = 'answer-box';
+        const ansLbl = document.createElement('div');
+        ansLbl.className = 'answer-label';
+        ansLbl.textContent = '🌿 إجابة فريق مُرابحة';
+        const ansBody = document.createElement('div');
+        ansBody.className = 'answer-body';
+        ansBody.textContent = q.answer;
+        ans.appendChild(ansLbl);
+        ans.appendChild(ansBody);
+        card.appendChild(ans);
+      }
+
+      document.getElementById('qList').appendChild(card);
+    });
+  }
+
+  async function vote(qId, btn, countEl){
+    if(myVotes.has(qId)) return;
+    try{
+      const r = await fetch('/app/deals/'+encodeURIComponent(currentDeal)+'/qa/'+encodeURIComponent(qId)+'/upvote', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrf() }
+      });
+      if(!r.ok){ showToast('يجب تسجيل الدخول للتصويت.'); return; }
+      myVotes.add(qId);
+      btn.classList.add('voted');
+      countEl.textContent = String(Number(countEl.textContent) + 1);
+    }catch{}
+  }
+
+  async function submitQuestion(){
+    const input = document.getElementById('questionInput');
+    const text = input.value.trim();
+    if(!text || !currentDeal) return;
+    const btn = document.getElementById('askBtn');
+    btn.disabled = true;
+    try{
+      const r = await fetch('/app/deals/'+encodeURIComponent(currentDeal)+'/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf() },
+        body: JSON.stringify({ text })
+      });
+      if(!r.ok){
+        showToast(r.status === 401 ? 'يجب تسجيل الدخول.' : 'تعذّر إرسال السؤال.');
+        btn.disabled = false;
+        return;
+      }
+      input.value = '';
+      document.getElementById('charCount').textContent = '0 / 500';
+      showToast('تم إرسال سؤالك بنجاح. سنجيب قريباً!');
+      await loadQuestions(currentDeal);
+    }catch{
+      showToast('تعذّر الإرسال. حاول لاحقاً.');
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('questionInput').addEventListener('input', e => {
+    const len = e.target.value.length;
+    document.getElementById('charCount').textContent = len + ' / 500';
+    document.getElementById('askBtn').disabled = len < 10 || !currentDeal;
+  });
+
+  document.getElementById('dealSelect').addEventListener('change', e => {
+    currentDeal = e.target.value;
+    document.getElementById('askBtn').disabled = !currentDeal || document.getElementById('questionInput').value.length < 10;
+    if(currentDeal) loadQuestions(currentDeal);
+    else {
+      const listEl = document.getElementById('qList');
+      listEl.textContent = '';
+      const m = document.createElement('p'); m.className='empty-msg'; m.textContent='اختر صفقة لعرض الأسئلة.';
+      listEl.appendChild(m);
+    }
+  });
+
+  document.getElementById('askBtn').addEventListener('click', submitQuestion);
+
+  (async function init(){
+    await loadDeals();
+    const params = new URLSearchParams(location.search);
+    const dealId = params.get('deal');
+    if(dealId){
+      const sel = document.getElementById('dealSelect');
+      sel.value = dealId;
+      if(sel.value === dealId){ currentDeal = dealId; loadQuestions(dealId); }
+    }
+  }());
+}());
+</script>
+</body>
+</html>

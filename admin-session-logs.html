@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Session Logs — Admin — Murbha">سجلات الجلسات — الإدارة — مُرابحة</title>
+<meta name="description" content="مراقبة جلسات المستخدمين وسجلات الدخول والأنشطة المشبوهة في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:1000px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:20px;}
+  /* KPIs */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-lbl{font:700 9px Cairo,sans-serif;color:var(--muted);margin-bottom:4px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-sub{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  /* Active sessions */
+  .active-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px;}
+  .active-title{font:900 13px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  /* Filter bar */
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .filter-chip.danger.active{border-color:#c54a3a;background:#c54a3a;}
+  .search-input{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font:500 12px Tajawal,sans-serif;outline:none;background:#fff;color:var(--ink);flex:1;min-width:180px;}
+  .search-input:focus{border-color:var(--green);}
+  /* Table */
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);}
+  .tbl tr:last-child td{border-bottom:none;}
+  /* Session badges */
+  .badge{display:inline-block;border-radius:6px;padding:3px 8px;font:700 8px Cairo,sans-serif;}
+  .badge-active{background:#e8f5e9;color:#2e7d32;}
+  .badge-expired{background:#f5f5f5;color:#666;}
+  .badge-revoked{background:#fdecea;color:#c54a3a;}
+  .badge-suspicious{background:#fff3e0;color:#e65100;}
+  /* Device icons */
+  .device-icon{font-size:14px;margin-left:4px;}
+  /* Action button */
+  .btn-revoke{background:#fff;color:#c54a3a;border:1.5px solid #c54a3a;border-radius:6px;padding:4px 10px;font:700 8px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-revoke:hover{background:#fdecea;}
+  /* Pagination */
+  .pagination{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:16px;}
+  .pg-btn{border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;}
+  .pg-btn:hover{border-color:var(--green);}
+  .pg-info{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:32px 0;}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2e7d32;color:#fff;border-radius:10px;padding:12px 24px;font:700 12px Cairo,sans-serif;z-index:999;display:none;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<main>
+  <div class="page-title" data-en="Session & Login Logs">سجلات الجلسات وتسجيل الدخول</div>
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="active-card">
+    <div class="active-title" data-en="Currently Active Sessions">الجلسات النشطة حالياً</div>
+    <div id="activeArea"></div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-chip active" data-type="">الكل</div>
+    <div class="filter-chip" data-type="login">تسجيل دخول</div>
+    <div class="filter-chip" data-type="logout">تسجيل خروج</div>
+    <div class="filter-chip danger" data-type="failed">فشل الدخول</div>
+    <div class="filter-chip danger" data-type="suspicious">مشبوه</div>
+    <input class="search-input" id="searchInput" type="text" placeholder="ابحث بالاسم أو IP…" data-en-placeholder="Search by name or IP…" />
+  </div>
+
+  <div class="table-card">
+    <div id="logArea"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){return(document.cookie.match(/csrf=([^;]+)/)||[])[1]||'';}
+  function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#c54a3a':'#2e7d32';t.style.display='block';setTimeout(()=>{t.style.display='none';},3000);}
+
+  const typeLabel={login:'تسجيل دخول',logout:'تسجيل خروج',failed:'فشل الدخول',suspicious:'مشبوه'};
+  const statusBadge={active:'badge-active',expired:'badge-expired',revoked:'badge-revoked',suspicious:'badge-suspicious'};
+  const statusLabel={active:'نشطة',expired:'منتهية',revoked:'مُلغاة',suspicious:'مشبوهة'};
+  const deviceIcon={mobile:'📱',desktop:'💻',tablet:'📟',unknown:'🖥️'};
+
+  let activeType='', searchText='', page=1, totalPages=1;
+
+  async function loadKpis(){
+    try{
+      const r=await fetch('/app/admin/session-logs/stats');
+      if(!r.ok)return;
+      const d=await r.json();
+      const row=document.getElementById('kpiRow'); row.textContent='';
+      [{label:'جلسات نشطة',val:d.activeSessions||0,sub:'الآن'},{label:'تسجيلات اليوم',val:d.todayLogins||0,sub:'دخول'},{label:'محاولات فاشلة',val:d.failedLogins||0,sub:'اليوم'},{label:'نشاط مشبوه',val:d.suspicious||0,sub:'يستحق المراجعة'}].forEach(k=>{
+        const card=document.createElement('div'); card.className='kpi';
+        const lbl=document.createElement('div'); lbl.className='kpi-lbl'; lbl.textContent=k.label;
+        const val=document.createElement('div'); val.className='kpi-val'; val.textContent=k.val;
+        const sub=document.createElement('div'); sub.className='kpi-sub'; sub.textContent=k.sub;
+        card.appendChild(lbl); card.appendChild(val); card.appendChild(sub); row.appendChild(card);
+      });
+    }catch{}
+  }
+
+  async function loadActive(){
+    const el=document.getElementById('activeArea');
+    try{
+      const r=await fetch('/app/admin/session-logs/active');
+      if(!r.ok){el.textContent='';const p=document.createElement('p');p.className='placeholder-msg';p.textContent='تعذّر التحميل.';el.appendChild(p);return;}
+      const d=await r.json();
+      el.textContent='';
+      if(!(d.sessions||[]).length){const p=document.createElement('p');p.className='placeholder-msg';p.textContent='لا توجد جلسات نشطة.';el.appendChild(p);return;}
+      const tbl=document.createElement('table'); tbl.className='tbl';
+      const thead=document.createElement('thead'); const hr=document.createElement('tr');
+      ['المستخدم','الجهاز','IP','تاريخ الدخول','آخر نشاط','الإجراء'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+      thead.appendChild(hr); tbl.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      (d.sessions||[]).forEach(s=>{
+        const tr=document.createElement('tr');
+        const cells=[s.userName||s.userId||'—',null,s.ip||'—',s.loginAt?new Date(s.loginAt).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}):'—',s.lastActivity?new Date(s.lastActivity).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}):'—',null];
+        cells.forEach((c,ci)=>{
+          const td=document.createElement('td');
+          if(ci===1){
+            const icon=document.createElement('span'); icon.textContent=deviceIcon[s.deviceType||'unknown'];
+            const name=document.createTextNode(' '+(s.browser||'متصفح'));
+            td.appendChild(icon); td.appendChild(name);
+          } else if(ci===5){
+            const btn=document.createElement('button'); btn.className='btn-revoke'; btn.textContent='إلغاء الجلسة';
+            btn.addEventListener('click',async()=>{
+              try{await fetch('/app/admin/session-logs/'+encodeURIComponent(s.id)+'/revoke',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({})});
+              toast('تم إلغاء الجلسة.');loadActive();loadKpis();}catch{}
+            });
+            td.appendChild(btn);
+          } else {td.textContent=c;}
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody); el.appendChild(tbl);
+    }catch{}
+  }
+
+  async function loadLogs(){
+    const params=new URLSearchParams({page,perPage:25});
+    if(activeType) params.set('type',activeType);
+    if(searchText) params.set('search',searchText);
+    const area=document.getElementById('logArea');
+    try{
+      const r=await fetch('/app/admin/session-logs?'+params);
+      if(!r.ok){area.textContent='';const p=document.createElement('p');p.className='placeholder-msg';p.textContent='تعذّر التحميل.';area.appendChild(p);return;}
+      const d=await r.json();
+      totalPages=Math.ceil((d.total||0)/25)||1;
+      area.textContent='';
+      if(!(d.logs||[]).length){const p=document.createElement('p');p.className='placeholder-msg';p.textContent='لا توجد سجلات.';area.appendChild(p);renderPagination(0);return;}
+      const tbl=document.createElement('table'); tbl.className='tbl';
+      const thead=document.createElement('thead'); const hr=document.createElement('tr');
+      ['المستخدم','النوع','IP','الجهاز','الحالة','التوقيت'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+      thead.appendChild(hr); tbl.appendChild(thead);
+      const tbody=document.createElement('tbody');
+      (d.logs||[]).forEach(lg=>{
+        const tr=document.createElement('tr');
+        if(lg.type==='suspicious'||lg.type==='failed') tr.style.background='#fff8f0';
+        const cells=[lg.userName||lg.userId||'—',null,lg.ip||'—',deviceIcon[lg.deviceType||'unknown']+' '+(lg.browser||'—'),null,lg.createdAt?new Date(lg.createdAt).toLocaleString('ar-SA',{dateStyle:'short',timeStyle:'short'}):'—'];
+        cells.forEach((c,ci)=>{
+          const td=document.createElement('td');
+          if(ci===1){
+            const badge=document.createElement('span');
+            badge.className='badge '+(lg.type==='failed'||lg.type==='suspicious'?'badge-suspicious':'badge-active');
+            badge.textContent=typeLabel[lg.type]||lg.type||'—';
+            td.appendChild(badge);
+          } else if(ci===4){
+            const badge=document.createElement('span');
+            badge.className='badge '+(statusBadge[lg.status]||'badge-expired');
+            badge.textContent=statusLabel[lg.status]||lg.status||'—';
+            td.appendChild(badge);
+          } else {td.textContent=c;}
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody); area.appendChild(tbl);
+      renderPagination(d.total||0);
+    }catch{}
+  }
+
+  function renderPagination(total){
+    const pg=document.getElementById('pagination'); pg.textContent='';
+    if(totalPages<=1)return;
+    const prev=document.createElement('button'); prev.className='pg-btn'; prev.textContent='السابق'; prev.disabled=page<=1;
+    prev.addEventListener('click',()=>{if(page>1){page--;loadLogs();}});
+    const info=document.createElement('span'); info.className='pg-info'; info.textContent='صفحة '+page+' من '+totalPages;
+    const next=document.createElement('button'); next.className='pg-btn'; next.textContent='التالي'; next.disabled=page>=totalPages;
+    next.addEventListener('click',()=>{if(page<totalPages){page++;loadLogs();}});
+    pg.appendChild(prev); pg.appendChild(info); pg.appendChild(next);
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeType=chip.dataset.type; page=1; loadLogs();
+    });
+  });
+
+  let searchTimer;
+  document.getElementById('searchInput').addEventListener('input',e=>{
+    clearTimeout(searchTimer);
+    searchTimer=setTimeout(()=>{searchText=e.target.value.trim();page=1;loadLogs();},300);
+  });
+
+  loadKpis(); loadActive(); loadLogs();
+}());
+</script>
+</body>
+</html>

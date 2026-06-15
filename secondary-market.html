@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>السوق الثانوي — مُرابحة</title>
+<meta name="description" content="اشترِ حصصاً في صفقات نشطة من مستثمرين آخرين أو اعرض حصتك للبيع قبل انتهاء مدة الصفقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .tabs{display:flex;gap:0;margin-bottom:20px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .tab{flex:1;padding:12px;font:700 13px Cairo,sans-serif;cursor:pointer;text-align:center;color:var(--muted);border:none;background:transparent;}
+  .tab.active{background:var(--green-dark);color:#fbf6ea;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .listing-grid{display:grid;gap:14px;}
+  .listing-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;}
+  .listing-deal{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .listing-meta{font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .listing-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .badge{border-radius:6px;padding:3px 9px;font:700 9px Cairo,sans-serif;}
+  .badge-sector{background:#e3f2fd;color:#1565c0;}
+  .badge-months{background:#f3e5f5;color:#6a1b9a;}
+  .badge-yield{background:#e8f5e9;color:#2e7d32;}
+  .listing-right{text-align:left;min-width:130px;}
+  .listing-price{font:900 18px Cairo,sans-serif;color:var(--green-dark);}
+  .listing-price-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .listing-discount{font:700 10px Cairo,sans-serif;color:var(--gold);margin-top:2px;}
+  .btn-buy{width:100%;background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:9px;font:700 12px Cairo,sans-serif;cursor:pointer;margin-top:10px;}
+  .btn-buy:hover{background:var(--green);}
+  .sell-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .sell-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .form-group{margin-bottom:14px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--ink);margin-bottom:5px;display:block;}
+  .form-select,.form-input{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-select:focus,.form-input:focus{outline:none;border-color:var(--green);}
+  .form-hint{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:4px;}
+  .btn-list{width:100%;background:var(--gold);color:#fff;border:none;border-radius:11px;padding:13px;font:900 13px Cairo,sans-serif;cursor:pointer;margin-top:4px;}
+  .btn-list:hover{background:#a07020;}
+  .btn-list:disabled{opacity:.5;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1>السوق الثانوي</h1>
+    <p>اشترِ حصصاً في صفقات نشطة من مستثمرين آخرين، أو اعرض حصتك للبيع قبل انتهاء مدة الصفقة.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabBuy">شراء الحصص</button>
+    <button class="tab" id="tabSell">عرض حصتي للبيع</button>
+  </div>
+
+  <div class="panel active" id="panelBuy">
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+
+  <div class="panel" id="panelSell">
+    <div class="sell-card">
+      <div class="sell-title">عرض حصتك في صفقة للبيع</div>
+      <div class="form-group">
+        <label class="form-lbl" for="myInvestSel">اختر الصفقة</label>
+        <select class="form-select" id="myInvestSel"><option value="">جارٍ التحميل…</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="sellPrice">سعر البيع المطلوب (ر.س)</label>
+        <input class="form-input" id="sellPrice" type="number" min="100" placeholder="10000" />
+        <div class="form-hint">يمكنك عرض الحصة بسعر أقل من القيمة الاسمية لتسريع البيع (خصم السيولة).</div>
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" for="sellNote">ملاحظة للمشتري (اختياري)</label>
+        <input class="form-input" id="sellNote" type="text" maxlength="120" placeholder="سبب البيع أو ملاحظات…" />
+      </div>
+      <button class="btn-list" id="listBtn">عرض الحصة في السوق</button>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(area, msg){ area.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; area.appendChild(p); }
+
+  document.getElementById('tabBuy').addEventListener('click',()=>{
+    document.getElementById('tabBuy').classList.add('active'); document.getElementById('tabSell').classList.remove('active');
+    document.getElementById('panelBuy').classList.add('active'); document.getElementById('panelSell').classList.remove('active');
+  });
+  document.getElementById('tabSell').addEventListener('click',()=>{
+    document.getElementById('tabSell').classList.add('active'); document.getElementById('tabBuy').classList.remove('active');
+    document.getElementById('panelSell').classList.add('active'); document.getElementById('panelBuy').classList.remove('active');
+  });
+
+  async function loadListings(){
+    const grid = document.getElementById('listingGrid');
+    placeholder(grid,'جارٍ التحميل…');
+    try{
+      const r = await fetch('/app/secondary-market');
+      if(!r.ok){ placeholder(grid,'تعذّر التحميل.'); return; }
+      const d = await r.json();
+      const listings = d.listings||[];
+      grid.textContent='';
+      if(!listings.length){ placeholder(grid,'لا توجد عروض متاحة حالياً.'); return; }
+      listings.forEach(l=>{
+        const card = document.createElement('div'); card.className='listing-card';
+        const left = document.createElement('div');
+        const deal = document.createElement('div'); deal.className='listing-deal'; deal.textContent=l.dealName||'صفقة';
+        const meta = document.createElement('div'); meta.className='listing-meta'; meta.textContent='القيمة الاسمية: '+fmt(l.faceValue||0)+' ر.س · متبقٍ: '+(l.monthsLeft||'—')+' أشهر';
+        const badges = document.createElement('div'); badges.className='listing-badges';
+        const b1=document.createElement('span'); b1.className='badge badge-sector'; b1.textContent=l.sector||'—';
+        const b2=document.createElement('span'); b2.className='badge badge-months'; b2.textContent=(l.monthsLeft||'—')+' أشهر';
+        const b3=document.createElement('span'); b3.className='badge badge-yield'; b3.textContent='عائد '+(l.yieldPct||'—')+'٪';
+        badges.appendChild(b1); badges.appendChild(b2); badges.appendChild(b3);
+        left.appendChild(deal); left.appendChild(meta); left.appendChild(badges);
+        const right = document.createElement('div'); right.className='listing-right';
+        const priceEl = document.createElement('div'); priceEl.className='listing-price'; priceEl.textContent=fmt(l.askPrice||0)+' ر.س';
+        const priceLbl = document.createElement('div'); priceLbl.className='listing-price-lbl'; priceLbl.textContent='سعر العرض';
+        const disc = document.createElement('div'); disc.className='listing-discount';
+        const pct = l.faceValue ? Math.round((1 - (l.askPrice||0)/(l.faceValue||1))*100) : 0;
+        disc.textContent = pct>0 ? 'خصم '+pct+'٪' : 'بالقيمة الاسمية';
+        const buyBtn = document.createElement('button'); buyBtn.className='btn-buy'; buyBtn.textContent='شراء الحصة';
+        const lid = l.id;
+        buyBtn.addEventListener('click', async()=>{
+          buyBtn.disabled=true;
+          try{
+            const rb=await fetch('/app/me/secondary-market/'+encodeURIComponent(lid)+'/buy',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({})});
+            if(!rb.ok){ buyBtn.disabled=false; showToast('تعذّر الشراء.'); return; }
+            showToast('تم الشراء بنجاح!'); card.remove();
+          }catch{ buyBtn.disabled=false; showToast('خطأ في الاتصال.'); }
+        });
+        right.appendChild(priceEl); right.appendChild(priceLbl); right.appendChild(disc); right.appendChild(buyBtn);
+        card.appendChild(left); card.appendChild(right); grid.appendChild(card);
+      });
+    }catch{ placeholder(document.getElementById('listingGrid'),'خطأ في الاتصال.'); }
+  }
+
+  async function loadMyInvestments(){
+    const sel = document.getElementById('myInvestSel'); sel.textContent='';
+    const def = document.createElement('option'); def.value=''; def.textContent='اختر صفقة…'; sel.appendChild(def);
+    try{
+      const r = await fetch('/app/me/investments?status=active');
+      if(!r.ok) return;
+      const d = await r.json();
+      (d.investments||[]).forEach(inv=>{
+        const opt=document.createElement('option'); opt.value=inv.id;
+        opt.textContent=(inv.dealName||'صفقة')+' — '+fmt(inv.amount||0)+' ر.س';
+        sel.appendChild(opt);
+      });
+    }catch{}
+  }
+
+  document.getElementById('listBtn').addEventListener('click', async()=>{
+    const investId = document.getElementById('myInvestSel').value;
+    const price = parseFloat(document.getElementById('sellPrice').value);
+    const note = document.getElementById('sellNote').value.trim();
+    if(!investId){ showToast('الرجاء اختيار الصفقة.'); return; }
+    if(!price||price<100){ showToast('أدخل سعر بيع صحيح.'); return; }
+    const btn = document.getElementById('listBtn'); btn.disabled=true;
+    try{
+      const r=await fetch('/app/me/secondary-market/list',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({investmentId:investId,askPrice:price,note})});
+      btn.disabled=false;
+      if(!r.ok){ showToast('تعذّر العرض.'); return; }
+      showToast('تم عرض الحصة في السوق الثانوي.');
+      document.getElementById('sellPrice').value=''; document.getElementById('sellNote').value='';
+    }catch{ btn.disabled=false; showToast('خطأ في الاتصال.'); }
+  });
+
+  loadListings();
+  loadMyInvestments();
+}());
+</script>
+</body>
+</html>

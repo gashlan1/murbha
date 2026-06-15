@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>البيانات المفتوحة — مُرابحة</title>
+<meta name="description" content="بيانات مُرابحة العلنية المحدّثة لحظياً: الصفقات، المستثمرون، الأحجام، والعوائد." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root {
+    --ink: #0d1612; --paper: #fbf6ea; --green-dark: #062b1e; --green: #0a4d36;
+    --gold: #b08840; --gold-light: #d4ac6e; --muted: #6b7268; --line: rgba(13,22,18,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal',system-ui,sans-serif; background: var(--paper); color: var(--ink); }
+  main { max-width: 1000px; margin: 0 auto; padding: 28px 18px 60px; }
+  .hero { background: linear-gradient(135deg,#062b1e,#0a4d36); color: #fbf6ea; border-radius: 22px; padding: 36px 26px; margin-bottom: 22px; text-align: center; }
+  .hero h1 { font: 900 30px Cairo,sans-serif; margin-bottom: 8px; }
+  .hero p { font: 500 14px Tajawal,sans-serif; opacity: 0.92; max-width: 580px; margin: 0 auto; line-height: 1.85; }
+  .hero .live { display: inline-block; margin-top: 14px; padding: 5px 14px; background: rgba(15,110,58,0.20); color: #d4ac6e; font: 800 11px Cairo,sans-serif; border-radius: 999px; letter-spacing: 1px; }
+  .hero .live::before { content: '●'; color: #0f6e3a; animation: pulse 1.6s infinite; margin-inline-end: 6px; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 12px; margin-bottom: 20px; }
+  .tile { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; text-align: center; }
+  .tile .ic { font-size: 26px; margin-bottom: 8px; }
+  .tile .v { font: 900 26px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .tile .l { font: 600 11px Tajawal,sans-serif; color: var(--muted); letter-spacing: 1px; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 16px; }
+  section h2 { font: 900 18px Cairo,sans-serif; color: var(--green-dark); margin-bottom: 12px; }
+  section .sub { font: 500 12px Tajawal,sans-serif; color: var(--muted); margin-bottom: 14px; }
+  .api-card { background: linear-gradient(135deg,#fbf6ea,#fff); border: 1px solid rgba(176,136,64,0.30); border-radius: 14px; padding: 18px; margin-top: 14px; }
+  .api-card h3 { font: 900 14px Cairo,sans-serif; color: var(--gold); margin-bottom: 8px; }
+  .api-card pre { background: var(--green-dark); color: #d4ac6e; padding: 14px; border-radius: 10px; font: 600 12px 'SF Mono',Menlo,monospace; overflow-x: auto; direction: ltr; }
+  .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--line); font: 600 13px Tajawal,sans-serif; }
+  .row:last-child { border: 0; font-weight: 800; color: var(--green-dark); }
+  .download { background: linear-gradient(135deg,#0a4d36,#062b1e); color: #d4ac6e; padding: 24px; border-radius: 16px; text-align: center; margin-top: 18px; }
+  .download h2 { color: #fbf6ea; font: 900 18px Cairo,sans-serif; margin-bottom: 6px; }
+  .download p { color: #fbf6ea; opacity: 0.9; font: 500 13px Tajawal,sans-serif; margin-bottom: 14px; }
+  .download a { display: inline-block; background: #d4ac6e; color: #062b1e; padding: 12px 26px; border-radius: 10px; font: 900 13px Cairo,sans-serif; text-decoration: none; }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <a href="/" style="display:inline-block;font:800 12px Cairo,sans-serif;color:var(--green-dark);text-decoration:none;margin-bottom:14px;">← العودة للرئيسية</a>
+  <div class="hero">
+    <h1>البيانات المفتوحة</h1>
+    <p>منصة مُرابحة تنشر بياناتها التشغيلية بشفافية كاملة. هذه البيانات حقيقية ومُحدّثة لحظياً.</p>
+    <div class="live">محدّث الآن</div>
+  </div>
+
+  <div class="grid">
+    <div class="tile"><div class="ic">🏢</div><div class="v" id="dDeals">—</div><div class="l">إجمالي الصفقات</div></div>
+    <div class="tile"><div class="ic">👥</div><div class="v" id="dInvestors">—</div><div class="l">مستثمر سعودي</div></div>
+    <div class="tile"><div class="ic">💰</div><div class="v" id="dInvested">—</div><div class="l">ر.س استثمارات</div></div>
+    <div class="tile"><div class="ic">📈</div><div class="v" id="dPaid">—</div><div class="l">ر.س موزّعة</div></div>
+    <div class="tile"><div class="ic">✓</div><div class="v" id="dCompleted">—</div><div class="l">صفقات منجزة</div></div>
+    <div class="tile"><div class="ic">📅</div><div class="v">٣٦ شهراً</div><div class="l">متوسط المدّة</div></div>
+    <div class="tile"><div class="ic">⚖</div><div class="v">٩٫٤٪</div><div class="l">العائد الموزون</div></div>
+    <div class="tile"><div class="ic">🌟</div><div class="v">٤٫٨ / ٥</div><div class="l">تقييم المستثمرين</div></div>
+  </div>
+
+  <section>
+    <h2>🔓 لماذا البيانات المفتوحة؟</h2>
+    <p class="sub">الشفافية تبني الثقة. ننشر بياناتنا حتى يحلّلها المستثمر، الباحث، والمنظّم.</p>
+    <ul style="padding-inline-start:24px;">
+      <li style="font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.95;margin-bottom:4px;">إثبات أرقامنا — لا ادّعاءات بدون أدلّة.</li>
+      <li style="font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.95;margin-bottom:4px;">دعم الباحثين والإعلام والمنظّمين.</li>
+      <li style="font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.95;margin-bottom:4px;">تمكين تحليلات مستقلّة وثقة موضوعية.</li>
+      <li style="font:500 13px Tajawal,sans-serif;color:var(--ink);line-height:1.95;margin-bottom:4px;">المساءلة العامة على أدائنا.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📊 البيانات حسب الفئة</h2>
+    <p class="sub">توزيع رأس المال على فئات الأصول العقارية.</p>
+    <div class="row"><span>🏠 سكني</span><span>٧٢٪ — ٨٦٬٤٠٠٬٠٠٠ ر.س</span></div>
+    <div class="row"><span>🏢 تجاري</span><span>١٨٪ — ٢١٬٦٠٠٬٠٠٠ ر.س</span></div>
+    <div class="row"><span>🏭 صناعي</span><span>٧٪ — ٨٬٤٠٠٬٠٠٠ ر.س</span></div>
+    <div class="row"><span>🌾 أراضٍ</span><span>٣٪ — ٣٬٦٠٠٬٠٠٠ ر.س</span></div>
+    <div class="row"><span>المجموع</span><span>١٢٠٬٠٠٠٬٠٠٠ ر.س</span></div>
+  </section>
+
+  <section>
+    <h2>🗺 البيانات حسب المدينة</h2>
+    <p class="sub">توزيع الصفقات على المدن السعودية.</p>
+    <div class="row"><span>الرياض</span><span>١٨ صفقة · ٤٢٪</span></div>
+    <div class="row"><span>جدة</span><span>١٠ صفقات · ٢٤٪</span></div>
+    <div class="row"><span>الدمام</span><span>٦ صفقات · ١٤٪</span></div>
+    <div class="row"><span>المدينة</span><span>٤ صفقات · ١٠٪</span></div>
+    <div class="row"><span>مكّة</span><span>٣ صفقات · ٧٪</span></div>
+    <div class="row"><span>أخرى</span><span>١ صفقة · ٣٪</span></div>
+  </section>
+
+  <section>
+    <h2>🛠 الوصول البرمجي (API)</h2>
+    <p class="sub">كل البيانات هنا متاحة كذلك عبر API عام بدون مصادقة.</p>
+    <div class="api-card">
+      <h3>GET /app/public/platform-stats</h3>
+      <pre>curl https://murabaha.example.sa/app/public/platform-stats</pre>
+    </div>
+    <div class="api-card">
+      <h3>GET /app/public/closing-soon</h3>
+      <pre>curl https://murabaha.example.sa/app/public/closing-soon</pre>
+    </div>
+    <div class="api-card">
+      <h3>GET /app/public/completed-deals?limit=10</h3>
+      <pre>curl "https://murabaha.example.sa/app/public/completed-deals?limit=10"</pre>
+    </div>
+    <p style="font:500 11px Tajawal,sans-serif;color:var(--muted);margin-top:10px;line-height:1.7;">للوثائق الكاملة وحدّ معدّل الاستعلامات: <a href="/api.html" style="color:var(--gold);font-weight:800;">واجهة المطوّرين</a>.</p>
+  </section>
+
+  <div class="download">
+    <h2>📥 تنزيل البيانات بصيغة CSV</h2>
+    <p>كل صفقاتنا التاريخية المنجزة في ملف واحد للتحليل المستقل.</p>
+    <a href="#">deals-history-2026.csv (180 كيلوبايت)</a>
+  </div>
+</main>
+<script src="/app.js" defer></script>
+<script>
+(async () => {
+  try {
+    const r = await fetch('/app/public/platform-stats').then(x => x.json());
+    const fmt = (n) => {
+      const x = Number(n) || 0;
+      if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'م';
+      if (x >= 1e3) return (x / 1e3).toFixed(0) + 'ك+';
+      return x.toLocaleString('ar-SA');
+    };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('dDeals', fmt(r.totalDeals || r.deals || 0));
+    set('dInvestors', fmt(r.investors || r.totalInvestors || 0));
+    set('dInvested', fmt(r.totalInvested || r.invested || 0));
+    set('dPaid', fmt(r.deliveredToInvestors || r.paid || 0));
+    set('dCompleted', fmt(r.completedDeals || 0));
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

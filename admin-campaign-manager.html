@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الحملات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem;}
+.stat-val{font-size:1.6rem;font-weight:700;color:var(--green-dark);}
+.stat-lbl{font-size:0.76rem;color:var(--muted);margin-top:0.2rem;}
+.stat-sub{font-size:0.74rem;margin-top:0.3rem;font-weight:600;}
+.sub-up{color:#27ae60;}
+.sub-down{color:#e74c3c;}
+.campaigns-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-bottom:2rem;}
+.camp-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.camp-card-head{padding:1.1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;}
+.camp-title{font-size:0.95rem;font-weight:700;}
+.camp-sub{font-size:0.78rem;color:var(--muted);margin-top:0.15rem;}
+.status-pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.72rem;font-weight:700;flex-shrink:0;}
+.pill-active{background:#e8f5ed;color:#27ae60;}
+.pill-draft{background:#f5f0e8;color:var(--muted);}
+.pill-ended{background:#fde8e8;color:#c0392b;}
+.pill-scheduled{background:#e8f0fe;color:#1a56db;}
+.camp-body{padding:1rem 1.25rem;}
+.camp-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;}
+.metric{text-align:center;}
+.metric-val{font-size:1.1rem;font-weight:700;color:var(--green-dark);}
+.metric-lbl{font-size:0.72rem;color:var(--muted);}
+.progress-bar{background:#e8e3da;border-radius:4px;height:8px;overflow:hidden;margin-bottom:0.5rem;}
+.progress-fill{height:100%;border-radius:4px;background:var(--green);}
+.progress-info{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);}
+.camp-footer{border-top:1px solid var(--line);padding:0.75rem 1.25rem;display:flex;gap:0.5rem;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:1.75rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.35rem;}
+.field input,.field select,.field textarea{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;background:#fff;color:var(--green-dark);}
+.field textarea{min-height:80px;resize:vertical;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.modal-footer{display:flex;gap:0.75rem;margin-top:1.25rem;justify-content:flex-end;}
+@media(max-width:768px){.campaigns-grid{grid-template-columns:1fr;}.stats-grid{grid-template-columns:repeat(2,1fr);}.row-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة الحملات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة الحملات التسويقية</h2>
+      <p>إنشاء وتتبع حملات الترويج والإحالة وكوبونات الخصم</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">+ حملة جديدة</button>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="campaigns-grid" id="campaignsGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>إنشاء حملة جديدة</h3>
+    <div class="field">
+      <label>اسم الحملة</label>
+      <input type="text" id="campName" placeholder="مثال: حملة رمضان ٢٠٢٦">
+    </div>
+    <div class="field">
+      <label>نوع الحملة</label>
+      <select id="campType">
+        <option value="referral">إحالة</option>
+        <option value="coupon">كوبون خصم</option>
+        <option value="email">بريد إلكتروني</option>
+        <option value="push">إشعار Push</option>
+        <option value="sms">رسائل SMS</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>الشريحة المستهدفة</label>
+      <select id="campSegment">
+        <option value="all">جميع المستثمرين</option>
+        <option value="new">مستثمرون جدد</option>
+        <option value="inactive">غير نشطين (٣٠+ يوم)</option>
+        <option value="vip">مستثمرون VIP</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>رسالة الحملة</label>
+      <textarea id="campMessage" placeholder="محتوى رسالة الحملة..."></textarea>
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>تاريخ البداية</label>
+        <input type="date" id="campStart">
+      </div>
+      <div class="field">
+        <label>تاريخ النهاية</label>
+        <input type="date" id="campEnd">
+      </div>
+    </div>
+    <div class="field">
+      <label>الميزانية (ر.س)</label>
+      <input type="number" id="campBudget" placeholder="٠" min="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="createCampaign()">إنشاء الحملة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٨', lbl: 'حملات نشطة', sub: '+٢ هذا الشهر', cls: 'sub-up' },
+  { val: '١٢٬٤٠٠', lbl: 'وصول إجمالي', sub: '+١٨٪ عن الشهر الماضي', cls: 'sub-up' },
+  { val: '٣٤٪', lbl: 'معدل التحويل', sub: '-٢٪ عن الشهر الماضي', cls: 'sub-down' },
+  { val: '٤٨٬٠٠٠', lbl: 'ر.س إجمالي الإنفاق', sub: 'من ميزانية ٦٠٬٠٠٠ ر.س', cls: '' }
+];
+
+const CAMPAIGNS = [
+  {
+    title: 'حملة الإحالة الصيفية',
+    sub: 'إحالة — جميع المستثمرين',
+    status: 'active', statusLbl: 'نشطة',
+    reach: '٤٬٢٠٠', conversions: '١٬٤٠٢', roi: '٣٤٢٪',
+    progress: 68, progressStart: '١ يونيو', progressEnd: '٣٠ يونيو'
+  },
+  {
+    title: 'كوبون مستثمر جديد',
+    sub: 'كوبون خصم — مستثمرون جدد',
+    status: 'active', statusLbl: 'نشطة',
+    reach: '٨٨٦', conversions: '٣١٢', roi: '٢١٨٪',
+    progress: 45, progressStart: '١٥ مايو', progressEnd: '١٥ يوليو'
+  },
+  {
+    title: 'تفعيل المستثمرين الخاملين',
+    sub: 'بريد إلكتروني — غير نشطين',
+    status: 'scheduled', statusLbl: 'مجدولة',
+    reach: '١٬٨٠٠', conversions: '—', roi: '—',
+    progress: 0, progressStart: '٢٠ يونيو', progressEnd: '٥ يوليو'
+  },
+  {
+    title: 'حملة رمضان ٢٠٢٦',
+    sub: 'إحالة — VIP',
+    status: 'ended', statusLbl: 'منتهية',
+    reach: '٣٬١٠٠', conversions: '٩٨٤', roi: '٢٩٥٪',
+    progress: 100, progressStart: '٢ مارس', progressEnd: '٢ أبريل'
+  }
+];
+
+const STATUS_CLASS = { active:'pill-active', draft:'pill-draft', ended:'pill-ended', scheduled:'pill-scheduled' };
+
+function buildStats() {
+  const grid = document.getElementById('statsGrid');
+  STATS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    const v = document.createElement('div');
+    v.className = 'stat-val';
+    v.textContent = s.val;
+    const l = document.createElement('div');
+    l.className = 'stat-lbl';
+    l.textContent = s.lbl;
+    card.appendChild(v);
+    card.appendChild(l);
+    if (s.sub) {
+      const sub = document.createElement('div');
+      sub.className = 'stat-sub ' + s.cls;
+      sub.textContent = s.sub;
+      card.appendChild(sub);
+    }
+    grid.appendChild(card);
+  });
+}
+
+function buildCampaigns() {
+  const grid = document.getElementById('campaignsGrid');
+  CAMPAIGNS.forEach((c, idx) => {
+    const card = document.createElement('div');
+    card.className = 'camp-card';
+
+    const head = document.createElement('div');
+    head.className = 'camp-card-head';
+
+    const info = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'camp-title';
+    title.textContent = c.title;
+    const sub = document.createElement('div');
+    sub.className = 'camp-sub';
+    sub.textContent = c.sub;
+    info.appendChild(title);
+    info.appendChild(sub);
+
+    const pill = document.createElement('span');
+    pill.className = 'status-pill ' + (STATUS_CLASS[c.status] || '');
+    pill.textContent = c.statusLbl;
+
+    head.appendChild(info);
+    head.appendChild(pill);
+
+    const body = document.createElement('div');
+    body.className = 'camp-body';
+
+    const metrics = document.createElement('div');
+    metrics.className = 'camp-metrics';
+    [{ v: c.reach, l: 'الوصول' }, { v: c.conversions, l: 'التحويلات' }, { v: c.roi, l: 'العائد (ROI)' }].forEach(m => {
+      const mx = document.createElement('div');
+      mx.className = 'metric';
+      const mv = document.createElement('div');
+      mv.className = 'metric-val';
+      mv.textContent = m.v;
+      const ml = document.createElement('div');
+      ml.className = 'metric-lbl';
+      ml.textContent = m.l;
+      mx.appendChild(mv);
+      mx.appendChild(ml);
+      metrics.appendChild(mx);
+    });
+
+    const progBar = document.createElement('div');
+    progBar.className = 'progress-bar';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    fill.style.width = c.progress + '%';
+    progBar.appendChild(fill);
+
+    const progInfo = document.createElement('div');
+    progInfo.className = 'progress-info';
+    const ps = document.createElement('span');
+    ps.textContent = c.progressStart;
+    const pe = document.createElement('span');
+    pe.textContent = c.progressEnd;
+    progInfo.appendChild(ps);
+    progInfo.appendChild(pe);
+
+    body.appendChild(metrics);
+    body.appendChild(progBar);
+    body.appendChild(progInfo);
+
+    const footer = document.createElement('div');
+    footer.className = 'camp-footer';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-secondary';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => editCampaign(idx);
+
+    if (c.status !== 'ended') {
+      const pauseBtn = document.createElement('button');
+      pauseBtn.className = 'btn btn-sm btn-primary';
+      pauseBtn.textContent = c.status === 'active' ? 'إيقاف مؤقت' : 'تفعيل';
+      footer.appendChild(pauseBtn);
+    }
+
+    footer.appendChild(editBtn);
+
+    card.appendChild(head);
+    card.appendChild(body);
+    card.appendChild(footer);
+    grid.appendChild(card);
+  });
+}
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function createCampaign() {
+  const name = document.getElementById('campName').value.trim();
+  if (!name) { alert('يرجى إدخال اسم الحملة'); return; }
+  fetch('/app/admin/campaigns', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({
+      name,
+      type: document.getElementById('campType').value,
+      segment: document.getElementById('campSegment').value,
+      message: document.getElementById('campMessage').value,
+      startDate: document.getElementById('campStart').value,
+      endDate: document.getElementById('campEnd').value,
+      budget: document.getElementById('campBudget').value
+    })
+  }).catch(() => {});
+  closeModal();
+  alert('تم إنشاء الحملة بنجاح!');
+}
+
+function editCampaign(idx) {
+  alert('تعديل الحملة: ' + CAMPAIGNS[idx].title);
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+buildStats();
+buildCampaigns();
+</script>
+</body>
+</html>

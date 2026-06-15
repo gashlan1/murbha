@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إعادة توازن المحفظة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.drift-banner{background:linear-gradient(135deg,#fff8e8,#fff);border:1.5px solid var(--gold);border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;margin-bottom:2rem;}
+.drift-icon{font-size:1.5rem;}
+.drift-text{flex:1;}
+.drift-title{font-size:0.92rem;font-weight:700;color:var(--green-dark);}
+.drift-sub{font-size:0.78rem;color:var(--muted);margin-top:0.15rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.alloc-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;}
+.alloc-row:last-child{margin-bottom:0;}
+.alloc-color{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.alloc-label{flex:1;font-size:0.88rem;color:var(--green-dark);}
+.alloc-bars{flex:2;display:flex;flex-direction:column;gap:3px;}
+.alloc-bar-wrap{display:flex;align-items:center;gap:0.5rem;}
+.alloc-bar-track{flex:1;background:#e8e3da;border-radius:4px;height:8px;overflow:hidden;}
+.alloc-bar-fill{height:100%;border-radius:4px;transition:width 0.4s;}
+.alloc-bar-label{font-size:0.7rem;width:32px;text-align:left;color:var(--muted);}
+.alloc-bar-label.current{color:var(--green);}
+.alloc-bar-label.target{color:var(--gold);}
+.drift-badge{font-size:0.72rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:8px;}
+.drift-over{background:#fde9e9;color:#c0392b;}
+.drift-under{background:#f8f0e0;color:var(--gold);}
+.drift-ok{background:#e6f4ef;color:var(--green);}
+.rebal-table-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:2rem;}
+.rebal-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.rebal-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.6rem 1rem;background:#f5f0e8;font-size:0.82rem;color:var(--muted);font-weight:600;}
+td{padding:0.75rem 1rem;border-bottom:1px solid var(--line);font-size:0.88rem;}
+tr:last-child td{border-bottom:none;}
+.action-buy{color:#27ae60;font-weight:700;}
+.action-sell{color:#c0392b;font-weight:700;}
+.action-hold{color:var(--muted);}
+.slider-group{margin-bottom:1.25rem;}
+.slider-group label{display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.slider-group label span{color:var(--gold);}
+.slider-group input[type=range]{width:100%;accent-color:var(--green);}
+.total-check{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:#f5f0e8;border-radius:8px;font-size:0.85rem;font-weight:600;color:var(--green-dark);}
+.total-check.ok{background:#e6f4ef;}
+.total-check.bad{background:#fde9e9;color:#c0392b;}
+.confirm-section{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:768px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إعادة توازن المحفظة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>إعادة توازن المحفظة</h2>
+    <button class="btn btn-secondary" onclick="analyzePortfolio()">تحليل الانحراف</button>
+  </div>
+
+  <div class="drift-banner">
+    <div class="drift-icon">⚠️</div>
+    <div class="drift-text">
+      <div class="drift-title">انحراف عن التوزيع المستهدف بنسبة ٨.٤٪</div>
+      <div class="drift-sub">قطاع العقارات يزيد عن الهدف بـ٦٪ · قطاع التقنية أقل من الهدف بـ٤٪</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="autoRebalance()">إعادة توازن تلقائي</button>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head"><h3>التوزيع الحالي مقابل المستهدف</h3></div>
+      <div class="card-body" id="allocBars"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>ضبط التوزيع المستهدف</h3></div>
+      <div class="card-body">
+        <div id="sliderGroups"></div>
+        <div class="total-check" id="totalCheck">إجمالي التوزيع: ١٠٠٪</div>
+        <div class="confirm-section">
+          <button class="btn btn-secondary btn-sm" onclick="resetTargets()">إعادة تعيين</button>
+          <button class="btn btn-primary btn-sm" onclick="saveTargets()">حفظ الأهداف</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rebal-table-card">
+    <div class="rebal-head">
+      <h3>إجراءات إعادة التوازن المقترحة</h3>
+      <button class="btn btn-sm btn-primary" onclick="executeRebalance()">تنفيذ الإجراءات</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>الصفقة / القطاع</th>
+          <th>التوزيع الحالي</th>
+          <th>التوزيع المستهدف</th>
+          <th>الانحراف</th>
+          <th>الإجراء المقترح</th>
+          <th>المبلغ (ر.س)</th>
+        </tr>
+      </thead>
+      <tbody id="rebalTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const sectors = [
+  {name:'عقارات',color:'#0a4d36',current:46,target:40},
+  {name:'تقنية',color:'#b08840',current:16,target:20},
+  {name:'صحة',color:'#2d6b50',current:18,target:20},
+  {name:'طاقة',color:'#6b7268',current:12,target:12},
+  {name:'تجزئة',color:'#c0392b',current:8,target:8},
+];
+
+const rebalActions = [
+  {deal:'مجمع الروضة السكني',sector:'عقارات',current:'٤٦٪',target:'٤٠٪',drift:'+٦٪',action:'sell',amount:'١٨,٠٠٠'},
+  {deal:'منصة FinTech B2B',sector:'تقنية',current:'١٦٪',target:'٢٠٪',drift:'-٤٪',action:'buy',amount:'١٢,٠٠٠'},
+  {deal:'عيادات الصحة',sector:'صحة',current:'١٨٪',target:'٢٠٪',drift:'-٢٪',action:'buy',amount:'٦,٠٠٠'},
+  {deal:'محطة طاقة شمسية',sector:'طاقة',current:'١٢٪',target:'١٢٪',drift:'٠٪',action:'hold',amount:'—'},
+  {deal:'سلسلة مطاعم',sector:'تجزئة',current:'٨٪',target:'٨٪',drift:'٠٪',action:'hold',amount:'—'},
+];
+
+function renderAllocBars(){
+  const cont = document.getElementById('allocBars');
+  cont.textContent = '';
+  sectors.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'alloc-row';
+    const dot = document.createElement('div');
+    dot.className = 'alloc-color';
+    dot.style.background = s.color;
+    const label = document.createElement('div');
+    label.className = 'alloc-label';
+    label.textContent = s.name;
+    const bars = document.createElement('div');
+    bars.className = 'alloc-bars';
+    [{val:s.current,cls:'current',label:'حالي'},{val:s.target,cls:'target',label:'هدف'}].forEach(b => {
+      const wrap = document.createElement('div');
+      wrap.className = 'alloc-bar-wrap';
+      const track = document.createElement('div');
+      track.className = 'alloc-bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'alloc-bar-fill';
+      fill.style.cssText = 'width:' + b.val + '%;background:' + (b.cls==='current'?s.color:'rgba(176,136,64,0.4)');
+      track.appendChild(fill);
+      const lbl = document.createElement('div');
+      lbl.className = 'alloc-bar-label ' + b.cls;
+      lbl.textContent = b.val + '٪';
+      wrap.appendChild(track);
+      wrap.appendChild(lbl);
+      bars.appendChild(wrap);
+    });
+    const drift = s.current - s.target;
+    const badge = document.createElement('span');
+    badge.className = 'drift-badge ' + (drift > 2 ? 'drift-over' : drift < -2 ? 'drift-under' : 'drift-ok');
+    badge.textContent = (drift > 0 ? '+' : '') + drift + '٪';
+    row.appendChild(dot);
+    row.appendChild(label);
+    row.appendChild(bars);
+    row.appendChild(badge);
+    cont.appendChild(row);
+  });
+}
+
+function renderSliders(){
+  const cont = document.getElementById('sliderGroups');
+  cont.textContent = '';
+  sectors.forEach(s => {
+    const grp = document.createElement('div');
+    grp.className = 'slider-group';
+    const lbl = document.createElement('label');
+    const txt = document.createTextNode(s.name);
+    const valSpan = document.createElement('span');
+    valSpan.id = 'slider-val-' + s.name;
+    valSpan.textContent = s.target + '٪';
+    lbl.appendChild(txt);
+    lbl.appendChild(valSpan);
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = 0;
+    input.max = 60;
+    input.value = s.target;
+    input.id = 'slider-' + s.name;
+    input.oninput = () => {
+      valSpan.textContent = input.value + '٪';
+      updateTotal();
+    };
+    grp.appendChild(lbl);
+    grp.appendChild(input);
+    cont.appendChild(grp);
+  });
+  updateTotal();
+}
+
+function updateTotal(){
+  const total = sectors.reduce((s,sec) => {
+    const el = document.getElementById('slider-' + sec.name);
+    return s + (el ? parseInt(el.value) : sec.target);
+  }, 0);
+  const tc = document.getElementById('totalCheck');
+  tc.textContent = 'إجمالي التوزيع: ' + total + '٪';
+  tc.className = 'total-check' + (total === 100 ? ' ok' : ' bad');
+}
+
+function resetTargets(){
+  sectors.forEach(s => {
+    const el = document.getElementById('slider-' + s.name);
+    const vEl = document.getElementById('slider-val-' + s.name);
+    if(el){ el.value = s.target; }
+    if(vEl){ vEl.textContent = s.target + '٪'; }
+  });
+  updateTotal();
+}
+
+function renderRebalTable(){
+  const tb = document.getElementById('rebalTable');
+  tb.textContent = '';
+  rebalActions.forEach(r => {
+    const tr = document.createElement('tr');
+    [r.deal, r.current, r.target, r.drift].forEach(v => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const actTd = document.createElement('td');
+    const actionMap = {buy:['شراء','action-buy'],sell:['بيع','action-sell'],hold:['احتفاظ','action-hold']};
+    const [txt,cls] = actionMap[r.action]||['—','action-hold'];
+    actTd.className = cls;
+    actTd.textContent = txt;
+    tr.appendChild(actTd);
+    const amtTd = document.createElement('td');
+    amtTd.textContent = r.amount;
+    tr.appendChild(amtTd);
+    tb.appendChild(tr);
+  });
+}
+
+async function saveTargets(){
+  const targets = {};
+  sectors.forEach(s => {
+    const el = document.getElementById('slider-' + s.name);
+    targets[s.name] = el ? parseInt(el.value) : s.target;
+  });
+  try {
+    await fetch('/app/me/portfolio/rebalance/targets', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({targets})
+    });
+  } catch(e){}
+}
+
+async function autoRebalance(){
+  try {
+    await fetch('/app/me/portfolio/rebalance/auto', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({confirm:true})
+    });
+  } catch(e){}
+}
+
+async function executeRebalance(){
+  try {
+    await fetch('/app/me/portfolio/rebalance/execute', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({actions: rebalActions.filter(r=>r.action!=='hold')})
+    });
+  } catch(e){}
+}
+
+function analyzePortfolio(){
+  fetch('/app/me/portfolio/rebalance/analyze').then(r=>r.json()).catch(()=>{});
+}
+
+renderAllocBars();
+renderSliders();
+renderRebalTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title>سجلّ نشاط حسابي — مُرابحة</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root { --ink:#0d1612; --paper:#fbf6ea; --green-dark:#062b1e; --green:#0a4d36; --gold:#b08840; --muted:#6b7268; --line:rgba(13,22,18,0.10); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Tajawal,system-ui,sans-serif; background:var(--paper); color:var(--ink); padding:24px 18px 80px; max-width:760px; margin:0 auto; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .crumbs a { color:var(--green-dark); text-decoration:none; font-weight:700; }
+  h1 { font:900 24px Cairo,sans-serif; color:var(--green-dark); margin-bottom:6px; }
+  .lede { color:var(--muted); font-size:13px; line-height:1.7; margin-bottom:18px; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; }
+  .filters button { padding:6px 14px; background:#fff; border:1px solid var(--line); border-radius:999px; font:800 12px Cairo,sans-serif; color:var(--ink); cursor:pointer; }
+  .filters button.active { background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+  .event { display:flex; gap:12px; align-items:flex-start; padding:11px 14px; background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:6px; }
+  .event .ico { width:28px; height:28px; border-radius:50%; background:#fbf8ee; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .event .body { flex:1; min-width:0; }
+  .event .ttl { font:800 13px Cairo,sans-serif; color:var(--green-dark); margin-bottom:2px; }
+  .event .meta { font:500 11px Tajawal,sans-serif; color:var(--muted); }
+  .event.login_fail .ttl { color:#c54a3a; }
+  .event.security .ttl { color:#7a5a10; }
+  .day { font:800 12px Cairo,sans-serif; color:var(--muted); margin:18px 0 8px; padding-inline-start:6px; }
+  .empty { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="crumbs"><a href="/profile.html">حسابي</a> / سجلّ النشاط</div>
+<h1>سجلّ نشاط حسابي</h1>
+<p class="lede">كل ما حصل على حسابك في مكان واحد — تسجيلات الدخول، العمليات المالية، التغييرات الأمنية، والاستثمارات.</p>
+
+<div class="filters" id="filters">
+  <button class="active" data-f="all">الكل</button>
+  <button data-f="login">دخول</button>
+  <button data-f="security">أمان</button>
+  <button data-f="financial">عمليات</button>
+  <button data-f="investment">استثمارات</button>
+</div>
+
+<div id="timeline"></div>
+
+<script src="/app.js"></script>
+<script>
+(async () => {
+  try {
+    await App.requireAuth('login.html?next=/activity.html');
+  } catch (e) { return; }
+  const tl = document.getElementById('timeline');
+  const empty = (msg) => {
+    tl.replaceChildren();
+    const e = document.createElement('div'); e.className = 'empty'; e.textContent = msg;
+    tl.appendChild(e);
+  };
+  let events = [];
+  try {
+    const r = await App.api('GET', '/app/me/activity');
+    events = r.events || [];
+  } catch (e) { empty('تعذّر التحميل.'); return; }
+  if (!events.length) { empty('لا توجد أحداث بعد.'); return; }
+
+  const ICONS = {
+    login: '🔓', login_fail: '✗', security: '🛡',
+    investment: '⭐', 'txn:deposit': '↓', 'txn:withdraw': '↑',
+    'txn:profit': '🟢', 'txn:payout': '🟢', 'txn:refund': '↺',
+    'txn:wire_pending': '⏳',
+  };
+  const fmtAmt = (n) => n == null ? '' : Number(n).toLocaleString('ar-SA') + ' ر.س';
+
+  function render(filter) {
+    tl.replaceChildren();
+    const filtered = events.filter(e => {
+      if (filter === 'all') return true;
+      if (filter === 'login') return e.kind === 'login' || e.kind === 'login_fail';
+      if (filter === 'security') return e.kind === 'security';
+      if (filter === 'financial') return e.kind.startsWith('txn:');
+      if (filter === 'investment') return e.kind === 'investment';
+      return true;
+    });
+    if (!filtered.length) {
+      const x = document.createElement('div'); x.className='empty'; x.textContent='لا توجد أحداث مطابقة.';
+      tl.appendChild(x); return;
+    }
+    let lastDay = '';
+    filtered.forEach(e => {
+      const d = new Date(e.at);
+      const dayKey = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+      if (dayKey !== lastDay) {
+        const sep = document.createElement('div'); sep.className = 'day'; sep.textContent = dayKey;
+        tl.appendChild(sep);
+        lastDay = dayKey;
+      }
+      const row = document.createElement('div');
+      const baseKind = e.kind.startsWith('txn:') ? 'financial' : (e.kind === 'login_fail' ? 'login_fail' : (e.kind === 'security' ? 'security' : ''));
+      row.className = 'event ' + baseKind;
+      const ico = document.createElement('div'); ico.className = 'ico'; ico.textContent = ICONS[e.kind] || '•';
+      const body = document.createElement('div'); body.className = 'body';
+      const ttl = document.createElement('div'); ttl.className = 'ttl'; ttl.textContent = e.title;
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const parts = [d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })];
+      if (e.meta?.ip)     parts.push(e.meta.ip);
+      if (e.meta?.ua)     parts.push(e.meta.ua);
+      if (e.meta?.amount != null) parts.push((Number(e.meta.amount) > 0 ? '+' : '') + fmtAmt(e.meta.amount));
+      if (e.meta?.reason) parts.push(e.meta.reason);
+      if (e.meta?.status) parts.push(e.meta.status);
+      meta.textContent = parts.join(' · ');
+      body.append(ttl, meta);
+      row.append(ico, body);
+      tl.appendChild(row);
+    });
+  }
+  render('all');
+  document.querySelectorAll('#filters button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#filters button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      render(b.dataset.f);
+    });
+  });
+})();
+</script>
+</body>
+</html>

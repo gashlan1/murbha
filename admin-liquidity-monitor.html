@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مراقبة السيولة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.liq-table{padding:1.25rem;overflow-x:auto;}
+.lq-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;align-items:center;}
+.lq-row:last-child{border-bottom:none;}
+.lq-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.lq-pill{display:inline-block;padding:0.1rem 0.5rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-ok{background:#e8f5ed;color:#1e8449;}
+.pill-warn{background:#fef3cd;color:#92400e;}
+.pill-alert{background:#fde8e8;color:#c0392b;}
+.liq-bar-wrap{padding:1.25rem;}
+.lq-bar-item{margin-bottom:1rem;}
+.lq-bar-item:last-child{margin-bottom:0;}
+.lq-bar-label{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.35rem;}
+.lq-bar-name{font-weight:700;}
+.lq-bar-pct{color:var(--green);font-weight:700;}
+.lq-bar{height:10px;border-radius:5px;background:#e8e2d6;overflow:hidden;}
+.lq-bar-fill{height:100%;border-radius:5px;background:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}.lq-row{grid-template-columns:2fr 1fr 1fr;}.lq-row>:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — مراقبة السيولة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>لوحة مراقبة السيولة</h2>
+      <p>متابعة مستويات السيولة وتدفق الأموال الداخل والخارج</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportLiquidity()">تصدير</button>
+  </div>
+
+  <div class="stats" id="liqStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>تفاصيل السيولة حسب الصندوق</h3></div>
+      <div class="liq-table" id="liqTable"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>نسب تغطية السيولة</h3></div>
+      <div class="liq-bar-wrap" id="liqBars"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>تنبيهات السيولة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportLiquidity()">تصدير</button>
+    </div>
+    <div class="liq-table" id="alertsTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="exportLiquidity()">تصدير التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١٢.٤ م ر.س', lbl: 'إجمالي السيولة المتاحة' },
+  { val: '٨٧٪', lbl: 'نسبة تغطية السيولة' },
+  { val: '٣.١ م ر.س', lbl: 'سيولة مجمّدة في صفقات' },
+  { val: '٢', lbl: 'تنبيه سيولة نشط' }
+];
+
+const FUNDS = [
+  { name: 'صندوق المرابحة الأول', available: '٤.٢ م ر.س', locked: '١.٨ م ر.س', coverage: 94, pill: 'pill-ok', label: 'جيد' },
+  { name: 'صندوق المرابحة الثاني', available: '٣.٨ م ر.س', locked: '٠.٩ م ر.س', coverage: 82, pill: 'pill-ok', label: 'جيد' },
+  { name: 'صندوق الاستثمار المتوازن', available: '٢.٩ م ر.س', locked: '٠.٤ م ر.س', coverage: 71, pill: 'pill-warn', label: 'تحذير' },
+  { name: 'صندوق العقارات', available: '١.٥ م ر.س', locked: '٠.٠ م ر.س', coverage: 58, pill: 'pill-alert', label: 'تنبيه' }
+];
+
+const BARS = [
+  { name: 'صندوق المرابحة الأول', pct: 94 },
+  { name: 'صندوق المرابحة الثاني', pct: 82 },
+  { name: 'صندوق الاستثمار المتوازن', pct: 71 },
+  { name: 'صندوق العقارات', pct: 58 }
+];
+
+const ALERTS = [
+  { fund: 'صندوق العقارات', type: 'نسبة سيولة منخفضة', threshold: '٦٠٪', current: '٥٨٪', pill: 'pill-alert', label: 'حرج' },
+  { fund: 'صندوق الاستثمار المتوازن', type: 'اقتراب من الحد الأدنى', threshold: '٧٠٪', current: '٧١٪', pill: 'pill-warn', label: 'تحذير' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('liqStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const wrap = document.getElementById('liqTable');
+  const header = document.createElement('div'); header.className = 'lq-row lq-header';
+  ['الصندوق', 'متاح', 'مجمّد', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  FUNDS.forEach(f => {
+    const row = document.createElement('div'); row.className = 'lq-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = f.name;
+    const avail = document.createElement('div'); avail.style.color = 'var(--green)'; avail.style.fontWeight = '700'; avail.textContent = f.available;
+    const locked = document.createElement('div'); locked.style.color = 'var(--muted)'; locked.textContent = f.locked;
+    const pill = document.createElement('span'); pill.className = 'lq-pill ' + f.pill; pill.textContent = f.label;
+    row.appendChild(name); row.appendChild(avail); row.appendChild(locked); row.appendChild(pill);
+    wrap.appendChild(row);
+  });
+}
+
+function buildBars() {
+  const wrap = document.getElementById('liqBars');
+  BARS.forEach(b => {
+    const item = document.createElement('div'); item.className = 'lq-bar-item';
+    const label = document.createElement('div'); label.className = 'lq-bar-label';
+    const name = document.createElement('span'); name.className = 'lq-bar-name'; name.textContent = b.name;
+    const pct = document.createElement('span'); pct.className = 'lq-bar-pct'; pct.textContent = b.pct + '٪';
+    label.appendChild(name); label.appendChild(pct);
+    const bar = document.createElement('div'); bar.className = 'lq-bar';
+    const fill = document.createElement('div'); fill.className = 'lq-bar-fill'; fill.style.width = b.pct + '%';
+    if (b.pct < 60) fill.style.background = '#c0392b';
+    else if (b.pct < 75) fill.style.background = 'var(--gold)';
+    bar.appendChild(fill);
+    item.appendChild(label); item.appendChild(bar);
+    wrap.appendChild(item);
+  });
+}
+
+function buildAlerts() {
+  const wrap = document.getElementById('alertsTable');
+  const header = document.createElement('div'); header.className = 'lq-row lq-header';
+  ['الصندوق', 'نوع التنبيه', 'الحد', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  ALERTS.forEach(a => {
+    const row = document.createElement('div'); row.className = 'lq-row';
+    const fund = document.createElement('div'); fund.style.fontWeight = '700'; fund.textContent = a.fund;
+    const type = document.createElement('div'); type.style.color = 'var(--muted)'; type.textContent = a.type;
+    const thr = document.createElement('div'); thr.textContent = a.current + ' / ' + a.threshold;
+    const pill = document.createElement('span'); pill.className = 'lq-pill ' + a.pill; pill.textContent = a.label;
+    row.appendChild(fund); row.appendChild(type); row.appendChild(thr); row.appendChild(pill);
+    wrap.appendChild(row);
+  });
+}
+
+function exportLiquidity() {
+  fetch('/app/admin/liquidity-monitor/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير السيولة...');
+}
+
+buildStats(); buildTable(); buildBars(); buildAlerts();
+</script>
+</body>
+</html>
