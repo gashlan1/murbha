@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قوالب الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.tmpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+.tmpl-card{background:#fff;border-radius:14px;border:1px solid var(--line);padding:1.25rem;cursor:pointer;transition:box-shadow 0.2s;}
+.tmpl-card:hover{box-shadow:0 4px 16px rgba(6,43,30,0.10);}
+.tmpl-card.active{border-color:var(--green);box-shadow:0 0 0 2px var(--green);}
+.tc-type{font-size:0.7rem;font-weight:700;color:var(--muted);margin-bottom:0.4rem;}
+.tc-name{font-size:0.95rem;font-weight:700;margin-bottom:0.5rem;}
+.tc-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;}
+.tcs-item{}
+.tcs-lbl{font-size:0.65rem;color:var(--muted);}
+.tcs-val{font-size:0.82rem;font-weight:700;}
+.tcs-val.green{color:var(--green);}
+.tc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--line);}
+.tc-used{font-size:0.7rem;color:var(--muted);}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.editor-form{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;background:#fff;}
+.form-group textarea{resize:vertical;min-height:70px;}
+.form-group.full{grid-column:1/-1;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:900px){.tmpl-grid{grid-template-columns:1fr 1fr;}.editor-form{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — قوالب الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>قوالب إنشاء الصفقات</h2>
+      <p>استخدم قوالب جاهزة لإنشاء صفقات مرابحة جديدة بسرعة وضمان الاتساق</p>
+    </div>
+    <button class="btn btn-primary" onclick="createTemplate()">قالب جديد</button>
+  </div>
+
+  <div class="tmpl-grid" id="tmplGrid"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>تعديل القالب: مرابحة عقارية قياسية</h3></div>
+    <div class="editor-form" id="editorForm"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="applyTemplate()">استخدام القالب</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="saveTemplate()">حفظ التعديلات</button>
+      <button class="btn btn-sm" style="background:#fde8e8;color:#c0392b;" onclick="deleteTemplate()">حذف القالب</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TEMPLATES = [
+  { type: 'مرابحة عقارية', name: 'قالب عقاري قياسي', return: '١٠–١٢٪', dur: '١٢–٣٦ شهراً', min: '٥٠,٠٠٠', active: true, used: 'استُخدم ١٤ مرة' },
+  { type: 'مرابحة تجارية', name: 'قالب تجاري سريع', return: '٨–١٠٪', dur: '٣–١٢ شهراً', min: '١٠,٠٠٠', active: false, used: 'استُخدم ٨ مرات' },
+  { type: 'مرابحة لوجستية', name: 'قالب أسطول ونقل', return: '٧–٩٪', dur: '٦–٢٤ شهراً', min: '٢٠,٠٠٠', active: false, used: 'استُخدم ٥ مرات' },
+  { type: 'مرابحة صناعية', name: 'قالب مشاريع صناعية', return: '٩–١٣٪', dur: '٢٤–٦٠ شهراً', min: '١٠٠,٠٠٠', active: false, used: 'استُخدم ٣ مرات' },
+  { type: 'مرابحة زراعية', name: 'قالب مشاريع زراعية', return: '٦–٨٪', dur: '٦–١٨ شهراً', min: '١٥,٠٠٠', active: false, used: 'استُخدم مرتين' },
+  { type: 'مرابحة تقنية', name: 'قالب مشاريع تقنية', return: '١١–١٥٪', dur: '١٢–٣٦ شهراً', min: '٣٠,٠٠٠', active: false, used: 'جديد' }
+];
+
+const EDITOR_FIELDS = [
+  { label: 'اسم القالب', type: 'input', value: 'مرابحة عقارية قياسية' },
+  { label: 'نوع المرابحة', type: 'select', opts: ['عقارية', 'تجارية', 'لوجستية', 'صناعية', 'زراعية'] },
+  { label: 'نطاق العائد السنوي (%)', type: 'input', value: '١٠–١٢' },
+  { label: 'مدة الصفقة (شهر)', type: 'input', value: '١٢–٣٦' },
+  { label: 'الحد الأدنى للاستثمار (ر.س)', type: 'input', value: '٥٠٠٠٠' },
+  { label: 'الحد الأقصى للاستثمار (ر.س)', type: 'input', value: '٥٠٠٠٠٠٠' },
+  { label: 'آلية توزيع الأرباح', type: 'select', opts: ['شهري', 'ربع سنوي', 'نصف سنوي', 'عند الإغلاق'] },
+  { label: 'متطلبات الضمان', type: 'select', opts: ['رهن عقاري', 'ضمان بنكي', 'كفيل شخصي', 'بدون'] },
+  { label: 'ملاحظات القالب', type: 'textarea', value: 'يُستخدم للصفقات العقارية في المدن الكبرى. يُشترط تقييم عقاري معتمد.', full: true }
+];
+
+function buildGrid() {
+  const wrap = document.getElementById('tmplGrid');
+  TEMPLATES.forEach((t, i) => {
+    const card = document.createElement('div'); card.className = 'tmpl-card' + (t.active ? ' active' : '');
+    card.onclick = () => { TEMPLATES.forEach((x, j) => { x.active = j === i; }); buildGrid(); };
+    const type = document.createElement('div'); type.className = 'tc-type'; type.textContent = t.type;
+    const name = document.createElement('div'); name.className = 'tc-name'; name.textContent = t.name;
+    const stats = document.createElement('div'); stats.className = 'tc-stats';
+    [['العائد', t.return, true], ['المدة', t.dur, false], ['الأدنى', t.min + ' ر.س', false], ['الاستخدام', '—', false]].forEach(([l, v, green]) => {
+      const item = document.createElement('div'); item.className = 'tcs-item';
+      const lbl = document.createElement('div'); lbl.className = 'tcs-lbl'; lbl.textContent = l;
+      const val = document.createElement('div'); val.className = 'tcs-val' + (green ? ' green' : ''); val.textContent = v;
+      item.appendChild(lbl); item.appendChild(val); stats.appendChild(item);
+    });
+    const footer = document.createElement('div'); footer.className = 'tc-footer';
+    const used = document.createElement('span'); used.className = 'tc-used'; used.textContent = t.used;
+    const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-primary'; btn.textContent = 'استخدام';
+    btn.onclick = (e) => { e.stopPropagation(); applyTemplate(); };
+    footer.appendChild(used); footer.appendChild(btn);
+    card.appendChild(type); card.appendChild(name); card.appendChild(stats); card.appendChild(footer);
+    wrap.appendChild(card);
+  });
+}
+
+function buildEditor() {
+  const wrap = document.getElementById('editorForm');
+  EDITOR_FIELDS.forEach(f => {
+    const group = document.createElement('div'); group.className = 'form-group' + (f.full ? ' full' : '');
+    const label = document.createElement('label'); label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+    } else if (f.type === 'textarea') {
+      input = document.createElement('textarea'); input.textContent = f.value || '';
+    } else {
+      input = document.createElement('input'); input.type = 'text'; if (f.value) input.value = f.value;
+    }
+    group.appendChild(label); group.appendChild(input);
+    wrap.appendChild(group);
+  });
+}
+
+function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+function buildGrid() {
+  const wrap = document.getElementById('tmplGrid');
+  clearChildren(wrap);
+  TEMPLATES.forEach((t, i) => {
+    const card = document.createElement('div'); card.className = 'tmpl-card' + (t.active ? ' active' : '');
+    card.onclick = () => { TEMPLATES.forEach((x, j) => { x.active = j === i; }); buildGrid(); };
+    const type = document.createElement('div'); type.className = 'tc-type'; type.textContent = t.type;
+    const name = document.createElement('div'); name.className = 'tc-name'; name.textContent = t.name;
+    const stats = document.createElement('div'); stats.className = 'tc-stats';
+    [['العائد', t.return, true], ['المدة', t.dur, false]].forEach(([l, v, green]) => {
+      const item = document.createElement('div'); item.className = 'tcs-item';
+      const lbl = document.createElement('div'); lbl.className = 'tcs-lbl'; lbl.textContent = l;
+      const val = document.createElement('div'); val.className = 'tcs-val' + (green ? ' green' : ''); val.textContent = v;
+      item.appendChild(lbl); item.appendChild(val); stats.appendChild(item);
+    });
+    const footer = document.createElement('div'); footer.className = 'tc-footer';
+    const used = document.createElement('span'); used.className = 'tc-used'; used.textContent = t.used;
+    const btn = document.createElement('button'); btn.className = 'btn btn-sm btn-primary'; btn.textContent = 'استخدام';
+    btn.onclick = (e) => { e.stopPropagation(); applyTemplate(); };
+    footer.appendChild(used); footer.appendChild(btn);
+    card.appendChild(type); card.appendChild(name); card.appendChild(stats); card.appendChild(footer);
+    wrap.appendChild(card);
+  });
+}
+
+function applyTemplate() {
+  fetch('/app/admin/deal-templates/apply', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ templateId: 0 }) }).catch(() => {});
+  alert('تم تطبيق القالب — سيتم توجيهك لنموذج إنشاء الصفقة.');
+}
+
+function saveTemplate() {
+  fetch('/app/admin/deal-templates', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ template: {} }) }).catch(() => {});
+  alert('تم حفظ تعديلات القالب.');
+}
+
+function createTemplate() {
+  fetch('/app/admin/deal-templates', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ name: 'قالب جديد' }) }).catch(() => {});
+  alert('جاري إنشاء قالب جديد...');
+}
+
+function deleteTemplate() {
+  fetch('/app/admin/deal-templates/0', { method: 'DELETE', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('تم حذف القالب.');
+}
+
+buildGrid(); buildEditor();
+</script>
+</body>
+</html>

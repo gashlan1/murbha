@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>منشئ التقارير - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1.6fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.field-list{padding:1rem;}
+.field-item{display:flex;align-items:center;gap:0.6rem;padding:0.45rem 0.5rem;border-radius:6px;cursor:pointer;transition:background 0.15s;margin-bottom:0.2rem;}
+.field-item:hover{background:#f5f0e8;}
+.field-cb{width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0;}
+.field-lbl{font-size:0.83rem;}
+.field-cat{font-size:0.72rem;font-weight:700;color:var(--muted);padding:0.5rem 0.5rem 0.2rem;text-transform:uppercase;}
+.builder-form{padding:1.25rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:0.35rem;color:var(--muted);}
+.form-group select,.form-group input{width:100%;padding:0.5rem 0.75rem;border:1px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.86rem;background:#fff;}
+.preview-table{padding:1.25rem;overflow-x:auto;}
+.pt-row{display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--line);font-size:0.78rem;}
+.pt-header{font-weight:700;color:var(--muted);font-size:0.72rem;}
+.saved-list{padding:1.25rem;}
+.saved-item{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);}
+.saved-item:last-child{border-bottom:none;}
+.saved-name{font-size:0.86rem;font-weight:700;}
+.saved-meta{font-size:0.72rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.layout-2{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — منشئ التقارير</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>منشئ التقارير المخصصة</h2>
+      <p>أنشئ تقارير مخصصة من بيانات المنصة وصدّرها بصيغ متعددة</p>
+    </div>
+    <button class="btn btn-primary" onclick="generateReport()">إنشاء التقرير</button>
+  </div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>الحقول المتاحة</h3></div>
+      <div class="field-list" id="fieldList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>إعدادات التقرير</h3></div>
+      <div class="builder-form" id="builderForm"></div>
+      <div class="action-bar">
+        <button class="btn btn-gold btn-sm" onclick="generateReport()">إنشاء</button>
+        <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="saveTemplate()">حفظ كقالب</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>معاينة التقرير</h3></div>
+    <div class="preview-table" id="previewTable"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>القوالب المحفوظة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="generateReport()">تشغيل</button>
+    </div>
+    <div class="saved-list" id="savedList"></div>
+  </div>
+</div>
+
+<script>
+const FIELD_CATS = [
+  { cat: 'الصفقات', fields: ['اسم الصفقة', 'نوع المرابحة', 'قيمة الصفقة', 'العائد السنوي', 'تاريخ الإغلاق'] },
+  { cat: 'المستثمرون', fields: ['اسم المستثمر', 'مبلغ الاستثمار', 'تاريخ الاشتراك', 'مستوى KYC'] },
+  { cat: 'المدفوعات', fields: ['مبلغ المدفوعة', 'تاريخ الدفع', 'حالة الدفع'] }
+];
+
+const FORM_FIELDS = [
+  { label: 'نوع التقرير', type: 'select', opts: ['ملخص تنفيذي', 'تفصيلي', 'إحصائي'] },
+  { label: 'الفترة الزمنية', type: 'select', opts: ['هذا الشهر', 'هذا الربع', 'هذا العام', 'مخصص'] },
+  { label: 'تاريخ البداية', type: 'date' },
+  { label: 'تاريخ النهاية', type: 'date' },
+  { label: 'صيغة التصدير', type: 'select', opts: ['PDF', 'Excel', 'CSV', 'JSON'] },
+  { label: 'الترتيب', type: 'select', opts: ['تاريخياً (الأحدث)', 'تاريخياً (الأقدم)', 'حسب القيمة'] }
+];
+
+const PREVIEW = [
+  ['مرابحة عقارية #4920', 'عقارية', '٢٤٠,٠٠٠', '١٢٪', '٢٠٢٦/٠٦/٣٠'],
+  ['مرابحة تجارية #4921', 'تجارية', '١٨٠,٠٠٠', '٩.٥٪', '٢٠٢٦/٠٧/١٥'],
+  ['مرابحة لوجستية #4918', 'لوجستية', '٩٠,٠٠٠', '٨٪', '٢٠٢٦/٠٩/٠١']
+];
+
+const SAVED = [
+  { name: 'تقرير الأداء الشهري', meta: 'آخر تشغيل: ٢٠٢٦/٠٦/٠١ · ٥ حقول' },
+  { name: 'ملخص الصفقات المغلقة', meta: 'آخر تشغيل: ٢٠٢٦/٠٥/١٥ · ٨ حقول' },
+  { name: 'تقرير المستثمرين النشطين', meta: 'آخر تشغيل: ٢٠٢٦/٠٤/٣٠ · ٤ حقول' }
+];
+
+function buildFields() {
+  const wrap = document.getElementById('fieldList');
+  FIELD_CATS.forEach(fc => {
+    const cat = document.createElement('div'); cat.className = 'field-cat'; cat.textContent = fc.cat;
+    wrap.appendChild(cat);
+    fc.fields.forEach(f => {
+      const item = document.createElement('div'); item.className = 'field-item';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'field-cb'; cb.checked = true;
+      const lbl = document.createElement('label'); lbl.className = 'field-lbl'; lbl.textContent = f;
+      item.appendChild(cb); item.appendChild(lbl);
+      wrap.appendChild(item);
+    });
+  });
+}
+
+function buildForm() {
+  const wrap = document.getElementById('builderForm');
+  for (let i = 0; i < FORM_FIELDS.length; i += 2) {
+    const row = document.createElement('div'); row.className = 'form-row';
+    [FORM_FIELDS[i], FORM_FIELDS[i + 1]].forEach(f => {
+      if (!f) return;
+      const group = document.createElement('div'); group.className = 'form-group';
+      const label = document.createElement('label'); label.textContent = f.label;
+      let input;
+      if (f.type === 'select') {
+        input = document.createElement('select');
+        f.opts.forEach(o => { const opt = document.createElement('option'); opt.textContent = o; input.appendChild(opt); });
+      } else {
+        input = document.createElement('input'); input.type = f.type;
+      }
+      group.appendChild(label); group.appendChild(input);
+      row.appendChild(group);
+    });
+    wrap.appendChild(row);
+  }
+}
+
+function buildPreview() {
+  const wrap = document.getElementById('previewTable');
+  const header = document.createElement('div'); header.className = 'pt-row pt-header';
+  ['الصفقة', 'النوع', 'القيمة', 'العائد', 'الإغلاق'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  PREVIEW.forEach(row => {
+    const r = document.createElement('div'); r.className = 'pt-row';
+    row.forEach((cell, i) => {
+      const c = document.createElement('div');
+      if (i === 3) c.style.cssText = 'font-weight:700;color:var(--green);';
+      else if (i === 0) c.style.fontWeight = '700';
+      c.textContent = cell;
+      r.appendChild(c);
+    });
+    wrap.appendChild(r);
+  });
+}
+
+function buildSaved() {
+  const wrap = document.getElementById('savedList');
+  SAVED.forEach((s, i) => {
+    const item = document.createElement('div'); item.className = 'saved-item';
+    const info = document.createElement('div');
+    const name = document.createElement('div'); name.className = 'saved-name'; name.textContent = s.name;
+    const meta = document.createElement('div'); meta.className = 'saved-meta'; meta.textContent = s.meta;
+    info.appendChild(name); info.appendChild(meta);
+    const actions = document.createElement('div'); actions.style.display = 'flex'; actions.style.gap = '0.4rem';
+    const run = document.createElement('button'); run.className = 'btn btn-sm btn-primary'; run.textContent = 'تشغيل';
+    run.onclick = () => generateReport();
+    actions.appendChild(run);
+    item.appendChild(info); item.appendChild(actions);
+    wrap.appendChild(item);
+  });
+}
+
+function generateReport() {
+  fetch('/app/admin/report-builder', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ fields: [], format: 'PDF' }) }).catch(() => {});
+  alert('جاري إنشاء التقرير...');
+}
+
+function saveTemplate() {
+  fetch('/app/admin/report-builder/templates', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ name: 'قالب جديد' }) }).catch(() => {});
+  alert('تم حفظ القالب بنجاح.');
+}
+
+buildFields(); buildForm(); buildPreview(); buildSaved();
+</script>
+</body>
+</html>

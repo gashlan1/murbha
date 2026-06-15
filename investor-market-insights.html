@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رؤى السوق - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.indicators{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.ind-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.ind-name{font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;}
+.ind-val{font-size:1.3rem;font-weight:700;color:var(--green-dark);}
+.ind-change{font-size:0.78rem;font-weight:700;margin-top:0.2rem;}
+.change-up{color:#1e8449;}
+.change-down{color:#c0392b;}
+.layout-2{display:grid;grid-template-columns:1.4fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.insight-list{padding:1.25rem;}
+.insight-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.85rem;}
+.insight-item:last-child{margin-bottom:0;}
+.ins-head{display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.4rem;}
+.ins-tag{display:inline-block;padding:0.15rem 0.5rem;border-radius:6px;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+.tag-bull{background:#e8f5ed;color:#1e8449;}
+.tag-bear{background:#fde8e8;color:#c0392b;}
+.tag-neutral{background:#fef3cd;color:#92400e;}
+.ins-title{font-size:0.86rem;font-weight:700;}
+.ins-body{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.ins-date{font-size:0.68rem;color:var(--muted);margin-top:0.35rem;}
+.sector-list{padding:1.25rem;}
+.sector-item{margin-bottom:0.85rem;}
+.sec-head{display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;}
+.sec-name{font-weight:600;}
+.sec-return{font-weight:700;color:var(--green);}
+.sec-bar{height:8px;border-radius:4px;background:#e8e2d6;}
+.sec-fill{height:100%;border-radius:4px;background:var(--green);}
+@media(max-width:800px){.indicators{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — رؤى السوق</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>رؤى ومؤشرات السوق</h2>
+      <p>أحدث التحليلات وتوجهات السوق السعودي لمساعدتك في قرارات استثمارك</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportInsights()">تصدير التقرير</button>
+  </div>
+
+  <div class="indicators" id="indicators"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>أبرز رؤى هذا الأسبوع</h3></div>
+      <div class="insight-list" id="insightList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>أداء القطاعات</h3></div>
+      <div class="sector-list" id="sectorList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>توقعات السوق — الربع الثالث ٢٠٢٦</h3></div>
+    <div style="padding:1.25rem;" id="forecastWrap"></div>
+  </div>
+</div>
+
+<script>
+const INDICATORS = [
+  { name: 'نسبة الفائدة SAMA', val: '٦.٠٠٪', change: '—', cls: '' },
+  { name: 'التضخم السنوي', val: '٢.٣٪', change: '↓ -٠.٢٪', cls: 'change-up' },
+  { name: 'نمو الناتج المحلي', val: '٣.٨٪', change: '↑ +٠.٤٪', cls: 'change-up' },
+  { name: 'مؤشر تداول (TASI)', val: '١٢,٤٨٠', change: '↑ +١.٢٪', cls: 'change-up' }
+];
+
+const INSIGHTS = [
+  { tag: 'tag-bull', tagLabel: 'إيجابي', title: 'ارتفاع الطلب على التمويل العقاري يدعم المرابحة', body: 'تُشير بيانات SAMA إلى نمو محفظة التمويل العقاري بنسبة ١٨٪ في الربع الأول من ٢٠٢٦، مما يعزز الطلب على صفقات المرابحة العقارية ذات الجودة العالية.', date: '٢٠٢٦/٠٦/١٢' },
+  { tag: 'tag-neutral', tagLabel: 'محايد', title: 'استقرار أسعار الفائدة يُبقي على جاذبية المرابحة', body: 'قرار SAMA بتثبيت أسعار الفائدة يُبقي التوازن بين العوائد المصرفية وعوائد المرابحة لصالح المستثمرين الباحثين عن دخل ثابت.', date: '٢٠٢٦/٠٦/٠٨' },
+  { tag: 'tag-bear', tagLabel: 'تحذير', title: 'ضغوط على القطاع اللوجستي جراء ارتفاع أسعار الوقود', body: 'تُؤثر الزيادة في أسعار الوقود على هوامش القطاع اللوجستي. يُنصح بمراجعة الصفقات اللوجستية الطويلة الأجل قبل الاستثمار.', date: '٢٠٢٦/٠٦/٠٥' }
+];
+
+const SECTORS = [
+  { name: 'عقارات', return: '١١.٤٪', pct: 76 },
+  { name: 'تجاري', return: '٩.٢٪', pct: 61 },
+  { name: 'صناعي', return: '١٠.٨٪', pct: 72 },
+  { name: 'لوجستي', return: '٧.٦٪', pct: 51 },
+  { name: 'زراعي', return: '٦.٩٪', pct: 46 }
+];
+
+const FORECAST = [
+  'يُتوقع أن تحافظ المرابحة العقارية على عوائد تتراوح بين ١٠–١٢٪ في ظل استمرار زخم رؤية ٢٠٣٠.',
+  'قد يشهد القطاع التجاري ضغطاً طفيفاً في الهوامش، غير أن تنويع المحفظة يُخفف هذا الأثر.',
+  'يُقدّر خبراء المنصة أن تبقى عوائد صفقات المرابحة عند مستويات تنافسية مقارنةً بالبدائل المتاحة.',
+  'المستثمرون الجدد: يُنصح بالبدء بصفقات عقارية متوسطة الأجل (١٢–٢٤ شهراً) لتوازن العائد والمخاطر.'
+];
+
+function buildIndicators() {
+  const wrap = document.getElementById('indicators');
+  INDICATORS.forEach(ind => {
+    const card = document.createElement('div'); card.className = 'ind-card';
+    const name = document.createElement('div'); name.className = 'ind-name'; name.textContent = ind.name;
+    const val = document.createElement('div'); val.className = 'ind-val'; val.textContent = ind.val;
+    const change = document.createElement('div'); change.className = 'ind-change ' + ind.cls; change.textContent = ind.change;
+    card.appendChild(name); card.appendChild(val); card.appendChild(change);
+    wrap.appendChild(card);
+  });
+}
+
+function buildInsights() {
+  const wrap = document.getElementById('insightList');
+  INSIGHTS.forEach(i => {
+    const item = document.createElement('div'); item.className = 'insight-item';
+    const head = document.createElement('div'); head.className = 'ins-head';
+    const tag = document.createElement('span'); tag.className = 'ins-tag ' + i.tag; tag.textContent = i.tagLabel;
+    const title = document.createElement('div'); title.className = 'ins-title'; title.textContent = i.title;
+    head.appendChild(tag); head.appendChild(title);
+    const body = document.createElement('div'); body.className = 'ins-body'; body.textContent = i.body;
+    const date = document.createElement('div'); date.className = 'ins-date'; date.textContent = i.date;
+    item.appendChild(head); item.appendChild(body); item.appendChild(date);
+    wrap.appendChild(item);
+  });
+}
+
+function buildSectors() {
+  const wrap = document.getElementById('sectorList');
+  SECTORS.forEach(s => {
+    const item = document.createElement('div'); item.className = 'sector-item';
+    const head = document.createElement('div'); head.className = 'sec-head';
+    const name = document.createElement('span'); name.className = 'sec-name'; name.textContent = s.name;
+    const ret = document.createElement('span'); ret.className = 'sec-return'; ret.textContent = s.return;
+    head.appendChild(name); head.appendChild(ret);
+    const bar = document.createElement('div'); bar.className = 'sec-bar';
+    const fill = document.createElement('div'); fill.className = 'sec-fill'; fill.style.width = s.pct + '%';
+    bar.appendChild(fill);
+    item.appendChild(head); item.appendChild(bar);
+    wrap.appendChild(item);
+  });
+}
+
+function buildForecast() {
+  const wrap = document.getElementById('forecastWrap');
+  FORECAST.forEach(f => {
+    const p = document.createElement('p'); p.style.cssText = 'font-size:0.84rem;margin-bottom:0.7rem;line-height:1.6;';
+    p.textContent = '• ' + f;
+    wrap.appendChild(p);
+  });
+}
+
+function exportInsights() {
+  fetch('/app/me/market-insights/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير رؤى السوق...');
+}
+
+buildIndicators(); buildInsights(); buildSectors(); buildForecast();
+</script>
+</body>
+</html>
