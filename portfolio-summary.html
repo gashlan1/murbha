@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Portfolio Summary — Murbha">ملخص المحفظة — مُرابحة</title>
+<meta name="description" content="ملخص شامل لمحفظتك الاستثمارية — الأصول والعوائد والتوزيع القطاعي." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero-val{font:900 42px Cairo,sans-serif;margin:8px 0 4px;}
+  .hero-sub{font:500 12px Tajawal,sans-serif;opacity:.85;}
+  .hero-return{display:inline-block;background:rgba(255,255,255,0.18);border-radius:8px;padding:4px 14px;margin-top:10px;font:900 13px Cairo,sans-serif;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 20px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Sector allocation */
+  .sector-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .sector-color{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+  .sector-name{font:700 11px Cairo,sans-serif;color:var(--ink);flex:1;}
+  .sector-bar-bg{flex:2;height:8px;background:#f0ece0;border-radius:4px;overflow:hidden;}
+  .sector-bar{height:100%;border-radius:4px;}
+  .sector-pct{font:900 10px Cairo,sans-serif;color:var(--green-dark);width:36px;text-align:left;flex-shrink:0;}
+  .sector-val{font:700 10px Cairo,sans-serif;color:var(--muted);width:80px;text-align:left;flex-shrink:0;}
+  /* Holdings table */
+  .hold-table{width:100%;border-collapse:collapse;}
+  .hold-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .hold-table td{font:500 11px Tajawal,sans-serif;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .hold-table tr:last-child td{border-bottom:none;}
+  .hold-table tr:hover td{background:#fafaf7;}
+  .gain-pos{color:#2e7d32;font:900 10px Cairo,sans-serif;}
+  .gain-neg{color:#c54a3a;font:900 10px Cairo,sans-serif;}
+  .status-active{background:#e8f5e9;color:#2e7d32;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .status-matured{background:#e3f2fd;color:#1565c0;border-radius:5px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  /* Performance bars */
+  .perf-month{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:8px;}
+  .perf-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .perf-bar{width:100%;border-radius:3px 3px 0 0;background:var(--green);min-height:3px;}
+  .perf-lbl{font:700 8px Cairo,sans-serif;color:var(--muted);}
+  .perf-val{font:900 8px Cairo,sans-serif;color:var(--green-dark);}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="hero-sub" data-en="Total Portfolio Value">إجمالي قيمة المحفظة</div>
+    <div class="hero-val" id="heroVal">—</div>
+    <div class="hero-sub">ريال سعودي</div>
+    <div class="hero-return" id="heroReturn"></div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="Sector Allocation">التوزيع القطاعي</div>
+    <div id="sectorChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Monthly Returns">العوائد الشهرية (ر.س)</div>
+    <div class="perf-month" id="perfChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Holdings">محتويات المحفظة</div>
+    <table class="hold-table">
+      <thead><tr>
+        <th data-en="Deal">الصفقة</th>
+        <th data-en="Invested">المبلغ</th>
+        <th data-en="Current Value">القيمة الحالية</th>
+        <th data-en="Return">العائد</th>
+        <th data-en="Status">الحالة</th>
+        <th data-en="Maturity">الاستحقاق</th>
+      </tr></thead>
+      <tbody id="holdBody"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+(function(){
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  const sectorColors=['#0a4d36','#b08840','#1565c0','#7b1fa2','#c54a3a','#f57f17','#2e7d32','#00838f'];
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/portfolio-summary');
+      if(!r.ok){ placeholder(document.getElementById('holdBody'),r.status===401?'يرجى تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const totalValue=d.totalValue||0; const totalInvested=d.totalInvested||0;
+      document.getElementById('heroVal').textContent=fmt(totalValue);
+      const gain=totalValue-totalInvested; const gainPct=totalInvested?((gain/totalInvested)*100).toFixed(1):0;
+      const heroRet=document.getElementById('heroReturn');
+      heroRet.textContent=(gain>=0?'+':'')+fmt(gain)+' ر.س ('+(gain>=0?'+':'')+gainPct+'٪)';
+      heroRet.style.background=gain>=0?'rgba(46,125,50,0.3)':'rgba(197,74,58,0.3)';
+      // KPIs
+      const kpiRow=document.getElementById('kpiRow');
+      const kpis=d.kpis||{};
+      [{lbl:'إجمالي الاستثمار',val:fmt(kpis.totalInvested||0)+' ر.س'},{lbl:'صفقات نشطة',val:String(kpis.activeDeals||0)},{lbl:'عوائد محصّلة',val:fmt(kpis.totalReturn||0)+' ر.س'},{lbl:'متوسط العائد',val:(kpis.avgYield||0).toFixed(1)+'٪'}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      // Sector chart
+      const sc=document.getElementById('sectorChart'); sc.textContent='';
+      const sectors=d.sectors||[];
+      sectors.forEach((s,i)=>{
+        const row=document.createElement('div'); row.className='sector-row';
+        const dot=document.createElement('div'); dot.className='sector-color'; dot.style.background=sectorColors[i%sectorColors.length];
+        const name=document.createElement('div'); name.className='sector-name'; name.textContent=s.name||'—';
+        const bg=document.createElement('div'); bg.className='sector-bar-bg';
+        const bar=document.createElement('div'); bar.className='sector-bar'; bar.style.background=sectorColors[i%sectorColors.length]; bar.style.width=(s.pct||0)+'%';
+        bg.appendChild(bar);
+        const pct=document.createElement('div'); pct.className='sector-pct'; pct.textContent=(s.pct||0)+'٪';
+        const val=document.createElement('div'); val.className='sector-val'; val.textContent=fmt(s.value||0)+' ر.س';
+        row.appendChild(dot); row.appendChild(name); row.appendChild(bg); row.appendChild(pct); row.appendChild(val);
+        sc.appendChild(row);
+      });
+      if(!sectors.length) placeholder(sc,'لا توجد بيانات.');
+      // Performance chart
+      const pc=document.getElementById('perfChart'); pc.textContent='';
+      const monthly=d.monthlyReturns||[];
+      if(monthly.length){
+        const maxVal=Math.max(1,...monthly.map(m=>m.amount||0));
+        monthly.forEach(m=>{
+          const wrap=document.createElement('div'); wrap.className='perf-bar-wrap';
+          const v=document.createElement('div'); v.className='perf-val'; v.textContent=fmt(m.amount||0);
+          const bar=document.createElement('div'); bar.className='perf-bar'; bar.style.height=Math.round(((m.amount||0)/maxVal)*64)+'px';
+          const lbl=document.createElement('div'); lbl.className='perf-lbl'; lbl.textContent=m.month||'—';
+          wrap.appendChild(v); wrap.appendChild(bar); wrap.appendChild(lbl); pc.appendChild(wrap);
+        });
+      }
+      // Holdings
+      const body=document.getElementById('holdBody'); body.textContent='';
+      const holdings=d.holdings||[];
+      if(!holdings.length){ placeholder(body,'لا توجد استثمارات بعد.'); return; }
+      holdings.forEach(h=>{
+        const tr=document.createElement('tr');
+        const tdName=document.createElement('td'); tdName.style.fontWeight='900'; tdName.style.fontSize='11px'; tdName.textContent=h.dealName||'—';
+        const tdInv=document.createElement('td'); tdInv.textContent=fmt(h.invested||0)+' ر.س';
+        const tdCur=document.createElement('td'); tdCur.style.fontWeight='900'; tdCur.textContent=fmt(h.currentValue||h.invested||0)+' ر.س';
+        const gain2=(h.currentValue||h.invested||0)-(h.invested||0);
+        const tdGain=document.createElement('td'); tdGain.className=gain2>=0?'gain-pos':'gain-neg'; tdGain.textContent=(gain2>=0?'+':'')+fmt(gain2)+' ر.س';
+        const tdSt=document.createElement('td');
+        const sb=document.createElement('span'); sb.className=h.status==='active'?'status-active':'status-matured'; sb.textContent=h.status==='active'?'نشط':'منتهي';
+        tdSt.appendChild(sb);
+        const tdMat=document.createElement('td'); tdMat.style.color='var(--muted)'; tdMat.textContent=(h.maturityDate||'—').slice(0,10);
+        tr.appendChild(tdName); tr.appendChild(tdInv); tr.appendChild(tdCur); tr.appendChild(tdGain); tr.appendChild(tdSt); tr.appendChild(tdMat);
+        body.appendChild(tr);
+      });
+    }catch{ placeholder(document.getElementById('holdBody'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>

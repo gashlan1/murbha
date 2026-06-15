@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="KYC Review — Murbha Admin">مراجعة KYC — إدارة مُرابحة</title>
+<meta name="description" content="مراجعة واعتماد طلبات التحقق من هوية المستخدمين." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;}
+  .kpi-val{font:900 24px Cairo,sans-serif;color:var(--green-dark);}
+  .kpi-lbl{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:3px;}
+  .filter-bar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .filter-chip{border:1.5px solid var(--line);border-radius:20px;padding:5px 12px;font:700 10px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--muted);}
+  .filter-chip.active{border-color:var(--green);background:var(--green);color:#fff;}
+  .search-inp{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;font:500 12px Tajawal,sans-serif;color:var(--ink);}
+  .search-inp:focus{outline:none;border-color:var(--green);}
+  /* KYC card */
+  .kyc-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px;}
+  .kyc-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .kyc-avatar{width:44px;height:44px;border-radius:50%;background:var(--green-dark);color:#fbf6ea;display:flex;align-items:center;justify-content:center;font:900 16px Cairo,sans-serif;flex-shrink:0;}
+  .kyc-user-info{flex:1;}
+  .kyc-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .kyc-email{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .kyc-submitted{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .kyc-status{font:700 10px Cairo,sans-serif;border-radius:6px;padding:3px 10px;flex-shrink:0;}
+  .st-pending{background:#fff8e1;color:#a07020;}
+  .st-under_review{background:#e3f2fd;color:#1565c0;}
+  .st-verified{background:#e8f5e9;color:#2e7d32;}
+  .st-rejected{background:#fdecea;color:#c54a3a;}
+  .kyc-docs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .doc-chip{background:#f9f7f2;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font:700 10px Cairo,sans-serif;color:var(--green-dark);display:flex;align-items:center;gap:6px;}
+  .doc-chip-icon{font-size:14px;}
+  .kyc-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px;}
+  .kyc-field{background:#f9f7f2;border-radius:8px;padding:9px 12px;}
+  .kf-val{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .kf-lbl{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .kyc-actions{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+  .kyc-note{flex:1;min-width:140px;}
+  .kyc-note-inp{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font:500 11px Tajawal,sans-serif;color:var(--ink);}
+  .kyc-note-inp:focus{outline:none;border-color:var(--green);}
+  .btn-verify{background:#2e7d32;color:#fff;border:none;border-radius:9px;padding:10px 18px;font:900 11px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-verify:hover{background:#388e3c;}
+  .btn-verify:disabled{background:#ccc;cursor:default;}
+  .btn-reject-kyc{background:#c54a3a;color:#fff;border:none;border-radius:9px;padding:10px 18px;font:900 11px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-reject-kyc:hover{background:#d32f2f;}
+  .btn-reject-kyc:disabled{background:#ccc;cursor:default;}
+  .btn-request-docs{background:var(--gold);color:#fff;border:none;border-radius:9px;padding:10px 18px;font:900 11px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn-request-docs:hover{background:#9a7535;}
+  .btn-request-docs:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="KYC Review">مراجعة KYC</h1>
+    <p data-en="Review and approve user identity verification requests.">راجع طلبات التحقق من هوية المستخدمين واعتمدها أو ارفضها.</p>
+    <div class="admin-badge">لوحة الإدارة</div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="filter-bar">
+    <div class="filter-chip active" data-status="">الكل</div>
+    <div class="filter-chip" data-status="pending">قيد الانتظار</div>
+    <div class="filter-chip" data-status="under_review">قيد المراجعة</div>
+    <div class="filter-chip" data-status="verified">موثّق</div>
+    <div class="filter-chip" data-status="rejected">مرفوض</div>
+    <input class="search-inp" id="searchInp" type="text" placeholder="بحث بالاسم أو البريد…" />
+  </div>
+
+  <div id="kycList"></div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const stLabel={pending:'قيد الانتظار',under_review:'قيد المراجعة',verified:'موثّق',rejected:'مرفوض'};
+  const stCls={pending:'st-pending',under_review:'st-under_review',verified:'st-verified',rejected:'st-rejected'};
+  const docLabels={national_id:'الهوية الوطنية',passport:'جواز السفر',residence:'الإقامة',bank_statement:'كشف حساب',selfie:'صورة ذاتية'};
+
+  let allKyc=[], activeStatus='', activeSearch='';
+
+  function filtered(){ return allKyc.filter(k=>{ if(activeStatus && k.status!==activeStatus) return false; if(activeSearch){ const q=activeSearch.toLowerCase(); if(!(k.name||'').toLowerCase().includes(q)&&!(k.email||'').toLowerCase().includes(q)) return false; } return true; }); }
+
+  function render(){
+    const list=document.getElementById('kycList'); list.textContent='';
+    const items=filtered();
+    if(!items.length){ placeholder(list,'لا توجد طلبات تطابق الفلتر.'); return; }
+    items.forEach(kyc=>{
+      const card=document.createElement('div'); card.className='kyc-card';
+      const header=document.createElement('div'); header.className='kyc-header';
+      const av=document.createElement('div'); av.className='kyc-avatar'; av.textContent=(kyc.name||'م').charAt(0);
+      const ui=document.createElement('div'); ui.className='kyc-user-info';
+      const name=document.createElement('div'); name.className='kyc-name'; name.textContent=kyc.name||'—';
+      const email=document.createElement('div'); email.className='kyc-email'; email.textContent=kyc.email||'—';
+      const sub=document.createElement('div'); sub.className='kyc-submitted'; sub.textContent='تقديم: '+(kyc.submittedAt||'—').slice(0,10);
+      ui.appendChild(name); ui.appendChild(email); ui.appendChild(sub);
+      const st=document.createElement('div'); st.className='kyc-status '+(stCls[kyc.status]||'st-pending'); st.textContent=stLabel[kyc.status]||kyc.status||'—';
+      header.appendChild(av); header.appendChild(ui); header.appendChild(st);
+      // Docs
+      const docs=document.createElement('div'); docs.className='kyc-docs';
+      (kyc.documents||[]).forEach(doc=>{
+        const chip=document.createElement('div'); chip.className='doc-chip';
+        const icon=document.createElement('span'); icon.className='doc-chip-icon'; icon.textContent='📄';
+        const txt=document.createTextNode(docLabels[doc.type]||doc.type||'وثيقة');
+        chip.appendChild(icon); chip.appendChild(txt); docs.appendChild(chip);
+      });
+      // Fields
+      const fields=document.createElement('div'); fields.className='kyc-fields';
+      [{lbl:'رقم الهوية',val:kyc.idNumber||'—'},{lbl:'تاريخ الميلاد',val:(kyc.dob||'—').slice(0,10)},{lbl:'الجنسية',val:kyc.nationality||'—'},{lbl:'المهنة',val:kyc.profession||'—'}].forEach(f=>{
+        const field=document.createElement('div'); field.className='kyc-field';
+        const v=document.createElement('div'); v.className='kf-val'; v.textContent=f.val;
+        const l=document.createElement('div'); l.className='kf-lbl'; l.textContent=f.lbl;
+        field.appendChild(v); field.appendChild(l); fields.appendChild(field);
+      });
+      // Actions (only for pending/under_review)
+      const actions=document.createElement('div'); actions.className='kyc-actions';
+      if(kyc.status==='pending'||kyc.status==='under_review'){
+        const noteWrap=document.createElement('div'); noteWrap.className='kyc-note';
+        const noteInp=document.createElement('input'); noteInp.className='kyc-note-inp'; noteInp.type='text'; noteInp.placeholder='ملاحظة للمستخدم…';
+        noteWrap.appendChild(noteInp);
+        const btnV=document.createElement('button'); btnV.className='btn-verify'; btnV.textContent='اعتماد ✓';
+        const btnRq=document.createElement('button'); btnRq.className='btn-request-docs'; btnRq.textContent='طلب وثائق';
+        const btnRj=document.createElement('button'); btnRj.className='btn-reject-kyc'; btnRj.textContent='رفض ✗';
+        const kId=kyc.id;
+        async function decide(action){
+          [btnV,btnRq,btnRj].forEach(b=>{ b.disabled=true; });
+          try{
+            const rp=await fetch('/app/admin/kyc/'+encodeURIComponent(kId),{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({action,note:noteInp.value.trim()})});
+            if(!rp.ok){ [btnV,btnRq,btnRj].forEach(b=>{ b.disabled=false; }); showToast('تعذّرت العملية.'); return; }
+            showToast(action==='verify'?'تم اعتماد الهوية.':action==='reject'?'تم الرفض.':'تم طلب المستندات.'); card.style.opacity='0.5'; card.style.pointerEvents='none'; setTimeout(()=>load(),800);
+          }catch{ [btnV,btnRq,btnRj].forEach(b=>{ b.disabled=false; }); showToast('خطأ.'); }
+        }
+        btnV.addEventListener('click',()=>decide('verify'));
+        btnRq.addEventListener('click',()=>decide('request_docs'));
+        btnRj.addEventListener('click',()=>decide('reject'));
+        actions.appendChild(noteWrap); actions.appendChild(btnV); actions.appendChild(btnRq); actions.appendChild(btnRj);
+      }
+      card.appendChild(header); card.appendChild(docs); card.appendChild(fields); card.appendChild(actions);
+      list.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active'); activeStatus=chip.dataset.status||''; render();
+    });
+  });
+  document.getElementById('searchInp').addEventListener('input',e=>{ activeSearch=e.target.value.trim(); render(); });
+
+  async function load(){
+    placeholder(document.getElementById('kycList'),'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/admin/kyc');
+      if(!r.ok){ placeholder(document.getElementById('kycList'),r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      const kpiRow=document.getElementById('kpiRow'); kpiRow.textContent='';
+      const kpis=d.kpis||{};
+      [{lbl:'قيد الانتظار',val:String(kpis.pending||0)},{lbl:'تم الاعتماد اليوم',val:String(kpis.verifiedToday||0)},{lbl:'مرفوض اليوم',val:String(kpis.rejectedToday||0)},{lbl:'متوسط وقت المراجعة',val:(kpis.avgHours||0)+' ساعة'}].forEach(k=>{
+        const kpi=document.createElement('div'); kpi.className='kpi';
+        const v=document.createElement('div'); v.className='kpi-val'; v.textContent=k.val;
+        const l=document.createElement('div'); l.className='kpi-lbl'; l.textContent=k.lbl;
+        kpi.appendChild(v); kpi.appendChild(l); kpiRow.appendChild(kpi);
+      });
+      allKyc=d.requests||[];
+      render();
+    }catch{ placeholder(document.getElementById('kycList'),'خطأ في الاتصال.'); }
+  }
+
+  load();
+}());
+</script>
+</body>
+</html>
