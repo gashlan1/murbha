@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Fee Settings — Admin — Murbha">إعدادات الرسوم — الإدارة — مُرابحة</title>
+<meta name="description" content="إدارة وضبط رسوم المنصة للمعاملات والاستثمارات والخدمات المختلفة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:900px;margin:0 auto;padding:28px 18px 60px;}
+  .page-title{font:900 22px Cairo,sans-serif;color:var(--green-dark);margin-bottom:6px;}
+  .page-sub{font:500 13px Tajawal,sans-serif;color:var(--muted);margin-bottom:22px;}
+  /* Fee section cards */
+  .fee-section{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;}
+  .fee-section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .fee-section-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);}
+  .fee-section-icon{font-size:22px;}
+  /* Fee rows */
+  .fee-row{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .fee-row:last-child{border-bottom:none;}
+  .fee-info{flex:1;}
+  .fee-name{font:700 12px Cairo,sans-serif;color:var(--ink);}
+  .fee-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .fee-input-wrap{display:flex;align-items:center;gap:6px;}
+  .fee-input{width:80px;border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font:700 12px Cairo,sans-serif;text-align:center;color:var(--green-dark);outline:none;}
+  .fee-input:focus{border-color:var(--green);}
+  .fee-unit{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  .fee-toggle{display:flex;align-items:center;gap:6px;}
+  .toggle-switch{position:relative;width:36px;height:20px;cursor:pointer;}
+  .toggle-switch input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:20px;transition:.2s;}
+  .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+  .toggle-switch input:checked + .toggle-slider{background:var(--green);}
+  .toggle-switch input:checked + .toggle-slider::before{transform:translateX(16px);}
+  /* Tier override table */
+  .tier-table{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;margin-top:12px;}
+  .tier-table th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 10px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tier-table td{padding:10px;border-bottom:1px solid var(--line);}
+  .tier-table tr:last-child td{border-bottom:none;}
+  .tier-tag{display:inline-block;border-radius:6px;padding:2px 8px;font:700 9px Cairo,sans-serif;}
+  .tier-bronze{background:#fff3e0;color:#e65100;}
+  .tier-silver{background:#f5f5f5;color:#424242;}
+  .tier-gold{background:#fff8e1;color:#a07020;}
+  .tier-diamond{background:#e8eaf6;color:#3949ab;}
+  /* Save bar */
+  .save-bar{position:sticky;bottom:0;background:#fff;border-top:1.5px solid var(--line);padding:14px 22px;display:flex;gap:12px;justify-content:flex-end;margin-top:24px;border-radius:0 0 14px 14px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:11px 28px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-reset{border:1.5px solid var(--line);background:#fff;color:var(--green-dark);border-radius:10px;padding:11px 20px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .success-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2e7d32;color:#fff;border-radius:10px;padding:12px 24px;font:700 12px Cairo,sans-serif;z-index:999;display:none;}
+  .history-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;}
+  .history-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:12px;}
+  .history-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font:500 11px Tajawal,sans-serif;}
+  .history-item:last-child{border-bottom:none;}
+  .history-field{color:var(--muted);}
+  .history-change{color:var(--green-dark);font:700 11px Cairo,sans-serif;}
+  .history-who{color:var(--muted);font:500 10px Tajawal,sans-serif;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<div class="success-toast" id="toast" data-en="Fee settings saved!">تم حفظ إعدادات الرسوم!</div>
+<main>
+  <div class="page-title" data-en="Fee Settings">إعدادات الرسوم</div>
+  <div class="page-sub" data-en="Manage platform fees across all transaction types and investor tiers.">إدارة رسوم المنصة عبر جميع أنواع المعاملات ومستويات المستثمرين.</div>
+
+  <div class="fee-section" id="sectionBase">
+    <div class="fee-section-header">
+      <div class="fee-section-title" data-en="Base Transaction Fees">رسوم المعاملات الأساسية</div>
+      <div class="fee-section-icon">💳</div>
+    </div>
+    <div id="baseFees"></div>
+  </div>
+
+  <div class="fee-section">
+    <div class="fee-section-header">
+      <div class="fee-section-title" data-en="Tier Discounts">خصومات مستويات المستثمرين</div>
+      <div class="fee-section-icon">🏆</div>
+    </div>
+    <table class="tier-table">
+      <thead>
+        <tr>
+          <th>المستوى</th>
+          <th>خصم الاستثمار</th>
+          <th>خصم السوق الثانوي</th>
+          <th>خصم السحب</th>
+        </tr>
+      </thead>
+      <tbody id="tierBody"></tbody>
+    </table>
+  </div>
+
+  <div class="fee-section">
+    <div class="fee-section-header">
+      <div class="fee-section-title" data-en="Special Conditions">شروط خاصة</div>
+      <div class="fee-section-icon">⚙️</div>
+    </div>
+    <div id="specialFees"></div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-title" data-en="Change History">سجل التغييرات</div>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="save-bar">
+    <button class="btn-reset" id="btnReset" data-en="Reset to Defaults">إعادة الضبط</button>
+    <button class="btn-save" id="btnSave" data-en="Save Changes">حفظ التغييرات</button>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+
+  const defaultFees = {
+    base:[
+      {key:'investment_fee',name:'رسوم الاستثمار',desc:'رسوم على كل مبلغ مستثمر في صفقة جديدة',value:1.5,unit:'٪',enabled:true},
+      {key:'secondary_fee',name:'رسوم السوق الثانوي',desc:'رسوم على بيع الحصص في السوق الثانوي',value:0.5,unit:'٪',enabled:true},
+      {key:'withdrawal_fee',name:'رسوم السحب',desc:'رسوم ثابتة على كل عملية سحب',value:15,unit:'ر.س',enabled:true},
+      {key:'deposit_fee',name:'رسوم الإيداع',desc:'رسوم على الإيداع بالبطاقة الائتمانية',value:2.0,unit:'٪',enabled:false},
+      {key:'management_fee',name:'رسوم الإدارة السنوية',desc:'رسوم سنوية على إجمالي قيمة المحفظة',value:0.8,unit:'٪',enabled:true},
+      {key:'exit_fee',name:'رسوم الخروج المبكر',desc:'رسوم إضافية عند بيع قبل نهاية مدة الصفقة',value:1.0,unit:'٪',enabled:true},
+    ],
+    tiers:[
+      {tier:'bronze',name:'برونزي',discountInv:0,discountSec:0,discountWd:0},
+      {tier:'silver',name:'فضي',discountInv:10,discountSec:10,discountWd:5},
+      {tier:'gold',name:'ذهبي',discountInv:20,discountSec:15,discountWd:10},
+      {tier:'diamond',name:'ماسي',discountInv:30,discountSec:25,discountWd:20},
+    ],
+    special:[
+      {key:'min_investment_waiver',name:'إعفاء الاستثمار الأول',desc:'إعفاء رسوم الاستثمار للمستثمر الجديد في أول صفقة',enabled:true},
+      {key:'referral_discount',name:'خصم الإحالة',desc:'خصم 50٪ على رسوم المُحال لأول استثمار',enabled:true},
+      {key:'bulk_discount',name:'خصم الكميات الكبيرة',desc:'خصم 15٪ على رسوم الاستثمار لمبالغ تتجاوز 50,000 ر.س',enabled:false},
+    ],
+  };
+
+  const feeValues = {};
+  const tierValues = {};
+  const specialValues = {};
+
+  function buildBaseFees(fees){
+    const el = document.getElementById('baseFees');
+    el.textContent = '';
+    fees.forEach(f => {
+      feeValues[f.key] = f.value;
+      const row = document.createElement('div'); row.className = 'fee-row';
+      const info = document.createElement('div'); info.className = 'fee-info';
+      const name = document.createElement('div'); name.className = 'fee-name'; name.textContent = f.name;
+      const desc = document.createElement('div'); desc.className = 'fee-desc'; desc.textContent = f.desc;
+      info.appendChild(name); info.appendChild(desc);
+      const wrap = document.createElement('div'); wrap.className = 'fee-input-wrap';
+      const input = document.createElement('input'); input.type = 'text'; input.className = 'fee-input';
+      input.value = f.value; input.dataset.key = f.key;
+      input.addEventListener('input', () => { feeValues[f.key] = parseFloat(input.value) || 0; });
+      const unit = document.createElement('span'); unit.className = 'fee-unit'; unit.textContent = f.unit;
+      wrap.appendChild(input); wrap.appendChild(unit);
+      const tog = document.createElement('label'); tog.className = 'toggle-switch';
+      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = f.enabled; chk.dataset.key = 'en_' + f.key;
+      const slider = document.createElement('span'); slider.className = 'toggle-slider';
+      tog.appendChild(chk); tog.appendChild(slider);
+      row.appendChild(info); row.appendChild(wrap); row.appendChild(tog);
+      el.appendChild(row);
+    });
+  }
+
+  function buildTierTable(tiers){
+    const tbody = document.getElementById('tierBody');
+    tbody.textContent = '';
+    tiers.forEach(t => {
+      tierValues[t.tier] = {inv:t.discountInv, sec:t.discountSec, wd:t.discountWd};
+      const tr = document.createElement('tr');
+      const tagCell = document.createElement('td');
+      const tag = document.createElement('span'); tag.className = 'tier-tag tier-' + t.tier; tag.textContent = t.name;
+      tagCell.appendChild(tag); tr.appendChild(tagCell);
+      ['discountInv','discountSec','discountWd'].forEach(field => {
+        const td = document.createElement('td');
+        const wrap = document.createElement('div'); wrap.className = 'fee-input-wrap';
+        const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'fee-input'; inp.value = t[field];
+        inp.addEventListener('input', () => { tierValues[t.tier][field.replace('discount','').toLowerCase()] = parseFloat(inp.value)||0; });
+        const u = document.createElement('span'); u.className = 'fee-unit'; u.textContent = '٪ خصم';
+        wrap.appendChild(inp); wrap.appendChild(u); td.appendChild(wrap); tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function buildSpecial(items){
+    const el = document.getElementById('specialFees');
+    el.textContent = '';
+    items.forEach(s => {
+      specialValues[s.key] = s.enabled;
+      const row = document.createElement('div'); row.className = 'fee-row';
+      const info = document.createElement('div'); info.className = 'fee-info';
+      const name = document.createElement('div'); name.className = 'fee-name'; name.textContent = s.name;
+      const desc = document.createElement('div'); desc.className = 'fee-desc'; desc.textContent = s.desc;
+      info.appendChild(name); info.appendChild(desc);
+      const tog = document.createElement('label'); tog.className = 'toggle-switch';
+      const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = s.enabled;
+      chk.addEventListener('change', () => { specialValues[s.key] = chk.checked; });
+      const slider = document.createElement('span'); slider.className = 'toggle-slider';
+      tog.appendChild(chk); tog.appendChild(slider);
+      row.appendChild(info); row.appendChild(tog);
+      el.appendChild(row);
+    });
+  }
+
+  function buildHistory(items){
+    const el = document.getElementById('historyList');
+    el.textContent = '';
+    if(!items||!items.length){
+      const p = document.createElement('div'); p.style.cssText = 'font:500 12px Tajawal,sans-serif;color:var(--muted);padding:16px 0;';
+      p.textContent = 'لا توجد تغييرات مسجّلة.'; el.appendChild(p); return;
+    }
+    items.forEach(h => {
+      const item = document.createElement('div'); item.className = 'history-item';
+      const left = document.createElement('div');
+      const field = document.createElement('div'); field.className = 'history-field'; field.textContent = h.field;
+      const who = document.createElement('div'); who.className = 'history-who'; who.textContent = h.changedBy + ' — ' + h.changedAt;
+      left.appendChild(field); left.appendChild(who);
+      const change = document.createElement('div'); change.className = 'history-change'; change.textContent = h.oldValue + ' ← ' + h.newValue;
+      item.appendChild(left); item.appendChild(change); el.appendChild(item);
+    });
+  }
+
+  async function load(){
+    try{
+      const r = await fetch('/app/admin/fee-settings');
+      if(r.ok){
+        const d = await r.json();
+        buildBaseFees(d.base || defaultFees.base);
+        buildTierTable(d.tiers || defaultFees.tiers);
+        buildSpecial(d.special || defaultFees.special);
+        buildHistory(d.history || []);
+        return;
+      }
+    }catch{}
+    buildBaseFees(defaultFees.base);
+    buildTierTable(defaultFees.tiers);
+    buildSpecial(defaultFees.special);
+    buildHistory([]);
+  }
+
+  document.getElementById('btnSave').addEventListener('click', async () => {
+    const btn = document.getElementById('btnSave'); btn.disabled = true;
+    const enabledMap = {};
+    document.querySelectorAll('[data-key^="en_"]').forEach(chk => { enabledMap[chk.dataset.key.replace('en_','')] = chk.checked; });
+    const payload = { feeValues, tierValues, specialValues, enabledMap };
+    try{
+      const r = await fetch('/app/admin/fee-settings', {method:'PUT', headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      btn.disabled = false;
+      if(!r.ok){ alert('فشل الحفظ.'); return; }
+      const toast = document.getElementById('toast'); toast.style.display = 'block';
+      setTimeout(()=>{ toast.style.display='none'; }, 3000);
+      load();
+    }catch{ btn.disabled = false; }
+  });
+
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if(!confirm('هل تريد إعادة ضبط جميع الرسوم للقيم الافتراضية؟')) return;
+    buildBaseFees(defaultFees.base);
+    buildTierTable(defaultFees.tiers);
+    buildSpecial(defaultFees.special);
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>

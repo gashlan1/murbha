@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Auto-Reinvestment — Murbha">إعادة الاستثمار التلقائي — مُرابحة</title>
+<meta name="description" content="فعّل إعادة الاستثمار التلقائي لعوائدك وتابع نمو محفظتك تلقائياً." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 26px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  /* Toggle hero card */
+  .toggle-hero{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .toggle-hero-info h2{font:900 16px Cairo,sans-serif;color:var(--green-dark);margin-bottom:4px;}
+  .toggle-hero-info p{font:500 12px Tajawal,sans-serif;color:var(--muted);line-height:1.7;}
+  .big-toggle{position:relative;width:56px;height:30px;cursor:pointer;flex-shrink:0;}
+  .big-toggle input{opacity:0;width:0;height:0;}
+  .big-slider{position:absolute;inset:0;background:#ccc;border-radius:30px;transition:.25s;}
+  .big-slider::before{content:'';position:absolute;width:22px;height:22px;left:4px;top:4px;background:#fff;border-radius:50%;transition:.25s;}
+  .big-toggle input:checked + .big-slider{background:var(--green);}
+  .big-toggle input:checked + .big-slider::before{transform:translateX(26px);}
+  /* Settings card */
+  .settings-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;}
+  .settings-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  .setting-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .setting-row:last-child{border-bottom:none;}
+  .setting-info{flex:1;}
+  .setting-name{font:700 12px Cairo,sans-serif;color:var(--ink);margin-bottom:2px;}
+  .setting-desc{font:500 10px Tajawal,sans-serif;color:var(--muted);line-height:1.6;}
+  .setting-control{}
+  select,.num-input{border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font:500 12px Tajawal,sans-serif;color:var(--ink);outline:none;background:#fff;}
+  select:focus,.num-input:focus{border-color:var(--green);}
+  .num-input{width:100px;text-align:center;}
+  /* Category filter */
+  .cat-checks{display:flex;flex-wrap:wrap;gap:8px;}
+  .cat-check-label{display:flex;align-items:center;gap:6px;font:500 11px Tajawal,sans-serif;color:var(--ink);cursor:pointer;}
+  .cat-check-label input[type=checkbox]{accent-color:var(--green);}
+  /* Projection */
+  .projection-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;}
+  .proj-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .proj-chart{display:flex;gap:6px;align-items:flex-end;height:100px;margin-bottom:10px;}
+  .proj-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .proj-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;}
+  .proj-lbl{font:700 8px Cairo,sans-serif;color:var(--muted);}
+  .proj-val{font:700 9px Cairo,sans-serif;color:var(--green-dark);}
+  /* History log */
+  .history-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .history-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:14px;}
+  .tbl{width:100%;border-collapse:collapse;font:500 11px Tajawal,sans-serif;}
+  .tbl th{font:700 9px Cairo,sans-serif;color:var(--muted);padding:8px 10px;text-align:right;border-bottom:1.5px solid var(--line);}
+  .tbl td{padding:10px;border-bottom:1px solid var(--line);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .status-reinvested{color:#2e7d32;font:700 10px Cairo,sans-serif;}
+  .status-pending{color:#a07020;font:700 10px Cairo,sans-serif;}
+  /* Save */
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 32px;font:900 12px Cairo,sans-serif;cursor:pointer;width:100%;margin-top:18px;}
+  .btn-save:hover{background:var(--green);}
+  .success-msg{background:#e8f5e9;border:1px solid #2e7d32;border-radius:8px;padding:10px 14px;font:700 11px Cairo,sans-serif;color:#2e7d32;margin-top:10px;display:none;text-align:center;}
+  .placeholder-msg{font:500 12px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:28px 0;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Auto-Reinvestment">إعادة الاستثمار التلقائي</h1>
+    <p data-en="Let your returns work for you automatically. Enable auto-reinvestment and grow your portfolio on autopilot.">دع عوائدك تعمل لصالحك تلقائياً. فعّل إعادة الاستثمار التلقائي وارفع قيمة محفظتك دون جهد.</p>
+  </div>
+
+  <div class="toggle-hero">
+    <div class="toggle-hero-info">
+      <h2 data-en="Auto-Reinvestment Status">حالة إعادة الاستثمار التلقائي</h2>
+      <p id="toggleDesc">جارٍ التحميل…</p>
+    </div>
+    <label class="big-toggle">
+      <input type="checkbox" id="masterToggle" />
+      <span class="big-slider"></span>
+    </label>
+  </div>
+
+  <div class="settings-card" id="settingsCard">
+    <div class="settings-title" data-en="Reinvestment Rules">قواعد إعادة الاستثمار</div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name" data-en="Trigger">متى يتم إعادة الاستثمار؟</div>
+        <div class="setting-desc" data-en="Choose when returns get reinvested automatically.">اختر متى تُعاد استثمار العوائد تلقائياً.</div>
+      </div>
+      <div class="setting-control">
+        <select id="triggerMode">
+          <option value="immediate">فور استلام العائد</option>
+          <option value="monthly">شهرياً (في الأول من كل شهر)</option>
+          <option value="threshold">عند تجاوز حد معين</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="setting-row" id="thresholdRow" style="display:none;">
+      <div class="setting-info">
+        <div class="setting-name" data-en="Minimum Threshold">الحد الأدنى للإعادة</div>
+        <div class="setting-desc" data-en="Only reinvest when accumulated returns exceed this amount.">لا تُعاد الاستثمار إلا حين تتجاوز العوائد المتراكمة هذا المبلغ.</div>
+      </div>
+      <div class="setting-control">
+        <input type="text" class="num-input" id="thresholdAmount" value="500" /> <span style="font:700 10px Cairo,sans-serif;color:var(--muted);">ر.س</span>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name" data-en="Reinvestment Ratio">نسبة إعادة الاستثمار</div>
+        <div class="setting-desc" data-en="What percentage of returns to reinvest (remainder stays in wallet).">نسبة العوائد المُعاد استثمارها (الباقي يُضاف للمحفظة).</div>
+      </div>
+      <div class="setting-control">
+        <input type="text" class="num-input" id="reinvestRatio" value="100" /> <span style="font:700 10px Cairo,sans-serif;color:var(--muted);">٪</span>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name" data-en="Preferred Categories">فئات الاستثمار المفضلة</div>
+        <div class="setting-desc" data-en="Choose which deal categories to prioritize for reinvestment.">اختر فئات الصفقات التي تُفضّلها عند إعادة الاستثمار.</div>
+      </div>
+      <div class="setting-control">
+        <div class="cat-checks">
+          <label class="cat-check-label"><input type="checkbox" value="murabaha" checked /> مرابحة</label>
+          <label class="cat-check-label"><input type="checkbox" value="sukuk" checked /> صكوك</label>
+          <label class="cat-check-label"><input type="checkbox" value="equity" /> أسهم إسلامية</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-name" data-en="Max Risk Level">الحد الأقصى لمستوى الخطر</div>
+        <div class="setting-desc" data-en="Don't auto-invest in deals above this risk level.">لا تُعاد الاستثمار تلقائياً في صفقات تتجاوز هذا المستوى من المخاطر.</div>
+      </div>
+      <div class="setting-control">
+        <select id="maxRisk">
+          <option value="low">منخفض فقط</option>
+          <option value="medium" selected>منخفض ومتوسط</option>
+          <option value="high">جميع المستويات</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-save" id="btnSave" data-en="Save Settings">حفظ الإعدادات</button>
+    <div class="success-msg" id="successMsg" data-en="Settings saved successfully!">تم حفظ الإعدادات بنجاح!</div>
+  </div>
+
+  <div class="projection-card">
+    <div class="proj-title" data-en="12-Month Projection">توقعات 12 شهراً مع إعادة الاستثمار</div>
+    <div class="proj-chart" id="projChart"></div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-title" data-en="Reinvestment History">سجل إعادة الاستثمار</div>
+    <div id="historyArea"></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function fmt(n){ return new Intl.NumberFormat('ar-SA',{style:'currency',currency:'SAR',maximumFractionDigits:0}).format(n); }
+
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+  async function load(){
+    try{
+      const r=await fetch('/app/me/reinvestment');
+      if(r.ok){
+        const d=await r.json();
+        document.getElementById('masterToggle').checked=!!d.enabled;
+        updateToggleDesc(!!d.enabled);
+        if(d.triggerMode) document.getElementById('triggerMode').value=d.triggerMode;
+        if(d.thresholdAmount) document.getElementById('thresholdAmount').value=d.thresholdAmount;
+        if(d.reinvestRatio) document.getElementById('reinvestRatio').value=d.reinvestRatio;
+        if(d.maxRisk) document.getElementById('maxRisk').value=d.maxRisk;
+        renderHistory(d.history||[]);
+        renderProjection(d.baseValue||0, parseFloat(d.reinvestRatio||100)/100);
+        return;
+      }
+    }catch{}
+    renderHistory([]);
+    renderProjection(10000,1);
+  }
+
+  function updateToggleDesc(on){
+    document.getElementById('toggleDesc').textContent = on ? 'مفعّل — ستُعاد استثمار عوائدك تلقائياً وفق القواعد المحددة.' : 'معطّل — ستُضاف عوائدك إلى رصيد محفظتك.';
+  }
+
+  document.getElementById('masterToggle').addEventListener('change',e=>updateToggleDesc(e.target.checked));
+
+  document.getElementById('triggerMode').addEventListener('change',e=>{
+    document.getElementById('thresholdRow').style.display=e.target.value==='threshold'?'flex':'none';
+  });
+
+  function renderProjection(base, ratio){
+    const chart=document.getElementById('projChart'); chart.textContent='';
+    const annualRate=0.08, monthly=annualRate/12;
+    const values=[];
+    let v=base||10000;
+    for(let i=0;i<12;i++){
+      const ret=v*monthly; v+=ret*ratio; values.push(Math.round(v));
+    }
+    const maxV=Math.max(...values,1);
+    const now=new Date();
+    values.forEach((v2,i)=>{
+      const col=document.createElement('div'); col.className='proj-col';
+      const bar=document.createElement('div'); bar.className='proj-bar';
+      bar.style.height=Math.round((v2/maxV)*80)+'px';
+      bar.style.background=i===11?'var(--gold)':'var(--green)';
+      const lbl=document.createElement('div'); lbl.className='proj-lbl';
+      lbl.textContent=months[(now.getMonth()+i)%12].substring(0,3);
+      const val=document.createElement('div'); val.className='proj-val';
+      val.textContent=i===11?fmt(v2):'';
+      col.appendChild(bar); col.appendChild(lbl); if(i===11)col.insertBefore(val,bar);
+      chart.appendChild(col);
+    });
+  }
+
+  function renderHistory(items){
+    const el=document.getElementById('historyArea'); el.textContent='';
+    if(!items.length){
+      const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent='لا توجد عمليات إعادة استثمار بعد.'; el.appendChild(p); return;
+    }
+    const tbl=document.createElement('table'); tbl.className='tbl';
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    ['المبلغ','الصفقة','التاريخ','الحالة'].forEach(h=>{
+      const th=document.createElement('th'); th.textContent=h; hr.appendChild(th);
+    });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    items.forEach(h=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td'); td0.textContent=fmt(h.amount||0);
+      const td1=document.createElement('td'); td1.textContent=h.dealName||h.dealId||'—';
+      const td2=document.createElement('td'); td2.textContent=h.date||'—';
+      const td3=document.createElement('td');
+      const s=document.createElement('span'); s.className='status-'+(h.status||'reinvested'); s.textContent=h.status==='pending'?'جارٍ':'مُعاد استثماره';
+      td3.appendChild(s);
+      tr.appendChild(td0); tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); el.appendChild(tbl);
+  }
+
+  document.getElementById('btnSave').addEventListener('click',async()=>{
+    const btn=document.getElementById('btnSave'); btn.disabled=true;
+    const enabled=document.getElementById('masterToggle').checked;
+    const triggerMode=document.getElementById('triggerMode').value;
+    const thresholdAmount=parseFloat(document.getElementById('thresholdAmount').value)||500;
+    const reinvestRatio=Math.min(100,Math.max(1,parseFloat(document.getElementById('reinvestRatio').value)||100));
+    const maxRisk=document.getElementById('maxRisk').value;
+    const categories=Array.from(document.querySelectorAll('.cat-check-label input:checked')).map(c=>c.value);
+    try{
+      const r=await fetch('/app/me/reinvestment',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({enabled,triggerMode,thresholdAmount,reinvestRatio,maxRisk,categories})});
+      btn.disabled=false;
+      if(!r.ok){alert('فشل الحفظ.');return;}
+      const msg=document.getElementById('successMsg'); msg.style.display='block';
+      setTimeout(()=>{msg.style.display='none';},4000);
+      renderProjection(10000,reinvestRatio/100);
+    }catch{btn.disabled=false;}
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>
