@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>خطط الاشتراك - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:1.5rem;}
+.plan-card{background:#fff;border-radius:16px;border:1px solid var(--line);overflow:hidden;}
+.plan-card.featured{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);}
+.plan-head{padding:1.5rem;text-align:center;border-bottom:1px solid var(--line);}
+.plan-head.dark{background:var(--green-dark);color:#fff;}
+.plan-badge{display:inline-block;background:var(--gold);color:#fff;font-size:0.68rem;font-weight:700;padding:0.15rem 0.6rem;border-radius:10px;margin-bottom:0.5rem;}
+.plan-name{font-size:1.1rem;font-weight:700;}
+.plan-price{font-size:1.8rem;font-weight:700;color:var(--green);margin-top:0.5rem;}
+.plan-price.white{color:#b8e6cf;}
+.plan-period{font-size:0.72rem;color:var(--muted);}
+.plan-period.white{color:rgba(255,255,255,0.6);}
+.plan-features{padding:1.25rem;}
+.feat-item{display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;font-size:0.83rem;}
+.feat-check{color:var(--green);font-weight:700;flex-shrink:0;}
+.feat-x{color:#c0392b;font-weight:700;flex-shrink:0;}
+.plan-action{padding:0 1.25rem 1.25rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.sub-table{padding:1.25rem;}
+.sub-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.sub-row:last-child{border-bottom:none;}
+.sub-header{font-weight:700;font-size:0.75rem;color:var(--muted);}
+.sub-pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;background:#e8f5ed;color:#1e8449;}
+@media(max-width:900px){.plans-grid{grid-template-columns:1fr;}.stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — خطط الاشتراك</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة خطط الاشتراك</h2>
+      <p>مراجعة الباقات المتاحة ومتابعة اشتراكات المستثمرين وإيرادات الاشتراكات</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportPlans()">تصدير التقرير</button>
+  </div>
+
+  <div class="stats" id="spStats"></div>
+  <div class="plans-grid" id="plansGrid"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>المشتركون الحاليون</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportPlans()">تصدير</button>
+    </div>
+    <div class="sub-table" id="subTable"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢,٤١٨', lbl: 'مشترك نشط' },
+  { val: '١٨٢,٠٠٠ ر.س', lbl: 'إيرادات الاشتراكات / شهر' },
+  { val: '٩٦٪', lbl: 'معدل تجديد الاشتراك' },
+  { val: '٣', lbl: 'باقات متاحة' }
+];
+
+const PLANS = [
+  {
+    name: 'الأساسية', price: 'مجاني', period: '', featured: false, dark: false,
+    features: [
+      { label: 'استثمار في صفقة واحدة', ok: true },
+      { label: 'تقارير ربع سنوية', ok: true },
+      { label: 'دعم عبر البريد', ok: true },
+      { label: 'تحليلات متقدمة', ok: false },
+      { label: 'أولوية في الصفقات', ok: false }
+    ]
+  },
+  {
+    name: 'المميزة', price: '٢٩٩ ر.س', period: '/ شهرياً', featured: true, dark: false, badge: 'الأكثر شيوعاً',
+    features: [
+      { label: 'استثمار في ٥ صفقات', ok: true },
+      { label: 'تقارير شهرية', ok: true },
+      { label: 'دعم على مدار الساعة', ok: true },
+      { label: 'تحليلات متقدمة', ok: true },
+      { label: 'أولوية في الصفقات', ok: false }
+    ]
+  },
+  {
+    name: 'الاحترافية', price: '٧٩٩ ر.س', period: '/ شهرياً', featured: false, dark: true,
+    features: [
+      { label: 'صفقات غير محدودة', ok: true },
+      { label: 'تقارير أسبوعية', ok: true },
+      { label: 'مدير حساب مخصص', ok: true },
+      { label: 'تحليلات متقدمة', ok: true },
+      { label: 'أولوية مضمونة في الصفقات', ok: true }
+    ]
+  }
+];
+
+const SUBSCRIBERS = [
+  { name: 'أحمد العمري', plan: 'المميزة', since: '٢٠٢٥/٠١/١٥', amount: '٢٩٩ ر.س' },
+  { name: 'سارة الغامدي', plan: 'الاحترافية', since: '٢٠٢٤/٠٦/٠١', amount: '٧٩٩ ر.س' },
+  { name: 'خالد المطيري', plan: 'الأساسية', since: '٢٠٢٥/٠٣/٢٠', amount: '٠ ر.س' },
+  { name: 'نورة القحطاني', plan: 'المميزة', since: '٢٠٢٥/٠٨/١٠', amount: '٢٩٩ ر.س' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('spStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildPlans() {
+  const wrap = document.getElementById('plansGrid');
+  PLANS.forEach(p => {
+    const card = document.createElement('div'); card.className = 'plan-card' + (p.featured ? ' featured' : '');
+    const head = document.createElement('div'); head.className = 'plan-head' + (p.dark ? ' dark' : '');
+    if (p.badge) { const badge = document.createElement('div'); badge.className = 'plan-badge'; badge.textContent = p.badge; head.appendChild(badge); }
+    const name = document.createElement('div'); name.className = 'plan-name'; name.textContent = p.name;
+    const price = document.createElement('div'); price.className = 'plan-price' + (p.dark ? ' white' : ''); price.textContent = p.price;
+    const period = document.createElement('div'); period.className = 'plan-period' + (p.dark ? ' white' : ''); period.textContent = p.period;
+    head.appendChild(name); head.appendChild(price); if (p.period) head.appendChild(period);
+    const features = document.createElement('div'); features.className = 'plan-features';
+    p.features.forEach(f => {
+      const item = document.createElement('div'); item.className = 'feat-item';
+      const icon = document.createElement('span'); icon.className = f.ok ? 'feat-check' : 'feat-x'; icon.textContent = f.ok ? '✓' : '✕';
+      const lbl = document.createElement('span'); lbl.textContent = f.label;
+      item.appendChild(icon); item.appendChild(lbl); features.appendChild(item);
+    });
+    const action = document.createElement('div'); action.className = 'plan-action';
+    const btn = document.createElement('button');
+    btn.className = p.dark ? 'btn btn-gold' : 'btn btn-primary'; btn.style.width = '100%'; btn.textContent = 'تعديل الباقة';
+    btn.onclick = () => editPlan(p.name);
+    action.appendChild(btn);
+    card.appendChild(head); card.appendChild(features); card.appendChild(action);
+    wrap.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const wrap = document.getElementById('subTable');
+  const header = document.createElement('div'); header.className = 'sub-row sub-header';
+  ['المستثمر', 'الباقة', 'منذ', 'الرسوم الشهرية'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  wrap.appendChild(header);
+  SUBSCRIBERS.forEach(s => {
+    const row = document.createElement('div'); row.className = 'sub-row';
+    const name = document.createElement('div'); name.style.fontWeight = '700'; name.textContent = s.name;
+    const plan = document.createElement('div'); const pill = document.createElement('span'); pill.className = 'sub-pill'; pill.textContent = s.plan; plan.appendChild(pill);
+    const since = document.createElement('div'); since.style.color = 'var(--muted)'; since.textContent = s.since;
+    const amount = document.createElement('div'); amount.style.cssText = 'font-weight:700;color:var(--green);'; amount.textContent = s.amount;
+    row.appendChild(name); row.appendChild(plan); row.appendChild(since); row.appendChild(amount);
+    wrap.appendChild(row);
+  });
+}
+
+function editPlan(name) {
+  fetch('/app/admin/subscription-plans', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ plan: name }) }).catch(() => {});
+  alert('تعديل باقة: ' + name);
+}
+
+function exportPlans() {
+  fetch('/app/admin/subscription-plans/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير خطط الاشتراك...');
+}
+
+buildStats(); buildPlans(); buildTable();
+</script>
+</body>
+</html>
