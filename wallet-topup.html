@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Wallet Top-Up — Murbha">شحن المحفظة — مُرابحة</title>
+<meta name="description" content="أضف رصيداً إلى محفظتك الاستثمارية في مُرابحة بطرق دفع متعددة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:600px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .balance-lbl{font:500 12px Tajawal,sans-serif;opacity:.85;margin-bottom:4px;}
+  .balance-val{font:900 40px Cairo,sans-serif;}
+  .balance-sub{font:500 10px Tajawal,sans-serif;opacity:.8;margin-top:2px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Quick amounts */
+  .quick-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .quick-btn{border:1.5px solid var(--line);border-radius:9px;padding:9px 16px;font:900 12px Cairo,sans-serif;cursor:pointer;background:#fff;color:var(--green-dark);flex:1;min-width:60px;text-align:center;}
+  .quick-btn:hover,.quick-btn.active{border-color:var(--green);background:var(--green);color:#fff;}
+  /* Amount input */
+  .amount-inp-wrap{position:relative;margin-bottom:16px;}
+  .amount-inp{width:100%;border:2px solid var(--line);border-radius:12px;padding:16px 60px 16px 18px;font:900 22px Cairo,sans-serif;color:var(--green-dark);text-align:center;}
+  .amount-inp:focus{outline:none;border-color:var(--green);}
+  .amount-currency{position:absolute;left:18px;top:50%;transform:translateY(-50%);font:700 12px Cairo,sans-serif;color:var(--muted);}
+  /* Payment methods */
+  .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .method-card{border:2px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:center;transition:border-color .15s;}
+  .method-card:hover{border-color:var(--green);}
+  .method-card.selected{border-color:var(--green);background:#f0faf4;}
+  .method-icon{font-size:24px;margin-bottom:6px;}
+  .method-name{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .method-desc{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  /* Summary */
+  .summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font:500 11px Tajawal,sans-serif;}
+  .summary-row:last-child{border-bottom:none;font-weight:700;}
+  .summary-lbl{color:var(--muted);}
+  .summary-val{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .btn-topup{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:12px;padding:15px 24px;font:900 14px Cairo,sans-serif;cursor:pointer;width:100%;margin-top:16px;}
+  .btn-topup:hover{background:var(--green);}
+  .btn-topup:disabled{background:#ccc;cursor:default;}
+  .success-card{background:#e8f5e9;border:1px solid #c8e6c9;border-radius:16px;padding:28px;text-align:center;display:none;}
+  .success-icon{font-size:48px;margin-bottom:12px;}
+  .success-title{font:900 18px Cairo,sans-serif;color:#2e7d32;margin-bottom:8px;}
+  .success-sub{font:500 12px Tajawal,sans-serif;color:#388e3c;}
+  .btn-done{background:#2e7d32;color:#fff;border:none;border-radius:10px;padding:12px 28px;font:900 12px Cairo,sans-serif;cursor:pointer;margin-top:16px;}
+  .info-box{background:#f0faf4;border:1px solid #c8e6c9;border-radius:10px;padding:12px 14px;font:500 10px Tajawal,sans-serif;color:#2e7d32;margin-bottom:14px;line-height:1.7;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="balance-lbl" data-en="Available Balance">الرصيد المتاح</div>
+    <div class="balance-val" id="balanceVal">—</div>
+    <div class="balance-sub" data-en="SAR">ر.س</div>
+  </div>
+
+  <div id="topupForm">
+    <div class="card">
+      <div class="card-title" data-en="Top-Up Amount">مبلغ الشحن</div>
+      <div class="quick-row" id="quickRow">
+        <button class="quick-btn" data-amt="500">500</button>
+        <button class="quick-btn" data-amt="1000">1,000</button>
+        <button class="quick-btn" data-amt="5000">5,000</button>
+        <button class="quick-btn" data-amt="10000">10,000</button>
+      </div>
+      <div class="amount-inp-wrap">
+        <input class="amount-inp" id="amountInp" type="number" min="100" max="500000" placeholder="0" />
+        <span class="amount-currency">ر.س</span>
+      </div>
+      <div class="info-box">الحد الأدنى للإيداع 100 ر.س · الحد الأقصى 500,000 ر.س لكل عملية · يُضاف الرصيد فورياً عند الدفع الناجح.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" data-en="Payment Method">طريقة الدفع</div>
+      <div class="method-grid" id="methodGrid">
+        <div class="method-card selected" data-method="mada"><div class="method-icon">💳</div><div class="method-name">مدى</div><div class="method-desc">بطاقة الصراف</div></div>
+        <div class="method-card" data-method="visa"><div class="method-icon">💳</div><div class="method-name">Visa / Mastercard</div><div class="method-desc">بطاقة ائتمانية</div></div>
+        <div class="method-card" data-method="stcpay"><div class="method-icon">📱</div><div class="method-name">STC Pay</div><div class="method-desc">دفع فوري</div></div>
+        <div class="method-card" data-method="transfer"><div class="method-icon">🏦</div><div class="method-name">تحويل بنكي</div><div class="method-desc">1-2 يوم عمل</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" data-en="Summary">ملخص العملية</div>
+      <div class="summary-row"><span class="summary-lbl">مبلغ الشحن</span><span class="summary-val" id="sumAmt">0 ر.س</span></div>
+      <div class="summary-row"><span class="summary-lbl">رسوم العملية</span><span class="summary-val" id="sumFee">0 ر.س</span></div>
+      <div class="summary-row"><span class="summary-lbl">إجمالي المدفوع</span><span class="summary-val" id="sumTotal">0 ر.س</span></div>
+      <button class="btn-topup" id="btnTopup" data-en="Complete Top-Up">إتمام الشحن</button>
+    </div>
+  </div>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">✅</div>
+    <div class="success-title" data-en="Top-Up Successful">تم الشحن بنجاح!</div>
+    <div class="success-sub" id="successMsg"></div>
+    <button class="btn-done" onclick="window.location.href='/wallet.html'">العودة للمحفظة</button>
+  </div>
+</main>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  let selectedMethod='mada';
+  let amount=0;
+
+  const feePct={mada:0,visa:0.015,stcpay:0,transfer:0};
+
+  function calcFee(){ return Math.round(amount*(feePct[selectedMethod]||0)); }
+  function updateSummary(){
+    const fee=calcFee();
+    document.getElementById('sumAmt').textContent=fmt(amount)+' ر.س';
+    document.getElementById('sumFee').textContent=fee?fmt(fee)+' ر.س':'مجاناً';
+    document.getElementById('sumTotal').textContent=fmt(amount+fee)+' ر.س';
+  }
+
+  document.getElementById('amountInp').addEventListener('input',function(){
+    amount=Math.max(0,Number(this.value)||0);
+    document.querySelectorAll('.quick-btn').forEach(b=>b.classList.remove('active'));
+    updateSummary();
+  });
+
+  document.querySelectorAll('.quick-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      amount=Number(btn.dataset.amt);
+      document.getElementById('amountInp').value=String(amount);
+      document.querySelectorAll('.quick-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      updateSummary();
+    });
+  });
+
+  document.querySelectorAll('.method-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      document.querySelectorAll('.method-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMethod=card.dataset.method;
+      updateSummary();
+    });
+  });
+
+  (async function loadBalance(){
+    try{
+      const r=await fetch('/app/me/wallet');
+      if(r.ok){ const d=await r.json(); document.getElementById('balanceVal').textContent=fmt(d.balance||0); }
+    }catch{}
+  }());
+
+  document.getElementById('btnTopup').addEventListener('click',async()=>{
+    if(amount<100){ alert('الحد الأدنى للإيداع 100 ر.س.'); return; }
+    if(amount>500000){ alert('الحد الأقصى للإيداع 500,000 ر.س.'); return; }
+    document.getElementById('btnTopup').disabled=true;
+    try{
+      const r=await fetch('/app/me/wallet/topup',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({amount,method:selectedMethod})});
+      document.getElementById('btnTopup').disabled=false;
+      if(!r.ok){ alert('تعذّر إتمام عملية الشحن. حاول مرة أخرى.'); return; }
+      const d=await r.json();
+      document.getElementById('topupForm').style.display='none';
+      const sc=document.getElementById('successCard'); sc.style.display='block';
+      document.getElementById('successMsg').textContent='تم إضافة '+fmt(amount)+' ر.س إلى محفظتك. رصيدك الجديد: '+fmt(d.newBalance||0)+' ر.س.';
+    }catch{ document.getElementById('btnTopup').disabled=false; alert('خطأ في الاتصال.'); }
+  });
+
+  updateSummary();
+}());
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Investment Goals — Murbha">أهداف الاستثمار — مُرابحة</title>
+<meta name="description" content="حدّد أهدافك الاستثمارية وتابع تقدّمك نحو تحقيقها." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Goal card */
+  .goal-item{border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px;}
+  .goal-item:last-child{margin-bottom:0;}
+  .goal-item.completed{border-color:#2e7d32;background:#f0faf4;}
+  .goal-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .goal-icon{width:40px;height:40px;border-radius:10px;background:var(--green-dark);color:#fbf6ea;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .goal-info{flex:1;}
+  .goal-name{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .goal-target{font:500 10px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .goal-pct{font:900 18px Cairo,sans-serif;color:var(--green-dark);flex-shrink:0;}
+  .goal-bar-bg{height:10px;background:#f0ece0;border-radius:5px;overflow:hidden;margin-bottom:8px;}
+  .goal-bar{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),var(--gold-light));}
+  .goal-bar.done{background:linear-gradient(90deg,#2e7d32,#4caf50);}
+  .goal-meta{display:flex;justify-content:space-between;font:500 10px Tajawal,sans-serif;color:var(--muted);}
+  .goal-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .btn-sm{border-radius:7px;padding:6px 14px;font:700 10px Cairo,sans-serif;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--green-dark);}
+  .btn-sm:hover{background:#f9f7f2;}
+  .btn-sm.danger{border-color:#f8d7da;background:#fdecea;color:#c54a3a;}
+  .btn-sm.danger:hover{background:#ffcdd2;}
+  /* Add goal form */
+  .form-group{margin-bottom:14px;}
+  .form-lbl{font:700 11px Cairo,sans-serif;color:var(--green-dark);display:block;margin-bottom:6px;}
+  .form-inp{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);}
+  .form-inp:focus{outline:none;border-color:var(--green);}
+  .form-sel{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 14px;font:500 13px Tajawal,sans-serif;color:var(--ink);background:#fff;}
+  .form-sel:focus{outline:none;border-color:var(--green);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .btn-add{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:10px;padding:12px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;width:100%;}
+  .btn-add:hover{background:var(--green);}
+  .btn-add:disabled{background:#ccc;cursor:default;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Investment Goals">أهداف الاستثمار</h1>
+    <p data-en="Define your investment goals and track your progress toward achieving them.">حدّد أهدافك الاستثمارية وتابع تقدّمك نحو تحقيقها.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="My Goals">أهدافي</div>
+    <div id="goalsList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Add New Goal">إضافة هدف جديد</div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Goal Name">اسم الهدف</label>
+      <input class="form-inp" id="goalName" type="text" placeholder="مثال: شراء منزل، التقاعد المبكر…" />
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Category">التصنيف</label>
+      <select class="form-sel" id="goalCat">
+        <option value="housing">مسكن</option>
+        <option value="retirement">تقاعد</option>
+        <option value="education">تعليم</option>
+        <option value="travel">سفر</option>
+        <option value="emergency">طوارئ</option>
+        <option value="other">أخرى</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-lbl" data-en="Target Amount (SAR)">المبلغ المستهدف (ر.س)</label>
+        <input class="form-inp" id="goalTarget" type="number" min="1000" placeholder="100000" />
+      </div>
+      <div class="form-group">
+        <label class="form-lbl" data-en="Target Date">التاريخ المستهدف</label>
+        <input class="form-inp" id="goalDate" type="date" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-lbl" data-en="Current Savings (SAR)">المدخرات الحالية (ر.س)</label>
+      <input class="form-inp" id="goalSaved" type="number" min="0" placeholder="0" />
+    </div>
+    <button class="btn-add" id="btnAdd" data-en="Add Goal">إضافة الهدف</button>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+
+  const catIcons={housing:'🏠',retirement:'🌅',education:'🎓',travel:'✈️',emergency:'🛡️',other:'⭐'};
+  const catLabels={housing:'مسكن',retirement:'تقاعد',education:'تعليم',travel:'سفر',emergency:'طوارئ',other:'أخرى'};
+
+  async function load(){
+    const list=document.getElementById('goalsList');
+    try{
+      const r=await fetch('/app/me/investment-goals');
+      if(!r.ok){ placeholder(list,r.status===401?'يرجى تسجيل الدخول.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      list.textContent='';
+      const goals=d.goals||[];
+      if(!goals.length){ placeholder(list,'لم تُضف أي هدف بعد.'); return; }
+      goals.forEach(goal=>{
+        const pct=Math.min(100,Math.round(((goal.currentAmount||0)/(goal.targetAmount||1))*100));
+        const done=pct>=100;
+        const item=document.createElement('div'); item.className='goal-item'+(done?' completed':'');
+        const top=document.createElement('div'); top.className='goal-top';
+        const icon=document.createElement('div'); icon.className='goal-icon'; icon.textContent=catIcons[goal.category]||'⭐';
+        const info=document.createElement('div'); info.className='goal-info';
+        const name=document.createElement('div'); name.className='goal-name'; name.textContent=goal.name||'هدف';
+        const tgt=document.createElement('div'); tgt.className='goal-target'; tgt.textContent=catLabels[goal.category]||'—'+(goal.targetDate?' · الهدف: '+goal.targetDate.slice(0,10):'');
+        info.appendChild(name); info.appendChild(tgt);
+        const pctEl=document.createElement('div'); pctEl.className='goal-pct'; pctEl.textContent=pct+'%';
+        top.appendChild(icon); top.appendChild(info); top.appendChild(pctEl);
+        const bg=document.createElement('div'); bg.className='goal-bar-bg';
+        const bar=document.createElement('div'); bar.className='goal-bar'+(done?' done':''); bar.style.width=pct+'%';
+        bg.appendChild(bar);
+        const meta=document.createElement('div'); meta.className='goal-meta';
+        const cur=document.createElement('span'); cur.textContent='تم توفير '+fmt(goal.currentAmount||0)+' ر.س';
+        const rem=document.createElement('span'); rem.textContent='المتبقي: '+fmt(Math.max(0,(goal.targetAmount||0)-(goal.currentAmount||0)))+' ر.س';
+        meta.appendChild(cur); meta.appendChild(rem);
+        const actions=document.createElement('div'); actions.className='goal-actions';
+        const btnUpdate=document.createElement('button'); btnUpdate.className='btn-sm'; btnUpdate.textContent='تحديث المبلغ';
+        const gId=goal.id;
+        btnUpdate.addEventListener('click',async()=>{
+          const amt=prompt('أدخل المبلغ الحالي (ر.س):');
+          if(amt===null||isNaN(Number(amt))) return;
+          try{
+            const rp=await fetch('/app/me/investment-goals/'+encodeURIComponent(gId),{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({currentAmount:Number(amt)})});
+            if(!rp.ok){ showToast('تعذّر التحديث.'); return; }
+            showToast('تم التحديث.'); load();
+          }catch{ showToast('خطأ.'); }
+        });
+        const btnDel=document.createElement('button'); btnDel.className='btn-sm danger'; btnDel.textContent='حذف';
+        btnDel.addEventListener('click',async()=>{
+          if(!confirm('حذف هذا الهدف؟')) return;
+          try{
+            const rd=await fetch('/app/me/investment-goals/'+encodeURIComponent(gId),{method:'DELETE',headers:{'X-CSRF-Token':csrf()}});
+            if(!rd.ok){ showToast('تعذّر الحذف.'); return; }
+            showToast('تم الحذف.'); load();
+          }catch{ showToast('خطأ.'); }
+        });
+        actions.appendChild(btnUpdate); actions.appendChild(btnDel);
+        item.appendChild(top); item.appendChild(bg); item.appendChild(meta); item.appendChild(actions);
+        list.appendChild(item);
+      });
+    }catch{ placeholder(list,'خطأ في الاتصال.'); }
+  }
+
+  document.getElementById('btnAdd').addEventListener('click',async()=>{
+    const name=document.getElementById('goalName').value.trim();
+    const category=document.getElementById('goalCat').value;
+    const targetAmount=Number(document.getElementById('goalTarget').value);
+    const targetDate=document.getElementById('goalDate').value;
+    const currentAmount=Number(document.getElementById('goalSaved').value||'0');
+    if(!name||!targetAmount){ showToast('يرجى تعبئة اسم الهدف والمبلغ المستهدف.'); return; }
+    if(targetAmount<1000){ showToast('الحد الأدنى للهدف 1000 ر.س.'); return; }
+    document.getElementById('btnAdd').disabled=true;
+    try{
+      const r=await fetch('/app/me/investment-goals',{method:'POST',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({name,category,targetAmount,targetDate,currentAmount})});
+      document.getElementById('btnAdd').disabled=false;
+      if(!r.ok){ showToast('تعذّرت الإضافة.'); return; }
+      document.getElementById('goalName').value='';
+      document.getElementById('goalTarget').value='';
+      document.getElementById('goalDate').value='';
+      document.getElementById('goalSaved').value='';
+      showToast('تمت إضافة الهدف.'); load();
+    }catch{ document.getElementById('btnAdd').disabled=false; showToast('خطأ.'); }
+  });
+
+  load();
+}());
+</script>
+</body>
+</html>
