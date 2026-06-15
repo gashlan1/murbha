@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقييمات الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.rating-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.rs-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.rs-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.rs-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.deal-ratings-list{padding:1.25rem;}
+.dr-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.dr-item:last-child{margin-bottom:0;}
+.dr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;}
+.dr-deal{font-size:0.88rem;font-weight:700;}
+.dr-grade{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;}
+.grade-a{background:#e8f5ed;color:#1e8449;}
+.grade-b{background:#fef3cd;color:#92400e;}
+.grade-c{background:#fde8e8;color:#c0392b;}
+.dr-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;}
+.score-item{text-align:center;background:#f5f0e8;border-radius:6px;padding:0.4rem;}
+.score-val{font-size:0.88rem;font-weight:700;color:var(--green);}
+.score-lbl{font-size:0.66rem;color:var(--muted);}
+.rating-dist{padding:1.25rem;}
+.rd-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.65rem;}
+.rd-row:last-child{margin-bottom:0;}
+.rd-grade{width:28px;font-size:0.82rem;font-weight:700;text-align:center;flex-shrink:0;}
+.rd-track{flex:1;background:#f0ebe0;border-radius:5px;height:9px;overflow:hidden;}
+.rd-fill{height:100%;border-radius:5px;}
+.fill-a{background:#27ae60;}
+.fill-b{background:var(--gold);}
+.fill-c{background:#e74c3c;}
+.rd-count{width:40px;font-size:0.75rem;color:var(--muted);text-align:left;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.rating-stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تقييمات الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>نظام تقييم الصفقات</h2>
+      <p>تقييمات شاملة لجودة الصفقات بناءً على معايير المخاطر والعائد والالتزام الشرعي</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportRatings()">تصدير التقييمات</button>
+  </div>
+
+  <div class="rating-stats" id="ratingStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>تقييمات الصفقات النشطة</h3></div>
+      <div class="deal-ratings-list" id="dealRatingsList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>توزيع التقييمات</h3></div>
+      <div class="rating-dist" id="ratingDist"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل التقييمات التاريخي</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportRatings()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="historyLog"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addRating()">إضافة تقييم</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportRatings()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٢٨', lbl: 'صفقة مُقيَّمة' },
+  { val: '٨٥٪', lbl: 'صفقات بتقييم A أو B' },
+  { val: '٤.٢', lbl: 'متوسط التقييم / ٥' },
+  { val: '٣', lbl: 'صفقات تحت المراجعة' }
+];
+
+const DEALS = [
+  { deal: 'مرابحة عقارية #4920', grade: 'A', gradeCls: 'grade-a', scores: [{ val: '٩٢', lbl: 'الجودة' }, { val: '٨٨', lbl: 'السيولة' }, { val: '٩٥', lbl: 'الشرعية' }] },
+  { deal: 'مرابحة تجارية #4921', grade: 'B+', gradeCls: 'grade-b', scores: [{ val: '٧٨', lbl: 'الجودة' }, { val: '٨٢', lbl: 'السيولة' }, { val: '٩٠', lbl: 'الشرعية' }] },
+  { deal: 'مرابحة صناعية #4922', grade: 'A-', gradeCls: 'grade-a', scores: [{ val: '٨٥', lbl: 'الجودة' }, { val: '٧٦', lbl: 'السيولة' }, { val: '٩٢', lbl: 'الشرعية' }] },
+  { deal: 'مرابحة لوجستية #4918', grade: 'B', gradeCls: 'grade-b', scores: [{ val: '٧٢', lbl: 'الجودة' }, { val: '٧٠', lbl: 'السيولة' }, { val: '٨٨', lbl: 'الشرعية' }] }
+];
+
+const DIST = [
+  { grade: 'A', pct: 40, count: '١١ صفقة', cls: 'fill-a' },
+  { grade: 'A-', pct: 25, count: '٧ صفقات', cls: 'fill-a' },
+  { grade: 'B+', pct: 20, count: '٦ صفقات', cls: 'fill-b' },
+  { grade: 'B', pct: 10, count: '٣ صفقات', cls: 'fill-b' },
+  { grade: 'C', pct: 5, count: '١ صفقة', cls: 'fill-c' }
+];
+
+const HISTORY = [
+  { deal: 'مرابحة تقنية #4915', grade: 'A', date: '٢٠٢٦/٠٥/١٠', analyst: 'فريق الائتمان' },
+  { deal: 'مرابحة عقارية #4920', grade: 'A', date: '٢٠٢٦/٠٤/٢٠', analyst: 'فريق الائتمان' },
+  { deal: 'مرابحة تجارية #4921', grade: 'B+', date: '٢٠٢٦/٠٤/١٥', analyst: 'فريق المخاطر' },
+  { deal: 'مرابحة صناعية #4922', grade: 'A-', date: '٢٠٢٦/٠٣/٢٨', analyst: 'فريق الائتمان' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('ratingStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'rs-card';
+    const val = document.createElement('div'); val.className = 'rs-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'rs-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildDealRatings() {
+  const wrap = document.getElementById('dealRatingsList');
+  DEALS.forEach(d => {
+    const item = document.createElement('div'); item.className = 'dr-item';
+    const head = document.createElement('div'); head.className = 'dr-head';
+    const deal = document.createElement('div'); deal.className = 'dr-deal'; deal.textContent = d.deal;
+    const grade = document.createElement('div'); grade.className = 'dr-grade ' + d.gradeCls; grade.textContent = d.grade;
+    head.appendChild(deal); head.appendChild(grade);
+    const scores = document.createElement('div'); scores.className = 'dr-scores';
+    d.scores.forEach(s => {
+      const si = document.createElement('div'); si.className = 'score-item';
+      const sv = document.createElement('div'); sv.className = 'score-val'; sv.textContent = s.val;
+      const sl = document.createElement('div'); sl.className = 'score-lbl'; sl.textContent = s.lbl;
+      si.appendChild(sv); si.appendChild(sl); scores.appendChild(si);
+    });
+    item.appendChild(head); item.appendChild(scores);
+    wrap.appendChild(item);
+  });
+}
+
+function buildDist() {
+  const wrap = document.getElementById('ratingDist');
+  DIST.forEach(d => {
+    const row = document.createElement('div'); row.className = 'rd-row';
+    const grade = document.createElement('div'); grade.className = 'rd-grade'; grade.textContent = d.grade;
+    const track = document.createElement('div'); track.className = 'rd-track';
+    const fill = document.createElement('div'); fill.className = 'rd-fill ' + d.cls; fill.style.width = d.pct + '%';
+    track.appendChild(fill);
+    const count = document.createElement('div'); count.className = 'rd-count'; count.textContent = d.count;
+    row.appendChild(grade); row.appendChild(track); row.appendChild(count);
+    wrap.appendChild(row);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyLog');
+  HISTORY.forEach(h => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const deal = document.createElement('span'); deal.style.fontWeight = '700'; deal.textContent = h.deal + ' ';
+    const grade = document.createElement('span'); grade.style.cssText = 'background:#e8f5ed;color:#1e8449;padding:0.1rem 0.4rem;border-radius:6px;font-size:0.72rem;font-weight:700;'; grade.textContent = h.grade;
+    left.appendChild(deal); left.appendChild(grade);
+    const right = document.createElement('div'); right.style.color = 'var(--muted)'; right.textContent = h.analyst + ' · ' + h.date;
+    row.appendChild(left); row.appendChild(right);
+    wrap.appendChild(row);
+  });
+}
+
+function addRating() {
+  fetch('/app/admin/deal-ratings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ deal: 'صفقة جديدة' }) }).catch(() => {});
+  alert('فتح نموذج إضافة تقييم');
+}
+
+function exportRatings() {
+  fetch('/app/admin/deal-ratings/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقييمات الصفقات...');
+}
+
+buildStats(); buildDealRatings(); buildDist(); buildHistory();
+</script>
+</body>
+</html>
