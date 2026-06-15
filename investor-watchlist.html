@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قائمة المراقبة - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-secondary{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-secondary:hover{background:var(--green);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.kpi-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;}
+.kpi-label{font-size:0.82rem;color:var(--muted);margin-bottom:0.35rem;}
+.kpi-value{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.kpi-sub{font-size:0.8rem;color:var(--muted);margin-top:0.2rem;}
+.two-col{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;}
+.sidebar{display:flex;flex-direction:column;gap:1rem;}
+.filter-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.filter-head{background:var(--green-dark);color:#fff;padding:0.75rem 1rem;font-size:0.9rem;font-weight:700;}
+.filter-body{padding:1rem;}
+.filter-group{margin-bottom:0.75rem;}
+.filter-group label{display:block;font-size:0.8rem;font-weight:600;color:var(--muted);margin-bottom:0.35rem;}
+.filter-group select,.filter-group input{width:100%;padding:0.5rem 0.7rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);background:#fff;}
+.filter-group select:focus,.filter-group input:focus{outline:none;border-color:var(--green);}
+.tag-list{display:flex;flex-wrap:wrap;gap:0.4rem;}
+.tag{padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:all 0.15s;}
+.tag.active{background:var(--green);color:#fff;border-color:var(--green);}
+.main-area{display:flex;flex-direction:column;gap:1rem;}
+.toolbar{display:flex;align-items:center;gap:0.75rem;}
+.toolbar input{flex:1;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.88rem;color:var(--green-dark);}
+.toolbar input:focus{outline:none;border-color:var(--green);}
+.deal-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;transition:box-shadow 0.2s;cursor:pointer;}
+.deal-card:hover{box-shadow:0 4px 16px rgba(6,43,30,0.1);}
+.deal-card.pinned{border-color:var(--gold);background:#fffdf6;}
+.deal-avatar{width:48px;height:48px;border-radius:12px;background:var(--green-dark);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:700;flex-shrink:0;}
+.deal-info{flex:1;min-width:0;}
+.deal-name{font-size:0.95rem;font-weight:700;color:var(--green-dark);}
+.deal-sector{font-size:0.78rem;color:var(--muted);margin-top:0.1rem;}
+.deal-metrics{display:flex;gap:1.5rem;margin-top:0.5rem;}
+.metric{text-align:right;}
+.metric-val{font-size:0.9rem;font-weight:700;color:var(--green);}
+.metric-val.gold{color:var(--gold);}
+.metric-val.red{color:#c0392b;}
+.metric-label{font-size:0.72rem;color:var(--muted);}
+.deal-tags{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem;}
+.deal-tag{padding:0.15rem 0.5rem;border-radius:12px;font-size:0.72rem;font-weight:600;}
+.tag-green{background:#e6f4ef;color:var(--green);}
+.tag-gold{background:#f8f0e0;color:var(--gold);}
+.tag-gray{background:#f0f0f0;color:var(--muted);}
+.deal-actions{display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;}
+.pin-btn{background:none;border:none;font-size:1.1rem;cursor:pointer;opacity:0.4;transition:opacity 0.15s;}
+.pin-btn.active{opacity:1;color:var(--gold);}
+.progress-wrap{margin-top:0.4rem;}
+.progress-bar{background:#e8e3da;border-radius:4px;height:5px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--green);border-radius:4px;}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.95rem;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(6,43,30,0.5);z-index:100;justify-content:center;align-items:flex-start;padding-top:5rem;}
+.modal-backdrop.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:500px;max-width:92vw;box-shadow:0 8px 32px rgba(6,43,30,0.18);}
+.modal-head{background:var(--green-dark);color:#fff;padding:1rem 1.5rem;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;}
+.modal-close:hover{color:#fff;}
+.modal-body{padding:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.85rem;font-weight:600;color:var(--green-dark);margin-bottom:0.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:0.6rem 0.8rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;color:var(--green-dark);background:#fff;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green);}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:0.75rem;}
+@media(max-width:768px){.kpi-row{grid-template-columns:1fr 1fr;}.two-col{grid-template-columns:1fr;}.deal-metrics{flex-wrap:wrap;gap:0.75rem;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — قائمة المراقبة</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>قائمة مراقبة الصفقات</h2>
+    <button class="btn btn-primary" onclick="openModal()">+ إضافة صفقة للمراقبة</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">صفقات قيد المراقبة</div>
+      <div class="kpi-value" id="totalCount">٠</div>
+      <div class="kpi-sub">إجمالي القائمة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">إجمالي القيمة المحتملة</div>
+      <div class="kpi-value">٣.٢م</div>
+      <div class="kpi-sub">ريال سعودي</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">متوسط العائد المتوقع</div>
+      <div class="kpi-value">١١.٤٪</div>
+      <div class="kpi-sub">سنوياً</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">مخطط للاستثمار</div>
+      <div class="kpi-value">٢</div>
+      <div class="kpi-sub">هذا الشهر</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="sidebar">
+      <div class="filter-card">
+        <div class="filter-head">تصفية النتائج</div>
+        <div class="filter-body">
+          <div class="filter-group">
+            <label>القطاع</label>
+            <select id="sectorFilter" onchange="applyFilters()">
+              <option value="">الكل</option>
+              <option value="عقارات">عقارات</option>
+              <option value="تقنية">تقنية</option>
+              <option value="صحة">صحة</option>
+              <option value="طاقة">طاقة</option>
+              <option value="تجزئة">تجزئة</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>المرحلة</label>
+            <div class="tag-list" id="stageTags"></div>
+          </div>
+          <div class="filter-group">
+            <label>الحد الأدنى للعائد</label>
+            <input type="number" id="minReturnFilter" placeholder="0٪" onchange="applyFilters()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-area">
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="ابحث عن صفقة..." oninput="applyFilters()">
+        <button class="btn btn-secondary btn-sm" onclick="togglePinnedOnly()">⭐ المثبتة فقط</button>
+      </div>
+      <div id="dealsList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>إضافة صفقة للمراقبة</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم الصفقة</label>
+        <input type="text" id="wlName" placeholder="مثال: برج المدينة السكني">
+      </div>
+      <div class="form-group">
+        <label>القطاع</label>
+        <select id="wlSector">
+          <option value="عقارات">عقارات</option>
+          <option value="تقنية">تقنية</option>
+          <option value="صحة">صحة</option>
+          <option value="طاقة">طاقة</option>
+          <option value="تجزئة">تجزئة</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>العائد المتوقع (٪)</label>
+        <input type="number" id="wlReturn" step="0.1" placeholder="0.0">
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="wlNotes" rows="2" placeholder="أسباب الاهتمام بهذه الصفقة..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="addToWatchlist()">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let pinnedOnly = false;
+const stages = ['قريباً','مفتوحة','إغلاق وشيك','مغلقة'];
+let activeStages = [];
+
+const deals = [
+  {id:1,name:'برج النخيل السكني',sector:'عقارات',stage:'مفتوحة',returnRate:12.5,funded:68,tags:['شرعية','عالية العائد'],pinned:true,amount:'٢,٥٠٠,٠٠٠'},
+  {id:2,name:'منصة تقنية B2B',sector:'تقنية',stage:'قريباً',returnRate:18.0,funded:0,tags:['نمو','تقنية'],pinned:false,amount:'٨٠٠,٠٠٠'},
+  {id:3,name:'مجمع طبي الرياض',sector:'صحة',stage:'إغلاق وشيك',returnRate:10.2,funded:91,tags:['منخفض المخاطر','دخل ثابت'],pinned:true,amount:'٥,٠٠٠,٠٠٠'},
+  {id:4,name:'محطة طاقة شمسية',sector:'طاقة',stage:'مفتوحة',returnRate:9.8,funded:44,tags:['بيئي'],pinned:false,amount:'٣,٢٠٠,٠٠٠'},
+  {id:5,name:'سلسلة مطاعم صحية',sector:'تجزئة',stage:'قريباً',returnRate:15.5,funded:0,tags:['استهلاكي'],pinned:false,amount:'١,٢٠٠,٠٠٠'},
+];
+
+function initStageTags(){
+  const cont = document.getElementById('stageTags');
+  cont.textContent = '';
+  stages.forEach(s => {
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (activeStages.includes(s) ? ' active' : '');
+    tag.textContent = s;
+    tag.onclick = () => {
+      if(activeStages.includes(s)) activeStages = activeStages.filter(x=>x!==s);
+      else activeStages.push(s);
+      initStageTags();
+      applyFilters();
+    };
+    cont.appendChild(tag);
+  });
+}
+
+function applyFilters(){
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  const sector = document.getElementById('sectorFilter').value;
+  const minReturn = parseFloat(document.getElementById('minReturnFilter').value) || 0;
+  let filtered = deals.filter(d => {
+    if(pinnedOnly && !d.pinned) return false;
+    if(sector && d.sector !== sector) return false;
+    if(activeStages.length && !activeStages.includes(d.stage)) return false;
+    if(d.returnRate < minReturn) return false;
+    if(search && !d.name.includes(search) && !d.sector.includes(search)) return false;
+    return true;
+  });
+  renderDeals(filtered);
+}
+
+function renderDeals(list){
+  const cont = document.getElementById('dealsList');
+  cont.textContent = '';
+  document.getElementById('totalCount').textContent = String(deals.length);
+  if(!list.length){
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'لا توجد صفقات مطابقة للبحث';
+    cont.appendChild(empty);
+    return;
+  }
+  list.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'deal-card' + (d.pinned ? ' pinned' : '');
+
+    const avatar = document.createElement('div');
+    avatar.className = 'deal-avatar';
+    avatar.textContent = d.name[0];
+
+    const info = document.createElement('div');
+    info.className = 'deal-info';
+
+    const name = document.createElement('div');
+    name.className = 'deal-name';
+    name.textContent = d.name;
+
+    const sector = document.createElement('div');
+    sector.className = 'deal-sector';
+    sector.textContent = d.sector + ' · ' + d.stage;
+
+    const metrics = document.createElement('div');
+    metrics.className = 'deal-metrics';
+
+    const m1 = document.createElement('div');
+    m1.className = 'metric';
+    const v1 = document.createElement('div');
+    v1.className = 'metric-val gold';
+    v1.textContent = d.returnRate + '٪';
+    const l1 = document.createElement('div');
+    l1.className = 'metric-label';
+    l1.textContent = 'العائد المتوقع';
+    m1.appendChild(v1);
+    m1.appendChild(l1);
+
+    const m2 = document.createElement('div');
+    m2.className = 'metric';
+    const v2 = document.createElement('div');
+    v2.className = 'metric-val';
+    v2.textContent = d.amount + ' ر.س';
+    const l2 = document.createElement('div');
+    l2.className = 'metric-label';
+    l2.textContent = 'الحجم المستهدف';
+    m2.appendChild(v2);
+    m2.appendChild(l2);
+
+    metrics.appendChild(m1);
+    metrics.appendChild(m2);
+
+    const tagsDiv = document.createElement('div');
+    tagsDiv.className = 'deal-tags';
+    d.tags.forEach(t => {
+      const tag = document.createElement('span');
+      tag.className = 'deal-tag tag-green';
+      tag.textContent = t;
+      tagsDiv.appendChild(tag);
+    });
+
+    if(d.stage !== 'قريباً'){
+      const pw = document.createElement('div');
+      pw.className = 'progress-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      const fill = document.createElement('div');
+      fill.className = 'progress-fill';
+      fill.style.width = d.funded + '%';
+      bar.appendChild(fill);
+      pw.appendChild(bar);
+      const pct = document.createElement('div');
+      pct.style.cssText = 'font-size:0.75rem;color:var(--muted);margin-top:0.2rem;';
+      pct.textContent = 'مُموَّل ' + d.funded + '٪';
+      pw.appendChild(pct);
+      info.appendChild(name);
+      info.appendChild(sector);
+      info.appendChild(metrics);
+      info.appendChild(tagsDiv);
+      info.appendChild(pw);
+    } else {
+      info.appendChild(name);
+      info.appendChild(sector);
+      info.appendChild(metrics);
+      info.appendChild(tagsDiv);
+    }
+
+    const acts = document.createElement('div');
+    acts.className = 'deal-actions';
+    const pin = document.createElement('button');
+    pin.className = 'pin-btn' + (d.pinned ? ' active' : '');
+    pin.textContent = '⭐';
+    pin.title = d.pinned ? 'إلغاء التثبيت' : 'تثبيت';
+    pin.onclick = (e) => { e.stopPropagation(); d.pinned = !d.pinned; applyFilters(); };
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'btn btn-sm btn-secondary';
+    rmBtn.textContent = 'إزالة';
+    rmBtn.onclick = async (e) => {
+      e.stopPropagation();
+      try {
+        await fetch('/app/me/watchlist/' + d.id, {
+          method:'DELETE',
+          headers:{'x-csrf-token':'1'}
+        });
+      } catch(ex){}
+    };
+    acts.appendChild(pin);
+    acts.appendChild(rmBtn);
+
+    card.appendChild(avatar);
+    card.appendChild(info);
+    card.appendChild(acts);
+    cont.appendChild(card);
+  });
+}
+
+function togglePinnedOnly(){ pinnedOnly = !pinnedOnly; applyFilters(); }
+
+function openModal(){ document.getElementById('addModal').classList.add('open'); }
+function closeModal(){ document.getElementById('addModal').classList.remove('open'); }
+
+async function addToWatchlist(){
+  const name = document.getElementById('wlName').value.trim();
+  if(!name){ alert('يرجى إدخال اسم الصفقة'); return; }
+  try {
+    await fetch('/app/me/watchlist', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-csrf-token':'1'},
+      body: JSON.stringify({
+        name,
+        sector: document.getElementById('wlSector').value,
+        expectedReturn: parseFloat(document.getElementById('wlReturn').value) || 0,
+        notes: document.getElementById('wlNotes').value.trim()
+      })
+    });
+    closeModal();
+  } catch(e){}
+}
+
+initStageTags();
+applyFilters();
+</script>
+</body>
+</html>
