@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقويم الأرباح - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:1.25rem;}
+.cal-day-name{text-align:center;font-size:0.7rem;font-weight:700;color:var(--muted);padding-bottom:0.5rem;}
+.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.78rem;cursor:default;position:relative;}
+.cal-empty{background:transparent;}
+.cal-normal{background:#f5f0e8;color:var(--green-dark);}
+.cal-today{background:var(--green);color:#fff;font-weight:700;}
+.cal-event{background:#fef3cd;color:#92400e;font-weight:600;}
+.cal-event::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold);}
+.event-list{padding:1.25rem;}
+.ev-item{border:1px solid var(--line);border-radius:10px;padding:0.9rem;margin-bottom:0.75rem;display:flex;align-items:center;gap:1rem;}
+.ev-date-box{min-width:48px;text-align:center;background:var(--green-dark);color:#fff;border-radius:8px;padding:0.4rem;}
+.ev-month{font-size:0.65rem;font-weight:600;}
+.ev-day{font-size:1.2rem;font-weight:700;line-height:1;}
+.ev-info{}
+.ev-title{font-size:0.86rem;font-weight:700;}
+.ev-meta{font-size:0.72rem;color:var(--muted);margin-top:0.2rem;}
+.ev-amount{margin-right:auto;font-size:0.9rem;font-weight:700;color:var(--green);}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تقويم الأرباح</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تقويم توزيعات الأرباح</h2>
+      <p>جدول المواعيد المتوقعة لتحويل العوائد على استثماراتك</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportCalendar()">تصدير التقويم</button>
+  </div>
+
+  <div class="stats" id="dcStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>يونيو ٢٠٢٦</h3></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>المواعيد القادمة</h3></div>
+      <div class="event-list" id="eventList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل التوزيعات السابقة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportCalendar()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="historyLog"></div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'توزيعات قادمة' },
+  { val: '٥٤,٠٠٠ ر.س', lbl: 'إجمالي متوقع ٢٠٢٦' },
+  { val: '١٢', lbl: 'توزيعة مُنجزة' },
+  { val: '٩.٢٪', lbl: 'معدل العائد السنوي' }
+];
+
+const EVENT_DAYS = [15, 30];
+
+const EVENTS = [
+  { month: 'يونيو', day: '١٥', title: 'مرابحة عقارية #4920', meta: 'توزيع نهائي — إغلاق الصفقة', amount: '٢٨,٨٠٠ ر.س' },
+  { month: 'يوليو', day: '١٥', title: 'مرابحة تجارية #4921', meta: 'دفعة ربع سنوية — الدفعة الثالثة', amount: '١٨,٠٠٠ ر.س' },
+  { month: 'سبتمبر', day: '٠١', title: 'مرابحة لوجستية #4918', meta: 'توزيع سنوي مُعجَّل', amount: '٧,٢٠٠ ر.س' }
+];
+
+const HISTORY = [
+  { deal: 'مرابحة صناعية #4905', date: '٢٠٢٦/٠٣/٣١', amount: '١٦,٠٠٠ ر.س', note: 'توزيع ختامي' },
+  { deal: 'مرابحة عقارية #4890', date: '٢٠٢٥/١٢/٣١', amount: '٣٢,٠٠٠ ر.س', note: 'توزيع ختامي' },
+  { deal: 'مرابحة تجارية #4875', date: '٢٠٢٥/٠٩/٣٠', amount: '١٢,٠٠٠ ر.س', note: 'توزيع ختامي' }
+];
+
+const DAY_NAMES = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+
+function buildStats() {
+  const wrap = document.getElementById('dcStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildCalendar() {
+  const wrap = document.getElementById('calGrid');
+  DAY_NAMES.forEach(d => {
+    const h = document.createElement('div'); h.className = 'cal-day-name'; h.textContent = d;
+    wrap.appendChild(h);
+  });
+  const firstDay = 0;
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div'); empty.className = 'cal-cell cal-empty';
+    wrap.appendChild(empty);
+  }
+  for (let d = 1; d <= 30; d++) {
+    const cell = document.createElement('div');
+    const isToday = d === 15;
+    const isEvent = EVENT_DAYS.includes(d);
+    cell.className = 'cal-cell ' + (isToday ? 'cal-today' : isEvent ? 'cal-event' : 'cal-normal');
+    cell.textContent = d;
+    wrap.appendChild(cell);
+  }
+}
+
+function buildEventList() {
+  const wrap = document.getElementById('eventList');
+  EVENTS.forEach(e => {
+    const item = document.createElement('div'); item.className = 'ev-item';
+    const dateBox = document.createElement('div'); dateBox.className = 'ev-date-box';
+    const month = document.createElement('div'); month.className = 'ev-month'; month.textContent = e.month;
+    const day = document.createElement('div'); day.className = 'ev-day'; day.textContent = e.day;
+    dateBox.appendChild(month); dateBox.appendChild(day);
+    const info = document.createElement('div'); info.className = 'ev-info';
+    const title = document.createElement('div'); title.className = 'ev-title'; title.textContent = e.title;
+    const meta = document.createElement('div'); meta.className = 'ev-meta'; meta.textContent = e.meta;
+    info.appendChild(title); info.appendChild(meta);
+    const amount = document.createElement('div'); amount.className = 'ev-amount'; amount.textContent = e.amount;
+    item.appendChild(dateBox); item.appendChild(info); item.appendChild(amount);
+    wrap.appendChild(item);
+  });
+}
+
+function buildHistory() {
+  const wrap = document.getElementById('historyLog');
+  HISTORY.forEach(h => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const deal = document.createElement('span'); deal.style.fontWeight = '700'; deal.textContent = h.deal + ' ';
+    const date = document.createElement('span'); date.style.color = 'var(--muted)'; date.textContent = '· ' + h.date;
+    const note = document.createElement('div'); note.style.cssText = 'font-size:0.7rem;color:var(--muted);margin-top:0.1rem;'; note.textContent = h.note;
+    left.appendChild(deal); left.appendChild(date); left.appendChild(note);
+    const right = document.createElement('div'); right.style.cssText = 'text-align:left;font-weight:700;color:var(--green);';
+    right.textContent = h.amount;
+    row.appendChild(left); row.appendChild(right);
+    wrap.appendChild(row);
+  });
+}
+
+function exportCalendar() {
+  fetch('/app/me/dividend-calendar/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقويم الأرباح...');
+}
+
+buildStats(); buildCalendar(); buildEventList(); buildHistory();
+</script>
+</body>
+</html>

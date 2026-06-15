@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إغلاق الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.cl-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.cl-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.cl-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.cl-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.closure-list{padding:1.25rem;}
+.cl-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.cl-item:last-child{margin-bottom:0;}
+.cl-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;}
+.cl-deal{font-size:0.88rem;font-weight:700;}
+.cl-pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;}
+.pill-ready{background:#e8f5ed;color:#1e8449;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-blocked{background:#fde8e8;color:#c0392b;}
+.cl-steps{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
+.step-dot{width:8px;height:8px;border-radius:50%;}
+.step-done{background:var(--green);}
+.step-todo{background:#d0cbc0;}
+.cl-meta{font-size:0.72rem;color:var(--muted);margin-top:0.4rem;}
+.checklist-wrap{padding:1.25rem;}
+.chk-item{display:flex;align-items:center;gap:0.75rem;padding:0.55rem 0;border-bottom:1px solid var(--line);}
+.chk-item:last-child{border-bottom:none;}
+.chk-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;}
+.chk-box.done{background:var(--green);border-color:var(--green);color:#fff;}
+.chk-label{font-size:0.82rem;}
+.chk-label.done{text-decoration:line-through;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.cl-stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إغلاق الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة إغلاق الصفقات</h2>
+      <p>متابعة إجراءات الإغلاق الرسمي وتوزيع العوائد النهائية</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportClosures()">تصدير التقرير</button>
+  </div>
+
+  <div class="cl-stats" id="clStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>صفقات قيد الإغلاق</h3></div>
+      <div class="closure-list" id="closureList"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>قائمة مراجعة الإغلاق — #4920</h3></div>
+      <div class="checklist-wrap" id="checklistWrap"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل الصفقات المُغلقة</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportClosures()">تصدير</button>
+    </div>
+    <div style="padding:1.25rem;" id="closedLog"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="initiateClose()">بدء إجراءات إغلاق</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportClosures()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣', lbl: 'صفقات قيد الإغلاق' },
+  { val: '١٢', lbl: 'صفقة مُغلقة بنجاح' },
+  { val: '٤٨٠,٠٠٠ ر.س', lbl: 'عوائد وُزِّعت' },
+  { val: '٤ أيام', lbl: 'متوسط وقت الإغلاق' }
+];
+
+const CLOSURES = [
+  { deal: 'مرابحة عقارية #4920', steps: 8, done: 7, pill: 'pill-ready', status: 'جاهز للإغلاق', meta: 'الموعد: ٣٠ يونيو ٢٠٢٦ · العائد: ٢٨,٨٠٠ ر.س' },
+  { deal: 'مرابحة تجارية #4921', steps: 8, done: 5, pill: 'pill-pending', status: 'قيد المراجعة', meta: 'الموعد: ١٥ يوليو ٢٠٢٦ · العائد: ١٨,٠٠٠ ر.س' },
+  { deal: 'مرابحة لوجستية #4918', steps: 8, done: 3, pill: 'pill-blocked', status: 'يحتاج وثائق', meta: 'الموعد: ٣١ أغسطس ٢٠٢٦ · العائد: ٧,٢٠٠ ر.س' }
+];
+
+const CHECKLIST = [
+  { label: 'التحقق من اكتمال الوثائق القانونية', done: true },
+  { label: 'الحصول على شهادة الإغلاق الشرعي', done: true },
+  { label: 'مراجعة الحسابات الختامية', done: true },
+  { label: 'موافقة مجلس الإدارة', done: true },
+  { label: 'إصدار إشعارات للمستثمرين', done: true },
+  { label: 'تحويل العوائد النهائية', done: true },
+  { label: 'تسجيل إغلاق الصفقة في السجلات', done: true },
+  { label: 'إصدار شهادات الاستثمار النهائية', done: false }
+];
+
+const CLOSED = [
+  { deal: 'مرابحة صناعية #4905', date: '٢٠٢٦/٠٣/٣١', returns: '٤٨,٠٠٠ ر.س', investors: '٢٨' },
+  { deal: 'مرابحة عقارية #4890', date: '٢٠٢٥/١٢/٣١', returns: '٩٦,٠٠٠ ر.س', investors: '٤٥' },
+  { deal: 'مرابحة تجارية #4875', date: '٢٠٢٥/٠٩/٣٠', returns: '٣٦,٠٠٠ ر.س', investors: '٢٢' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('clStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'cl-card';
+    const val = document.createElement('div'); val.className = 'cl-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'cl-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildClosureList() {
+  const wrap = document.getElementById('closureList');
+  CLOSURES.forEach(c => {
+    const item = document.createElement('div'); item.className = 'cl-item';
+    const head = document.createElement('div'); head.className = 'cl-head';
+    const deal = document.createElement('div'); deal.className = 'cl-deal'; deal.textContent = c.deal;
+    const pill = document.createElement('span'); pill.className = 'cl-pill ' + c.pill; pill.textContent = c.status;
+    head.appendChild(deal); head.appendChild(pill);
+    const steps = document.createElement('div'); steps.className = 'cl-steps';
+    for (let i = 0; i < c.steps; i++) {
+      const dot = document.createElement('div'); dot.className = 'step-dot ' + (i < c.done ? 'step-done' : 'step-todo');
+      steps.appendChild(dot);
+    }
+    const meta = document.createElement('div'); meta.className = 'cl-meta'; meta.textContent = c.meta;
+    item.appendChild(head); item.appendChild(steps); item.appendChild(meta);
+    wrap.appendChild(item);
+  });
+}
+
+function buildChecklist() {
+  const wrap = document.getElementById('checklistWrap');
+  CHECKLIST.forEach(c => {
+    const item = document.createElement('div'); item.className = 'chk-item';
+    const box = document.createElement('div'); box.className = 'chk-box' + (c.done ? ' done' : '');
+    if (c.done) box.textContent = '✓';
+    const label = document.createElement('div'); label.className = 'chk-label' + (c.done ? ' done' : ''); label.textContent = c.label;
+    item.appendChild(box); item.appendChild(label);
+    wrap.appendChild(item);
+  });
+}
+
+function buildClosedLog() {
+  const wrap = document.getElementById('closedLog');
+  CLOSED.forEach(c => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;';
+    const left = document.createElement('div');
+    const deal = document.createElement('span'); deal.style.fontWeight = '700'; deal.textContent = c.deal + ' ';
+    const date = document.createElement('span'); date.style.color = 'var(--muted)'; date.textContent = '· ' + c.date;
+    left.appendChild(deal); left.appendChild(date);
+    const right = document.createElement('div'); right.style.textAlign = 'left';
+    const returns = document.createElement('div'); returns.style.cssText = 'font-weight:700;color:var(--green);'; returns.textContent = c.returns;
+    const inv = document.createElement('div'); inv.style.cssText = 'font-size:0.7rem;color:var(--muted);'; inv.textContent = c.investors + ' مستثمر';
+    right.appendChild(returns); right.appendChild(inv);
+    row.appendChild(left); row.appendChild(right);
+    wrap.appendChild(row);
+  });
+}
+
+function initiateClose() {
+  fetch('/app/admin/deal-closure', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ dealId: '4920' }) }).catch(() => {});
+  alert('تم بدء إجراءات إغلاق الصفقة #4920');
+}
+
+function exportClosures() {
+  fetch('/app/admin/deal-closure/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل إغلاق الصفقات...');
+}
+
+buildStats(); buildClosureList(); buildChecklist(); buildClosedLog();
+</script>
+</body>
+</html>

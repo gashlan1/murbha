@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تتبع المدفوعات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.5rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.filters{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;gap:0.75rem;flex-wrap:wrap;}
+.filter-btn{padding:0.3rem 0.75rem;border-radius:20px;border:1px solid var(--line);background:#f5f0e8;color:var(--green-dark);font-family:'Cairo',sans-serif;font-size:0.78rem;cursor:pointer;}
+.filter-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
+.payout-table{width:100%;padding:0 1.25rem 1.25rem;}
+.pt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;padding:0.7rem 0;border-bottom:1px solid var(--line);font-size:0.82rem;}
+.pt-header{font-weight:700;font-size:0.75rem;color:var(--muted);padding-top:1rem;}
+.pt-row:last-child{border-bottom:none;}
+.pt-name{font-weight:600;}
+.pt-pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:10px;font-size:0.7rem;font-weight:600;}
+.pill-done{background:#e8f5ed;color:#1e8449;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-failed{background:#fde8e8;color:#c0392b;}
+.pt-amount{font-weight:700;color:var(--green);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}.pt-row{grid-template-columns:2fr 1fr 1fr;}.pt-row>:nth-child(4),.pt-row>:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تتبع المدفوعات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تتبع المدفوعات والتحويلات</h2>
+      <p>متابعة حالة تحويلات عوائد المستثمرين ومعالجة المدفوعات المعلقة</p>
+    </div>
+    <button class="btn btn-primary" onclick="exportPayouts()">تصدير التقرير</button>
+  </div>
+
+  <div class="stats" id="ptStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل المدفوعات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportPayouts()">تصدير</button>
+    </div>
+    <div class="filters" id="ptFilters"></div>
+    <div id="ptTable"></div>
+    <div class="action-bar">
+      <button class="btn btn-gold btn-sm" onclick="processPayouts()">معالجة المدفوعات المعلقة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="retryFailed()">إعادة المحاولة للفاشلة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣٨', lbl: 'مدفوعات ناجحة' },
+  { val: '٥', lbl: 'مدفوعات معلقة' },
+  { val: '٢', lbl: 'مدفوعات فاشلة' },
+  { val: '٥٤٢,٠٠٠ ر.س', lbl: 'إجمالي المحوَّل' }
+];
+
+const FILTERS = ['الكل', 'ناجحة', 'معلقة', 'فاشلة'];
+
+const PAYOUTS = [
+  { name: 'أحمد العمري', deal: 'مرابحة عقارية #4890', amount: '٣,٢٠٠ ر.س', date: '٢٠٢٥/١٢/٣١', status: 'pill-done', label: 'ناجحة' },
+  { name: 'سارة الغامدي', deal: 'مرابحة عقارية #4890', amount: '٤,٨٠٠ ر.س', date: '٢٠٢٥/١٢/٣١', status: 'pill-done', label: 'ناجحة' },
+  { name: 'خالد المطيري', deal: 'مرابحة صناعية #4905', amount: '١,٦٠٠ ر.س', date: '٢٠٢٦/٠٣/٣١', status: 'pill-done', label: 'ناجحة' },
+  { name: 'نورة القحطاني', deal: 'مرابحة تجارية #4921', amount: '٩٦٠ ر.س', date: '٢٠٢٦/٠٧/١٥', status: 'pill-pending', label: 'معلقة' },
+  { name: 'فهد الشهري', deal: 'مرابحة تجارية #4921', amount: '٢,٤٠٠ ر.س', date: '٢٠٢٦/٠٧/١٥', status: 'pill-pending', label: 'معلقة' },
+  { name: 'ريم الدوسري', deal: 'مرابحة لوجستية #4918', amount: '٧٢٠ ر.س', date: '٢٠٢٦/٠٩/٠١', status: 'pill-failed', label: 'فاشلة' }
+];
+
+let activeFilter = 'الكل';
+
+function buildStats() {
+  const wrap = document.getElementById('ptStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildFilters() {
+  const wrap = document.getElementById('ptFilters');
+  FILTERS.forEach(f => {
+    const btn = document.createElement('button'); btn.className = 'filter-btn' + (f === activeFilter ? ' active' : '');
+    btn.textContent = f;
+    btn.onclick = () => { activeFilter = f; buildFilters(); buildTable(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+function buildTable() {
+  const wrap = document.getElementById('ptTable');
+  clearChildren(wrap);
+  const table = document.createElement('div'); table.className = 'payout-table';
+  const header = document.createElement('div'); header.className = 'pt-row pt-header';
+  ['المستثمر', 'الصفقة', 'المبلغ', 'التاريخ', 'الحالة'].forEach(h => {
+    const cell = document.createElement('div'); cell.textContent = h; header.appendChild(cell);
+  });
+  table.appendChild(header);
+
+  const filtered = activeFilter === 'الكل' ? PAYOUTS : PAYOUTS.filter(p => p.label === activeFilter);
+  filtered.forEach(p => {
+    const row = document.createElement('div'); row.className = 'pt-row';
+    const name = document.createElement('div'); name.className = 'pt-name'; name.textContent = p.name;
+    const deal = document.createElement('div'); deal.style.color = 'var(--muted)'; deal.textContent = p.deal;
+    const amount = document.createElement('div'); amount.className = 'pt-amount'; amount.textContent = p.amount;
+    const date = document.createElement('div'); date.style.color = 'var(--muted)'; date.textContent = p.date;
+    const pill = document.createElement('span'); pill.className = 'pt-pill ' + p.status; pill.textContent = p.label;
+    row.appendChild(name); row.appendChild(deal); row.appendChild(amount); row.appendChild(date); row.appendChild(pill);
+    table.appendChild(row);
+  });
+  wrap.appendChild(table);
+}
+
+function processPayouts() {
+  fetch('/app/admin/payout-tracking/bulk', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ status: 'process' }) }).catch(() => {});
+  alert('جاري معالجة المدفوعات المعلقة...');
+}
+
+function retryFailed() {
+  fetch('/app/admin/payout-tracking/retry', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ status: 'retry' }) }).catch(() => {});
+  alert('جاري إعادة المحاولة للمدفوعات الفاشلة...');
+}
+
+function exportPayouts() {
+  fetch('/app/admin/payout-tracking/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل المدفوعات...');
+}
+
+buildStats(); buildFilters(); buildTable();
+</script>
+</body>
+</html>
