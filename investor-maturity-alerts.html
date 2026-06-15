@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تنبيهات الاستحقاق - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.timeline{padding:1.5rem;}
+.tl-group{margin-bottom:1.5rem;}
+.tl-date{font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:0.75rem;padding-bottom:0.3rem;border-bottom:1px solid var(--line);}
+.tl-item{display:flex;gap:1rem;margin-bottom:0.75rem;align-items:flex-start;}
+.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:0.35rem;flex-shrink:0;}
+.dot-urgent{background:#c0392b;}
+.dot-soon{background:#e67e22;}
+.dot-upcoming{background:var(--green);}
+.tl-content{flex:1;}
+.tl-title{font-size:0.86rem;font-weight:700;margin-bottom:0.15rem;}
+.tl-meta{font-size:0.72rem;color:var(--muted);}
+.tl-amount{font-size:0.82rem;font-weight:700;color:var(--green);}
+.pref-card{background:#fff;border-radius:14px;border:1px solid var(--line);padding:1.25rem;margin-bottom:1.5rem;}
+.pref-head{font-size:0.88rem;font-weight:700;margin-bottom:1rem;}
+.pref-row{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--line);}
+.pref-row:last-child{border-bottom:none;}
+.pref-lbl{font-size:0.84rem;}
+.pref-desc{font-size:0.7rem;color:var(--muted);}
+.toggle{width:38px;height:20px;border-radius:10px;cursor:pointer;border:none;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:#d0cbc0;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+@media(max-width:600px){.tl-item{flex-direction:column;gap:0.3rem;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تنبيهات الاستحقاق</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تنبيهات استحقاق الصفقات</h2>
+      <p>تابع مواعيد انتهاء صفقاتك واستلام عوائدك في الوقت المناسب</p>
+    </div>
+    <button class="btn btn-primary" onclick="markAllRead()">تحديد الكل كمقروء</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الجدول الزمني للاستحقاقات</h3>
+      <span style="font-size:0.75rem;opacity:0.7;">٧ تنبيهات نشطة</span>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <div class="pref-card">
+    <div class="pref-head">إعدادات التنبيهات</div>
+    <div id="prefRows"></div>
+  </div>
+</div>
+
+<script>
+const GROUPS = [
+  {
+    date: 'هذا الأسبوع',
+    items: [
+      { dot: 'dot-urgent', title: 'استحقاق صفقة #4910 — غداً', meta: 'تجهيزات صناعية · ٣ مارس ٢٠٢٦', amount: '٨٠,٤٠٠ ر.س' },
+      { dot: 'dot-soon', title: 'استحقاق صفقة #4912 — بعد ٣ أيام', meta: 'نقل بضائع · ٥ مارس ٢٠٢٦', amount: '٤٥,٢٠٠ ر.س' }
+    ]
+  },
+  {
+    date: 'هذا الشهر',
+    items: [
+      { dot: 'dot-soon', title: 'استحقاق صفقة #4905 — ١٢ مارس', meta: 'تطوير برمجيات · ١٢ مارس ٢٠٢٦', amount: '١٢٠,٦٠٠ ر.س' },
+      { dot: 'dot-upcoming', title: 'استحقاق صفقة #4898 — ٢٠ مارس', meta: 'مواد بناء · ٢٠ مارس ٢٠٢٦', amount: '٦٢,٠٠٠ ر.س' },
+      { dot: 'dot-upcoming', title: 'استحقاق صفقة #4892 — ٢٨ مارس', meta: 'أثاث مكتبي · ٢٨ مارس ٢٠٢٦', amount: '٣٣,٦٠٠ ر.س' }
+    ]
+  },
+  {
+    date: 'الشهر القادم',
+    items: [
+      { dot: 'dot-upcoming', title: 'استحقاق صفقة #4880 — ١٠ أبريل', meta: 'معدات طبية · ١٠ أبريل ٢٠٢٦', amount: '٩٦,٠٠٠ ر.س' },
+      { dot: 'dot-upcoming', title: 'استحقاق صفقة #4875 — ٢٢ أبريل', meta: 'لوجستية · ٢٢ أبريل ٢٠٢٦', amount: '٥٤,٠٠٠ ر.س' }
+    ]
+  }
+];
+
+const PREFS = [
+  { lbl: 'تنبيه قبل أسبوع', desc: 'إشعار قبل ٧ أيام من الاستحقاق', on: true },
+  { lbl: 'تنبيه قبل ٣ أيام', desc: 'إشعار قبل ٣ أيام من الاستحقاق', on: true },
+  { lbl: 'تنبيه في يوم الاستحقاق', desc: 'إشعار في يوم الاستحقاق ذاته', on: true },
+  { lbl: 'تنبيهات البريد الإلكتروني', desc: 'إرسال نسخة للبريد الإلكتروني', on: false }
+];
+
+function buildTimeline() {
+  const wrap = document.getElementById('timeline');
+  GROUPS.forEach(g => {
+    const group = document.createElement('div'); group.className = 'tl-group';
+    const date = document.createElement('div'); date.className = 'tl-date'; date.textContent = g.date;
+    group.appendChild(date);
+    g.items.forEach(item => {
+      const tl = document.createElement('div'); tl.className = 'tl-item';
+      const dot = document.createElement('div'); dot.className = 'tl-dot ' + item.dot;
+      const content = document.createElement('div'); content.className = 'tl-content';
+      const title = document.createElement('div'); title.className = 'tl-title'; title.textContent = item.title;
+      const meta = document.createElement('div'); meta.className = 'tl-meta'; meta.textContent = item.meta;
+      const amount = document.createElement('div'); amount.className = 'tl-amount'; amount.textContent = item.amount;
+      content.appendChild(title); content.appendChild(meta); content.appendChild(amount);
+      tl.appendChild(dot); tl.appendChild(content);
+      group.appendChild(tl);
+    });
+    wrap.appendChild(group);
+  });
+}
+
+function buildPrefs() {
+  const wrap = document.getElementById('prefRows');
+  PREFS.forEach(p => {
+    const row = document.createElement('div'); row.className = 'pref-row';
+    const info = document.createElement('div');
+    const lbl = document.createElement('div'); lbl.className = 'pref-lbl'; lbl.textContent = p.lbl;
+    const desc = document.createElement('div'); desc.className = 'pref-desc'; desc.textContent = p.desc;
+    info.appendChild(lbl); info.appendChild(desc);
+    const toggle = document.createElement('button'); toggle.className = 'toggle ' + (p.on ? 'on' : 'off');
+    toggle.onclick = () => { p.on = !p.on; toggle.className = 'toggle ' + (p.on ? 'on' : 'off'); savePrefs(); };
+    row.appendChild(info); row.appendChild(toggle);
+    wrap.appendChild(row);
+  });
+}
+
+function markAllRead() {
+  fetch('/app/me/maturity-alerts/read-all', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'read-all' }) }).catch(() => {});
+  alert('تم تحديد جميع التنبيهات كمقروءة.');
+}
+
+function savePrefs() {
+  fetch('/app/me/maturity-alerts/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ prefs: PREFS }) }).catch(() => {});
+}
+
+buildTimeline(); buildPrefs();
+</script>
+</body>
+</html>

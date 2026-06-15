@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تتبع تمويل الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.deal-list{padding:1.25rem;}
+.deal-item{border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:0.75rem;}
+.deal-item:last-child{margin-bottom:0;}
+.di-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;}
+.di-name{font-size:0.9rem;font-weight:700;}
+.di-pill{display:inline-block;padding:0.15rem 0.6rem;border-radius:8px;font-size:0.68rem;font-weight:700;}
+.pill-full{background:#e8f5ed;color:#1e8449;}
+.pill-partial{background:#fef3cd;color:#92400e;}
+.pill-open{background:#e8f0fe;color:#1a56c4;}
+.progress-wrap{margin-bottom:0.4rem;}
+.progress-bar{height:8px;border-radius:4px;background:#e8e2d6;overflow:hidden;}
+.progress-fill{height:100%;border-radius:4px;background:var(--green);}
+.di-meta{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — تتبع تمويل الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>تتبع تمويل الصفقات</h2>
+      <p>رصد نسب الاكتتاب والتمويل لجميع الصفقات النشطة</p>
+    </div>
+    <button class="btn btn-gold" onclick="exportFunding()">تصدير</button>
+  </div>
+
+  <div class="stats" id="fundStats"></div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>حالة تمويل الصفقات</h3>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="exportFunding()">تصدير</button>
+    </div>
+    <div class="deal-list" id="dealList"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="sendReminders()">إرسال تذكيرات الاكتتاب</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportFunding()">تصدير التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١٢', lbl: 'صفقة نشطة' },
+  { val: '٤', lbl: 'مكتملة التمويل' },
+  { val: '٨', lbl: 'قيد الاكتتاب' },
+  { val: '٨٧٪', lbl: 'متوسط نسبة التمويل' }
+];
+
+const DEALS = [
+  { name: 'صفقة تجهيزات طبية #4920', pill: 'pill-full', label: 'مكتملة', target: '٥٠٠,٠٠٠ ر.س', raised: '٥٠٠,٠٠٠ ر.س', investors: '١٨ مستثمر', pct: 100 },
+  { name: 'صفقة نقل بضائع #4921', pill: 'pill-partial', label: 'جزئية', target: '٣٠٠,٠٠٠ ر.س', raised: '٢٤٠,٠٠٠ ر.س', investors: '١٢ مستثمر', pct: 80 },
+  { name: 'صفقة تقنية #4922', pill: 'pill-open', label: 'مفتوحة', target: '٤٠٠,٠٠٠ ر.س', raised: '١٦٠,٠٠٠ ر.س', investors: '٦ مستثمرين', pct: 40 },
+  { name: 'صفقة أثاث #4923', pill: 'pill-partial', label: 'جزئية', target: '٢٠٠,٠٠٠ ر.س', raised: '١٦٦,٠٠٠ ر.س', investors: '٩ مستثمرين', pct: 83 }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('fundStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'stat-card';
+    const val = document.createElement('div'); val.className = 'stat-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'stat-lbl'; lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl); wrap.appendChild(card);
+  });
+}
+
+function buildDeals() {
+  const wrap = document.getElementById('dealList');
+  DEALS.forEach(d => {
+    const item = document.createElement('div'); item.className = 'deal-item';
+    const head = document.createElement('div'); head.className = 'di-head';
+    const name = document.createElement('span'); name.className = 'di-name'; name.textContent = d.name;
+    const pill = document.createElement('span'); pill.className = 'di-pill ' + d.pill; pill.textContent = d.label;
+    head.appendChild(name); head.appendChild(pill);
+    const pw = document.createElement('div'); pw.className = 'progress-wrap';
+    const bar = document.createElement('div'); bar.className = 'progress-bar';
+    const fill = document.createElement('div'); fill.className = 'progress-fill'; fill.style.width = d.pct + '%';
+    bar.appendChild(fill); pw.appendChild(bar);
+    const meta = document.createElement('div'); meta.className = 'di-meta';
+    const raised = document.createElement('span'); raised.textContent = d.raised + ' / ' + d.target;
+    const investors = document.createElement('span'); investors.textContent = d.investors + ' · ' + d.pct + '٪';
+    meta.appendChild(raised); meta.appendChild(investors);
+    item.appendChild(head); item.appendChild(pw); item.appendChild(meta);
+    wrap.appendChild(item);
+  });
+}
+
+function sendReminders() {
+  fetch('/app/admin/deal-funding-tracker/reminders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' }, body: JSON.stringify({ action: 'remind' }) }).catch(() => {});
+  alert('تم إرسال تذكيرات الاكتتاب للمستثمرين.');
+}
+
+function exportFunding() {
+  fetch('/app/admin/deal-funding-tracker/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير تقرير التمويل...');
+}
+
+buildStats(); buildDeals();
+</script>
+</body>
+</html>
