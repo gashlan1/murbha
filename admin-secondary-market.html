@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>السوق الثانوي (إدارة) - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.market-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.mkt-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;}
+.mkt-val{font-size:1.6rem;font-weight:700;color:var(--green);}
+.mkt-lbl{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.mkt-chg{font-size:0.72rem;margin-top:0.15rem;}
+.chg-up{color:#27ae60;}
+.chg-dn{color:#e74c3c;}
+.layout-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-buy{background:#e8f5ed;color:#1e8449;}
+.pill-sell{background:#fde8e8;color:#c0392b;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-matched{background:#e8f0fd;color:#1a56a0;}
+.pill-completed{background:#e8f5ed;color:#0a4d36;}
+.order-book{padding:0 1.25rem 1rem;}
+.ob-header{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:0.75rem;font-weight:700;color:var(--muted);padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.ob-row{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:0.8rem;padding:0.45rem 0;border-bottom:1px solid rgba(13,22,18,0.05);}
+.ob-row:last-child{border-bottom:none;}
+.ob-row.buy-side .price{color:#27ae60;}
+.ob-row.sell-side .price{color:#e74c3c;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:800px){.market-stats{grid-template-columns:1fr 1fr;}.layout-2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — السوق الثانوي</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة السوق الثانوي</h2>
+      <p>مراقبة ومطابقة أوامر البيع والشراء بين المستثمرين</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="exportMarket()">تصدير التقرير</button>
+  </div>
+
+  <div class="market-stats" id="marketStats"></div>
+
+  <div class="layout-2">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>دفتر الأوامر — مرابحة عقارية #4920</h3></div>
+      <div class="order-book">
+        <div class="ob-header"><span>سعر الشراء</span><span>الكمية</span><span>البائع</span></div>
+        <div id="buyOrders"></div>
+        <div style="text-align:center;padding:0.5rem 0;font-size:0.78rem;color:var(--muted);border-bottom:1px solid var(--line);">— السعر الحالي: ١٠٢.٥ —</div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);padding:0.5rem 0;display:grid;grid-template-columns:1fr 1fr 1fr;"><span>سعر البيع</span><span>الكمية</span><span>المشتري</span></div>
+        <div id="sellOrders"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-head"><h3>آخر الصفقات المنجزة</h3></div>
+      <table>
+        <thead><tr><th>الصفقة</th><th>السعر</th><th>الكمية</th><th>الوقت</th></tr></thead>
+        <tbody id="tradesTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>الأوامر المعلّقة</h3>
+      <button class="btn btn-gold btn-sm" onclick="matchOrders()">مطابقة تلقائية</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>رقم الأمر</th><th>النوع</th><th>الصفقة</th><th>الكمية</th><th>السعر</th><th>المستثمر</th><th>الحالة</th><th>إجراء</th></tr>
+      </thead>
+      <tbody id="ordersTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="matchOrders()">مطابقة تلقائية</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="exportMarket()">تصدير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MKT_STATS = [
+  { val: '١٢', lbl: 'أوامر معلّقة', chg: '+٣ اليوم', cls: 'chg-up' },
+  { val: '٤٨', lbl: 'صفقة منجزة (شهري)', chg: '+١٢٪', cls: 'chg-up' },
+  { val: '٢.٤م', lbl: 'حجم التداول الشهري', chg: 'ر.س', cls: '' },
+  { val: '١٠٢.٣', lbl: 'متوسط سعر التنفيذ', chg: '+٠.٣ هذا الأسبوع', cls: 'chg-up' }
+];
+
+const BUY_ORDERS = [
+  { price: '١٠٢.٠', qty: '١٠,٠٠٠', name: 'م. العتيبي' },
+  { price: '١٠١.٥', qty: '٢٥,٠٠٠', name: 'م. الشمري' },
+  { price: '١٠١.٠', qty: '١٥,٠٠٠', name: 'م. القحطاني' }
+];
+
+const SELL_ORDERS_BOOK = [
+  { price: '١٠٣.٠', qty: '٨,٠٠٠', name: 'م. الزهراني' },
+  { price: '١٠٣.٥', qty: '١٢,٠٠٠', name: 'م. المالكي' }
+];
+
+const TRADES = [
+  { deal: '#4920', price: '١٠٢.٥', qty: '٥,٠٠٠', time: '١٤:٣٢' },
+  { deal: '#4921', price: '١٠٠.٨', qty: '١٠,٠٠٠', time: '١٣:١٥' },
+  { deal: '#4920', price: '١٠٢.٣', qty: '٧,٠٠٠', time: '١١:٤٢' },
+  { deal: '#4922', price: '١٠١.٥', qty: '٢٠,٠٠٠', time: '١٠:٢٠' }
+];
+
+const ORDERS = [
+  { id: '#ORD-٠٠١', type: 'شراء', deal: 'مرابحة #4920', qty: '١٠,٠٠٠', price: '١٠٢.٠', investor: 'أحمد العتيبي', pill: 'pill-buy', status: 'شراء', action: 'مطابقة' },
+  { id: '#ORD-٠٠٢', type: 'بيع', deal: 'مرابحة #4921', qty: '٨,٠٠٠', price: '١٠٣.٠', investor: 'سارة الزهراني', pill: 'pill-sell', status: 'بيع', action: 'مطابقة' },
+  { id: '#ORD-٠٠٣', type: 'شراء', deal: 'مرابحة #4922', qty: '٢٠,٠٠٠', price: '١٠١.٥', investor: 'خالد المالكي', pill: 'pill-matched', status: 'مطابق', action: 'تأكيد' },
+  { id: '#ORD-٠٠٤', type: 'بيع', deal: 'مرابحة #4920', qty: '٥,٠٠٠', price: '١٠٢.٥', investor: 'فيصل القحطاني', pill: 'pill-completed', status: 'مكتمل', action: 'عرض' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('marketStats');
+  MKT_STATS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'mkt-card';
+    const val = document.createElement('div'); val.className = 'mkt-val'; val.textContent = s.val;
+    const lbl = document.createElement('div'); lbl.className = 'mkt-lbl'; lbl.textContent = s.lbl;
+    const chg = document.createElement('div'); chg.className = 'mkt-chg ' + s.cls; chg.textContent = s.chg;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(chg);
+    wrap.appendChild(card);
+  });
+}
+
+function buildOrderBook() {
+  const buyWrap = document.getElementById('buyOrders');
+  BUY_ORDERS.forEach(o => {
+    const row = document.createElement('div'); row.className = 'ob-row buy-side';
+    ['price','qty','name'].forEach((k,i) => {
+      const cell = document.createElement('span');
+      cell.className = k;
+      cell.textContent = [o.price, o.qty, o.name][i];
+      row.appendChild(cell);
+    });
+    buyWrap.appendChild(row);
+  });
+  const sellWrap = document.getElementById('sellOrders');
+  SELL_ORDERS_BOOK.forEach(o => {
+    const row = document.createElement('div'); row.className = 'ob-row sell-side';
+    ['price','qty','name'].forEach((k,i) => {
+      const cell = document.createElement('span');
+      cell.className = k;
+      cell.textContent = [o.price, o.qty, o.name][i];
+      row.appendChild(cell);
+    });
+    sellWrap.appendChild(row);
+  });
+}
+
+function buildTrades() {
+  const tbody = document.getElementById('tradesTable');
+  TRADES.forEach(t => {
+    const tr = document.createElement('tr');
+    [t.deal, t.price, t.qty, t.time].forEach(text => {
+      const td = document.createElement('td'); td.textContent = text; tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function buildOrders() {
+  const tbody = document.getElementById('ordersTable');
+  ORDERS.forEach(o => {
+    const tr = document.createElement('tr');
+    const typeTd = document.createElement('td');
+    const pill = document.createElement('span'); pill.className = 'pill ' + o.pill; pill.textContent = o.status;
+    [o.id].forEach(t => { const td = document.createElement('td'); td.textContent = t; tr.appendChild(td); });
+    typeTd.appendChild(pill); tr.appendChild(typeTd);
+    [o.deal, o.qty, o.price, o.investor].forEach(t => { const td = document.createElement('td'); td.textContent = t; tr.appendChild(td); });
+    const statusTd = document.createElement('td');
+    const s2 = document.createElement('span'); s2.className = 'pill ' + o.pill; s2.textContent = o.status;
+    statusTd.appendChild(s2); tr.appendChild(statusTd);
+    const actTd = document.createElement('td');
+    const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-sm'; btn.textContent = o.action;
+    btn.onclick = () => handleOrder(o.id, o.action);
+    actTd.appendChild(btn); tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function handleOrder(id, action) {
+  fetch('/app/admin/secondary-market/orders/' + id + '/action', {
+    method: 'POST', headers: { 'x-csrf-token': 'demo-token', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action })
+  }).catch(() => {});
+  alert(action + ' للأمر ' + id);
+}
+function matchOrders() {
+  fetch('/app/admin/secondary-market/match', { method: 'POST', headers: { 'x-csrf-token': 'demo-token' } }).catch(() => {});
+  alert('جاري تشغيل خوارزمية المطابقة التلقائية...');
+}
+function exportMarket() {
+  fetch('/app/admin/secondary-market/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير بيانات السوق الثانوي...');
+}
+
+buildStats(); buildOrderBook(); buildTrades(); buildOrders();
+</script>
+</body>
+</html>
