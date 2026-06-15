@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Fee Configuration — Murbha Admin">ضبط الرسوم — إدارة مُرابحة</title>
+<meta name="description" content="ضبط هيكل الرسوم لكل مستوى ونوع صفقة في منصة مُرابحة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:880px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .admin-badge{display:inline-block;background:#b08840;color:#fff;border-radius:6px;padding:3px 10px;font:700 10px Cairo,sans-serif;margin-top:8px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;overflow-x:auto;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Fee table */
+  .fee-table{width:100%;border-collapse:collapse;min-width:620px;}
+  .fee-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;white-space:nowrap;}
+  .fee-table td{padding:10px 12px;border-bottom:1px solid var(--line);}
+  .fee-table tr:last-child td{border-bottom:none;}
+  .fee-label{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .fee-sub{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .fee-inp{border:1.5px solid var(--line);border-radius:7px;padding:7px 10px;font:700 12px Cairo,sans-serif;color:var(--ink);width:80px;text-align:center;}
+  .fee-inp:focus{outline:none;border-color:var(--green);}
+  .fee-inp.changed{border-color:var(--gold);background:#fff8e1;}
+  .pct-lbl{font:700 10px Cairo,sans-serif;color:var(--muted);}
+  /* Tier badges */
+  .tier-badge{border-radius:20px;padding:3px 10px;font:700 9px Cairo,sans-serif;}
+  .tb-bronze{background:#f5f0e8;color:#8d6e40;}
+  .tb-silver{background:#f0f0f4;color:#607d8b;}
+  .tb-gold{background:#fff8e1;color:#a07020;}
+  .tb-diamond{background:#e8f0f4;color:#1565c0;}
+  /* History */
+  .hist-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+  .hist-item:last-child{border-bottom:none;}
+  .hist-info{flex:1;}
+  .hist-title{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .hist-by{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .hist-change{font:900 11px Cairo,sans-serif;color:var(--gold);text-align:left;white-space:nowrap;}
+  /* Buttons */
+  .actions-bar{display:flex;gap:10px;margin-top:4px;}
+  .btn-save{background:var(--green-dark);color:#fbf6ea;border:none;border-radius:9px;padding:10px 24px;font:900 12px Cairo,sans-serif;cursor:pointer;}
+  .btn-save:hover{background:var(--green);}
+  .btn-save:disabled{background:#ccc;cursor:default;}
+  .btn-reset{background:#f0ece0;color:var(--ink);border:1.5px solid var(--line);border-radius:9px;padding:9px 20px;font:700 11px Cairo,sans-serif;cursor:pointer;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:40px 0;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fbf6ea;border-radius:10px;padding:12px 22px;font:700 13px Cairo,sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+  .toast.show{opacity:1;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Fee Configuration">ضبط الرسوم</h1>
+    <p data-en="Configure the fee structure for each investor tier and deal type on the platform.">ضبط هيكل الرسوم لكل مستوى مستثمر ونوع صفقة في المنصة.</p>
+    <div class="admin-badge">لوحة الإدارة — سري</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Fee Structure by Tier">الرسوم حسب المستوى</div>
+    <table class="fee-table" id="feeTable">
+      <thead>
+        <tr>
+          <th data-en="Fee Type">نوع الرسوم</th>
+          <th>برونزي</th>
+          <th>فضي</th>
+          <th>ذهبي</th>
+          <th>ماسي</th>
+        </tr>
+      </thead>
+      <tbody id="feeBody"></tbody>
+    </table>
+    <div class="actions-bar" style="margin-top:16px;">
+      <button class="btn-save" id="btnSaveFees" data-en="Save Fee Structure">حفظ هيكل الرسوم</button>
+      <button class="btn-reset" id="btnReset" data-en="Reset to defaults">إعادة التعيين</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Change History">سجل التعديلات</div>
+    <div id="histList"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  function csrf(){ return (document.cookie.match(/csrf=([^;]+)/)||[])[1]||''; }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  const tiers=['bronze','silver','gold','diamond'];
+  let originalFees={}, inputMap={};
+
+  function buildTable(feeTypes){
+    const body=document.getElementById('feeBody'); body.textContent='';
+    inputMap={};
+    feeTypes.forEach(ft=>{
+      const tr=document.createElement('tr');
+      const tdLabel=document.createElement('td');
+      const lbl=document.createElement('div'); lbl.className='fee-label'; lbl.textContent=ft.name||'—';
+      const sub=document.createElement('div'); sub.className='fee-sub'; sub.textContent=ft.description||'';
+      tdLabel.appendChild(lbl); tdLabel.appendChild(sub);
+      tr.appendChild(tdLabel);
+      tiers.forEach(tier=>{
+        const td=document.createElement('td');
+        const wrap=document.createElement('div'); wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.gap='4px';
+        const inp=document.createElement('input'); inp.type='number'; inp.className='fee-inp'; inp.min='0'; inp.max='100'; inp.step='0.01';
+        const key=ft.key+'_'+tier;
+        inp.value=(ft.tiers&&ft.tiers[tier]!==undefined)?ft.tiers[tier]:'0';
+        originalFees[key]=inp.value;
+        inp.addEventListener('input',()=>{ inp.classList.toggle('changed', inp.value!==originalFees[key]); });
+        inputMap[key]=inp;
+        const pct=document.createElement('span'); pct.className='pct-lbl'; pct.textContent='٪';
+        wrap.appendChild(inp); wrap.appendChild(pct);
+        td.appendChild(wrap); tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  (async function load(){
+    const body=document.getElementById('feeBody');
+    placeholder(body,'جارٍ التحميل…');
+    try{
+      const r=await fetch('/app/admin/fee-config');
+      if(!r.ok){ placeholder(body,r.status===403?'غير مصرح.':'تعذّر التحميل.'); return; }
+      const d=await r.json();
+      buildTable(d.feeTypes||[]);
+
+      const histList=document.getElementById('histList');
+      const history=d.history||[];
+      if(!history.length){ placeholder(histList,'لا توجد تعديلات سابقة.'); }
+      else{
+        history.forEach(h=>{
+          const item=document.createElement('div'); item.className='hist-item';
+          const info=document.createElement('div'); info.className='hist-info';
+          const title=document.createElement('div'); title.className='hist-title'; title.textContent=h.description||'تعديل رسوم';
+          const by=document.createElement('div'); by.className='hist-by'; by.textContent=(h.date||'').slice(0,10)+' · '+(h.adminName||'مدير');
+          info.appendChild(title); info.appendChild(by);
+          const change=document.createElement('div'); change.className='hist-change'; change.textContent=h.change||'—';
+          item.appendChild(info); item.appendChild(change);
+          histList.appendChild(item);
+        });
+      }
+    }catch{ placeholder(document.getElementById('feeBody'),'خطأ في الاتصال.'); }
+  }());
+
+  document.getElementById('btnSaveFees').addEventListener('click', async()=>{
+    document.getElementById('btnSaveFees').disabled=true;
+    const fees={};
+    Object.entries(inputMap).forEach(([k,inp])=>{ fees[k]=Number(inp.value)||0; });
+    try{
+      const r=await fetch('/app/admin/fee-config',{method:'PUT',headers:{'X-CSRF-Token':csrf(),'Content-Type':'application/json'},body:JSON.stringify({fees})});
+      document.getElementById('btnSaveFees').disabled=false;
+      if(!r.ok){ showToast('تعذّر الحفظ.'); return; }
+      Object.entries(inputMap).forEach(([k,inp])=>{ originalFees[k]=inp.value; inp.classList.remove('changed'); });
+      showToast('تم حفظ هيكل الرسوم بنجاح.');
+    }catch{ document.getElementById('btnSaveFees').disabled=false; showToast('خطأ.'); }
+  });
+
+  document.getElementById('btnReset').addEventListener('click',()=>{
+    Object.entries(inputMap).forEach(([k,inp])=>{ inp.value=originalFees[k]||'0'; inp.classList.remove('changed'); });
+    showToast('تم إعادة التعيين للقيم المحفوظة.');
+  });
+}());
+</script>
+</body>
+</html>

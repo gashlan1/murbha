@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#062b1e" />
+<title data-en="Withdrawal Limits — Murbha">حدود السحب — مُرابحة</title>
+<meta name="description" content="اطّلع على حدود السحب اليومية والشهرية وحالة طلباتك المعلّقة." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  :root{--ink:#0d1612;--paper:#fbf6ea;--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--gold-light:#d4ac6e;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Tajawal',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  main{max-width:720px;margin:0 auto;padding:28px 18px 60px;}
+  .hero{background:linear-gradient(135deg,#062b1e,#0a4d36);color:#fbf6ea;border-radius:22px;padding:40px 22px;margin-bottom:22px;text-align:center;}
+  .hero h1{font:900 28px Cairo,sans-serif;margin-bottom:8px;}
+  .hero p{font:500 14px Tajawal,sans-serif;opacity:.92;max-width:540px;margin:0 auto;line-height:1.85;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .card-title{font:900 14px Cairo,sans-serif;color:var(--green-dark);margin-bottom:16px;}
+  /* Limit meters */
+  .limit-block{margin-bottom:20px;}
+  .limit-block:last-child{margin-bottom:0;}
+  .limit-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .limit-name{font:900 12px Cairo,sans-serif;color:var(--green-dark);}
+  .limit-used{font:500 11px Tajawal,sans-serif;color:var(--muted);}
+  .limit-bar-bg{height:12px;background:#f0ece0;border-radius:6px;overflow:hidden;margin-bottom:6px;}
+  .limit-bar{height:100%;border-radius:6px;transition:width .4s;}
+  .bar-safe{background:var(--green);}
+  .bar-warn{background:var(--gold);}
+  .bar-full{background:#c54a3a;}
+  .limit-meta{display:flex;justify-content:space-between;font:500 9px Tajawal,sans-serif;color:var(--muted);}
+  /* Tier info */
+  .tier-table{width:100%;border-collapse:collapse;}
+  .tier-table th{font:700 10px Cairo,sans-serif;color:var(--muted);text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);background:#f9f7f2;}
+  .tier-table td{font:500 12px Tajawal,sans-serif;color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);}
+  .tier-table tr:last-child td{border-bottom:none;}
+  .td-active{font:900 12px Cairo,sans-serif;color:#2e7d32;}
+  .current-tier-row td{background:#e8f5e9;}
+  /* Pending withdrawals */
+  .wd-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .wd-item:last-child{border-bottom:none;}
+  .wd-info{flex:1;}
+  .wd-ref{font:900 11px Cairo,sans-serif;color:var(--green-dark);}
+  .wd-date{font:500 9px Tajawal,sans-serif;color:var(--muted);margin-top:2px;}
+  .wd-right{text-align:left;}
+  .wd-amount{font:900 13px Cairo,sans-serif;color:var(--green-dark);}
+  .wd-status{font:700 9px Cairo,sans-serif;margin-top:2px;}
+  .status-pending{color:#a07020;}
+  .status-processing{color:#1565c0;}
+  .status-done{color:#2e7d32;}
+  .placeholder-msg{font:500 13px Tajawal,sans-serif;color:var(--muted);text-align:center;padding:36px 0;}
+  /* Upgrade CTA */
+  .upgrade-cta{background:linear-gradient(135deg,#b08840,#d4ac6e);border-radius:14px;padding:18px 20px;color:#fff;display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+  .cta-text{flex:1;}
+  .cta-title{font:900 13px Cairo,sans-serif;margin-bottom:4px;}
+  .cta-desc{font:500 11px Tajawal,sans-serif;opacity:.9;line-height:1.5;}
+  .btn-upgrade{background:#fff;color:#b08840;border:none;border-radius:9px;padding:9px 18px;font:900 11px Cairo,sans-serif;cursor:pointer;white-space:nowrap;}
+</style>
+<script src="/assets/lang.js"></script>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <h1 data-en="Withdrawal Limits">حدود السحب</h1>
+    <p data-en="View your daily and monthly withdrawal limits and the status of your pending requests.">اطّلع على حدود السحب اليومية والشهرية وتابع طلباتك المعلّقة.</p>
+  </div>
+
+  <div class="card" id="limitsCard">
+    <div class="card-title" data-en="Your Withdrawal Limits">حدودك الحالية</div>
+    <div id="limitBlocks"></div>
+  </div>
+
+  <div id="upgradeCta"></div>
+
+  <div class="card">
+    <div class="card-title" data-en="Limits by Tier">الحدود حسب المستوى</div>
+    <table class="tier-table">
+      <thead><tr>
+        <th data-en="Tier">المستوى</th>
+        <th data-en="Daily Limit">اليومي</th>
+        <th data-en="Monthly Limit">الشهري</th>
+        <th data-en="Per Transaction">لكل معاملة</th>
+      </tr></thead>
+      <tbody id="tierBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title" data-en="Pending Withdrawals">طلبات السحب المعلّقة</div>
+    <div id="pendingList"></div>
+  </div>
+</main>
+<script>
+(function(){
+  function fmt(n){ return Number(n||0).toLocaleString('ar-SA'); }
+  function placeholder(el,msg){ el.textContent=''; const p=document.createElement('p'); p.className='placeholder-msg'; p.textContent=msg; el.appendChild(p); }
+
+  (async function load(){
+    try{
+      const r=await fetch('/app/me/withdrawal-limits');
+      if(!r.ok){ placeholder(document.getElementById('limitBlocks'),'تعذّر التحميل.'); return; }
+      const d=await r.json();
+
+      const limits=[
+        {name:'الحد اليومي',used:d.dailyUsed||0,max:d.dailyLimit||0,reset:'يُعاد تعيينه يومياً'},
+        {name:'الحد الشهري',used:d.monthlyUsed||0,max:d.monthlyLimit||0,reset:'يُعاد تعيينه في بداية كل شهر'},
+        {name:'الحد لكل معاملة',used:0,max:d.perTxLimit||0,reset:'الحد الأقصى لكل سحب منفرد'}
+      ];
+      const blocks=document.getElementById('limitBlocks');
+      limits.forEach(l=>{
+        const pct=l.max>0?Math.min(100,Math.round((l.used/l.max)*100)):0;
+        const barCls=pct>=90?'bar-full':pct>=70?'bar-warn':'bar-safe';
+        const block=document.createElement('div'); block.className='limit-block';
+        const hdr=document.createElement('div'); hdr.className='limit-header';
+        const name=document.createElement('div'); name.className='limit-name'; name.textContent=l.name;
+        const used=document.createElement('div'); used.className='limit-used'; used.textContent=l.max>0?(fmt(l.used)+' من '+fmt(l.max)+' ر.س'):'—';
+        hdr.appendChild(name); hdr.appendChild(used);
+        const bg=document.createElement('div'); bg.className='limit-bar-bg';
+        const bar=document.createElement('div'); bar.className='limit-bar '+barCls; bar.style.width=(l.max>0?pct:0)+'%';
+        bg.appendChild(bar);
+        const meta=document.createElement('div'); meta.className='limit-meta';
+        const m1=document.createElement('span'); m1.textContent=l.reset;
+        const m2=document.createElement('span'); m2.textContent=l.max>0?(fmt(l.max-l.used)+' ر.س متبقية'):'';
+        meta.appendChild(m1); meta.appendChild(m2);
+        block.appendChild(hdr); block.appendChild(bg); block.appendChild(meta);
+        blocks.appendChild(block);
+      });
+
+      if(d.canUpgrade){
+        const ctaWrap=document.getElementById('upgradeCta');
+        const cta=document.createElement('div'); cta.className='upgrade-cta';
+        const ctaText=document.createElement('div'); ctaText.className='cta-text';
+        const ctaTitle=document.createElement('div'); ctaTitle.className='cta-title'; ctaTitle.textContent='ارفع مستواك للحصول على حدود أعلى';
+        const ctaDesc=document.createElement('div'); ctaDesc.className='cta-desc'; ctaDesc.textContent='أكمل توثيق هويتك للوصول إلى حدود سحب أعلى وميزات متقدمة.';
+        ctaText.appendChild(ctaTitle); ctaText.appendChild(ctaDesc);
+        const btn=document.createElement('button'); btn.className='btn-upgrade'; btn.textContent='ترقية الحساب';
+        btn.addEventListener('click',()=>{ window.location.href='/verify-id.html'; });
+        cta.appendChild(ctaText); cta.appendChild(btn);
+        ctaWrap.appendChild(cta);
+      }
+
+      const tierBody=document.getElementById('tierBody');
+      const tiers=d.tiers||[];
+      tiers.forEach(t=>{
+        const tr=document.createElement('tr'); if(t.current) tr.className='current-tier-row';
+        const tdName=document.createElement('td'); tdName.className=t.current?'td-active':''; tdName.textContent=(t.current?'★ ':'')+t.name;
+        const tdDaily=document.createElement('td'); tdDaily.textContent=fmt(t.dailyLimit||0)+' ر.س';
+        const tdMonthly=document.createElement('td'); tdMonthly.textContent=fmt(t.monthlyLimit||0)+' ر.س';
+        const tdTx=document.createElement('td'); tdTx.textContent=fmt(t.perTxLimit||0)+' ر.س';
+        tr.appendChild(tdName); tr.appendChild(tdDaily); tr.appendChild(tdMonthly); tr.appendChild(tdTx);
+        tierBody.appendChild(tr);
+      });
+
+      const pendingList=document.getElementById('pendingList');
+      const pending=d.pendingWithdrawals||[];
+      if(!pending.length){ placeholder(pendingList,'لا توجد طلبات سحب معلّقة.'); return; }
+      const statusLabels={pending:'معلّق',processing:'جارٍ',done:'مكتمل'};
+      const statusCls={pending:'status-pending',processing:'status-processing',done:'status-done'};
+      pending.forEach(w=>{
+        const item=document.createElement('div'); item.className='wd-item';
+        const info=document.createElement('div'); info.className='wd-info';
+        const ref=document.createElement('div'); ref.className='wd-ref'; ref.textContent='طلب #'+(w.id||'—');
+        const date=document.createElement('div'); date.className='wd-date'; date.textContent=(w.date||'').slice(0,10)+' · '+w.bankName;
+        info.appendChild(ref); info.appendChild(date);
+        const right=document.createElement('div'); right.className='wd-right';
+        const amt=document.createElement('div'); amt.className='wd-amount'; amt.textContent=fmt(w.amount||0)+' ر.س';
+        const stat=document.createElement('div'); stat.className='wd-status '+(statusCls[w.status]||'status-pending'); stat.textContent=statusLabels[w.status]||w.status||'—';
+        right.appendChild(amt); right.appendChild(stat);
+        item.appendChild(info); item.appendChild(right);
+        pendingList.appendChild(item);
+      });
+    }catch{ placeholder(document.getElementById('limitBlocks'),'خطأ في الاتصال.'); }
+  }());
+}());
+</script>
+</body>
+</html>
