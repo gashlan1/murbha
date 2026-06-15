@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة المدفوعات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.2rem;}
+.stat-val{font-size:1.7rem;font-weight:700;color:var(--green-dark);}
+.stat-lbl{font-size:0.77rem;color:var(--muted);margin-top:0.2rem;}
+.stat-note{font-size:0.73rem;margin-top:0.3rem;font-weight:600;}
+.note-warn{color:#e67e22;}
+.note-ok{color:#27ae60;}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:1.5rem;}
+.tab-btn{padding:0.6rem 1.25rem;border:none;background:none;font-family:'Cairo',sans-serif;font-size:0.88rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1rem;background:#f5f0e8;font-size:0.77rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1rem;border-bottom:1px solid var(--line);font-size:0.83rem;}
+tr:last-child td{border-bottom:none;}
+.status-pill{display:inline-block;padding:0.18rem 0.55rem;border-radius:4px;font-size:0.71rem;font-weight:700;}
+.pill-pending{background:#fef3cd;color:#92400e;}
+.pill-processing{background:#e8f0fe;color:#1a56db;}
+.pill-paid{background:#e8f5ed;color:#1e8449;}
+.pill-failed{background:#fde8e8;color:#c0392b;}
+.amount-col{font-weight:700;color:var(--green-dark);}
+.cb-all{cursor:pointer;}
+.action-bar{background:#fff;border-radius:10px;border:1px solid var(--line);padding:0.75rem 1rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;}
+.action-bar span{font-size:0.84rem;color:var(--muted);}
+.selected-count{font-weight:700;color:var(--green);}
+@media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إدارة المدفوعات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>إدارة المدفوعات والتوزيعات</h2>
+      <p>مراجعة وإتمام مدفوعات الأرباح وطلبات السحب</p>
+    </div>
+    <div style="display:flex;gap:0.75rem;">
+      <button class="btn btn-gold btn-sm" onclick="runBatch()">تشغيل دفعة جماعية</button>
+      <button class="btn btn-primary btn-sm" onclick="exportPayouts()">تصدير</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('pending')">قيد الانتظار</button>
+    <button class="tab-btn" onclick="showTab('processing')">قيد المعالجة</button>
+    <button class="tab-btn" onclick="showTab('completed')">مكتملة</button>
+    <button class="tab-btn" onclick="showTab('failed')">فاشلة</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-pending">
+    <div class="action-bar" id="pendingActionBar" style="display:none;">
+      <span>تم تحديد <span class="selected-count" id="selectedCount">0</span> صف</span>
+      <button class="btn btn-primary btn-sm" onclick="approveSelected()">موافقة على المحدد</button>
+      <button class="btn btn-danger btn-sm" onclick="rejectSelected()">رفض المحدد</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>طلبات قيد الانتظار</h3></div>
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="cb-all" onchange="toggleAll(this)"></th>
+            <th>المستثمر</th>
+            <th>النوع</th>
+            <th>المبلغ</th>
+            <th>الحساب البنكي</th>
+            <th>تاريخ الطلب</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="pendingTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-processing">
+    <div class="card">
+      <div class="card-head"><h3>قيد المعالجة</h3></div>
+      <table>
+        <thead><tr><th>المستثمر</th><th>النوع</th><th>المبلغ</th><th>رقم التحويل</th><th>وقت الإرسال</th><th>الحالة</th></tr></thead>
+        <tbody id="processingTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-completed">
+    <div class="card">
+      <div class="card-head"><h3>المدفوعات المكتملة</h3></div>
+      <table>
+        <thead><tr><th>المستثمر</th><th>النوع</th><th>المبلغ</th><th>تاريخ الدفع</th><th>مرجع البنك</th></tr></thead>
+        <tbody id="completedTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-failed">
+    <div class="card">
+      <div class="card-head"><h3>المدفوعات الفاشلة</h3></div>
+      <table>
+        <thead><tr><th>المستثمر</th><th>النوع</th><th>المبلغ</th><th>سبب الفشل</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+        <tbody id="failedTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '٣٢', lbl: 'طلبات معلّقة', note: '٤ طلبات عاجلة', cls: 'note-warn' },
+  { val: '٢٨٤٬٥٠٠', lbl: 'ر.س معلقة', note: 'في انتظار الموافقة', cls: 'note-warn' },
+  { val: '١٢', lbl: 'قيد المعالجة', note: 'التحويلات الجارية', cls: 'note-ok' },
+  { val: '١٬٢٣٦', lbl: 'مدفوعات مكتملة', note: 'هذا الشهر', cls: 'note-ok' }
+];
+
+const PENDING = [
+  { id: 'P001', investor: 'أحمد سعيد', type: 'سحب', amount: '١٥٬٠٠٠', bank: 'SA44 **** ٩١٢٣', date: '١٤ يونيو ٢٠٢٦' },
+  { id: 'P002', investor: 'سارة خالد', type: 'توزيع ربح', amount: '٤٬٢٠٠', bank: 'SA36 **** ٤٤٤١', date: '١٤ يونيو ٢٠٢٦' },
+  { id: 'P003', investor: 'فيصل العمري', type: 'سحب', amount: '٨٬٧٠٠', bank: 'SA22 **** ٠٠٨٨', date: '١٣ يونيو ٢٠٢٦' },
+  { id: 'P004', investor: 'نورة الغامدي', type: 'توزيع ربح', amount: '٢٬١٠٠', bank: 'SA80 **** ٧٧٢١', date: '١٣ يونيو ٢٠٢٦' }
+];
+
+const PROCESSING = [
+  { investor: 'خالد المطيري', type: 'سحب', amount: '٢٠٬٠٠٠', ref: 'TXN-٨٨٢١٤١', sent: '١٤ يونيو ٢٠٢٦ ١٠:١٢' },
+  { investor: 'ريم العتيبي', type: 'توزيع ربح', amount: '٦٬٨٠٠', ref: 'TXN-٨٨١٠٩٨', sent: '١٤ يونيو ٢٠٢٦ ٠٩:٤٠' }
+];
+
+const COMPLETED = [
+  { investor: 'محمد الزهراني', type: 'سحب', amount: '١٢٬٥٠٠', date: '١٣ يونيو ٢٠٢٦', ref: 'BNK-٩٩١١٢٢' },
+  { investor: 'هند القحطاني', type: 'توزيع ربح', amount: '٣٬٤٠٠', date: '١٢ يونيو ٢٠٢٦', ref: 'BNK-٩٩٠٩٨٣' },
+  { investor: 'عمر البلوي', type: 'سحب', amount: '٥٠٬٠٠٠', date: '١١ يونيو ٢٠٢٦', ref: 'BNK-٩٩٠٧٦٥' }
+];
+
+const FAILED = [
+  { investor: 'تركي العسيري', type: 'سحب', amount: '٩٬٢٠٠', reason: 'رقم IBAN غير صحيح', date: '١٢ يونيو ٢٠٢٦' },
+  { investor: 'أمل الدوسري', type: 'توزيع ربح', amount: '١٬٨٠٠', reason: 'تجاوز حد التحويل اليومي', date: '١١ يونيو ٢٠٢٦' }
+];
+
+function buildStats() {
+  const grid = document.getElementById('statsGrid');
+  STATS.forEach(s => {
+    const c = document.createElement('div');
+    c.className = 'stat-card';
+    const v = document.createElement('div');
+    v.className = 'stat-val';
+    v.textContent = s.val;
+    const l = document.createElement('div');
+    l.className = 'stat-lbl';
+    l.textContent = s.lbl;
+    const n = document.createElement('div');
+    n.className = 'stat-note ' + s.cls;
+    n.textContent = s.note;
+    c.appendChild(v); c.appendChild(l); c.appendChild(n);
+    grid.appendChild(c);
+  });
+}
+
+function buildPending() {
+  const tbody = document.getElementById('pendingTable');
+  PENDING.forEach(p => {
+    const tr = document.createElement('tr');
+    const cbTd = document.createElement('td');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'row-cb';
+    cb.onchange = updateSelection;
+    cbTd.appendChild(cb);
+    tr.appendChild(cbTd);
+    [p.investor, p.type, p.amount + ' ر.س', p.bank, p.date].forEach((v, i) => {
+      const td = document.createElement('td');
+      if (i === 2) td.className = 'amount-col';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const statusTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'status-pill pill-pending';
+    pill.textContent = 'معلّق';
+    statusTd.appendChild(pill);
+    tr.appendChild(statusTd);
+    const actTd = document.createElement('td');
+    actTd.style.display = 'flex';
+    actTd.style.gap = '0.4rem';
+    const approveBtn = document.createElement('button');
+    approveBtn.className = 'btn btn-primary btn-sm';
+    approveBtn.textContent = 'موافقة';
+    approveBtn.onclick = () => approvePayout(p.id);
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'btn btn-danger btn-sm';
+    rejectBtn.textContent = 'رفض';
+    rejectBtn.onclick = () => rejectPayout(p.id);
+    actTd.appendChild(approveBtn);
+    actTd.appendChild(rejectBtn);
+    tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildProcessing() {
+  const tbody = document.getElementById('processingTable');
+  PROCESSING.forEach(p => {
+    const tr = document.createElement('tr');
+    [p.investor, p.type, p.amount + ' ر.س', p.ref, p.sent].forEach((v, i) => {
+      const td = document.createElement('td');
+      if (i === 2) td.className = 'amount-col';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const sTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'status-pill pill-processing';
+    pill.textContent = 'جارٍ';
+    sTd.appendChild(pill);
+    tr.appendChild(sTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function buildCompleted() {
+  const tbody = document.getElementById('completedTable');
+  COMPLETED.forEach(p => {
+    const tr = document.createElement('tr');
+    [p.investor, p.type, p.amount + ' ر.س', p.date, p.ref].forEach((v, i) => {
+      const td = document.createElement('td');
+      if (i === 2) td.className = 'amount-col';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function buildFailed() {
+  const tbody = document.getElementById('failedTable');
+  FAILED.forEach(p => {
+    const tr = document.createElement('tr');
+    [p.investor, p.type, p.amount + ' ر.س', p.reason, p.date].forEach((v, i) => {
+      const td = document.createElement('td');
+      if (i === 2) td.className = 'amount-col';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const actTd = document.createElement('td');
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'btn btn-primary btn-sm';
+    retryBtn.textContent = 'إعادة محاولة';
+    retryBtn.onclick = () => alert('جاري إعادة المحاولة...');
+    actTd.appendChild(retryBtn);
+    tr.appendChild(actTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.row-cb').forEach(c => { c.checked = cb.checked; });
+  updateSelection();
+}
+
+function updateSelection() {
+  const count = document.querySelectorAll('.row-cb:checked').length;
+  document.getElementById('selectedCount').textContent = count;
+  document.getElementById('pendingActionBar').style.display = count > 0 ? 'flex' : 'none';
+}
+
+function approvePayout(id) {
+  fetch('/app/admin/payouts/' + id + '/approve', {
+    method: 'POST',
+    headers: { 'x-csrf-token': 'demo-token' }
+  }).catch(() => {});
+  alert('تمت الموافقة على الطلب ' + id);
+}
+
+function rejectPayout(id) {
+  fetch('/app/admin/payouts/' + id + '/reject', {
+    method: 'POST',
+    headers: { 'x-csrf-token': 'demo-token' }
+  }).catch(() => {});
+  alert('تم رفض الطلب ' + id);
+}
+
+function approveSelected() { alert('تمت الموافقة على الطلبات المحددة'); }
+function rejectSelected() { alert('تم رفض الطلبات المحددة'); }
+function runBatch() { alert('جاري تشغيل الدفعة الجماعية...'); }
+function exportPayouts() {
+  fetch('/app/admin/payouts/export').then(r => r.json()).catch(() => {});
+  alert('جاري التصدير...');
+}
+
+buildStats();
+buildPending();
+buildProcessing();
+buildCompleted();
+buildFailed();
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محاكي العوائد - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1060px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:2rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.sim-layout{display:grid;grid-template-columns:340px 1fr;gap:1.5rem;margin-bottom:2rem;}
+.input-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.5rem;}
+.card-head h3{font-size:1rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+.field{margin-bottom:1.2rem;}
+.field label{display:block;font-size:0.83rem;font-weight:600;color:var(--green-dark);margin-bottom:0.35rem;}
+.field input,.field select{width:100%;padding:0.6rem 0.9rem;border:1.5px solid var(--line);border-radius:8px;font-family:'Cairo',sans-serif;font-size:0.9rem;background:#fff;color:var(--green-dark);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+.slider-group{margin-bottom:1.2rem;}
+.slider-group label{display:flex;justify-content:space-between;font-size:0.84rem;font-weight:600;margin-bottom:0.4rem;}
+.slider-group label span{color:var(--gold);}
+.slider-group input[type=range]{width:100%;accent-color:var(--green);}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.result-panel{background:linear-gradient(145deg,#062b1e 0%,#0a4d36 100%);border-radius:14px;padding:1.75rem;color:#fff;}
+.result-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;}
+.kpi{background:rgba(255,255,255,0.08);border-radius:10px;padding:1rem;}
+.kpi-val{font-size:1.5rem;font-weight:700;color:#6de0a8;}
+.kpi-lbl{font-size:0.75rem;color:rgba(255,255,255,0.7);margin-top:0.2rem;}
+.chart-area{margin-bottom:1.5rem;}
+.chart-label{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-bottom:0.75rem;}
+.chart-bars{display:flex;align-items:flex-end;gap:0.5rem;height:120px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.35rem;}
+.bar{width:100%;background:rgba(255,255,255,0.15);border-radius:4px 4px 0 0;position:relative;transition:height 0.4s;}
+.bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;background:#6de0a8;}
+.bar-year{font-size:0.7rem;color:rgba(255,255,255,0.6);}
+.scenarios{border-top:1px solid rgba(255,255,255,0.15);padding-top:1.25rem;}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:0.45rem 0;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sc-row:last-child{border-bottom:none;}
+.sc-label{font-size:0.8rem;color:rgba(255,255,255,0.7);}
+.sc-val{font-size:0.85rem;font-weight:700;}
+.val-opt{color:#6de0a8;}
+.val-base{color:#fff;}
+.val-pess{color:#f39c12;}
+.card2{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:0.55rem 1.25rem;background:#f5f0e8;font-size:0.78rem;color:var(--muted);font-weight:600;}
+td{padding:0.65rem 1.25rem;border-bottom:1px solid var(--line);font-size:0.84rem;}
+tr:last-child td{border-bottom:none;}
+.td-profit{color:#27ae60;font-weight:600;}
+@media(max-width:768px){.sim-layout{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — محاكي العوائد</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <h2>محاكي عوائد الصفقات</h2>
+    <p>احسب العوائد المتوقعة لصفقات المرابحة قبل إطلاقها</p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="input-card">
+      <div class="card-head"><h3>معطيات الصفقة</h3></div>
+      <div class="card-body">
+        <div class="field">
+          <label>حجم الصفقة الكلي (ر.س)</label>
+          <input type="number" id="dealSize" value="2000000" min="100000" step="50000" oninput="sim()">
+        </div>
+        <div class="field">
+          <label>الحد الأدنى للاستثمار الفردي (ر.س)</label>
+          <input type="number" id="minInvest" value="5000" min="1000" step="1000" oninput="sim()">
+        </div>
+        <div class="slider-group">
+          <label>نسبة ربح المرابحة (٪) <span id="markupLbl">١٥</span>٪</label>
+          <input type="range" id="markupSlider" min="8" max="25" value="15" step="0.5" oninput="document.getElementById('markupLbl').textContent=this.value;sim()">
+        </div>
+        <div class="slider-group">
+          <label>مدة الصفقة (سنوات) <span id="durLbl">٢</span></label>
+          <input type="range" id="durSlider" min="1" max="5" value="2" oninput="document.getElementById('durLbl').textContent=this.value;sim()">
+        </div>
+        <div class="field">
+          <label>رسوم إدارية (٪)</label>
+          <input type="number" id="adminFee" value="1.5" min="0" max="5" step="0.1" oninput="sim()">
+        </div>
+        <div class="field">
+          <label>نوع توزيع الأرباح</label>
+          <select id="distType" onchange="sim()">
+            <option value="quarterly">ربع سنوي</option>
+            <option value="semiannual">نصف سنوي</option>
+            <option value="annual">سنوي</option>
+            <option value="maturity">عند النضج</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveScenario()">حفظ السيناريو</button>
+      </div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-kpis" id="kpis"></div>
+      <div class="chart-area">
+        <div class="chart-label">مقارنة الأرباح بحسب مدة الصفقة</div>
+        <div class="chart-bars" id="chartBars"></div>
+      </div>
+      <div class="scenarios" id="scenariosPanel"></div>
+    </div>
+  </div>
+
+  <div class="card2">
+    <div class="card-head"><h3>جدول توزيعات الصفقة</h3></div>
+    <table>
+      <thead><tr><th>الدورة</th><th>التاريخ</th><th>الربح الموزَّع</th><th>للصندوق (٪)</th><th>العائد للمستثمر/الوحدة</th></tr></thead>
+      <tbody id="distTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function fmt(n){ return Math.round(n).toLocaleString('en'); }
+function pct(n){ return n.toFixed(1) + '٪'; }
+
+function getInputs() {
+  return {
+    size: parseFloat(document.getElementById('dealSize').value) || 2000000,
+    minInv: parseFloat(document.getElementById('minInvest').value) || 5000,
+    markup: parseFloat(document.getElementById('markupSlider').value) / 100,
+    years: parseInt(document.getElementById('durSlider').value),
+    fee: parseFloat(document.getElementById('adminFee').value) / 100,
+    dist: document.getElementById('distType').value
+  };
+}
+
+function sim() {
+  const { size, minInv, markup, years, fee, dist } = getInputs();
+  const grossProfit = size * markup * years;
+  const feeAmt = grossProfit * fee * years;
+  const netProfit = grossProfit - feeAmt;
+  const units = Math.floor(size / minInv);
+  const profitPerUnit = netProfit / units;
+  const annualYield = (netProfit / size / years) * 100;
+
+  const distMap = { quarterly: 4, semiannual: 2, annual: 1, maturity: 1 };
+  const periodsPerYear = distMap[dist] || 4;
+
+  buildKPIs([
+    { val: fmt(netProfit) + ' ر.س', lbl: 'صافي الربح الإجمالي' },
+    { val: pct(annualYield), lbl: 'العائد السنوي الصافي' },
+    { val: fmt(units) + ' وحدة', lbl: 'إجمالي الوحدات' },
+    { val: fmt(profitPerUnit) + ' ر.س', lbl: 'ربح الوحدة الواحدة' }
+  ]);
+
+  buildChart(size, markup, fee, years);
+  buildScenarios(size, markup, years, fee);
+  buildDistTable(size, markup, years, fee, periodsPerYear);
+}
+
+function buildKPIs(items) {
+  const wrap = document.getElementById('kpis');
+  wrap.textContent = '';
+  items.forEach(item => {
+    const kpi = document.createElement('div');
+    kpi.className = 'kpi';
+    const v = document.createElement('div');
+    v.className = 'kpi-val';
+    v.textContent = item.val;
+    const l = document.createElement('div');
+    l.className = 'kpi-lbl';
+    l.textContent = item.lbl;
+    kpi.appendChild(v); kpi.appendChild(l);
+    wrap.appendChild(kpi);
+  });
+}
+
+function buildChart(size, markup, fee, maxYears) {
+  const bars = document.getElementById('chartBars');
+  bars.textContent = '';
+  const maxProfit = size * markup * maxYears * (1 - fee * maxYears);
+  for (let y = 1; y <= Math.min(maxYears, 5); y++) {
+    const profit = size * markup * y * (1 - fee * y);
+    const pct = Math.max(10, (profit / maxProfit) * 100);
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = '100%';
+    const fill = document.createElement('div');
+    fill.className = 'bar-fill';
+    fill.style.height = pct + '%';
+    bar.appendChild(fill);
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-year';
+    lbl.textContent = y + 'س';
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    bars.appendChild(wrap);
+  }
+}
+
+function buildScenarios(size, markup, years, fee) {
+  const panel = document.getElementById('scenariosPanel');
+  panel.textContent = '';
+  const base = size * markup * years * (1 - fee);
+  const opt = base * 1.15;
+  const pess = base * 0.80;
+  const title = document.createElement('div');
+  title.style.fontSize = '0.8rem';
+  title.style.color = 'rgba(255,255,255,0.7)';
+  title.style.marginBottom = '0.75rem';
+  title.textContent = 'تحليل السيناريوهات';
+  panel.appendChild(title);
+  [
+    { lbl: 'متفائل (+١٥٪)', val: fmt(opt) + ' ر.س', cls: 'val-opt' },
+    { lbl: 'قاعدي', val: fmt(base) + ' ر.س', cls: 'val-base' },
+    { lbl: 'متحفظ (-٢٠٪)', val: fmt(pess) + ' ر.س', cls: 'val-pess' }
+  ].forEach(sc => {
+    const row = document.createElement('div');
+    row.className = 'sc-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'sc-label';
+    lbl.textContent = sc.lbl;
+    const val = document.createElement('span');
+    val.className = 'sc-val ' + sc.cls;
+    val.textContent = sc.val;
+    row.appendChild(lbl); row.appendChild(val);
+    panel.appendChild(row);
+  });
+}
+
+function buildDistTable(size, markup, years, fee, ppy) {
+  const tbody = document.getElementById('distTable');
+  tbody.textContent = '';
+  const totalPeriods = Math.min(years * ppy, 10);
+  const periodProfit = (size * markup * (1 - fee)) / (years * ppy);
+  const now = new Date();
+  const mpp = 12 / ppy;
+  for (let i = 1; i <= totalPeriods; i++) {
+    const d = new Date(now);
+    d.setMonth(d.getMonth() + i * mpp);
+    const tr = document.createElement('tr');
+    const vals = [
+      'دورة ' + i,
+      d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' }),
+      fmt(periodProfit * (years * ppy)) + ' ر.س',
+      pct(markup * 100),
+      fmt(periodProfit) + ' ر.س'
+    ];
+    vals.forEach((v, idx) => {
+      const td = document.createElement('td');
+      if (idx === 2 || idx === 4) td.className = 'td-profit';
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+}
+
+function saveScenario() {
+  const inputs = getInputs();
+  fetch('/app/admin/returns-simulator/scenarios', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify(inputs)
+  }).catch(() => {});
+  alert('تم حفظ السيناريو بنجاح!');
+}
+
+sim();
+</script>
+</body>
+</html>
