@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>إحصائيات التحقق من الهوية — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;--orange:#e67e22;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 2rem}
+/* Period selector */
+.top-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.period-tabs{display:flex;gap:.4rem}
+.period-btn{padding:.35rem .9rem;border-radius:20px;font-family:'Cairo',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--muted);transition:.15s}
+.period-btn.active{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.1rem 1.25rem}
+.kpi .val{font-size:1.6rem;font-weight:700;color:var(--green)}
+.kpi .lbl{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+.kpi .delta{font-size:.76rem;margin-top:.3rem}
+.kpi .delta.up{color:#27ae60}
+.kpi .delta.dn{color:var(--red)}
+/* Two-col layout */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.95rem;font-weight:700}
+/* Status donut (CSS-only) */
+.donut-wrap{display:flex;align-items:center;gap:1.5rem;padding:1.25rem}
+.donut{width:120px;height:120px;border-radius:50%;flex-shrink:0;position:relative}
+.donut-legend{display:flex;flex-direction:column;gap:.55rem;flex:1}
+.legend-item{display:flex;align-items:center;gap:.5rem;font-size:.83rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-val{font-weight:700;margin-right:auto}
+/* Funnel */
+.funnel{padding:1.25rem;display:flex;flex-direction:column;gap:.6rem}
+.funnel-step{display:flex;align-items:center;gap:.75rem}
+.funnel-bar-wrap{flex:1}
+.funnel-bar{height:28px;border-radius:6px;transition:.4s;display:flex;align-items:center;padding:0 .75rem}
+.funnel-bar span{font-size:.78rem;font-weight:600;color:#fff;white-space:nowrap}
+.funnel-lbl{font-size:.8rem;color:var(--muted);width:120px;flex-shrink:0;text-align:left}
+.funnel-cnt{font-size:.85rem;font-weight:700;width:60px;flex-shrink:0;text-align:right}
+/* Daily trend */
+.trend-wrap{padding:1.25rem}
+.bar-row{display:flex;align-items:flex-end;gap:5px;height:100px;margin-bottom:.5rem}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.bar-seg{width:100%;border-radius:3px 3px 0 0;transition:.4s}
+.bar-seg.approved{background:var(--green)}
+.bar-seg.rejected{background:var(--red)}
+.bar-seg.pending{background:var(--gold)}
+.day-lbl{font-size:.65rem;color:var(--muted)}
+/* Rejection reasons */
+.reasons-list{padding:1rem 1.25rem;display:flex;flex-direction:column;gap:.65rem}
+.reason-row{display:flex;align-items:center;gap:.75rem}
+.reason-lbl{font-size:.83rem;flex:1}
+.reason-bar-wrap{flex:2}
+.reason-bar{height:10px;border-radius:5px;background:var(--red);transition:.4s;opacity:.75}
+.reason-pct{font-size:.78rem;font-weight:700;color:var(--red);width:35px;text-align:right}
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:right;padding:.6rem 1rem;background:#f5f7f5;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line)}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcfa}
+.badge{display:inline-block;padding:.18rem .55rem;border-radius:20px;font-size:.74rem;font-weight:700}
+.badge-approved{background:#d4edda;color:#155724}
+.badge-rejected{background:#f8d7da;color:#721c24}
+.badge-pending{background:#fff3cd;color:#856404}
+.badge-review{background:#d1ecf1;color:#0c5460}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>إحصائيات التحقق من الهوية (KYC)</h1>
+</header>
+
+<div class="page">
+  <div class="top-controls">
+    <div class="period-tabs">
+      <button class="period-btn" data-p="7" onclick="setPeriod(this,7)">7 أيام</button>
+      <button class="period-btn active" data-p="30" onclick="setPeriod(this,30)">30 يوم</button>
+      <button class="period-btn" data-p="90" onclick="setPeriod(this,90)">90 يوم</button>
+      <button class="period-btn" data-p="365" onclick="setPeriod(this,365)">سنة</button>
+    </div>
+    <a href="admin-kyc-queue.html" style="font-size:.88rem;color:var(--green);text-decoration:none;font-weight:600">← طابور المراجعة</a>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="val" id="kpiTotal">—</div><div class="lbl">إجمالي الطلبات</div><div class="delta up" id="dTotal">—</div></div>
+    <div class="kpi"><div class="val" id="kpiApproved">—</div><div class="lbl">معتمد</div><div class="delta up" id="dApproved">—</div></div>
+    <div class="kpi"><div class="val" id="kpiRejected">—</div><div class="lbl">مرفوض</div><div class="delta dn" id="dRejected">—</div></div>
+    <div class="kpi"><div class="val" id="kpiAvgTime">—</div><div class="lbl">متوسط وقت المعالجة (ساعات)</div><div class="delta up" id="dTime">—</div></div>
+  </div>
+
+  <div class="row2">
+    <!-- Status donut -->
+    <div class="card">
+      <div class="card-head"><h3>توزيع الحالات</h3></div>
+      <div class="donut-wrap">
+        <div class="donut" id="donut"></div>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <!-- Funnel -->
+    <div class="card">
+      <div class="card-head"><h3>مسار التحقق</h3></div>
+      <div class="funnel" id="funnelDiv"></div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <!-- Daily trend -->
+    <div class="card">
+      <div class="card-head"><h3>الاتجاه اليومي (آخر 14 يوم)</h3>
+        <div style="display:flex;gap:.75rem;font-size:.75rem">
+          <span style="display:flex;align-items:center;gap:.3rem"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>معتمد</span>
+          <span style="display:flex;align-items:center;gap:.3rem"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block"></span>مرفوض</span>
+          <span style="display:flex;align-items:center;gap:.3rem"><span style="width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block"></span>معلق</span>
+        </div>
+      </div>
+      <div class="trend-wrap"><div class="bar-row" id="trendChart"></div></div>
+    </div>
+
+    <!-- Rejection reasons -->
+    <div class="card">
+      <div class="card-head"><h3>أسباب الرفض</h3></div>
+      <div class="reasons-list" id="reasonsList"></div>
+    </div>
+  </div>
+
+  <!-- Recent submissions table -->
+  <div class="card">
+    <div class="card-head"><h3>آخر الطلبات</h3></div>
+    <table>
+      <thead>
+        <tr>
+          <th>المستخدم</th>
+          <th>نوع الوثيقة</th>
+          <th>تاريخ التقديم</th>
+          <th>مدة المعالجة</th>
+          <th>المراجع</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="kycTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+let period = 30;
+
+const REASONS = [
+  {label:'وثيقة منتهية الصلاحية', pct:34},
+  {label:'صورة غير واضحة', pct:28},
+  {label:'عدم تطابق البيانات', pct:18},
+  {label:'وثيقة غير مقبولة', pct:12},
+  {label:'أخرى', pct:8},
+];
+
+const FUNNEL = [
+  {label:'بدأوا التحقق', count:1240, color:'#0a4d36'},
+  {label:'رفعوا الوثائق', count:980, color:'#1a7a58'},
+  {label:'قيد المراجعة', count:420, color:'#b08840'},
+  {label:'طلب تعديل', count:180, color:'#e67e22'},
+  {label:'اعتماد ناهئ', count:820, color:'#27ae60'},
+];
+
+const RECENT = [
+  {name:'أحمد المطيري',doc:'هوية وطنية',date:'2026-06-15',hours:1.2,reviewer:'فريد',status:'approved'},
+  {name:'سارة العتيبي',doc:'إقامة',date:'2026-06-15',hours:2.5,reviewer:'لمى',status:'pending'},
+  {name:'خالد الدوسري',doc:'جواز سفر',date:'2026-06-14',hours:0.8,reviewer:'فريد',status:'approved'},
+  {name:'نورا الحربي',doc:'هوية وطنية',date:'2026-06-14',hours:3.1,reviewer:'—',status:'review'},
+  {name:'يوسف الشمري',doc:'هوية وطنية',date:'2026-06-13',hours:1.5,reviewer:'لمى',status:'rejected'},
+  {name:'ريم الغامدي',doc:'إقامة',date:'2026-06-13',hours:4.2,reviewer:'فريد',status:'approved'},
+];
+
+function setPeriod(el, p) {
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  period = p;
+  render();
+}
+
+function render() {
+  const mult = period / 30;
+  const total = Math.round(1240 * mult);
+  const approved = Math.round(820 * mult);
+  const rejected = Math.round(280 * mult);
+
+  const t = id => document.getElementById(id);
+  t('kpiTotal').textContent = total.toLocaleString('ar');
+  t('kpiApproved').textContent = approved.toLocaleString('ar');
+  t('kpiRejected').textContent = rejected.toLocaleString('ar');
+  t('kpiAvgTime').textContent = '2.3';
+  t('dTotal').textContent = '▲ +12% عن الفترة السابقة';
+  t('dApproved').textContent = '▲ معدل قبول ' + Math.round(approved/total*100) + '%';
+  t('dRejected').textContent = '▼ -5% عن الفترة السابقة';
+  t('dTime').textContent = '▼ -0.4 ساعة تحسّن';
+
+  // Donut (CSS conic-gradient)
+  const pending = total - approved - rejected;
+  const aP = Math.round(approved/total*360);
+  const rP = Math.round(rejected/total*360);
+  const donutEl = t('donut');
+  donutEl.style.background = `conic-gradient(var(--green) 0deg ${aP}deg, var(--red) ${aP}deg ${aP+rP}deg, var(--gold) ${aP+rP}deg 360deg)`;
+
+  const legendEl = t('donutLegend');
+  legendEl.textContent = '';
+  [
+    {color:'var(--green)',label:'معتمد',val:approved},
+    {color:'var(--red)',label:'مرفوض',val:rejected},
+    {color:'var(--gold)',label:'قيد المراجعة',val:pending},
+  ].forEach(({color,label,val}) => {
+    const item = document.createElement('div'); item.className = 'legend-item';
+    const dot = document.createElement('div'); dot.className = 'legend-dot'; dot.style.background = color;
+    const lbl = document.createElement('span'); lbl.textContent = label;
+    const v = document.createElement('span'); v.className = 'legend-val'; v.textContent = val.toLocaleString('ar');
+    item.appendChild(dot); item.appendChild(lbl); item.appendChild(v);
+    legendEl.appendChild(item);
+  });
+
+  // Funnel
+  const funnel = t('funnelDiv');
+  funnel.textContent = '';
+  const maxF = FUNNEL[0].count * mult;
+  FUNNEL.forEach(step => {
+    const row = document.createElement('div'); row.className = 'funnel-step';
+    const lbl = document.createElement('div'); lbl.className = 'funnel-lbl'; lbl.textContent = step.label;
+    const barWrap = document.createElement('div'); barWrap.className = 'funnel-bar-wrap';
+    const bar = document.createElement('div'); bar.className = 'funnel-bar';
+    const cnt = Math.round(step.count * mult);
+    bar.style.width = Math.round(cnt / maxF * 100) + '%';
+    bar.style.background = step.color;
+    const span = document.createElement('span'); span.textContent = cnt.toLocaleString('ar');
+    bar.appendChild(span); barWrap.appendChild(bar);
+    row.appendChild(lbl); row.appendChild(barWrap);
+    funnel.appendChild(row);
+  });
+
+  // Trend chart (14 days)
+  const chart = t('trendChart');
+  chart.textContent = '';
+  const days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const maxBar = 50;
+  for (let i = 13; i >= 0; i--) {
+    const a = Math.round(Math.random() * 35 + 10);
+    const r = Math.round(Math.random() * 10 + 2);
+    const p = Math.round(Math.random() * 8 + 1);
+    const H = 80;
+    const col = document.createElement('div'); col.className = 'bar-col';
+    [
+      {cls:'pending',h:Math.round(p/maxBar*H)},
+      {cls:'rejected',h:Math.round(r/maxBar*H)},
+      {cls:'approved',h:Math.round(a/maxBar*H)},
+    ].forEach(({cls,h}) => {
+      const seg = document.createElement('div'); seg.className = 'bar-seg ' + cls; seg.style.height = h + 'px';
+      col.appendChild(seg);
+    });
+    const lbl = document.createElement('div'); lbl.className = 'day-lbl'; lbl.textContent = days[(13-i)%7];
+    col.appendChild(lbl);
+    chart.appendChild(col);
+  }
+
+  // Rejection reasons
+  const rl = t('reasonsList');
+  rl.textContent = '';
+  REASONS.forEach(r => {
+    const row = document.createElement('div'); row.className = 'reason-row';
+    const lbl = document.createElement('div'); lbl.className = 'reason-lbl'; lbl.textContent = r.label;
+    const bw = document.createElement('div'); bw.className = 'reason-bar-wrap';
+    const bar = document.createElement('div'); bar.className = 'reason-bar'; bar.style.width = r.pct + '%';
+    bw.appendChild(bar);
+    const pct = document.createElement('div'); pct.className = 'reason-pct'; pct.textContent = r.pct + '%';
+    row.appendChild(lbl); row.appendChild(bw); row.appendChild(pct);
+    rl.appendChild(row);
+  });
+
+  // Recent table
+  const tbody = t('kycTbody');
+  tbody.textContent = '';
+  RECENT.forEach(r => {
+    const tr = document.createElement('tr');
+    const statusMap = {approved:'معتمد',pending:'معلق',rejected:'مرفوض',review:'قيد المراجعة'};
+    const badgeClass = {approved:'badge-approved',pending:'badge-pending',rejected:'badge-rejected',review:'badge-review'};
+    [r.name, r.doc, r.date, r.hours + ' ساعة', r.reviewer].forEach(v => {
+      const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+    });
+    const td = document.createElement('td');
+    const b = document.createElement('span');
+    b.className = 'badge ' + (badgeClass[r.status]||'');
+    b.textContent = statusMap[r.status] || r.status;
+    td.appendChild(b); tr.appendChild(td);
+    tbody.appendChild(tr);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

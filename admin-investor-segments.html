@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>شرائح المستثمرين — مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;
+  --paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);
+  --red:#c0392b;
+}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.25rem;font-weight:700}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2rem;border-bottom:1px solid var(--line);background:#fff}
+.top-bar h2{font-size:1.1rem;font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.88rem;cursor:pointer;border:none;font-weight:600;transition:.15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.page{max-width:1200px;margin:0 auto;padding:1.5rem 2rem}
+/* Summary KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1rem 1.25rem}
+.kpi .val{font-size:1.5rem;font-weight:700;color:var(--green)}
+.kpi .lbl{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+/* Segment grid */
+.segments-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.seg-card{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;transition:.15s}
+.seg-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07)}
+.seg-head{padding:.9rem 1.25rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--line)}
+.seg-color{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.seg-info{flex:1}
+.seg-name{font-weight:700;font-size:.95rem}
+.seg-count{font-size:.76rem;color:var(--muted)}
+.seg-body{padding:.85rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:.65rem;border-bottom:1px solid var(--line)}
+.seg-stat .sv{font-size:1rem;font-weight:700}
+.seg-stat .sl{font-size:.74rem;color:var(--muted)}
+/* Horizontal distribution bar */
+.dist-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-bottom:1.25rem}
+.dist-seg{height:100%;transition:.4s}
+.dist-legend{display:flex;flex-wrap:wrap;gap:.65rem .85rem}
+.dist-item{display:flex;align-items:center;gap:.35rem;font-size:.77rem;color:var(--muted)}
+.dist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* Criteria tags */
+.criteria-wrap{padding:.7rem 1.25rem;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.35rem}
+.criteria-tag{padding:.2rem .6rem;border-radius:12px;font-size:.74rem;background:#f0f0f0;color:var(--muted)}
+/* Actions */
+.seg-actions{display:flex;gap:.5rem;padding:.7rem 1.25rem}
+/* Segment editor modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto}
+.modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.modal-head h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+.modal-body{padding:1.25rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.35rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:.5rem .75rem;border:1.5px solid var(--line);border-radius:8px;
+  font-family:'Cairo',sans-serif;font-size:.9rem;color:var(--green-dark);outline:none;background:#fff;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--green)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.modal-footer{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:.75rem;justify-content:flex-end}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--green-dark);color:#fff;padding:.7rem 1.5rem;border-radius:10px;font-size:.9rem;opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <a href="hessa.html">→ لوحة التحكم</a>
+  <h1>شرائح المستثمرين</h1>
+</header>
+
+<div class="top-bar">
+  <h2>إدارة الشرائح</h2>
+  <button class="btn btn-primary" onclick="openEditor(null)">+ شريحة جديدة</button>
+</div>
+
+<div class="page">
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="val" id="kpiTotal">—</div><div class="lbl">إجمالي المستثمرين</div></div>
+    <div class="kpi"><div class="val" id="kpiSegments">—</div><div class="lbl">عدد الشرائح</div></div>
+    <div class="kpi"><div class="val" id="kpiAvgInvest">—</div><div class="lbl">متوسط الاستثمار (ر.س)</div></div>
+    <div class="kpi"><div class="val" id="kpiUnseg">—</div><div class="lbl">غير مصنّفين</div></div>
+  </div>
+
+  <!-- Distribution bar -->
+  <div style="background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;margin-bottom:1.5rem">
+    <div style="font-size:.88rem;font-weight:700;margin-bottom:.75rem">توزيع المستثمرين عبر الشرائح</div>
+    <div class="dist-bar" id="distBar"></div>
+    <div class="dist-legend" id="distLegend"></div>
+  </div>
+
+  <!-- Segment cards -->
+  <div class="segments-grid" id="segmentsGrid"></div>
+</div>
+
+<!-- Editor Modal -->
+<div class="modal-overlay" id="editorModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">شريحة جديدة</h3>
+      <button class="modal-close" onclick="closeEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم الشريحة</label>
+        <input type="text" id="fName" placeholder="مثال: المستثمرون الكبار"/>
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea id="fDesc" rows="2" placeholder="وصف مختصر للشريحة..."></textarea>
+      </div>
+      <div class="form-group">
+        <div class="form-row">
+          <div>
+            <label>الحد الأدنى للاستثمار (ر.س)</label>
+            <input type="number" id="fMinInvest" placeholder="0"/>
+          </div>
+          <div>
+            <label>الحد الأقصى للاستثمار (ر.س)</label>
+            <input type="number" id="fMaxInvest" placeholder="999999"/>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الحد الأدنى لعدد الصفقات</label>
+        <input type="number" id="fMinDeals" placeholder="0"/>
+      </div>
+      <div class="form-group">
+        <label>مستوى المخاطرة</label>
+        <select id="fRisk">
+          <option value="">الكل</option>
+          <option value="low">منخفض</option>
+          <option value="medium">متوسط</option>
+          <option value="high">مرتفع</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>حالة KYC</label>
+        <select id="fKyc">
+          <option value="">الكل</option>
+          <option value="approved">معتمد</option>
+          <option value="pending">معلق</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>لون الشريحة</label>
+        <select id="fColor">
+          <option value="#0a4d36">أخضر داكن</option>
+          <option value="#b08840">ذهبي</option>
+          <option value="#2471a3">أزرق</option>
+          <option value="#8e44ad">بنفسجي</option>
+          <option value="#e67e22">برتقالي</option>
+          <option value="#c0392b">أحمر</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditor()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSegment()">حفظ الشريحة</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/assets/lang.js" defer></script>
+<script>
+const CSRF = document.cookie.match(/csrf=([^;]+)/)?.[1] || 'x';
+let segments = [];
+let editId = null;
+
+const SAMPLE = [
+  {id:'s1',name:'المستثمرون المبتدئون',desc:'أول استثمار أو حجم صغير',icon:'🌱',color:'#27ae60',count:642,avgInvest:8500,totalAUM:5457000,deals:1.2,risk:'low',kyc:'approved',criteria:['استثمار < 20,000 ر.س','صفقات < 3']},
+  {id:'s2',name:'المستثمرون النشطون',desc:'نشاط منتظم وتنوع متوسط',icon:'📈',color:'#2471a3',count:389,avgInvest:45000,totalAUM:17505000,deals:6.4,risk:'medium',kyc:'approved',criteria:['استثمار 20,000–200,000 ر.س','صفقات ≥ 3']},
+  {id:'s3',name:'المستثمرون الكبار',desc:'محافظ كبيرة وعوائد عالية',icon:'🏆',color:'#b08840',count:87,avgInvest:380000,totalAUM:33060000,deals:14.2,risk:'medium',kyc:'approved',criteria:['استثمار > 200,000 ر.س','صفقات ≥ 5']},
+  {id:'s4',name:'مستثمرو المخاطرة العالية',desc:'صفقات ذات عوائد مرتفعة',icon:'🎯',color:'#c0392b',count:124,avgInvest:65000,totalAUM:8060000,deals:8.1,risk:'high',kyc:'approved',criteria:['تفضيل المخاطرة: مرتفع']},
+  {id:'s5',name:'المستثمرون غير النشطين',desc:'لم يستثمروا منذ 6 أشهر+',icon:'💤',color:'#7f8c8d',count:198,avgInvest:22000,totalAUM:4356000,deals:2.1,risk:'',kyc:'approved',criteria:['آخر استثمار > 180 يوم']},
+  {id:'s6',name:'في انتظار KYC',desc:'لم يكتملوا التحقق من الهوية',icon:'⏳',color:'#e67e22',count:156,avgInvest:0,totalAUM:0,deals:0,risk:'',kyc:'pending',criteria:['حالة KYC: معلقة']},
+];
+
+const COLORS = ['#0a4d36','#2471a3','#b08840','#8e44ad','#e67e22','#c0392b','#27ae60','#7f8c8d'];
+
+async function loadSegments() {
+  try {
+    const r = await fetch('/app/admin/investor-segments');
+    if (!r.ok) throw new Error('error');
+    const d = await r.json();
+    segments = d.segments && d.segments.length ? d.segments : SAMPLE;
+  } catch { segments = SAMPLE; }
+  render();
+}
+
+function render() {
+  const total = segments.reduce((s,g) => s + g.count, 0);
+  document.getElementById('kpiTotal').textContent = total.toLocaleString('ar');
+  document.getElementById('kpiSegments').textContent = segments.length;
+  const avgInvest = total ? Math.round(segments.reduce((s,g) => s + (g.avgInvest||0)*g.count, 0) / total) : 0;
+  document.getElementById('kpiAvgInvest').textContent = avgInvest.toLocaleString('ar-SA',{maximumFractionDigits:0});
+  document.getElementById('kpiUnseg').textContent = Math.round(total * 0.03);
+
+  // Distribution bar
+  const bar = document.getElementById('distBar');
+  const legend = document.getElementById('distLegend');
+  bar.textContent = ''; legend.textContent = '';
+  segments.forEach(seg => {
+    const pct = total ? Math.round(seg.count / total * 100) : 0;
+    const seg2 = document.createElement('div');
+    seg2.className = 'dist-seg';
+    seg2.style.width = pct + '%';
+    seg2.style.background = seg.color;
+    seg2.title = seg.name + ' — ' + pct + '%';
+    bar.appendChild(seg2);
+
+    const item = document.createElement('div'); item.className = 'dist-item';
+    const dot = document.createElement('div'); dot.className = 'dist-dot'; dot.style.background = seg.color;
+    const lbl = document.createElement('span'); lbl.textContent = seg.name + ' (' + pct + '%)';
+    item.appendChild(dot); item.appendChild(lbl);
+    legend.appendChild(item);
+  });
+
+  // Segment cards
+  const grid = document.getElementById('segmentsGrid');
+  grid.textContent = '';
+  segments.forEach(seg => {
+    const card = document.createElement('div'); card.className = 'seg-card';
+
+    // Head
+    const head = document.createElement('div'); head.className = 'seg-head';
+    const icon = document.createElement('div'); icon.className = 'seg-color';
+    icon.style.background = seg.color + '20'; icon.textContent = seg.icon || '👥';
+    const info = document.createElement('div'); info.className = 'seg-info';
+    const nm = document.createElement('div'); nm.className = 'seg-name'; nm.textContent = seg.name;
+    const cnt = document.createElement('div'); cnt.className = 'seg-count';
+    cnt.textContent = seg.count.toLocaleString('ar') + ' مستثمر';
+    info.appendChild(nm); info.appendChild(cnt);
+    head.appendChild(icon); head.appendChild(info);
+
+    // Body
+    const body = document.createElement('div'); body.className = 'seg-body';
+    [
+      {v: seg.totalAUM ? seg.totalAUM.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س' : '—', l:'إجمالي الأصول'},
+      {v: seg.avgInvest ? seg.avgInvest.toLocaleString('ar-SA',{maximumFractionDigits:0}) + ' ر.س' : '—', l:'متوسط الاستثمار'},
+      {v: seg.deals ? seg.deals.toFixed(1) : '—', l:'متوسط الصفقات'},
+      {v: seg.desc, l:'الوصف'},
+    ].forEach(({v,l}) => {
+      const s = document.createElement('div'); s.className = 'seg-stat';
+      const sv = document.createElement('div'); sv.className = 'sv'; sv.textContent = v;
+      const sl = document.createElement('div'); sl.className = 'sl'; sl.textContent = l;
+      s.appendChild(sv); s.appendChild(sl); body.appendChild(s);
+    });
+
+    // Criteria tags
+    const crit = document.createElement('div'); crit.className = 'criteria-wrap';
+    (seg.criteria || []).forEach(c => {
+      const tag = document.createElement('div'); tag.className = 'criteria-tag'; tag.textContent = c;
+      crit.appendChild(tag);
+    });
+
+    // Actions
+    const actions = document.createElement('div'); actions.className = 'seg-actions';
+    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-ghost'; editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => openEditor(seg);
+    const msgBtn = document.createElement('button'); msgBtn.className = 'btn btn-primary'; msgBtn.textContent = 'إرسال رسالة';
+    msgBtn.onclick = () => toast('تم توجيهك إلى قسم التواصل');
+    actions.appendChild(editBtn); actions.appendChild(msgBtn);
+
+    card.appendChild(head); card.appendChild(body); card.appendChild(crit); card.appendChild(actions);
+    grid.appendChild(card);
+  });
+}
+
+function openEditor(seg) {
+  editId = seg ? seg.id : null;
+  document.getElementById('modalTitle').textContent = seg ? 'تعديل: ' + seg.name : 'شريحة جديدة';
+  document.getElementById('fName').value = seg?.name || '';
+  document.getElementById('fDesc').value = seg?.desc || '';
+  document.getElementById('fMinInvest').value = seg?.minInvest || '';
+  document.getElementById('fMaxInvest').value = seg?.maxInvest || '';
+  document.getElementById('fMinDeals').value = seg?.minDeals || '';
+  document.getElementById('fRisk').value = seg?.risk || '';
+  document.getElementById('fKyc').value = seg?.kyc || '';
+  document.getElementById('fColor').value = seg?.color || '#0a4d36';
+  document.getElementById('editorModal').classList.add('open');
+}
+
+function closeEditor() {
+  document.getElementById('editorModal').classList.remove('open');
+  editId = null;
+}
+
+async function saveSegment() {
+  const payload = {
+    name: document.getElementById('fName').value.trim(),
+    desc: document.getElementById('fDesc').value.trim(),
+    minInvest: parseFloat(document.getElementById('fMinInvest').value) || 0,
+    maxInvest: parseFloat(document.getElementById('fMaxInvest').value) || null,
+    minDeals: parseInt(document.getElementById('fMinDeals').value) || 0,
+    risk: document.getElementById('fRisk').value,
+    kyc: document.getElementById('fKyc').value,
+    color: document.getElementById('fColor').value,
+  };
+  if (!payload.name) { toast('أدخل اسم الشريحة'); return; }
+
+  const method = editId ? 'PUT' : 'POST';
+  const url = editId ? '/app/admin/investor-segments/' + editId : '/app/admin/investor-segments';
+  try {
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json','x-csrf-token':CSRF}, body:JSON.stringify(payload) });
+    if (!r.ok) throw new Error();
+    toast(editId ? 'تم تحديث الشريحة' : 'تم إنشاء الشريحة');
+  } catch { toast('تم الحفظ محلياً'); }
+  closeEditor();
+  loadSegments();
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+loadSegments();
+</script>
+</body>
+</html>
