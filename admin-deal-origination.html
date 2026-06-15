@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مسار إنشاء الصفقات - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.pipeline-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.stat-val{font-size:1.8rem;font-weight:700;color:var(--green);}
+.stat-lbl{font-size:0.78rem;color:var(--muted);margin-top:0.25rem;}
+.stat-change{font-size:0.72rem;color:#27ae60;margin-top:0.2rem;}
+.pipeline-board{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;}
+.pipeline-col{background:#fff;border-radius:12px;border:1px solid var(--line);overflow:hidden;}
+.col-head{padding:0.75rem 1rem;font-size:0.82rem;font-weight:700;text-align:center;}
+.stage-screening .col-head{background:#e8f5ed;color:#1e8449;}
+.stage-review .col-head{background:#fef3cd;color:#92400e;}
+.stage-dd .col-head{background:#e8f0fd;color:#1a56a0;}
+.stage-pricing .col-head{background:#fde8f5;color:#8e1a6e;}
+.stage-ready .col-head{background:#e8f5ed;color:#0a4d36;}
+.col-count{font-size:0.7rem;font-weight:400;opacity:0.7;}
+.deal-card{margin:0.5rem;background:var(--paper);border-radius:8px;padding:0.75rem;border:1px solid var(--line);}
+.deal-card-title{font-size:0.8rem;font-weight:700;margin-bottom:0.3rem;}
+.deal-card-meta{font-size:0.7rem;color:var(--muted);}
+.deal-card-amount{font-size:0.85rem;font-weight:700;color:var(--green);margin-top:0.4rem;}
+.deal-card-tag{display:inline-block;font-size:0.65rem;padding:0.15rem 0.5rem;border-radius:10px;margin-top:0.3rem;}
+.tag-real{background:#e8f5ed;color:#1e8449;}
+.tag-trade{background:#fef3cd;color:#92400e;}
+.tag-industry{background:#e8f0fd;color:#1a56a0;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.status-pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-new{background:#e8f5ed;color:#1e8449;}
+.pill-progress{background:#fef3cd;color:#92400e;}
+.pill-review{background:#e8f0fd;color:#1a56a0;}
+.action-bar{padding:1rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.75rem;}
+@media(max-width:900px){.pipeline-board{grid-template-columns:1fr 1fr;}.pipeline-stats{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — إنشاء الصفقات</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>مسار إنشاء الصفقات</h2>
+      <p>تتبع الصفقات من مرحلة الاستكشاف حتى النشر</p>
+    </div>
+    <button class="btn btn-primary" onclick="addDeal()">+ إضافة صفقة جديدة</button>
+  </div>
+
+  <div class="pipeline-stats" id="pipelineStats"></div>
+
+  <div class="pipeline-board">
+    <div class="pipeline-col stage-screening">
+      <div class="col-head">الفرز الأولي <span class="col-count">(٤)</span></div>
+      <div id="colScreening"></div>
+    </div>
+    <div class="pipeline-col stage-review">
+      <div class="col-head">المراجعة <span class="col-count">(٣)</span></div>
+      <div id="colReview"></div>
+    </div>
+    <div class="pipeline-col stage-dd">
+      <div class="col-head">العناية الواجبة <span class="col-count">(٢)</span></div>
+      <div id="colDD"></div>
+    </div>
+    <div class="pipeline-col stage-pricing">
+      <div class="col-head">التسعير <span class="col-count">(٢)</span></div>
+      <div id="colPricing"></div>
+    </div>
+    <div class="pipeline-col stage-ready">
+      <div class="col-head">جاهز للنشر <span class="col-count">(١)</span></div>
+      <div id="colReady"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>قائمة الصفقات المقترحة</h3>
+      <button class="btn btn-gold btn-sm" onclick="exportPipeline()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>اسم الصفقة</th>
+          <th>النوع</th>
+          <th>الحجم المقدّر</th>
+          <th>مقدّم الطلب</th>
+          <th>تاريخ التقديم</th>
+          <th>المرحلة</th>
+        </tr>
+      </thead>
+      <tbody id="dealTable"></tbody>
+    </table>
+    <div class="action-bar">
+      <button class="btn btn-primary btn-sm" onclick="addDeal()">إضافة صفقة</button>
+      <button class="btn btn-sm" style="background:#f5f0e8;color:var(--green-dark);" onclick="filterDeals()">تصفية</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STATS = [
+  { val: '١٢', lbl: 'صفقة في المسار', change: '+٢ هذا الشهر' },
+  { val: '٣٤م', lbl: 'إجمالي حجم المسار', change: 'ر.س' },
+  { val: '٤٥ يوم', lbl: 'متوسط دورة الصفقة', change: '-٥ أيام' },
+  { val: '٦٢٪', lbl: 'معدل نجاح التحويل', change: '+٣٪' }
+];
+
+const SCREENING = [
+  { title: 'مرابحة عقارية — الرياض', meta: 'عقارات سكنية', amount: '٥م ر.س', tag: 'tag-real', tagLbl: 'عقار' },
+  { title: 'مرابحة تجارية — جدة', meta: 'استيراد وتصدير', amount: '٢م ر.س', tag: 'tag-trade', tagLbl: 'تجاري' },
+  { title: 'مرابحة صناعية — الدمام', meta: 'تصنيع', amount: '٨م ر.س', tag: 'tag-industry', tagLbl: 'صناعي' },
+  { title: 'مرابحة لوجستية', meta: 'نقل وشحن', amount: '١.٥م ر.س', tag: 'tag-trade', tagLbl: 'تجاري' }
+];
+
+const REVIEW = [
+  { title: 'مرابحة بنية تحتية', meta: 'مشاريع عامة', amount: '١٢م ر.س', tag: 'tag-industry', tagLbl: 'صناعي' },
+  { title: 'مرابحة تجزئة', meta: 'مراكز تجارية', amount: '٣م ر.س', tag: 'tag-real', tagLbl: 'عقار' },
+  { title: 'مرابحة زراعية', meta: 'منتجات زراعية', amount: '٠.٨م ر.س', tag: 'tag-trade', tagLbl: 'تجاري' }
+];
+
+const DD = [
+  { title: 'مرابحة تقنية', meta: 'شركات ناشئة', amount: '٤م ر.س', tag: 'tag-industry', tagLbl: 'صناعي' },
+  { title: 'مرابحة ضيافة', meta: 'فنادق وسياحة', amount: '٦م ر.س', tag: 'tag-real', tagLbl: 'عقار' }
+];
+
+const PRICING = [
+  { title: 'مرابحة طاقة متجددة', meta: 'مشاريع شمسية', amount: '١٠م ر.س', tag: 'tag-industry', tagLbl: 'صناعي' },
+  { title: 'مرابحة رعاية صحية', meta: 'مستشفيات', amount: '٧م ر.س', tag: 'tag-trade', tagLbl: 'تجاري' }
+];
+
+const READY = [
+  { title: 'مرابحة عقارية الرياض ٢', meta: 'فلل سكنية', amount: '٣م ر.س', tag: 'tag-real', tagLbl: 'عقار' }
+];
+
+const TABLE_DATA = [
+  { name: 'مرابحة عقارية الرياض ٢', type: 'عقار', amount: '٣م', applicant: 'شركة التطوير العقاري', date: '٢٠٢٦/٠٥/١٠', stage: 'جاهز للنشر', scls: 'pill-new' },
+  { name: 'مرابحة طاقة متجددة', type: 'صناعي', amount: '١٠م', applicant: 'مجموعة الطاقة الخضراء', date: '٢٠٢٦/٠٤/٢٢', stage: 'التسعير', scls: 'pill-progress' },
+  { name: 'مرابحة تقنية', type: 'صناعي', amount: '٤م', applicant: 'شركة ابتكار التقنية', date: '٢٠٢٦/٠٤/١٥', stage: 'العناية الواجبة', scls: 'pill-review' },
+  { name: 'مرابحة بنية تحتية', type: 'صناعي', amount: '١٢م', applicant: 'مجموعة البنية', date: '٢٠٢٦/٠٣/٣٠', stage: 'المراجعة', scls: 'pill-progress' },
+  { name: 'مرابحة عقارية الرياض', type: 'عقار', amount: '٥م', applicant: 'العقارية الحديثة', date: '٢٠٢٦/٠٣/١٢', stage: 'الفرز الأولي', scls: 'pill-new' }
+];
+
+function buildStats() {
+  const wrap = document.getElementById('pipelineStats');
+  STATS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    const val = document.createElement('div');
+    val.className = 'stat-val';
+    val.textContent = s.val;
+    const lbl = document.createElement('div');
+    lbl.className = 'stat-lbl';
+    lbl.textContent = s.lbl;
+    const chg = document.createElement('div');
+    chg.className = 'stat-change';
+    chg.textContent = s.change;
+    card.appendChild(val); card.appendChild(lbl); card.appendChild(chg);
+    wrap.appendChild(card);
+  });
+}
+
+function buildCol(id, items) {
+  const col = document.getElementById(id);
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'deal-card';
+    const title = document.createElement('div');
+    title.className = 'deal-card-title';
+    title.textContent = item.title;
+    const meta = document.createElement('div');
+    meta.className = 'deal-card-meta';
+    meta.textContent = item.meta;
+    const amount = document.createElement('div');
+    amount.className = 'deal-card-amount';
+    amount.textContent = item.amount;
+    const tag = document.createElement('span');
+    tag.className = 'deal-card-tag ' + item.tag;
+    tag.textContent = item.tagLbl;
+    card.appendChild(title); card.appendChild(meta); card.appendChild(amount); card.appendChild(tag);
+    col.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const tbody = document.getElementById('dealTable');
+  TABLE_DATA.forEach(row => {
+    const tr = document.createElement('tr');
+    [row.name, row.type, row.amount + 'م ر.س', row.applicant, row.date].forEach(text => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.appendChild(td);
+    });
+    const stageTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'status-pill ' + row.scls;
+    pill.textContent = row.stage;
+    stageTd.appendChild(pill);
+    tr.appendChild(stageTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function addDeal() {
+  alert('فتح نموذج إضافة صفقة جديدة');
+}
+
+function filterDeals() {
+  alert('فتح خيارات التصفية');
+}
+
+function exportPipeline() {
+  fetch('/app/admin/deals/origination/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير بيانات المسار...');
+}
+
+buildStats();
+buildCol('colScreening', SCREENING);
+buildCol('colReview', REVIEW);
+buildCol('colDD', DD);
+buildCol('colPricing', PRICING);
+buildCol('colReady', READY);
+buildTable();
+</script>
+</body>
+</html>

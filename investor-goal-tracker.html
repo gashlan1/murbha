@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متابعة الأهداف - مُرابحة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#062b1e;--green:#0a4d36;--gold:#b08840;--paper:#fbf6ea;--muted:#6b7268;--line:rgba(13,22,18,0.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--paper);color:var(--green-dark);min-height:100vh;}
+header{background:var(--green-dark);color:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+header h1{font-size:1.3rem;font-weight:700;}
+header a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;}
+header a:hover{color:#fff;}
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-header h2{font-size:1.5rem;font-weight:700;}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem;}
+.btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;transition:background 0.2s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-sm{padding:0.35rem 0.8rem;font-size:0.82rem;}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.sum-card{background:#fff;border-radius:12px;border:1px solid var(--line);padding:1.25rem;text-align:center;}
+.sum-val{font-size:1.6rem;font-weight:700;color:var(--green);}
+.sum-lbl{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
+.goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem;}
+.goal-card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;}
+.goal-card-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:0.75rem;}
+.goal-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.icon-home{background:#e8f5ed;}
+.icon-edu{background:#fef3cd;}
+.icon-hajj{background:#e8f0fd;}
+.icon-retire{background:#fde8f5;}
+.goal-title{font-size:0.9rem;font-weight:700;}
+.goal-category{font-size:0.72rem;color:var(--muted);}
+.goal-body{padding:1rem 1.25rem;}
+.goal-amounts{display:flex;justify-content:space-between;margin-bottom:0.75rem;}
+.goal-current{font-size:1rem;font-weight:700;color:var(--green);}
+.goal-target{font-size:0.78rem;color:var(--muted);}
+.progress-bar{background:var(--line);border-radius:10px;height:8px;margin-bottom:0.5rem;}
+.progress-fill{height:8px;border-radius:10px;background:var(--green);transition:width 0.4s;}
+.progress-fill.warn{background:#e67e22;}
+.progress-fill.good{background:#27ae60;}
+.goal-meta{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);}
+.goal-footer{padding:0.75rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:0.5rem;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.5rem;}
+.card-head{background:var(--green-dark);color:#fff;padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.card-head h3{font-size:1rem;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f5f0e8;padding:0.65rem 1rem;font-size:0.78rem;font-weight:700;text-align:right;color:var(--muted);}
+td{padding:0.65rem 1rem;font-size:0.82rem;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:0.2rem 0.6rem;border-radius:10px;font-size:0.72rem;font-weight:600;}
+.pill-on-track{background:#e8f5ed;color:#1e8449;}
+.pill-at-risk{background:#fef3cd;color:#92400e;}
+.pill-behind{background:#fde8e8;color:#c0392b;}
+.add-goal-btn{display:block;width:100%;padding:1.5rem;border:2px dashed var(--line);border-radius:14px;background:transparent;font-family:'Cairo',sans-serif;font-size:0.9rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;margin-bottom:2rem;text-align:center;}
+.add-goal-btn:hover{border-color:var(--green);color:var(--green);}
+@media(max-width:650px){.goals-grid{grid-template-columns:1fr;}.summary-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>مُرابحة — الأهداف</h1>
+  <a href="hessa.html">→ العودة للرئيسية</a>
+</header>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>متابعة الأهداف الاستثمارية</h2>
+      <p>تتبع تقدمك نحو أهدافك المالية</p>
+    </div>
+    <button class="btn btn-primary" onclick="addGoal()">+ هدف جديد</button>
+  </div>
+
+  <div class="summary-row" id="summaryRow"></div>
+
+  <div class="goals-grid" id="goalsGrid"></div>
+
+  <button class="add-goal-btn" onclick="addGoal()">+ أضف هدفاً جديداً</button>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>سجل المساهمات الشهرية</h3>
+      <button class="btn btn-sm btn-gold" onclick="exportGoals()">تصدير</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>الهدف</th>
+          <th>المساهمة</th>
+          <th>التاريخ</th>
+          <th>الإجمالي المتراكم</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="contribTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const SUMMARY = [
+  { val: '٤', lbl: 'أهداف نشطة' },
+  { val: '٢٦٧,٠٠٠ ر.س', lbl: 'إجمالي المدخر' },
+  { val: '٦٨٪', lbl: 'متوسط الإنجاز' }
+];
+
+const GOALS = [
+  {
+    icon: '🏠', iconCls: 'icon-home', title: 'دفعة أولى لمنزل', category: 'عقار',
+    current: 120000, target: 200000, monthly: 3000, deadline: 'ديسمبر ٢٠٢٧', status: 'on-track'
+  },
+  {
+    icon: '🎓', iconCls: 'icon-edu', title: 'تعليم الأبناء', category: 'تعليم',
+    current: 85000, target: 150000, monthly: 2000, deadline: 'سبتمبر ٢٠٢٩', status: 'on-track'
+  },
+  {
+    icon: '🕋', iconCls: 'icon-hajj', title: 'الحج والعمرة', category: 'ديني',
+    current: 18000, target: 30000, monthly: 500, deadline: 'مارس ٢٠٢٧', status: 'at-risk'
+  },
+  {
+    icon: '🌅', iconCls: 'icon-retire', title: 'صندوق التقاعد', category: 'تقاعد',
+    current: 44000, target: 500000, monthly: 1500, deadline: 'يناير ٢٠٤٥', status: 'behind'
+  }
+];
+
+const CONTRIBS = [
+  { goal: 'دفعة أولى لمنزل', amount: '٣,٠٠٠', date: '٢٠٢٦/٠٦/٠١', total: '١٢٠,٠٠٠', pill: 'pill-on-track', status: 'في الموعد' },
+  { goal: 'تعليم الأبناء', amount: '٢,٠٠٠', date: '٢٠٢٦/٠٦/٠١', total: '٨٥,٠٠٠', pill: 'pill-on-track', status: 'في الموعد' },
+  { goal: 'الحج والعمرة', amount: '٥٠٠', date: '٢٠٢٦/٠٦/٠١', total: '١٨,٠٠٠', pill: 'pill-at-risk', status: 'يحتاج مراجعة' },
+  { goal: 'صندوق التقاعد', amount: '١,٥٠٠', date: '٢٠٢٦/٠٦/٠١', total: '٤٤,٠٠٠', pill: 'pill-behind', status: 'متأخر' },
+  { goal: 'دفعة أولى لمنزل', amount: '٣,٠٠٠', date: '٢٠٢٦/٠٥/٠١', total: '١١٧,٠٠٠', pill: 'pill-on-track', status: 'في الموعد' }
+];
+
+function buildSummary() {
+  const wrap = document.getElementById('summaryRow');
+  SUMMARY.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'sum-card';
+    const val = document.createElement('div');
+    val.className = 'sum-val';
+    val.textContent = s.val;
+    const lbl = document.createElement('div');
+    lbl.className = 'sum-lbl';
+    lbl.textContent = s.lbl;
+    card.appendChild(val); card.appendChild(lbl);
+    wrap.appendChild(card);
+  });
+}
+
+function buildGoals() {
+  const grid = document.getElementById('goalsGrid');
+  GOALS.forEach(g => {
+    const pct = Math.round((g.current / g.target) * 100);
+    const card = document.createElement('div');
+    card.className = 'goal-card';
+
+    const head = document.createElement('div');
+    head.className = 'goal-card-head';
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'goal-icon ' + g.iconCls;
+    iconDiv.textContent = g.icon;
+    const titleWrap = document.createElement('div');
+    const titleEl = document.createElement('div');
+    titleEl.className = 'goal-title';
+    titleEl.textContent = g.title;
+    const catEl = document.createElement('div');
+    catEl.className = 'goal-category';
+    catEl.textContent = g.category;
+    titleWrap.appendChild(titleEl); titleWrap.appendChild(catEl);
+    head.appendChild(iconDiv); head.appendChild(titleWrap);
+
+    const body = document.createElement('div');
+    body.className = 'goal-body';
+    const amounts = document.createElement('div');
+    amounts.className = 'goal-amounts';
+    const curr = document.createElement('div');
+    curr.className = 'goal-current';
+    curr.textContent = g.current.toLocaleString('ar-SA') + ' ر.س';
+    const tgt = document.createElement('div');
+    tgt.className = 'goal-target';
+    tgt.textContent = 'من ' + g.target.toLocaleString('ar-SA') + ' ر.س';
+    amounts.appendChild(curr); amounts.appendChild(tgt);
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill ' + (pct >= 70 ? 'good' : pct >= 40 ? '' : 'warn');
+    fill.style.width = pct + '%';
+    bar.appendChild(fill);
+    const meta = document.createElement('div');
+    meta.className = 'goal-meta';
+    const pctEl = document.createElement('span');
+    pctEl.textContent = pct + '٪ مكتمل';
+    const dl = document.createElement('span');
+    dl.textContent = g.deadline;
+    meta.appendChild(pctEl); meta.appendChild(dl);
+    body.appendChild(amounts); body.appendChild(bar); body.appendChild(meta);
+
+    const footer = document.createElement('div');
+    footer.className = 'goal-footer';
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn btn-primary btn-sm';
+    addBtn.textContent = 'إضافة مساهمة';
+    addBtn.onclick = () => addContribution(g.title);
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm';
+    editBtn.style.cssText = 'background:#f5f0e8;color:var(--green-dark);';
+    editBtn.textContent = 'تعديل';
+    editBtn.onclick = () => editGoal(g.title);
+    footer.appendChild(addBtn); footer.appendChild(editBtn);
+
+    card.appendChild(head); card.appendChild(body); card.appendChild(footer);
+    grid.appendChild(card);
+  });
+}
+
+function buildTable() {
+  const tbody = document.getElementById('contribTable');
+  CONTRIBS.forEach(c => {
+    const tr = document.createElement('tr');
+    [c.goal, c.amount + ' ر.س', c.date, c.total + ' ر.س'].forEach(text => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.appendChild(td);
+    });
+    const pillTd = document.createElement('td');
+    const pill = document.createElement('span');
+    pill.className = 'pill ' + c.pill;
+    pill.textContent = c.status;
+    pillTd.appendChild(pill);
+    tr.appendChild(pillTd);
+    tbody.appendChild(tr);
+  });
+}
+
+function addGoal() {
+  fetch('/app/me/goals', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ name: 'هدف جديد' })
+  }).catch(() => {});
+  alert('فتح نموذج إضافة هدف جديد');
+}
+
+function addContribution(goalTitle) {
+  fetch('/app/me/goals/contribution', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': 'demo-token' },
+    body: JSON.stringify({ goal: goalTitle })
+  }).catch(() => {});
+  alert('إضافة مساهمة للهدف: ' + goalTitle);
+}
+
+function editGoal(goalTitle) {
+  alert('تعديل الهدف: ' + goalTitle);
+}
+
+function exportGoals() {
+  fetch('/app/me/goals/export').then(r => r.json()).catch(() => {});
+  alert('جاري تصدير سجل الأهداف...');
+}
+
+buildSummary();
+buildGoals();
+buildTable();
+</script>
+</body>
+</html>
